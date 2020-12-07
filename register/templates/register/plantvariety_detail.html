@@ -1,0 +1,6 @@
+{% extends "register/base.html" %}
+{% block title %}Species{% endblock %}
+{% block container %}
+<h1>Variety {{ variety.name }}</h1>
+{{ variety.species.common_name }}
+{% endblock %}

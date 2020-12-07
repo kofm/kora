@@ -1,0 +1,8 @@
+{% extends "register/base.html" %}
+{% block title %}Species{% endblock %}
+{% block container %}
+<h1>Species {{ species.common_name }}</h1>
+{% for variety in species.variety.all %}
+<a href="{% url 'variety_detail' variety.id %}">{{ variety }}</a>
+{% endfor %}
+{% endblock %}

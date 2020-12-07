@@ -1,0 +1,12 @@
+{% extends "register/base.html" %}
+{% block title %}Species{% endblock %}
+{% block container %}
+<h1>Species</h1>
+<ul>
+	{% for specie in object_list %}
+	<li>
+		<a href="{% url 'plantspecie_detail' specie.id %}"> {{ specie.common_name }} </a> (<i>{{ specie.latin_name }}</i>)
+	</li>
+	{% endfor %}
+</ul>
+{% endblock %}
