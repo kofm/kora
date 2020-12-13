@@ -1,6 +1,11 @@
-{% extends "register/base.html" %}
+{% extends "frontpage/base.html" %}
 {% block title %}Species{% endblock %}
 {% block container %}
 <h1>Variety {{ variety.name }}</h1>
 {{ variety.species.common_name }}
+<ul>
+	{% for description in variety.description_set.all %}
+	<li><a href="{% url "describe:description_detail" description.id %}">{{ description.name }}</a></li>
+	{% endfor %}
+</ul>
 {% endblock %}

@@ -1,0 +1,10 @@
+{% extends "frontpage/base.html" %}
+{% block title %}Persefone{% endblock %}
+
+{% block container %}
+<h1>Persefone</h1>
+<p><a href="{% url 'register:species_list' %}">List of species</a></p>
+<p><a href="{% url 'describe:descriptions_list' %}">List of descriptions</a></p>
+<p><a href="{% url 'describe:protocols_list' %}">List of protocols</a></p>
+{% endblock %}
+

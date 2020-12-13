@@ -1,0 +1,25 @@
+{% extends "frontpage/base.html" %}
+{% load description_extras %}
+{% block title %}Description: {{ description.variety.name }}{% endblock %}
+{% block container %}
+<h1>{{ description.variety.name }} - {{ description.name }}</h1>
+<p>Reference protocol <a href="{% url 'describe:protocol_detail' description.protocol.id %}">{{ description.protocol.name }}</a></p>
+<table>
+	<tr>
+		<td><b>Trait</b></td>
+		<td><b>Expression</b></td>
+	</tr>
+	{% for trait in description.protocol.trait_set.all %}
+	<tr>
+		<td>{{ trait.description }}</td>
+		{% with expr=description.expression_set.all|expr_trait:trait.id %}
+		{% if not expr %}
+		<td></td>
+		{% else %}
+		<td>{{ expr }}</td>
+		{% endif %}
+		{% endwith %}
+	</tr>
+	{% endfor %}
+</table>
+{% endblock %}

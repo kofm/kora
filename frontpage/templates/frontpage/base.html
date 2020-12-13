@@ -5,6 +5,9 @@
 	<title>{% block title %}{% endblock %}</title>
 </head>
 <body>
+	<div>
+		<a href="{% url 'front:index' %}">Home</a>
+	</div>
 	<div class="container-fluid">
 		{% block container %}
 		{% endblock %}

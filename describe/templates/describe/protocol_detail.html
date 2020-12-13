@@ -1,0 +1,23 @@
+{% extends "frontpage/base.html" %}
+{% load description_extras %}
+{% block title %}Protocol: {{ protocol.name }}{% endblock %}
+{% block container %}
+<h1>{{ protocol.name }} ({{ protocol.specie.common_name }})</h1>
+<h2>List of traits and available states of expression</h2>
+<ul>
+	{% for trait in protocol.trait_set.all %}
+	<li><b>{{ trait.numeric_id }}. {{ trait.description }}</b></li>
+	<ul>
+		{% for state in trait.state_set.all %}
+		<li>{{ state.numeric_id }}. {{ state.description }}</li>
+		{% endfor %}
+	</ul>
+	{% endfor %}
+</ul>
+<h2>Varieties described with this protocol</h2>
+<ul>
+{% for description in protocol.id|descriptions_with_this_protocol %}
+	<li><a href="{% url 'describe:description_detail' description.id %}">{{ description.variety.name }}</a></li>
+{% endfor %}
+</ul>
+{% endblock %}

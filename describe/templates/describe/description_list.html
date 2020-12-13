@@ -1,0 +1,11 @@
+{% extends "frontpage/base.html" %}
+{% block title %}Descriptions{% endblock %}
+
+{% block container %}
+<h1>Descriptions</h1>
+<ul>
+{% for description in object_list %}
+<li><a href="{% url 'describe:description_detail' description.id %}">{{ description.variety.name }} - {{ description.name }}</a></li>
+{% endfor %}
+</ul>
+{% endblock %}
