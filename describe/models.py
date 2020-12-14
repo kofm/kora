@@ -90,7 +90,7 @@ class State(models.Model):
 class Expression(models.Model):
     """
     Stores the expression of cultivars, related to a specific Description.
-    It refers to a specific Traits and contain the actual State of 
+    It refers to a specific Traits and contain the actual State of
     expression for that Trait.
     """
     recording_date = models.DateField()
@@ -102,10 +102,3 @@ class Expression(models.Model):
     def __str__(self):
         return str(self.state_of_expression) + \
                 " (" + str(self.recording_date) + ")"
-
-class Measure(models.Model):
-    linked_trait = models.ForeignKey(Trait, on_delete=models.PROTECT)
-    georeference_lat = models.FloatField()
-    georeference_lon = models.FloatField()
-    measure_unit = models.CharField(max_length=50)
-    value = models.FloatField()

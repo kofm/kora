@@ -1,3 +1,6 @@
 from django.contrib import admin
+from .models import CropParameter,VarietalParameter,Measure
 
-# Register your models here.
+admin.site.register(CropParameter)
+admin.site.register(VarietalParameter)
+admin.site.register(Measure)
