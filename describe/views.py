@@ -1,6 +1,6 @@
 from django.shortcuts import render
-from django.views.generic import ListView,DetailView
-from .models import Description,Protocol
+from django.views.generic import ListView, DetailView
+from .models import Description, Protocol
 from register.models import PlantSpecies
 
 class DescriptionsList(ListView):

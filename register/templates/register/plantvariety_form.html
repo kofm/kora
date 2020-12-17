@@ -1,0 +1,10 @@
+{% extends "frontpage/base.html" %}
+{% block title %}Add new variety{% endblock %}
+{% block container %}
+<h1>Add new variety</h1>
+<form method="post">{% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit" value="Save">
+</form>
+{% endblock %}
+

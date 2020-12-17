@@ -1,8 +1,6 @@
 """
 These are the models related to storage of parameters and field measures
 """
-from django.contrib.contenttypes.fields import GenericForeignKey
-from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from register.models import PlantSpecies,PlantVariety
 from describe.models import Trait
@@ -12,30 +10,22 @@ class Parameter(models.Model):
     """
     Stores the parameters related to the Species
     """
+    code = models.CharField(
+            max_length=50,
+            help_text="codename of the parameter"
+            )
     name=models.CharField(
             max_length=200,
             help_text="the name of the parameter"
             )
+    description = models.CharField(
+            max_length=200,
+            help_text = "long description of the parameter"
+            )
     measure_unit = models.CharField(max_length=50)
 
-    class Meta:
-        """
-        Meta
-        """
-        abstract = True
-
-class CropParameter(Parameter):
-    """
-    Stores the parameters related to species
-    """
-    specie = models.ForeignKey(PlantSpecies,on_delete=models.RESTRICT)
-
-
-class VarietalParameter(Parameter):
-    """
-    Stores the parameters related to varieties
-    """
-    variety = models.ForeignKey(PlantVariety, on_delete=models.RESTRICT)
+    def __str__(self):
+        return self.code
 
 class ParameterValue(models.Model):
     """
@@ -45,6 +35,7 @@ class ParameterValue(models.Model):
     url_ref=models.URLField(
                     help_text="a url reference for the source of the parameter"
                     )
+    parameter = models.ForeignKey(Parameter, on_delete=models.RESTRICT)
 
     class Meta:
         """
@@ -52,18 +43,21 @@ class ParameterValue(models.Model):
         """
         abstract = True
 
+    def __str__(self):
+        return self.parameter
 
-class CropParameterValue(ParameterValue):
+
+class CropParameter(ParameterValue):
     """
     Crop parameters values
     """
-    parameter = models.ForeignKey(CropParameter, on_delete=models.RESTRICT)
+    specie = models.ForeignKey(PlantSpecies, on_delete=models.RESTRICT)
 
-class VarietalParameterValue(ParameterValue):
+class VarietalParameter(ParameterValue):
     """
     Varietal parameters values
     """
-    parameter = models.ForeignKey(VarietalParameter, on_delete=models.RESTRICT)
+    variety = models.ForeignKey(PlantVariety, on_delete=models.RESTRICT)
 
 class Measure(models.Model):
     """

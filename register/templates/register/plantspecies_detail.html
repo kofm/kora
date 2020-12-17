@@ -2,7 +2,15 @@
 {% block title %}Species{% endblock %}
 {% block container %}
 <h1>Species {{ species.common_name }}</h1>
+<ul>
 {% for variety in species.variety.all %}
-<a href="{% url 'register:variety_detail' variety.id %}">{{ variety }}</a>
+    <li><a href="{% url 'register:variety_detail' variety.id %}">{{ variety }}</a></li>
 {% endfor %}
+</ul>
+<form method="post">
+        {% csrf_token %}
+        <h3>Add a variety</h3>
+        {{ form }}
+        <p><input type="submit"></p>
+    </form>
 {% endblock %}
