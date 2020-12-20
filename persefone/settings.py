@@ -27,7 +27,7 @@ SECRET_KEY = 'v(q1gde)qw+(bk-th2=z$p8%iv1=)i4&#*-jhxp_qaco@is&oe'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['pers.test',]
 
 
 # Application definition
