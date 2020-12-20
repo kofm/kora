@@ -24,5 +24,13 @@ class PlantVariety(models.Model):
             on_delete=models.CASCADE,
             related_name='variety')
 
+    class Meta:
+        constraints = [
+                models.UniqueConstraint(
+                    fields = ['species', 'name'],
+                    name = 'unique name'
+                    )
+                ]
+
     def __str__(self):
         return self.name
