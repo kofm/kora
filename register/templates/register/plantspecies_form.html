@@ -2,9 +2,11 @@
 {% block title %}Add new species{% endblock %}
 {% block container %}
 <h1>Add new species</h1>
+<ul>
 {% for specie in plantspecies_list %}
-{{ specie.common_name }}
+    <li>{{ specie.common_name }}</li>
 {%endfor%}
+</ul>
 <form method="post">{% csrf_token %}
     {{ form.as_p }}
     <input type="submit" value="Save">

@@ -1,10 +1,9 @@
-from django.shortcuts import get_object_or_404, reverse
-from django.http import HttpResponse
-from django.views.generic import ListView,DetailView,CreateView,View,FormView
+from django.shortcuts import reverse
+from django.views.generic import CreateView, DetailView, ListView
 from django.views.generic.edit import FormMixin
-from django.views.generic.detail import SingleObjectMixin
-from .models import PlantSpecies,PlantVariety
+
 from .forms import PlantSpeciesForm, PlantVarietyForm
+from .models import PlantSpecies, PlantVariety
 
 class PlantSpeciesList(ListView):
     model = PlantSpecies
@@ -20,22 +19,9 @@ class PlantSpeciesCreate(CreateView):
         context["plantspecies_list"] = PlantSpecies.objects.all()
         return context
 
-class PlantSpeciesDetail(DetailView):
-    model = PlantSpecies
-    context_object_name = 'species'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['form'] = PlantVarietyForm()
-        return context
-
-    def post(self, request, *args, **kwargs):
-        new_variety = PlantVariety(name = request.POST.get('name'),
-                species=self.get_object())
-        new_variety.save()
-        return self.get(self, request, *args, **kwargs)
-
-class PSDetail(FormMixin, DetailView):
+class PlantSpeciesDetail(FormMixin, DetailView):
+    """This display the varieties present for the species and allow the
+    user to create a new variety"""
     model = PlantSpecies
     form_class = PlantVarietyForm
     template_name = "register/plantspecies_detail.html"
@@ -45,20 +31,18 @@ class PSDetail(FormMixin, DetailView):
         return {"species": self.get_object()}
 
     def get_success_url(self):
-        return reverse("register:plantspecie_detail", kwargs={"pk": self.object.pk})
+        return reverse("register:plantspecie_detail", kwargs={"pk": self.get_object().pk})
 
     def get_context_data(self, **kwargs):
-        context = super(PSDetail, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         context["form"] = self.get_form()
         return context
 
-    def post(self, request, *args, **kwargs):
-        self.object = self.get_object()
+    def post(self, request, **kwargs):
         form = self.get_form()
         if form.is_valid():
             return self.form_valid(form)
-        else:
-            return self.form_invalid(form)
+        return self.form_invalid(form)
 
     def form_valid(self, form):
         plant_variety = PlantVariety(**form.cleaned_data)
@@ -68,9 +52,3 @@ class PSDetail(FormMixin, DetailView):
 class PlantVarietyDetail(DetailView):
     model = PlantVariety
     context_object_name = 'variety'
-
-
-
-
-def debug_request(request):
-    return HttpResponse(request)

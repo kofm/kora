@@ -1,7 +1,8 @@
+from enum import unique
 from django.db import models
 
 class PlantSpecies(models.Model):
-    common_name = models.CharField(max_length=100)
+    common_name = models.CharField(max_length=100,unique=True)
     latin_name = models.CharField(max_length=100)
     plant_types = (
             ('tree', 'Tree'),
