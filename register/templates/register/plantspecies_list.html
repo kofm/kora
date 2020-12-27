@@ -2,6 +2,7 @@
 {% block title %}Species{% endblock %}
 {% block container %}
 <h1>Species</h1>
+<p><a href="{% url 'register:species_create' %}">Add new species</a></p>
 <ul>
 	{% for specie in object_list %}
 	<li>

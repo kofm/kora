@@ -1,7 +1,9 @@
 {% extends "frontpage/base.html" %}
+{% load register_extras %}
 {% block title %}Species{% endblock %}
 {% block container %}
 <h1>Species {{ species.common_name }}</h1>
+<h2>Varieties</h2>
 <ul>
 {% for variety in species.variety.all %}
     <li><a href="{% url 'register:variety_detail' variety.id %}">{{ variety }}</a></li>
@@ -12,5 +14,20 @@
         <h3>Add a variety</h3>
         {{ form }}
         <p><input type="submit"></p>
-    </form>
+</form>
+{% if species.cropparameter_set.distinct %}
+    <h2>Parameters</h2>
+    <p><i>(Last values)</i></p>
+    {% for param in species.cropparameter_set|get_last_parameters_value %}
+    {{ param.parameter.code }}: {{ param.value }} {{ param.parameter.measure_unit }} (<a href="{{ param.url_ref }}">Rif.</a>)<br>
+    {% endfor %}
+    <p>
+        <a href="{% url 'register:plantspeciesparameters_list' species.id %}">View all</a>
+        <a href="{% url 'register:add_cropparamval' species.id %}">Add</a>
+    </p>
+{% else %}
+    <p>There are no parameters for this species.
+    <a href="{% url 'register:add_cropparamval' species.id %}">Add one</a>.
+    </p>
+{% endif %}
 {% endblock %}

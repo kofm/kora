@@ -1,0 +1,12 @@
+{% extends "frontpage/base.html" %}
+{% block title %}Add new parameter{% endblock %}
+{% block container %}
+<h1>Add new parameter</h1>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit">
+</form>
+<p>Can't find a parameter?
+<a href="{% url 'parameters:parameters_create' %}" target="_blank">Create</a> a new one.</p>
+{% endblock %}

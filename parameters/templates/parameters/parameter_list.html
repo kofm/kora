@@ -1,0 +1,14 @@
+{% extends "frontpage/base.html" %}
+{% block title %}Parameters{% endblock %}
+{% block container %}
+<h1>Parameters</h1>
+<p><a href="create">Add new parameter</a></p>
+<ul>
+	{% for parameter in object_list %}
+	<li>
+		<a href=""> {{ parameter }} </a>
+	</li>
+	{% endfor %}
+</ul>
+{% endblock %}
+

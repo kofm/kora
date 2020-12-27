@@ -1,0 +1,19 @@
+{% if all_params %}
+<table border = "1px solid black">
+   <tr>
+       <td>Parameter</td>
+       <td>Value</td>
+       <td>Ref</td>
+   </tr>
+{% for parameter in all_params %}
+   <tr>
+       <td>{{ parameter }}</td>
+       <td>{{ parameter.value }}</td>
+       <td>{{ parameter.url_ref }}</td>
+   </tr>
+{% endfor %}
+</table>
+{% else %}
+<p>There are no parameters registered.</p>
+{% endif %}
+

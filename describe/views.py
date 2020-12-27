@@ -9,7 +9,7 @@ class DescriptionsList(ListView):
 class DescriptionDetail(DetailView):
     model = Description
     context_object_name = 'description'
-    
+
 class ProtocolsList(ListView):
     model = PlantSpecies
     template_name = 'describe/protocols_list.html'
@@ -18,3 +18,4 @@ class ProtocolsList(ListView):
 class ProtocolDetail(DetailView):
     model = Protocol
     context_object_name = 'protocol'
+

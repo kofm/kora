@@ -1,4 +1,6 @@
-from django.shortcuts import reverse
+from parameters.forms import CropParameterForm, VarietalParameterForm
+from django.http.response import HttpResponse, HttpResponseRedirect
+from django.shortcuts import redirect, render, reverse
 from django.views.generic import CreateView, DetailView, ListView
 from django.views.generic.edit import FormMixin
 
@@ -39,16 +41,53 @@ class PlantSpeciesDetail(FormMixin, DetailView):
         return context
 
     def post(self, request, **kwargs):
+        self.object = self.get_object()
         form = self.get_form()
         if form.is_valid():
             return self.form_valid(form)
-        return self.form_invalid(form)
+        else:
+            return self.form_invalid(form)
 
     def form_valid(self, form):
         plant_variety = PlantVariety(**form.cleaned_data)
         plant_variety.save()
         return super().form_valid(form)
 
+class PlantSpeciesParametersList(DetailView):
+    model = PlantSpecies
+    context_object_name = 'species'
+    template_name = 'register/plantspeciesparameters_list.html'
+
+class PlantVarietyParametersList(DetailView):
+    model = PlantVariety
+    context_object_name = 'variety'
+    template_name = 'register/plantvarietyparameters_list.html'
+
 class PlantVarietyDetail(DetailView):
     model = PlantVariety
     context_object_name = 'variety'
+
+
+def add_cropparametervervalue(request, pk):
+    species = PlantSpecies.objects.get(pk = pk)
+    form = CropParameterForm(initial={'specie': species})
+    if request.method == 'POST':
+        form = CropParameterForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect(reverse('register:plantspeciesparameters_list', kwargs={'pk':species.id}))
+
+    context = {'form': form}
+    return render(request, 'register/plantspeciesparameters_create.html', context)
+
+def add_varietalparamevterervalue(request, pk):
+    variety = PlantSpecies.objects.get(pk = pk)
+    form = VarietalParameterForm(initial={'variety': variety})
+    if request.method == 'POST':
+        form = VarietalParameterForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect(reverse('register:plantvarietyparameters_list', kwargs={'pk':variety.id}))
+
+    context = {'form': form}
+    return render(request, 'register/plantspeciesparameters_create.html', context)

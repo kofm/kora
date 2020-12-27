@@ -1,0 +1,11 @@
+{% extends "frontpage/base.html" %}
+{% block title %}Persefone{% endblock %}
+
+{% block container %}
+<h1>Crop Parameters</h1>
+<h2>Species {{ species.common_name }} </h2>
+<p><a href="{% url 'register:add_cropparamval' species.id %} ">Add new</a></p>
+{% include "parameters/paramsvalue_table.html" with all_params=species.cropparameter_set.all %}
+{% endblock %}
+
+
