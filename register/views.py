@@ -69,6 +69,11 @@ class PlantVarietyDetail(DetailView):
 
 
 def add_cropparametervervalue(request, pk):
+    """
+    https://stackoverflow.com/questions/37303171/django-create-new-object-in-form-update-select-box-and-save-it
+    https://stackoverflow.com/questions/7782479/django-reverse-engineering-the-admin-sites-add-foreign-key-button
+    Check this to add new parameter without leaving this view
+    """
     species = PlantSpecies.objects.get(pk = pk)
     form = CropParameterForm(initial={'specie': species})
     if request.method == 'POST':
@@ -81,7 +86,7 @@ def add_cropparametervervalue(request, pk):
     return render(request, 'register/plantspeciesparameters_create.html', context)
 
 def add_varietalparamevterervalue(request, pk):
-    variety = PlantSpecies.objects.get(pk = pk)
+    variety = PlantVariety.objects.get(pk = pk)
     form = VarietalParameterForm(initial={'variety': variety})
     if request.method == 'POST':
         form = VarietalParameterForm(request.POST)
