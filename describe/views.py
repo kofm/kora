@@ -41,6 +41,7 @@ def manage_trait(request, pk):
     protocol = get_object_or_404(Protocol, id=pk)
 
     if request.method == 'POST':
+        import pdb; pdb.set_trace()
         formset = TraitFormset(request.POST, instance=protocol)
         if formset.is_valid():
             formset.save()
