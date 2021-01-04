@@ -1,12 +1,16 @@
 {% extends "frontpage/base.html" %}
+{% load crispy_forms_tags %}
 {% block title %}Add new parameter{% endblock %}
 {% block container %}
 <h1>Add new parameter</h1>
-<form method="post">
+<form method="post" class="mb-2">
     {% csrf_token %}
-    {{ form.as_p }}
-    <input type="submit">
+    {{ form|crispy }}
+    <p><small>*Required</small></p>
+    <input class="btn btn-primary" type="submit" value="Save">
 </form>
-<p>Can't find a parameter?
-<a href="{% url 'parameters:parameters_create' %}" target="_blank">Create</a> a new one.</p>
+<div>
+    <p>Can't find a parameter?
+    <a href="{% url 'parameters:parameter-create' %}" target="_blank">Create</a> a new one.</p>
+</div>
 {% endblock %}

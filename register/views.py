@@ -1,3 +1,4 @@
+from django.core.paginator import Paginator
 from django.http.response import HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect, render, reverse
 from django.views.generic import CreateView, DetailView, ListView
@@ -12,6 +13,11 @@ from .models import PlantSpecies, PlantVariety
 class PlantSpeciesList(ListView):
     model = PlantSpecies
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["nav_species"] = "active"
+        return context
+
 
 class PlantSpeciesCreate(CreateView):
     model = PlantSpecies
@@ -21,7 +27,7 @@ class PlantSpeciesCreate(CreateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["plantspecies_list"] = PlantSpecies.objects.all()
+        context["nav_species"] = "active"
         return context
 
 
@@ -41,6 +47,7 @@ class PlantSpeciesDetail(FormMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context["nav_species"] = "active"
         context["form"] = self.get_form()
         return context
 
@@ -63,11 +70,31 @@ class PlantSpeciesParametersList(DetailView):
     context_object_name = 'species'
     template_name = 'register/plantspeciesparameters_list.html'
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        parameters = self.get_related_parameters()
+        context["nav_species"] = "active"
+        context["parameters"] = parameters
+        return context
+
+    def get_related_parameters(self):
+        queryset = self.object.cropparameter_set.all()
+        paginator = Paginator(queryset, 5)
+        page = self.request.GET.get('page')
+        parameters = paginator.get_page(page)
+        return parameters
+
 
 class PlantVarietyParametersList(DetailView):
     model = PlantVariety
     context_object_name = 'variety'
     template_name = 'register/plantvarietyparameters_list.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["nav_species"] = "active"
+        return context
+
 
 
 class PlantVarietyDetail(DetailView):

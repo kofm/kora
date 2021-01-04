@@ -102,3 +102,5 @@ class Expression(models.Model):
     def __str__(self):
         return str(self.state_of_expression) + \
                 " (" + str(self.recording_date) + ")"
+
+

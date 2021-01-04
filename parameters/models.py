@@ -12,19 +12,19 @@ class Parameter(models.Model):
     """
     code = models.CharField(
             max_length=50,
-            help_text="codename of the parameter"
+            help_text="A code to identify the parameter."
             )
     name=models.CharField(
             max_length=200,
-            help_text="the name of the parameter"
+            help_text="The name of the parameter."
             )
     description = models.CharField(
             max_length=200,
-            help_text = "long description of the parameter"
+            help_text = "The description of the parameter."
             )
     measure_unit = models.CharField(
             max_length=50,
-            help_text='the unit of measurement')
+            help_text="The unit of measurement.")
 
     def __str__(self):
         return self.code

@@ -6,6 +6,8 @@
 <ul>
 {% for description in object_list %}
 <li><a href="{% url 'describe:description_detail' description.id %}">{{ description.variety.name }} - {{ description.name }}</a></li>
+{% empty %}
+    <p>There are no descriptions, yet.</p>
 {% endfor %}
 </ul>
 {% endblock %}

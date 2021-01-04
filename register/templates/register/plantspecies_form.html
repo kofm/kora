@@ -1,15 +1,16 @@
 {% extends "frontpage/base.html" %}
-{% block title %}Add new species{% endblock %}
+{% load crispy_forms_tags %}
+{% block title %}Create new species{% endblock %}
 {% block container %}
 <h1>Add new species</h1>
-<ul>
-{% for specie in plantspecies_list %}
-    <li>{{ specie.common_name }}</li>
-{%endfor%}
 </ul>
-<form method="post">{% csrf_token %}
-    {{ form.as_p }}
-    <input type="submit" value="Save">
+<form method="post">
+    {% csrf_token %}
+    <div class="mb-3">
+        {{ form|crispy }}
+    </div>
+    <p><small>*Required</small></p>
+    <input class="btn btn-primary" type="submit" value="Save">
 </form>
 {% endblock %}
 

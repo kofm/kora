@@ -2,13 +2,29 @@
 {% block title %}Parameters{% endblock %}
 {% block container %}
 <h1>Parameters</h1>
-<p><a href="create">Add new parameter</a></p>
-<ul>
-	{% for parameter in object_list %}
-	<li>
-		<a href=""> {{ parameter }} </a>
-	</li>
-	{% endfor %}
-</ul>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <th scope="col">Code</td>
+        <th scope="col">Name</td>
+        <th scope="col" style="width: 40%">Description</td>
+        <th scope="col">Measure unit</td>
+        <th scope="col"></td>
+    </thead>
+    {% for parameter in object_list %}
+    <tr>
+        <td>{{ parameter.code }}</td>
+        <td>{{ parameter.name }}</td>
+        <td>{{ parameter.description }}</td>
+        <td>{{ parameter.measure_unit }}</td>
+        <td>
+            <a class="fas fa-search falink" href="{% url 'parameters:parameter-detail' parameter.id %}"></a>
+            <a class="far fa-edit falink" href={% url 'parameters:parameter-update' parameter.id  %}></a>
+            <a class="fas fa-trash-alt falink" href={% url 'parameters:parameter-delete' parameter.id  %}></a>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+{% include 'frontpage/paginator.html' with page=page_obj pagevar='page' %}
 {% endblock %}
 
