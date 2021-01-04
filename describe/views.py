@@ -1,6 +1,9 @@
+from django.http.response import HttpResponse
+from describe.forms import TraitForm, TraitFormSet
 from django.views.generic import ListView, DetailView
 from .models import Description, Protocol
 from register.models import PlantSpecies
+from django.shortcuts import get_object_or_404, render
 
 class DescriptionsList(ListView):
     model = Description
@@ -27,3 +30,14 @@ class ProtocolsList(ListView):
 class ProtocolDetail(DetailView):
     model = Protocol
     context_object_name = 'protocol'
+
+def fset(request, pk):
+    protocol = get_object_or_404(Protocol, pk = pk)
+    if request.method == 'POST':
+        form = TraitFormSet(request.POST, instance=protocol)
+        #form = TraitForm(request.POST)
+        if form.is_valid():
+            return HttpResponse("Form valid")
+    else:
+        form = TraitFormSet(instance=protocol)
+    return render(request, 'describe/fs.html', {'fs': form})
