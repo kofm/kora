@@ -10,26 +10,71 @@
         <form method="post">
             {% csrf_token %}
             <div id="form_set">
-                <table>
-                    {{ fs.as_p }}
-                </table>
-            </div>
-            <div id="empty_form" style="display:none">
-                <table class='no_error'>
-                    {{ fs.empty_form.as_p }}
-                </table>
+                {{ fs.management_form }}
+                {{ fs.non_form_errors }}
+                    {% for f in fs %}
+                    <p>trait</p>
+                        {{ f.as_p }}
+
+                         {% if f.nested %}
+                         <div class="states">
+                             <div class="states-management_form">
+                                 {{ f.nested.management_form }}
+                                 {{ f.nested.non_form_errors }}
+                             </div>
+                             <p>states</p>
+                             {% for n in f.nested %}
+                             <div class="state-form">
+                                 {{ n.as_p }}
+                             </div>
+                             {% endfor %}
+                             {% endif %}
+                         <input type="button" value="Add State" class="add_state">
+                         </div>
+                         <hr>
+                         {% endfor %}
             </div>
             <input type="submit" value="submit"/>
-            <input type="button" value="Add More" id="add_more">
+            <input type="button" value="Add Trait" id="add_trait">
         </form>
+        <div id="empty_form" style="display:none">
+            <p>trait</p>
+            {{ fs.empty_form.as_p }}
+            <div class="states">
+                <div class="states-management_form">
+                    {{ fs.empty_form.nested.management_form.as_p }}
+                </div>
+                <p>states</p>
+                <div class="state-form">
+                    {{ fs.empty_form.nested.empty_form.as_p }}
+                </div>
+                <input type="button" value="Add state" class="add_state">
+            </div>
+            <hr>
+        </div>
+        <div id="empty_state" style="display:none">
+            {{ fs.empty_form.nested.empty_form.as_p }}
+        </div>
     </body>
 
     <script charset="utf-8">
-        $('#add_more').click(function() {
+        $('#add_trait').click(function() {
         var form_idx = $('#id_trait_set-TOTAL_FORMS').val();
-        $('#form_set').append($('#empty_form').html().replace(/__prefix__/g, form_idx));
+        var replacement = $('#empty_form').html().
+                                    replace(/__prefix__/g, form_idx).
+                                    replace(/([a-z0-9_\-]*?)(-state_set-)(\d+)/g, "$1$20");
+        $('#form_set').append(replacement);
         $('#id_trait_set-TOTAL_FORMS').val(parseInt(form_idx) + 1);
 });
+        $(document.body).on("click", ".add_state", function() {
+        var form_idx = $(this).closest(".states").find("input:hidden[name$='TOTAL_FORMS']").val();
+        console.log(form_idx);
+        var prev_state = $(this).siblings(".state-form").last().html().
+                                replace(/([a-z0-9_\-]*?)(-state_set-)(\d+)/g, "$1$2" + form_idx);
+        console.log(prev_state);
+        $(this).before(prev_state);
+        $(this).closest(".states").find("input:hidden[name$='TOTAL_FORMS']").val(parseInt(form_idx) + 1);
+        });
     </script>
 
 </html>

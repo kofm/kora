@@ -8,5 +8,5 @@ urlpatterns = [
         path('<int:pk>/', views.DescriptionDetail.as_view(), name='description_detail'),
         path('protocols/', views.ProtocolsList.as_view(), name='protocols_list'),
         path('protocols/<int:pk>/', views.ProtocolDetail.as_view(), name = 'protocol_detail'),
-        path('traitfs/<int:pk>', views.fset, name='fset'),
+        path('protocols/<int:pk>/update', views.fset, name='protocol-update'),
 ]

@@ -1,9 +1,10 @@
-from django.http.response import HttpResponse
+from django.http.response import HttpResponse, HttpResponseRedirect
 from describe.forms import TraitForm, TraitFormSet
 from django.views.generic import ListView, DetailView
 from .models import Description, Protocol
 from register.models import PlantSpecies
 from django.shortcuts import get_object_or_404, render
+from django.urls import reverse
 
 class DescriptionsList(ListView):
     model = Description
@@ -37,7 +38,8 @@ def fset(request, pk):
         form = TraitFormSet(request.POST, instance=protocol)
         #form = TraitForm(request.POST)
         if form.is_valid():
-            return HttpResponse("Form valid")
+            form.save()
+            return HttpResponseRedirect(reverse('describe:protocol_detail', kwargs={'pk': protocol.pk}))
     else:
         form = TraitFormSet(instance=protocol)
     return render(request, 'describe/fs.html', {'fs': form})

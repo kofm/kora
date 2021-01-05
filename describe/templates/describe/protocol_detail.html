@@ -14,6 +14,7 @@
 	</ul>
 	{% endfor %}
 </ul>
+<a href="{% url 'describe:protocol-update' protocol.id %}" class="btn btn-secondary">Update</a>
 <h2>Varieties described with this protocol</h2>
 <ul>
 {% for description in protocol.id|descriptions_with_this_protocol %}

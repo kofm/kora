@@ -73,6 +73,9 @@ class Trait(models.Model):
     def __str__(self):
         return str(self.numeric_id) + '. ' + self.description
 
+    class Meta:
+        ordering = ['numeric_id',]
+
 class State(models.Model):
     """
     Stores the different States of expression related to a Trait.
@@ -81,11 +84,14 @@ class State(models.Model):
         help_text="a numeric ID that can be associated with the trait",
         null=True,blank=True
         )
-    description = models.CharField(max_length=200)
-    trait = models.ForeignKey(Trait, models.PROTECT)
+    description = models.CharField(max_length=200, null=False, blank=False)
+    trait = models.ForeignKey(Trait, models.CASCADE)
 
     def __str__(self):
         return str(self.numeric_id) + '. ' + self.description
+
+    class Meta:
+        ordering = ['numeric_id',]
 
 class Expression(models.Model):
     """
