@@ -1,6 +1,8 @@
 from django.http.response import HttpResponse, HttpResponseRedirect
+from django.urls.base import reverse_lazy
 from describe.forms import TraitForm, TraitFormSet
 from django.views.generic import ListView, DetailView
+from django.views.generic.edit import CreateView, DeleteView
 from .models import Description, Protocol
 from register.models import PlantSpecies
 from django.shortcuts import get_object_or_404, render
@@ -27,6 +29,18 @@ class ProtocolsList(ListView):
         context = super().get_context_data(**kwargs)
         context["nav_protocols"] = "active"
         return context
+
+class ProtocolCreate(CreateView):
+    model = Protocol
+    fields = ['name', 'specie', 'url_ref',]
+    template_name = 'describe/protocol_form.html'
+
+    def get_success_url(self):
+        return reverse('describe:protocol-update', args=(self.object.id,))
+
+class ProtocolDelete(DeleteView):
+    model = Protocol
+    success_url = reverse_lazy('describe:protocols_list')
 
 class ProtocolDetail(DetailView):
     model = Protocol
