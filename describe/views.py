@@ -92,23 +92,29 @@ def description_manage(request, pk):
                 if state_id:
                     form = ExpressionForm({'id': expr_id, 'state_of_expression': state_id})
                     if form.is_valid():
-                        if exist_expr.filter(pk=form.cleaned_data['id']).exists():
+                        if exist_expr.filter(pk=form.cleaned_data['id']).exists() and not exist_expr.filter(state_of_expression=form.cleaned_data['state_of_expression']):
                             exist_expr.filter(pk=form.cleaned_data['id']).update(state_of_expression=form.cleaned_data['state_of_expression'])
-                            print("OK")
+                            print("Updated existing")
                         else:
-                            new_expression = Expression(**form.cleaned_data)
-                            new_expression.description = description
-                            new_expression.save()
-                            print("NO")
+                            if not exist_expr.filter(state_of_expression=form.cleaned_data['state_of_expression']):
+                                new_expression = Expression()
+                                new_expression.state_of_expression = form.cleaned_data['state_of_expression']
+                                new_expression.description = description
+                                new_expression.save()
+                                print("Created new")
+                else:
+                    if expr_id:
+                        exist_expr.filter(pk=expr_id).delete()
+                        print("Deleted")
 
 
     for trait in traits:
-        if exist_expr.filter(state_of_expression__trait_id=trait.id):
-            e = exist_expr.get(state_of_expression__trait_id=trait.id)
+        if exist_expr.filter(state_of_expression__trait=trait).exists():
+            e = exist_expr.get(state_of_expression__trait=trait)
             form = ExpressionForm(model_to_dict(e))
         else:
             form = ExpressionForm()
-        form.fields["state_of_expression"].queryset = State.objects.filter(trait_id=trait.id)
+        form.fields["state_of_expression"].queryset = State.objects.filter(trait=trait)
         forms.append(form)
     formset = zip(forms, traits)
     return render(request, 'describe/description_manage.html', context={'formset': formset})
