@@ -1,7 +1,6 @@
-from django.db.models import fields
 from . import models
 from django import forms
-from django.forms import formset_factory, inlineformset_factory
+from django.forms import inlineformset_factory
 from django.forms.models import BaseInlineFormSet
 
 class TraitForm(forms.Form):
@@ -26,7 +25,6 @@ class BaseTraitFormSet(BaseInlineFormSet):
                     form.prefix,
                     StateFormset.get_default_prefix())
                 )
-
         return super().add_fields(form, index)
 
     def is_valid(self):
@@ -57,4 +55,16 @@ TraitFormSet = inlineformset_factory(
         extra=1,
         fields=('numeric_id', 'description',)
         )
+
+
+class ExpressionForm(forms.Form):
+    id = forms.IntegerField(widget=forms.HiddenInput())
+    state_of_expression = forms.ModelChoiceField(queryset=models.State.objects.all())
+    #delete = forms.BooleanField()
+    def __init__(self, *args, **kwargs):
+        super(ExpressionForm, self).__init__(*args, **kwargs)
+        self.fields['state_of_expression'].required=False
+        self.fields['id'].required=False
+        #self.fields['delete'].required=False
+
 

@@ -99,14 +99,9 @@ class Expression(models.Model):
     It refers to a specific Traits and contain the actual State of
     expression for that Trait.
     """
-    recording_date = models.DateField()
-    georeference_lat = models.FloatField()
-    georeference_lon = models.FloatField()
     state_of_expression = models.ForeignKey(State, on_delete=models.PROTECT)
     description = models.ForeignKey(Description, on_delete=models.RESTRICT)
 
     def __str__(self):
-        return str(self.state_of_expression) + \
-                " (" + str(self.recording_date) + ")"
-
+        return str(self.state_of_expression)
 

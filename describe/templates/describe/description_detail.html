@@ -4,6 +4,7 @@
 {% block container %}
 <h1>{{ description.variety.name }} - {{ description.name }}</h1>
 <p>Reference protocol <a href="{% url 'describe:protocol_detail' description.protocol.id %}">{{ description.protocol.name }}</a></p>
+<p><a href="{% url 'describe:description-manage' description.id %}">Manage</a></p>
 <table>
 	<tr>
 		<td><b>Trait</b></td>

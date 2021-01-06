@@ -1,12 +1,18 @@
+import pdb
+from django.views.decorators.csrf import csrf_protect
+from django.forms.models import model_to_dict
 from django.http.response import HttpResponse, HttpResponseRedirect
-from django.urls.base import reverse_lazy
-from describe.forms import TraitForm, TraitFormSet
-from django.views.generic import ListView, DetailView
-from django.views.generic.edit import CreateView, DeleteView
-from .models import Description, Protocol
-from register.models import PlantSpecies
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
+from django.urls.base import reverse_lazy
+from django.views.generic import DetailView, ListView
+from django.views.generic.edit import UpdateView
+from django.views.generic.edit import CreateView, DeleteView
+
+from describe.forms import ExpressionForm, TraitFormSet
+from register.models import PlantSpecies
+
+from .models import Description, Expression, Protocol, State
 
 class DescriptionsList(ListView):
     model = Description
@@ -35,6 +41,11 @@ class ProtocolCreate(CreateView):
     fields = ['name', 'specie', 'url_ref',]
     template_name = 'describe/protocol_form.html'
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["nav_protocols"] = "active"
+        return context
+
     def get_success_url(self):
         return reverse('describe:protocol-update', args=(self.object.id,))
 
@@ -46,7 +57,12 @@ class ProtocolDetail(DetailView):
     model = Protocol
     context_object_name = 'protocol'
 
-def fset(request, pk):
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["nav_protocols"] = "active"
+        return context
+
+def protocol_update(request, pk):
     protocol = get_object_or_404(Protocol, pk = pk)
     if request.method == 'POST':
         form = TraitFormSet(request.POST, instance=protocol)
@@ -56,4 +72,49 @@ def fset(request, pk):
             return HttpResponseRedirect(reverse('describe:protocol_detail', kwargs={'pk': protocol.pk}))
     else:
         form = TraitFormSet(instance=protocol)
-    return render(request, 'describe/fs.html', {'fs': form})
+    return render(request, 'describe/protocol_manage.html', {
+        'fs': form,
+        'protocol': protocol,
+        'nav_protocols': 'active'
+        })
+
+def description_manage(request, pk):
+    # Get the description object
+    description = Description.objects.get(pk=pk)
+    # Get the traits of the protocol referenced by this description
+    traits = description.protocol.trait_set.all()
+    # Collect all the existing expressions
+    exist_expr = description.expression_set.all()
+    # This is the forms list
+    forms = []
+    if request.method == "POST":
+            for expr_id, state_id in zip(request.POST.getlist('id'), request.POST.getlist('state_of_expression')):
+                if state_id:
+                    form = ExpressionForm({'id': expr_id, 'state_of_expression': state_id})
+                    if form.is_valid():
+                        if exist_expr.filter(pk=form.cleaned_data['id']).exists():
+                            exist_expr.filter(pk=form.cleaned_data['id']).update(state_of_expression=form.cleaned_data['state_of_expression'])
+                            print("OK")
+                        else:
+                            new_expression = Expression(**form.cleaned_data)
+                            new_expression.description = description
+                            new_expression.save()
+                            print("NO")
+
+
+    for trait in traits:
+        if exist_expr.filter(state_of_expression__trait_id=trait.id):
+            e = exist_expr.get(state_of_expression__trait_id=trait.id)
+            form = ExpressionForm(model_to_dict(e))
+        else:
+            form = ExpressionForm()
+        form.fields["state_of_expression"].queryset = State.objects.filter(trait_id=trait.id)
+        forms.append(form)
+    formset = zip(forms, traits)
+    return render(request, 'describe/description_manage.html', context={'formset': formset})
+
+
+class ExpressionUpdate(UpdateView):
+    model = Expression
+    fields = '__all__'
+    template_name = 'describe/expression_update.html'
