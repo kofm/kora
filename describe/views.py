@@ -88,6 +88,7 @@ def description_manage(request, pk):
     # This is the forms list
     forms = []
     if request.method == "POST":
+            forms_has_errors=False
             for expr_id, state_id in zip(request.POST.getlist('id'), request.POST.getlist('state_of_expression')):
                 if state_id:
                     form = ExpressionForm({'id': expr_id, 'state_of_expression': state_id})
@@ -102,10 +103,14 @@ def description_manage(request, pk):
                                 new_expression.description = description
                                 new_expression.save()
                                 print("Created new")
+                    else:
+                        form_has_errors = True
                 else:
                     if expr_id:
                         exist_expr.filter(pk=expr_id).delete()
                         print("Deleted")
+            if not forms_has_errors:
+                return HttpResponseRedirect(reverse('describe:description_detail', args=(description.id,)))
 
 
     for trait in traits:
@@ -124,3 +129,17 @@ class ExpressionUpdate(UpdateView):
     model = Expression
     fields = '__all__'
     template_name = 'describe/expression_update.html'
+
+class DescriptionCreate(CreateView):
+    model = Description
+    fields = ['name', 'protocol', 'variety',]
+    template_name = 'describe/description_form.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["nav_descriptions"] = "active"
+        return context
+
+    def get_success_url(self):
+        return reverse('describe:description-manage', args=(self.object.id,))
+

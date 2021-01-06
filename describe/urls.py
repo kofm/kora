@@ -5,6 +5,7 @@ app_name = 'describe'
 
 urlpatterns = [
         path('', views.DescriptionsList.as_view(), name= 'descriptions_list'),
+        path('create', views.DescriptionCreate.as_view(), name= 'description-create'),
         path('<int:pk>/', views.DescriptionDetail.as_view(), name='description_detail'),
         path('<int:pk>/manage', views.description_manage, name='description-manage'),
         path('protocols/', views.ProtocolsList.as_view(), name='protocols_list'),

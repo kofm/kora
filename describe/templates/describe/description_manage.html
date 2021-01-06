@@ -1,8 +1,24 @@
+{% extends "frontpage/base.html" %}
+{% load crispy_forms_tags %}
+{% block title %}New description{% endblock %}
+{% block container %}
+<h1>New description</h1>
 <form method="post">
-    {% csrf_token %}
+   {% csrf_token %}
+   <div class="mb-3">
     {% for form in formset %}
-    {{ form.1 }}
-    {{ form.0.as_p }}
+    <div class="card">
+       <div class="card-header">
+           {{ form.1 }}
+       </div>
+       <div class="card-body">
+           {{ form.0|crispy }}
+       </div>
+    </div>
     {% endfor %}
-    <input type="submit" name="Submit" value="submit">
+   </div>
+   <div>
+       <button class="btn btn-primary" type="submit">Update</button>
+   </div>
 </form>
+{% endblock %}

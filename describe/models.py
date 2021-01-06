@@ -51,6 +51,7 @@ class Description(models.Model):
     def __str__(self):
         return str(self.variety) + ' (' + self.name + ')'
 
+
 class Trait(models.Model):
     """
     Stores the Traits. Each traits can have multiple States of expression
