@@ -80,11 +80,11 @@ def protocol_update(request, pk):
 
 def description_manage(request, pk):
     # Get the description object
-    description = Description.objects.get(pk=pk)
+    description = get_object_or_404(Description, pk=pk)
     # Get the traits of the protocol referenced by this description
-    traits = description.protocol.trait_set.all()
+    traits = description.available_traits
     # Collect all the existing expressions
-    exist_expr = description.expression_set.all()
+    exist_expr = description.expressions.all()
     # This is the forms list
     forms = []
     if request.method == "POST":
@@ -93,6 +93,8 @@ def description_manage(request, pk):
                 if state_id:
                     form = ExpressionForm({'id': expr_id, 'state_of_expression': state_id})
                     if form.is_valid():
+                        __import__('pdb').set_trace()
+                        #expression, create = Expression.objects.get_or_create(**form.cleaned_data, description = description)
                         if exist_expr.filter(pk=form.cleaned_data['id']).exists() and not exist_expr.filter(state_of_expression=form.cleaned_data['state_of_expression']):
                             exist_expr.filter(pk=form.cleaned_data['id']).update(state_of_expression=form.cleaned_data['state_of_expression'])
                             print("Updated existing")
@@ -113,7 +115,7 @@ def description_manage(request, pk):
                 return HttpResponseRedirect(reverse('describe:description_detail', args=(description.id,)))
 
 
-    for trait in traits:
+    for trait in description.available_traits:
         if exist_expr.filter(state_of_expression__trait=trait).exists():
             e = exist_expr.get(state_of_expression__trait=trait)
             form = ExpressionForm(model_to_dict(e))
@@ -121,7 +123,7 @@ def description_manage(request, pk):
             form = ExpressionForm()
         form.fields["state_of_expression"].queryset = State.objects.filter(trait=trait)
         forms.append(form)
-    formset = zip(forms, traits)
+    formset = zip(forms, description.available_traits)
     return render(request, 'describe/description_manage.html', context={'formset': formset})
 
 

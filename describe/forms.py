@@ -60,11 +60,8 @@ TraitFormSet = inlineformset_factory(
 class ExpressionForm(forms.Form):
     id = forms.IntegerField(widget=forms.HiddenInput())
     state_of_expression = forms.ModelChoiceField(queryset=models.State.objects.all())
-    #delete = forms.BooleanField()
+
     def __init__(self, *args, **kwargs):
         super(ExpressionForm, self).__init__(*args, **kwargs)
         self.fields['state_of_expression'].required=False
         self.fields['id'].required=False
-        #self.fields['delete'].required=False
-
-

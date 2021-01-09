@@ -5,6 +5,7 @@ cultivars' descriptions.
 """
 
 from django.db import models
+from django.utils.functional import cached_property
 from register.models import PlantVariety,PlantSpecies
 
 class Protocol(models.Model):
@@ -48,6 +49,10 @@ class Description(models.Model):
             help_text="the variety to which the description refers to"
             )
 
+    @cached_property
+    def available_traits(self):
+        return self.protocol.traits.all()
+
     def __str__(self):
         return str(self.variety) + ' (' + self.name + ')'
 
@@ -63,12 +68,13 @@ class Trait(models.Model):
                     )
     description = models.CharField(
             max_length=200,
-            help_text="trait description"
+            help_text="trait description",
             )
     protocol = models.ForeignKey(
             Protocol,
             on_delete=models.PROTECT,
-            null = True, blank=True
+            null = True, blank=True,
+            related_name='traits'
             )
 
     def __str__(self):
@@ -101,7 +107,11 @@ class Expression(models.Model):
     expression for that Trait.
     """
     state_of_expression = models.ForeignKey(State, on_delete=models.PROTECT)
-    description = models.ForeignKey(Description, on_delete=models.RESTRICT)
+    description = models.ForeignKey(
+            Description,
+            on_delete=models.RESTRICT,
+            related_name="expressions"
+            )
 
     def __str__(self):
         return str(self.state_of_expression)

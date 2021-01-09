@@ -10,10 +10,10 @@
         <th>Trait</th>
         <th>Expression</th>
     </thead>
-	{% for trait in description.protocol.trait_set.all %}
+	{% for trait in description.protocol.traits.all %}
 	<tr>
 		<td>{{ trait.description }}</td>
-		{% with expr=description.expression_set.all|expr_trait:trait.id %}
+		{% with expr=description.expressions.all|expr_trait:trait.id %}
 		{% if not expr %}
 		<td></td>
 		{% else %}

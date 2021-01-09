@@ -18,9 +18,9 @@
         <td>{{ parameter.description }}</td>
         <td>{{ parameter.measure_unit }}</td>
         <td>
-            <a class="fas fa-search falink" href="{% url 'parameters:parameter-detail' parameter.id %}"></a>
-            <a class="far fa-edit falink" href={% url 'parameters:parameter-update' parameter.id  %}></a>
-            <a class="fas fa-trash-alt falink" href={% url 'parameters:parameter-delete' parameter.id  %}></a>
+            <a href="{% url 'parameters:parameter-detail' parameter.id %}"><i class="bi bi-zoom-in" style="color: black;"></i></a>
+            <a class="far fa-edit falink" href={% url 'parameters:parameter-update' parameter.id  %}><i class="bi-pencil" style="color: black;"></i></a>
+            <a class="fas fa-trash-alt falink" href={% url 'parameters:parameter-delete' parameter.id  %}><i class="bi bi-trash" style="color: black;"></i></a>
         </td>
     </tr>
     {% endfor %}
