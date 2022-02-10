@@ -27,8 +27,12 @@
                 <li class="nav-item">
                     <a class="nav-link {% nav_css_class nav_descriptions %}" href="{% url 'describe:descriptions_list' %}">Descriptions</a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link {% nav_css_class nav_protocols %}" href="{% url 'describe:protocols_list' %}">Protocols</a>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle {% nav_css_class nav_protocols %}" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">Protocols</a>
+                    <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                        <li><a class="dropdown-item" href="{% url 'describe:protocols_list' %}">List</a></li>
+                        <li><a class="dropdown-item" href="{% url 'describe:protocol-create' %}">Create</a></li>
+                    </ul>
                 </li>
             </ul>
         </div>

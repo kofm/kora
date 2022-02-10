@@ -1,8 +1,9 @@
+from parameters.models import CropParameter
 from django.core.paginator import Paginator
 from django.http.response import HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect, render, reverse
 from django.views.generic import CreateView, DetailView, ListView
-from django.views.generic.edit import FormMixin
+from django.views.generic.edit import FormMixin, UpdateView
 
 from parameters.forms import CropParameterForm, VarietalParameterForm
 
@@ -118,7 +119,6 @@ def add_cropparametervervalue(request, pk):
 
     context = {'form': form}
     return render(request, 'register/plantspeciesparameters_create.html', context)
-
 
 def add_varietalparamevterervalue(request, pk):
     variety = PlantVariety.objects.get(pk=pk)

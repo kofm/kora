@@ -9,6 +9,7 @@ urlpatterns = [
         path('create', views.ParameterCreate.as_view(), name = 'parameter-create'),
         path('<int:pk>', views.ParameterDetail.as_view(), name = 'parameter-detail'),
         path('<int:pk>/update', views.ParameterUpdate.as_view(), name = 'parameter-update'),
-        path('<int:pk>/delete', views.ParameterDelete.as_view(), name = 'parameter-delete')
+        path('<int:pk>/delete', views.ParameterDelete.as_view(), name = 'parameter-delete'),
+        path('cropparam/<int:pk>/update', views.CropParameterUpdate.as_view(), name = 'cropparam-update')
 ]
 

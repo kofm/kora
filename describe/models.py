@@ -5,6 +5,7 @@ cultivars' descriptions.
 """
 
 from django.db import models
+from django.utils.functional import cached_property
 from register.models import PlantVariety,PlantSpecies
 
 class Protocol(models.Model):
@@ -48,8 +49,13 @@ class Description(models.Model):
             help_text="the variety to which the description refers to"
             )
 
+    @cached_property
+    def available_traits(self):
+        return self.protocol.traits.all()
+
     def __str__(self):
         return str(self.variety) + ' (' + self.name + ')'
+
 
 class Trait(models.Model):
     """
@@ -62,16 +68,20 @@ class Trait(models.Model):
                     )
     description = models.CharField(
             max_length=200,
-            help_text="trait description"
+            help_text="trait description",
             )
     protocol = models.ForeignKey(
             Protocol,
             on_delete=models.PROTECT,
-            null = True, blank=True
+            null = True, blank=True,
+            related_name='traits'
             )
 
     def __str__(self):
         return str(self.numeric_id) + '. ' + self.description
+
+    class Meta:
+        ordering = ['numeric_id',]
 
 class State(models.Model):
     """
@@ -81,11 +91,14 @@ class State(models.Model):
         help_text="a numeric ID that can be associated with the trait",
         null=True,blank=True
         )
-    description = models.CharField(max_length=200)
-    trait = models.ForeignKey(Trait, models.PROTECT)
+    description = models.CharField(max_length=200, null=False, blank=False)
+    trait = models.ForeignKey(Trait, models.CASCADE)
 
     def __str__(self):
         return str(self.numeric_id) + '. ' + self.description
+
+    class Meta:
+        ordering = ['numeric_id',]
 
 class Expression(models.Model):
     """
@@ -93,14 +106,13 @@ class Expression(models.Model):
     It refers to a specific Traits and contain the actual State of
     expression for that Trait.
     """
-    recording_date = models.DateField()
-    georeference_lat = models.FloatField()
-    georeference_lon = models.FloatField()
     state_of_expression = models.ForeignKey(State, on_delete=models.PROTECT)
-    description = models.ForeignKey(Description, on_delete=models.RESTRICT)
+    description = models.ForeignKey(
+            Description,
+            on_delete=models.RESTRICT,
+            related_name="expressions"
+            )
 
     def __str__(self):
-        return str(self.state_of_expression) + \
-                " (" + str(self.recording_date) + ")"
-
+        return str(self.state_of_expression)
 

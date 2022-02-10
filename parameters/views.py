@@ -2,10 +2,11 @@ from django import forms
 from django.urls import reverse_lazy
 from django.core.paginator import Paginator
 from django.shortcuts import render
+from django.urls.base import reverse
 from django.views.generic import CreateView, DeleteView, ListView, UpdateView
 from django.views.generic.detail import DetailView
 
-from .models import Parameter
+from .models import CropParameter, Parameter
 
 class ParametersList(ListView):
     model = Parameter
@@ -79,4 +80,15 @@ class ParameterDetail(DetailView):
         varparams = paginator.get_page(page)
         return varparams
 
+class CropParameterUpdate(UpdateView):
+    model = CropParameter
+    fields = ['value', 'url_ref',]
+    template_name = 'parameters/cropparam_update.html'
 
+    def get_success_url(self):
+        return reverse('register:plantspecie_detail', kwargs={'pk': self.get_object().specie.pk})
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['nav_species'] = 'active'
+        return context
