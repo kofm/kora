@@ -88,12 +88,12 @@ def description_manage(request, pk):
     # This is the forms list
     forms = []
     if request.method == "POST":
-            forms_has_errors=False
+            form_has_errors=False
             for expr_id, state_id in zip(request.POST.getlist('id'), request.POST.getlist('state_of_expression')):
                 if state_id:
                     form = ExpressionForm({'id': expr_id, 'state_of_expression': state_id})
                     if form.is_valid():
-                        __import__('pdb').set_trace()
+                        # __import__('pdb').set_trace()
                         #expression, create = Expression.objects.get_or_create(**form.cleaned_data, description = description)
                         if exist_expr.filter(pk=form.cleaned_data['id']).exists() and not exist_expr.filter(state_of_expression=form.cleaned_data['state_of_expression']):
                             exist_expr.filter(pk=form.cleaned_data['id']).update(state_of_expression=form.cleaned_data['state_of_expression'])
@@ -106,14 +106,13 @@ def description_manage(request, pk):
                                 new_expression.save()
                                 print("Created new")
                     else:
-                        form_has_errors = True
+                        form_has_errors=True
                 else:
                     if expr_id:
                         exist_expr.filter(pk=expr_id).delete()
                         print("Deleted")
-            if not forms_has_errors:
+            if not form_has_errors:
                 return HttpResponseRedirect(reverse('describe:description_detail', args=(description.id,)))
-
 
     for trait in description.available_traits:
         if exist_expr.filter(state_of_expression__trait=trait).exists():
@@ -125,7 +124,6 @@ def description_manage(request, pk):
         forms.append(form)
     formset = zip(forms, description.available_traits)
     return render(request, 'describe/description_manage.html', context={'formset': formset})
-
 
 class ExpressionUpdate(UpdateView):
     model = Expression
@@ -144,4 +142,3 @@ class DescriptionCreate(CreateView):
 
     def get_success_url(self):
         return reverse('describe:description-manage', args=(self.object.id,))
-
