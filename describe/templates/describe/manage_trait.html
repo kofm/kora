@@ -1,0 +1,59 @@
+{% extends "frontpage/base.html" %}
+{% load crispy_forms_tags %}
+{% load description_extras %}
+{% block title %}Protocol: {{ protocol.name }}{% endblock %}
+{% block container %}
+<h1>{{ protocol.name }} ({{ protocol.specie.common_name }})</h1>
+<form method="post" accept-charset="utf-8">
+{% csrf_token %}
+{{ trait_formset.management_form }}
+{{ trait_formset.non_form_errors }}
+<div id="form_set">
+
+{% for trait_form in trait_formset.forms %}
+<h2>Trait</h2>
+{{ trait_form }}
+
+    {% if trait_form.nested %}
+    <h3>States of expression</h3>
+    <div class="row justify-content-end">
+        <div class="col-6">
+        {{ trait_form.nested.management_form }}
+        {{ trait_form.nested.non_form_errors }}
+
+        {% for nested_form in trait_form.nested.forms %}
+            {{ nested_form }}
+        {% endfor %}
+        </div>
+        <div class="col-2"></div>
+    </div>
+    {% endif %}
+
+{% endfor %}
+</div>
+<button class="btn btn-primary" type="submit">Submit</button>
+<input type="button" value="Add More" id="add_more">
+<div id="empty_form" style="display:none">
+    <h2>Trait</h2>
+    <table class='no_error'>
+        {{ trait_formset.empty_form }}
+        <div id="empty_nested">
+            <h3>States of expression</h3>
+            <div class="row justify-content-end">
+                <div class="col-6">
+
+                    {{ trait_formset.empty_form.nested.empty_form }}
+                </div>
+            </div>
+        </div>
+    </table>
+</div></form>
+<script>
+    $('#add_more').click(function() {
+        var form_idx = $('#id_trait_set-TOTAL_FORMS').val();
+        $('#form_set').append($('#empty_form').html().replace(/__prefix__/g, form_idx));
+        $('#id_trait_set-TOTAL_FORMS').val(parseInt(form_idx) + 1);
+    });
+</script>
+{% endblock %}
+

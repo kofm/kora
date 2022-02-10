@@ -1,0 +1,14 @@
+{% extends "frontpage/base.html" %}
+{% load crispy_forms_tags %}
+{% block title %}Create new parameter{% endblock %}
+{% block container %}
+<h1>Create new parameter</h1>
+<form method="post">
+    {% csrf_token %}
+    {{ form|crispy }}
+    <p><small>*Required</small></p>
+    <input class="btn btn-primary" type="submit" value="Save">
+</form>
+{% endblock %}
+
+

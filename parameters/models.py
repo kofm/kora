@@ -12,17 +12,19 @@ class Parameter(models.Model):
     """
     code = models.CharField(
             max_length=50,
-            help_text="codename of the parameter"
+            help_text="A code to identify the parameter."
             )
     name=models.CharField(
             max_length=200,
-            help_text="the name of the parameter"
+            help_text="The name of the parameter."
             )
     description = models.CharField(
             max_length=200,
-            help_text = "long description of the parameter"
+            help_text = "The description of the parameter."
             )
-    measure_unit = models.CharField(max_length=50)
+    measure_unit = models.CharField(
+            max_length=50,
+            help_text="The unit of measurement.")
 
     def __str__(self):
         return self.code
@@ -36,6 +38,8 @@ class ParameterValue(models.Model):
                     help_text="a url reference for the source of the parameter"
                     )
     parameter = models.ForeignKey(Parameter, on_delete=models.RESTRICT)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         """
@@ -44,7 +48,7 @@ class ParameterValue(models.Model):
         abstract = True
 
     def __str__(self):
-        return self.parameter
+        return self.parameter.code
 
 
 class CropParameter(ParameterValue):

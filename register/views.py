@@ -1,13 +1,23 @@
-from django.shortcuts import get_object_or_404, reverse
-from django.http import HttpResponse
-from django.views.generic import ListView,DetailView,CreateView,View,FormView
+from django.core.paginator import Paginator
+from django.http.response import HttpResponse, HttpResponseRedirect
+from django.shortcuts import redirect, render, reverse
+from django.views.generic import CreateView, DetailView, ListView
 from django.views.generic.edit import FormMixin
-from django.views.generic.detail import SingleObjectMixin
-from .models import PlantSpecies,PlantVariety
+
+from parameters.forms import CropParameterForm, VarietalParameterForm
+
 from .forms import PlantSpeciesForm, PlantVarietyForm
+from .models import PlantSpecies, PlantVariety
+
 
 class PlantSpeciesList(ListView):
     model = PlantSpecies
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["nav_species"] = "active"
+        return context
+
 
 class PlantSpeciesCreate(CreateView):
     model = PlantSpecies
@@ -17,25 +27,13 @@ class PlantSpeciesCreate(CreateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["plantspecies_list"] = PlantSpecies.objects.all()
+        context["nav_species"] = "active"
         return context
 
-class PlantSpeciesDetail(DetailView):
-    model = PlantSpecies
-    context_object_name = 'species'
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['form'] = PlantVarietyForm()
-        return context
-
-    def post(self, request, *args, **kwargs):
-        new_variety = PlantVariety(name = request.POST.get('name'),
-                species=self.get_object())
-        new_variety.save()
-        return self.get(self, request, *args, **kwargs)
-
-class PSDetail(FormMixin, DetailView):
+class PlantSpeciesDetail(FormMixin, DetailView):
+    """This display the varieties present for the species and allow the
+    user to create a new variety"""
     model = PlantSpecies
     form_class = PlantVarietyForm
     template_name = "register/plantspecies_detail.html"
@@ -45,14 +43,15 @@ class PSDetail(FormMixin, DetailView):
         return {"species": self.get_object()}
 
     def get_success_url(self):
-        return reverse("register:plantspecie_detail", kwargs={"pk": self.object.pk})
+        return reverse("register:plantspecie_detail", kwargs={"pk": self.get_object().pk})
 
     def get_context_data(self, **kwargs):
-        context = super(PSDetail, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
+        context["nav_species"] = "active"
         context["form"] = self.get_form()
         return context
 
-    def post(self, request, *args, **kwargs):
+    def post(self, request, **kwargs):
         self.object = self.get_object()
         form = self.get_form()
         if form.is_valid():
@@ -65,12 +64,70 @@ class PSDetail(FormMixin, DetailView):
         plant_variety.save()
         return super().form_valid(form)
 
+
+class PlantSpeciesParametersList(DetailView):
+    model = PlantSpecies
+    context_object_name = 'species'
+    template_name = 'register/plantspeciesparameters_list.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        parameters = self.get_related_parameters()
+        context["nav_species"] = "active"
+        context["parameters"] = parameters
+        return context
+
+    def get_related_parameters(self):
+        queryset = self.object.cropparameter_set.all()
+        paginator = Paginator(queryset, 5)
+        page = self.request.GET.get('page')
+        parameters = paginator.get_page(page)
+        return parameters
+
+
+class PlantVarietyParametersList(DetailView):
+    model = PlantVariety
+    context_object_name = 'variety'
+    template_name = 'register/plantvarietyparameters_list.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["nav_species"] = "active"
+        return context
+
+
+
 class PlantVarietyDetail(DetailView):
     model = PlantVariety
     context_object_name = 'variety'
 
 
+def add_cropparametervervalue(request, pk):
+    """
+    https://stackoverflow.com/questions/37303171/django-create-new-object-in-form-update-select-box-and-save-it
+    https://stackoverflow.com/questions/7782479/django-reverse-engineering-the-admin-sites-add-foreign-key-button
+    Check this to add new parameter without leaving this view
+    """
+    species = PlantSpecies.objects.get(pk=pk)
+    form = CropParameterForm(initial={'specie': species})
+    if request.method == 'POST':
+        form = CropParameterForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect(reverse('register:plantspeciesparameters_list', kwargs={'pk': species.id}))
+
+    context = {'form': form}
+    return render(request, 'register/plantspeciesparameters_create.html', context)
 
 
-def debug_request(request):
-    return HttpResponse(request)
+def add_varietalparamevterervalue(request, pk):
+    variety = PlantVariety.objects.get(pk=pk)
+    form = VarietalParameterForm(initial={'variety': variety})
+    if request.method == 'POST':
+        form = VarietalParameterForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect(reverse('register:plantvarietyparameters_list', kwargs={'pk': variety.id}))
+
+    context = {'form': form}
+    return render(request, 'register/plantspeciesparameters_create.html', context)

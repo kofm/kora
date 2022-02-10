@@ -1,16 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-	<meta charset="UTF-8">
-	<title>{% block title %}{% endblock %}</title>
-</head>
-<body>
-	<div>
-		<a href="{% url 'front:index' %}">Home</a>
-	</div>
-	<div class="container-fluid">
-		{% block container %}
-		{% endblock %}
-	</div>
-</body>
+    <head>
+        {% load static %}
+        <link href="{% static 'frontpage/css/bootstrap.min.css' %}" rel="stylesheet">
+        <script src="{% static 'frontpage/js/bootstrap.bundle.min.js' %}"></script>
+        <script src="https://kit.fontawesome.com/595c38e6d0.js" crossorigin="anonymous"></script>
+        <style type="text/css" media="screen">
+            .falink {
+                text-decoration: none;
+                color: black;
+            }
+
+            a:hover.falink {
+                color: black;
+            }
+        </style>
+        <script src="https://code.jquery.com/jquery-3.5.1.min.js" integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
+        <meta charset="UTF-8">
+        <title>Persefone - {% block title %}{% endblock %}</title>
+    </head>
+    <body>
+        {% include 'frontpage/navbar.html' %}
+        <div class="container-fluid">
+            {% block container %}
+            {% endblock %}
+        </div>
+    </body>
 </html>

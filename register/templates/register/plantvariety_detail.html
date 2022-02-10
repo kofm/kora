@@ -1,11 +1,36 @@
 {% extends "frontpage/base.html" %}
+{% load register_extras %}
 {% block title %}Species{% endblock %}
 {% block container %}
-<h1>Variety {{ variety.name }}</h1>
-{{ variety.species.common_name }}
-<ul>
-	{% for description in variety.description_set.all %}
-	<li><a href="{% url "describe:description_detail" description.id %}">{{ description.name }}</a></li>
-	{% endfor %}
-</ul>
+<h1>{{ variety.name }} (<i>{{ variety.species.latin_name }}</i>)</h1>
+<h2>Descriptions</h2>
+{% for description in variety.description_set.all %}
+<p><a href="{% url "describe:description_detail" description.id %}">{{ description.name }}</a></p>
+{% empty %}
+<p>There are no descriptions yet.</p>
+{% endfor %}
+
+
+
+<h2>Parameters</h2>
+{% if variety.varietalparameter_set.all %}
+<table>
+    <tr>
+        <td>Parameter</td>
+        <td>Value</td>
+    </tr>
+    {% for param in variety.varietalparameter_set|get_last_parameters_value %}
+    <tr>
+        <td>{{ param.parameter.code }}</td>
+        <td>{{ param.value }} {{ param.parameter.measure_unit }}</td>
+    </tr>
+    {% endfor %}
+</table>
+<p>
+    <a href="{% url 'register:plantvarietyparameters_list' variety.id %}">View all</a>
+    <a href="{% url 'register:add_varparamval' variety.id %}">Add</a>
+</p>
+{% else %}
+<p>There are not parameters yet. <a href="{% url 'register:add_varparamval' variety.id %} ">Add one</a></p>
+{% endif %}
 {% endblock %}

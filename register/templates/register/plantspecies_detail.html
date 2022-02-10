@@ -1,16 +1,55 @@
 {% extends "frontpage/base.html" %}
-{% block title %}Species{% endblock %}
+{% load crispy_forms_tags %}
+{% load register_extras %}
+{% block title %}{{ species.common_name }}{% endblock %}
 {% block container %}
-<h1>Species {{ species.common_name }}</h1>
-<ul>
-{% for variety in species.variety.all %}
-    <li><a href="{% url 'register:variety_detail' variety.id %}">{{ variety }}</a></li>
-{% endfor %}
-</ul>
-<form method="post">
+<h1>{{ species.common_name }}</h1>
+<div class="container-sm mb-5">
+    <h2>Varieties</h2>
+    <ul>
+        {% for variety in species.variety.all %}
+        <li><a href="{% url 'register:variety_detail' variety.id %}">{{ variety }}</a></li>
+        {% empty %}
+        <p>There are no varieties for this species.</p>
+        {% endfor %}
+    </ul>
+    <h4>Add a variety</h4>
+    <form method="post">
+        <div class="mb-2">
         {% csrf_token %}
-        <h3>Add a variety</h3>
-        {{ form }}
-        <p><input type="submit"></p>
+            {{ form|crispy }}
+        </div>
+        <p><small>*Required</small></p>
+        <input class="btn btn-primary" type="submit" value="Save">
     </form>
-{% endblock %}
+</div>
+<div class="container-sm">
+    {% if species.cropparameter_set.distinct %}
+    <h2>Parameters</h2>
+    <p><i>(Last values)</i></p>
+    <table class="table">
+        <thead>
+            <th>Code</th>
+            <th>Value</th>
+            <th>Ref.</th>
+        </thead>
+    {% for param in species.cropparameter_set|get_last_parameters_value %}
+        <tr>
+            <td>{{ param.parameter.code }}</td>
+            <td>{{ param.value }} {{ param.parameter.measure_unit }}</td>
+            <td><a href="{{ param.url_ref }}">Rif.</a></td>
+        </tr>
+    {% endfor %}
+    </table>
+    <p>
+    <a class="btn btn-outline-secondary" href="{% url 'register:plantspeciesparameters_list' species.id %}">View all</a>
+    <a class="btn btn-outline-secondary" href="{% url 'register:add_cropparamval' species.id %}">Add</a>
+    </p>
+    {% else %}
+    <p>There are no parameters for this species.
+    <a href="{% url 'register:add_cropparamval' species.id %}">Add one</a>.
+    </p>
+    {% endif %}
+    {% endblock %}
+
+</div>
