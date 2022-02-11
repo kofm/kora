@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'describe.apps.DescribeConfig',
     'frontpage.apps.FrontpageConfig',
     'parameters.apps.ParametersConfig',
+    'garden.apps.GardenConfig',
 ]
 
 MIDDLEWARE = [
