@@ -6,28 +6,34 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('parameters', '0007_auto_20201226_1323'),
+        ("parameters", "0007_auto_20201226_1323"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='parameter',
-            name='code',
-            field=models.CharField(help_text='A code to identify the parameter.', max_length=50),
+            model_name="parameter",
+            name="code",
+            field=models.CharField(
+                help_text="A code to identify the parameter.", max_length=50
+            ),
         ),
         migrations.AlterField(
-            model_name='parameter',
-            name='description',
-            field=models.CharField(help_text='The description of the parameter.', max_length=200),
+            model_name="parameter",
+            name="description",
+            field=models.CharField(
+                help_text="The description of the parameter.", max_length=200
+            ),
         ),
         migrations.AlterField(
-            model_name='parameter',
-            name='measure_unit',
-            field=models.CharField(help_text='The unit of measurement.', max_length=50),
+            model_name="parameter",
+            name="measure_unit",
+            field=models.CharField(help_text="The unit of measurement.", max_length=50),
         ),
         migrations.AlterField(
-            model_name='parameter',
-            name='name',
-            field=models.CharField(help_text='The name of the parameter.', max_length=200),
+            model_name="parameter",
+            name="name",
+            field=models.CharField(
+                help_text="The name of the parameter.", max_length=200
+            ),
         ),
     ]

@@ -1,0 +1,28 @@
+{% extends "frontpage/base.html" %}
+
+{% block title %}Locations{% endblock %}
+
+{% block container %}
+
+<h1>Locations</h1>
+<div class="row row-cols-1 row-cols-md-3 g-4">
+
+{% for location in object_list %}
+
+<a href="{% url 'spaces:locations_detail' location.id %}" style="text-decoration:none; color: black">
+  <div class="col">
+    <div class="card border-dark">
+      <div class="card-header">{{ location.name }}</div>
+      <div class="card-body text-dark">
+        <h5 class="card-title"><i></i></h5>
+        <p class="card-text">Coords: {{ location.latitude }}° N, {{ location.longitude }}° E</p>
+      </div>
+    </div>
+  </div>
+</a>
+
+{% empty %}
+<p>There are no stored locations, yet.</p>
+{% endfor %}
+
+{% endblock %}

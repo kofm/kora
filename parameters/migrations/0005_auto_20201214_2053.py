@@ -6,27 +6,27 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('register', '0002_auto_20201207_2033'),
-        ('parameters', '0004_auto_20201214_2050'),
+        ("register", "0002_auto_20201207_2033"),
+        ("parameters", "0004_auto_20201214_2050"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='cropparameter',
-            name='specie',
+            model_name="cropparameter",
+            name="specie",
         ),
         migrations.AddField(
-            model_name='cropparameter',
-            name='specie',
-            field=models.ManyToManyField(to='register.PlantSpecies'),
+            model_name="cropparameter",
+            name="specie",
+            field=models.ManyToManyField(to="register.PlantSpecies"),
         ),
         migrations.RemoveField(
-            model_name='varietalparameter',
-            name='variety',
+            model_name="varietalparameter",
+            name="variety",
         ),
         migrations.AddField(
-            model_name='varietalparameter',
-            name='variety',
-            field=models.ManyToManyField(to='register.PlantVariety'),
+            model_name="varietalparameter",
+            name="variety",
+            field=models.ManyToManyField(to="register.PlantVariety"),
         ),
     ]

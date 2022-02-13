@@ -1,4 +1,3 @@
-from parameters.models import CropParameter
 from django.core.paginator import Paginator
 from django.http.response import HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect, render, reverse
@@ -6,6 +5,7 @@ from django.views.generic import CreateView, DetailView, ListView
 from django.views.generic.edit import FormMixin, UpdateView
 
 from parameters.forms import CropParameterForm, VarietalParameterForm
+from parameters.models import CropParameter
 
 from .forms import PlantSpeciesForm, PlantVarietyForm
 from .models import PlantSpecies, PlantVariety
@@ -23,7 +23,7 @@ class PlantSpeciesList(ListView):
 class PlantSpeciesCreate(CreateView):
     model = PlantSpecies
     form_class = PlantSpeciesForm
-    context_object_name = 'species'
+    context_object_name = "species"
     success_url = "/register/species/"
 
     def get_context_data(self, **kwargs):
@@ -35,16 +35,19 @@ class PlantSpeciesCreate(CreateView):
 class PlantSpeciesDetail(FormMixin, DetailView):
     """This display the varieties present for the species and allow the
     user to create a new variety"""
+
     model = PlantSpecies
     form_class = PlantVarietyForm
     template_name = "register/plantspecies_detail.html"
-    context_object_name = 'species'
+    context_object_name = "species"
 
     def get_initial(self):
         return {"species": self.get_object()}
 
     def get_success_url(self):
-        return reverse("register:plantspecie_detail", kwargs={"pk": self.get_object().pk})
+        return reverse(
+            "register:plantspecie_detail", kwargs={"pk": self.get_object().pk}
+        )
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -68,8 +71,8 @@ class PlantSpeciesDetail(FormMixin, DetailView):
 
 class PlantSpeciesParametersList(DetailView):
     model = PlantSpecies
-    context_object_name = 'species'
-    template_name = 'register/plantspeciesparameters_list.html'
+    context_object_name = "species"
+    template_name = "register/plantspeciesparameters_list.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -81,15 +84,15 @@ class PlantSpeciesParametersList(DetailView):
     def get_related_parameters(self):
         queryset = self.object.cropparameter_set.all()
         paginator = Paginator(queryset, 5)
-        page = self.request.GET.get('page')
+        page = self.request.GET.get("page")
         parameters = paginator.get_page(page)
         return parameters
 
 
 class PlantVarietyParametersList(DetailView):
     model = PlantVariety
-    context_object_name = 'variety'
-    template_name = 'register/plantvarietyparameters_list.html'
+    context_object_name = "variety"
+    template_name = "register/plantvarietyparameters_list.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -97,10 +100,9 @@ class PlantVarietyParametersList(DetailView):
         return context
 
 
-
 class PlantVarietyDetail(DetailView):
     model = PlantVariety
-    context_object_name = 'variety'
+    context_object_name = "variety"
 
 
 def add_cropparametervervalue(request, pk):
@@ -110,24 +112,33 @@ def add_cropparametervervalue(request, pk):
     Check this to add new parameter without leaving this view
     """
     species = PlantSpecies.objects.get(pk=pk)
-    form = CropParameterForm(initial={'specie': species})
-    if request.method == 'POST':
+    form = CropParameterForm(initial={"specie": species})
+    if request.method == "POST":
         form = CropParameterForm(request.POST)
         if form.is_valid():
             form.save()
-            return HttpResponseRedirect(reverse('register:plantspeciesparameters_list', kwargs={'pk': species.id}))
+            return HttpResponseRedirect(
+                reverse(
+                    "register:plantspeciesparameters_list", kwargs={"pk": species.id}
+                )
+            )
 
-    context = {'form': form}
-    return render(request, 'register/plantspeciesparameters_create.html', context)
+    context = {"form": form}
+    return render(request, "register/plantspeciesparameters_create.html", context)
+
 
 def add_varietalparamevterervalue(request, pk):
     variety = PlantVariety.objects.get(pk=pk)
-    form = VarietalParameterForm(initial={'variety': variety})
-    if request.method == 'POST':
+    form = VarietalParameterForm(initial={"variety": variety})
+    if request.method == "POST":
         form = VarietalParameterForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect(reverse('register:plantvarietyparameters_list', kwargs={'pk': variety.id}))
+            return redirect(
+                reverse(
+                    "register:plantvarietyparameters_list", kwargs={"pk": variety.id}
+                )
+            )
 
-    context = {'form': form}
-    return render(request, 'register/plantspeciesparameters_create.html', context)
+    context = {"form": form}
+    return render(request, "register/plantspeciesparameters_create.html", context)

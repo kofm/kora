@@ -6,20 +6,28 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('parameters', '0002_auto_20201214_2044'),
+        ("parameters", "0002_auto_20201214_2044"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='cropparameter',
-            name='description',
-            field=models.CharField(default=None, help_text='long description of the parameter', max_length=200),
+            model_name="cropparameter",
+            name="description",
+            field=models.CharField(
+                default=None,
+                help_text="long description of the parameter",
+                max_length=200,
+            ),
             preserve_default=False,
         ),
         migrations.AddField(
-            model_name='varietalparameter',
-            name='description',
-            field=models.CharField(default=None, help_text='long description of the parameter', max_length=200),
+            model_name="varietalparameter",
+            name="description",
+            field=models.CharField(
+                default=None,
+                help_text="long description of the parameter",
+                max_length=200,
+            ),
             preserve_default=False,
         ),
     ]
