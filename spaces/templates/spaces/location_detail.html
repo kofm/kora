@@ -14,16 +14,16 @@
     </thead>
   {% for area in garden.area_set.all %}
     <tr>
-      <td>{{ area.name }}</td>
+      <td><a href="#">{{ area.name }}</a></td>
       <td>{{ area.length }}</td>
       <td>{{ area.width }}</td>
       <td>{{ area.total_area }}</td>
       <td>{{ area.temp_offset }}</td>
     </tr>
   {% empty %}
-  </table>
   <p>There are no areas in this garden.</p>
   {% endfor %}
+</table>
 {% empty %}
 <p>There are no gardens in this location.</p>
 {% endfor %}

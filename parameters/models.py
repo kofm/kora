@@ -6,7 +6,6 @@ from django.db import models
 from describe.models import Trait
 from register.models import PlantSpecies, PlantVariety
 
-
 class Parameter(models.Model):
     """
     Stores the parameters related to the Species
@@ -23,7 +22,6 @@ class Parameter(models.Model):
 
     def __str__(self):
         return self.code
-
 
 class ParameterValue(models.Model):
     """
@@ -42,34 +40,27 @@ class ParameterValue(models.Model):
         """
         This is an abstract class
         """
-
         abstract = True
 
     def __str__(self):
         return self.parameter.code
 
-
 class CropParameter(ParameterValue):
     """
     Crop parameters values
     """
-
     specie = models.ForeignKey(PlantSpecies, on_delete=models.RESTRICT)
-
 
 class VarietalParameter(ParameterValue):
     """
     Varietal parameters values
     """
-
     variety = models.ForeignKey(PlantVariety, on_delete=models.RESTRICT)
-
 
 class Measure(models.Model):
     """
     Stores the measures related to a variety
     """
-
     georeference_lat = models.FloatField()
     georeference_lon = models.FloatField()
     measure_unit = models.CharField(max_length=50)

@@ -1,0 +1,4 @@
+code,name,description,measure_unit,measure_unit_re0
+distw,Distance within rows,The distance between plants within a row,meter,meter
+distb,Distance between rows,The distance between rows,meter,meter
+yield,Yield,Total yield per square meter,g/m2,g/m2

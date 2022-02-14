@@ -18,6 +18,8 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 
+from calculator import views
+
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", include("frontpage.urls")),
@@ -26,4 +28,6 @@ urlpatterns = [
     path("parameters/", include("parameters.urls")),
     path("api/", include("restapi.urls")),
     path("spaces/", include("spaces.urls")),
+    path("calc", views.calculator, name="calculator"),
+    path("get_area_ajax", views.get_area_ajax, name="get_area_ajax"),
 ]  # + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

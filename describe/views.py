@@ -14,20 +14,18 @@ from register.models import PlantSpecies
 
 from .models import Description, Expression, Protocol, State
 
-
 class DescriptionsList(ListView):
-    model = Description
+    model=Description
+    paginate_by=10
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["nav_descriptions"] = "active"
         return context
 
-
 class DescriptionDetail(DetailView):
     model = Description
     context_object_name = "description"
-
 
 class ProtocolsList(ListView):
     model = PlantSpecies
@@ -38,7 +36,6 @@ class ProtocolsList(ListView):
         context = super().get_context_data(**kwargs)
         context["nav_protocols"] = "active"
         return context
-
 
 class ProtocolCreate(CreateView):
     model = Protocol
@@ -57,11 +54,9 @@ class ProtocolCreate(CreateView):
     def get_success_url(self):
         return reverse("describe:protocol-update", args=(self.object.id,))
 
-
 class ProtocolDelete(DeleteView):
     model = Protocol
     success_url = reverse_lazy("describe:protocols_list")
-
 
 class ProtocolDetail(DetailView):
     model = Protocol
@@ -71,7 +66,6 @@ class ProtocolDetail(DetailView):
         context = super().get_context_data(**kwargs)
         context["nav_protocols"] = "active"
         return context
-
 
 def protocol_update(request, pk):
     protocol = get_object_or_404(Protocol, pk=pk)
@@ -90,7 +84,6 @@ def protocol_update(request, pk):
         "describe/protocol_manage.html",
         {"fs": form, "protocol": protocol, "nav_protocols": "active"},
     )
-
 
 def description_manage(request, pk):
     # Get the description object
@@ -155,12 +148,10 @@ def description_manage(request, pk):
         request, "describe/description_manage.html", context={"formset": formset}
     )
 
-
 class ExpressionUpdate(UpdateView):
     model = Expression
     fields = "__all__"
     template_name = "describe/expression_update.html"
-
 
 class DescriptionCreate(CreateView):
     model = Description

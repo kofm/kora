@@ -1,0 +1,38 @@
+{% extends "frontpage/base.html" %}
+{% block title %}Calculator{% endblock %}
+
+{% block javascript %}
+{% endblock %}
+
+{% block container %}
+<h1>Calculator</h1>
+{% csrf_token %}
+<div class="col-md-3">
+<div class="form-group">
+<select id='area_select' class="form-select" aria-label="Default select example">
+{% for area in areas %}
+  <option value="{{ area.pk}}">{{ area.name }}</option>
+{% endfor %}
+</select>
+</div>
+</div>
+<div id="infobox">Here</div>
+<script>
+    $("#area_select").change(function () {
+        console.log("HERE")
+        const areaId = $(this).val();  // get the selected subject ID from the HTML dropdown list
+        $.ajax({                       // initialize an AJAX request
+            type: "POST",
+            url: '{% url "get_area_ajax" %}',
+            data: {
+                'area_id': areaId,       // add the country id to the POST parameters
+                'csrfmiddlewaretoken':$('input[name=csrfmiddlewaretoken]').val(),
+            },
+            success: function (data) {   // `data` is from `get_topics_ajax` view function
+                d=JSON.parse(data)
+                $("#infobox").html(d[0].fields.width); // replace the contents of the topic input with the data that came from the server
+              }
+          });
+      });
+</script>
+{% endblock %}

@@ -1,16 +1,13 @@
 from django.db import models
 
-
 class Location(models.Model):
     name = models.CharField(max_length=30)
     latitude = models.FloatField()
     longitude = models.FloatField()
 
-
 class Garden(models.Model):
     name = models.CharField(max_length=30)
     location = models.ForeignKey(Location, on_delete=models.PROTECT)
-
 
 class Area(models.Model):
     name = models.CharField(max_length=30)
@@ -21,4 +18,4 @@ class Area(models.Model):
 
     @property
     def total_area(self):
-        return self.length * self.width
+        return round(self.length*self.width, 1)
