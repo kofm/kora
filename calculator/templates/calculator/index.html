@@ -9,35 +9,48 @@
 {% csrf_token %}
 <div class="row">
 
-    <div class="col-2">
-      <label class="form-label" for="area_select">Area</label>
-      <select id='area_select' class="form-select" aria-label="Select area" data-url="{% url "get_area_ajax" %}">
-        {% for area in areas %}
-        <option value="{{ area.pk}}">{{ area.name }}</option>
-        {% endfor %}
-      </select>
-      <label class="form-label" for="plantspecies_select">Crop</label>
-      <select id='plantspecies_select' class="form-select" aria-label="Select crop" data-url="">
-        {% for crop in plantspecies %}
-        <option value="{{ crop.pk}}">{{ crop.common_name }}</option>
-        {% endfor %}
-      </select>
+    <div class="col">
+      <div class="form-floating">
+        <select id='area_select' class="form-select" aria-label="Select area" data-url="{% url "get_area_ajax" %}">
+          {% for area in areas %}
+          <option value="{{ area.pk}}">{{ area.name }}</option>
+          {% endfor %}
+        </select>
+        <label class="form-label" for="area_select">Area</label>
+      </div>
+      <div class="form-floating mt-3">
+        <select id='plantspecies_select' class="form-select" aria-label="Select crop" data-url="">
+          {% for crop in plantspecies %}
+          <option value="{{ crop.pk}}">{{ crop.common_name }}</option>
+          {% endfor %}
+        </select>
+        <label class="form-label" for="plantspecies_select">Crop</label>
+      </div>
+      <div class="form-floating mt-3">
+        <select id='plantvariety_select' class="form-select" aria-label="Select variety" data-url="{% url "get_varieties" %}">
+          <option value=""></option>
+        </select>
+        <label class="form-label" for="plantvariety_select">Variety</label>
+      </div>
+      <div class="mt-4">
+        <button type="button" class="btn btn-dark btn-lg">Save</button>
+        <button type="button" class="btn btn-outline-danger btn-lg">Delete</button>
+        <button type="button" class="btn btn-outline-secondary btn-lg">Reset</button>
+      </div>
     </div>
 
-    <div class="col-2"></div>
-
-    <div class="col-2">
-      <div class="card" style="width: 18rem;">
+    <div class="col">
+      <div class="card shadow p-3 mb-5 bg-body rounded h-100 d-inline-block" style="width: 18rem;">
         <div class="card-body">
           <h5 class="card-title">Dimensions</h5>
-          <h6 class="card-subtitle mb-2 text-muted">Space available</h6>
+          <h6 class="card-subtitle mb-2 text-muted">Space available (width x length, in metres)</h6>
           <p id="dimensions_card" class="card-text"></p>
         </div>
       </div>
     </div>
 
-    <div class="col-2">
-      <div class="card" style="width: 18rem;">
+    <div class="col">
+      <div class="card shadow p-3 mb-5 bg-body rounded h-100 d-inline-block" style="width: 18rem;">
         <div class="card-body">
           <h5 class="card-title">Yield</h5>
           <h6 class="card-subtitle mb-2 text-muted">Expected yield</h6>
@@ -46,8 +59,8 @@
       </div>
     </div>
 
-    <div class="col-2">
-      <div class="card" style="width: 18rem;">
+    <div class="col">
+      <div class="card shadow p-3 mb-5 bg-body rounded h-100 d-inline-block" style="width: 18rem;">
         <div class="card-body">
           <h5 class="card-title">Planting</h5>
           <h6 class="card-subtitle mb-2 text-muted">Planting density (between x within rows)</h6>

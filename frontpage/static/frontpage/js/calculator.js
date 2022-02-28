@@ -14,19 +14,38 @@ function getArea() {
       'csrfmiddlewaretoken':$('input[name=csrfmiddlewaretoken]').val(),
     },
     success: function (data) {   // `data` is from `get_topics_ajax` view function
-      d=JSON.parse(data)
-      var w = d[0].fields.width
-      var l = d[0].fields.length
-      var area = w * l
-      var yield = d[1].fields.value
-      $("#dimensions_card").html(w + " x " + l + " m <br> (" + Math.round(area, 1) + " m<sup>2</sup>)"); // replace the contents of the topic input with the data that came from the server
-      $("#yield_card").html(Math.round(yield * area) + "<br>kg (" + yield + " kg/m<sup>2</sup>)"); // replace the contents of the topic input with the data that came from the server
+      // d=JSON.parse(data)
+      $("#dimensions_card").html(data.width + " x " + data.length + " m <br> (" + data.total_area + " m<sup>2</sup> total area)"); // replace the contents of the topic input with the data that came from the server
+      $("#yield_card").html(data.expected_yield + " kg<br>(" + data.yield + " kg/m<sup>2</sup>)"); // replace the contents of the topic input with the data that came from the server
+      $("#planting_card").html(data.distb + "x" + data.distw + "<br>(" + data.plant_number + " total plants, " + data.nrow + " rows with " + data.nplants + " plants each row)"); // replace the contents of the topic input with the data that came from the server
     }
   });
 }
 
+function getVarieties() {
+  const plantspeciesId = $('#plantspecies_select').val();  // get the selected subject ID from the HTML dropdown list
+
+  $.ajax({
+    type: "POST",
+    url: $("#plantvariety_select").attr("data-url"),
+    data: {
+      'plantspecies_id': plantspeciesId,
+      'csrfmiddlewaretoken':$('input[name=csrfmiddlewaretoken]').val(),
+    },
+    success: function (data) {   // `data` is from `get_topics_ajax` view function
+      $('#plantvariety_select').html("");
+      data=JSON.parse(data);
+      jQuery.each(data, function(variety) {
+        $('#plantvariety_select').append("<option>" + this.fields.name + "</option>");
+      });
+    }
+  })
+}
+
 $(document).ready(function() {
   getArea();
+  getVarieties();
   area_select.addEventListener('change', getArea);
   plantspecies_select.addEventListener('change', getArea);
+  plantspecies_select.addEventListener('change', getVarieties);
 })

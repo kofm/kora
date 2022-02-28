@@ -30,4 +30,5 @@ urlpatterns = [
     path("spaces/", include("spaces.urls")),
     path("calc", views.calculator, name="calculator"),
     path("get_area_ajax", views.get_area_ajax, name="get_area_ajax"),
+    path("get_varieties", views.get_varieties, name="get_varieties"),
 ]  # + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
