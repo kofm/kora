@@ -1,7 +1,7 @@
 {% extends "frontpage/base.html" %}
 {% block title %}Species{% endblock %}
 {% block container %}
-<h1>Species</h1>
+<p class="h1">Species<a class="btn btn-primary ms-2" href="{% url 'register:species_create' %}">Create</a></p>
 <div class="row row-cols-1 row-cols-md-3 g-4">
     {% for specie in object_list %}
     <a href="{% url 'register:plantspecie_detail' specie.id %}" style="text-decoration:none; color: black">
