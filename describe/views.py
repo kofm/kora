@@ -1,4 +1,5 @@
 import pdb
+from django.core.paginator import Paginator
 
 from django.forms.models import model_to_dict
 from django.http.response import HttpResponse, HttpResponseRedirect
@@ -8,7 +9,7 @@ from django.urls.base import reverse_lazy
 from django.views.decorators.csrf import csrf_protect
 from django.views.generic import DetailView, ListView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
-
+Paginator
 from describe.forms import ExpressionForm, TraitFormSet
 from register.models import PlantSpecies
 
@@ -21,6 +22,7 @@ class DescriptionsList(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["nav_descriptions"] = "active"
+        context
         return context
 
 class DescriptionDetail(DetailView):
