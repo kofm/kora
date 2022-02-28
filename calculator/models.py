@@ -11,4 +11,4 @@ class Crop(models.Model):
     PlantSpecies or Varieties. It can store temporary ovverides e.g. for the
     temperature offset of the Area, or planting scheme (distw, distb)
     """
-    notes=models.CharField(help_text="Notes relative to the Crop")
+    notes=models.CharField(max_length=500, help_text="Notes relative to the Crop")
