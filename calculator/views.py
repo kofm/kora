@@ -77,6 +77,7 @@ def get_area_ajax(request):
             json_resp['width']
         )
         json_resp["expected_yield"]=round(json_resp["unit_yield"]*json_resp["plant_number"]*json_resp["length"],2)
+        json_resp["plant_number"]=json_resp["plant_number"]*json_resp['length']
         # Return data in json format
         return JsonResponse(json_resp,safe=False)
     else:

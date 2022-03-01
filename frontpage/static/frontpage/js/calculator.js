@@ -16,8 +16,16 @@ function getArea() {
     success: function (data) {   // `data` is from `get_topics_ajax` view function
       // d=JSON.parse(data)
       $("#dimensions_card").html(data.width + " x " + data.length + " m <br> (" + data.total_area + " m<sup>2</sup> total area)"); // replace the contents of the topic input with the data that came from the server
-      $("#yield_card").html(data.expected_yield + " kg<br>(" + data.yield + " kg/m<sup>2</sup>)"); // replace the contents of the topic input with the data that came from the server
-      $("#planting_card").html(data.distb + "x" + data.distw + "<br>(" + data.plant_number + " total plants, " + data.nrow + " rows with " + data.nplants + " plants each row)"); // replace the contents of the topic input with the data that came from the server
+      $("#yield_card").html(data.expected_yield + " kg (" + data.yield + " kg/m<sup>2</sup>)"); // replace the contents of the topic input with the data that came from the server
+      planting_text = "Total plants: " + data.plant_number + "<br>";
+      planting_text += "Planting scheme: " + data.distb + "x" + data.distw + "m";
+      planting_text += " (" + data.nrow + " rows)";
+      $("#planting_card").html(planting_text);
+      // $("#planting_card").html("Total plants: " + data.plant_number + "<br>Rows: " + data.nrow + " rows with " + data.nplants + " plants each row"); // replace the contents of the topic input with the data that came from the server
+      $("#distb_select").html(data.distb);
+      $("#distb_range").attr('value', data.distb * 100)
+      $("#distw_select").html(data.distw);
+      $("#distw_range").attr('value', data.distw * 100)
     }
   });
 }
