@@ -4,6 +4,10 @@ Models to store informations relative to a user crop.
 They consist of a reference Area, a Specie/Variety combination
 """
 from django.db import models
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
+
+from spaces.models import Area
 
 class Crop(models.Model):
     """
@@ -12,3 +16,8 @@ class Crop(models.Model):
     temperature offset of the Area, or planting scheme (distw, distb)
     """
     notes=models.CharField(max_length=500, help_text="Notes relative to the Crop")
+    # Relation to PlantSpecies or PlantVariety
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey('content_type', 'object_id')
+    area=models.ForeignKey(Area, on_delete=models.PROTECT,)
