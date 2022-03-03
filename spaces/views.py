@@ -1,12 +1,10 @@
 from django.shortcuts import render
 from django.views.generic import DetailView, ListView
 
-from spaces.models import Area, Garden, Location
-
+from spaces.models import Location
 
 class LocationList(ListView):
     model = Location
-
 
 class LocationDetail(DetailView):
     model = Location

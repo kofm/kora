@@ -5,13 +5,14 @@ class Location(models.Model):
     latitude = models.FloatField()
     longitude = models.FloatField()
 
-class Garden(models.Model):
-    name = models.CharField(max_length=30)
-    location = models.ForeignKey(Location, on_delete=models.PROTECT)
+# class Garden(models.Model):
+#     name = models.CharField(max_length=30)
+    # location = models.ForeignKey(Location, on_delete=models.PROTECT)
 
 class Area(models.Model):
     name = models.CharField(max_length=30)
-    garden = models.ForeignKey(Garden, on_delete=models.PROTECT)
+    # garden = models.ForeignKey(Garden, on_delete=models.PROTECT)
+    location = models.ForeignKey(Location, on_delete=models.PROTECT)
     length = models.FloatField()
     width = models.FloatField()
     temp_offset = models.IntegerField()

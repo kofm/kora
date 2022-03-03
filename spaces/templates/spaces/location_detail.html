@@ -2,8 +2,6 @@
 {% block title %}Location: {{ location.name }}{% endblock %}
 {% block container %}
 <h1>Location: {{ location.name }}</h1>
-{% for garden in location.garden_set.all %}
-  <h2>{{ garden.name }}</h2>
 <table class="table table-striped">
     <thead>
       <th>Area</th>
@@ -12,7 +10,7 @@
       <th>Total area</th>
       <th>Temperature offset</th>
     </thead>
-  {% for area in garden.area_set.all %}
+  {% for area in location.area_set.all %}
     <tr>
       <td><a href="#">{{ area.name }}</a></td>
       <td>{{ area.length }}</td>
@@ -21,10 +19,7 @@
       <td>{{ area.temp_offset }}</td>
     </tr>
   {% empty %}
-  <p>There are no areas in this garden.</p>
+  <p>There are no areas in this location.</p>
   {% endfor %}
 </table>
-{% empty %}
-<p>There are no gardens in this location.</p>
-{% endfor %}
 {% endblock %}
