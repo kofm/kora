@@ -1,0 +1,107 @@
+{% extends "frontpage/base.html" %}
+{% load crispy_forms_tags %}
+{% block title %}New protocol{% endblock %}
+{% block container %}
+<h1>Protocol {{protocol.name}}</h1>
+<h2><i>{{protocol.specie.latin_name}}</i></h2>
+<form method="post">
+    {% csrf_token %}
+    <div id="form_set">
+        {{ fs.management_form }}
+        {{ fs.non_form_errors }}
+        {% for f in fs %}
+        <div class="card mb-5">
+            <div class="card-header">
+                {{ f|crispy }}
+            </div>
+            {% if f.nested %}
+            <div class="card-body states">
+                <div class="states-management_form">
+                    {{ f.nested.management_form }}
+                    {{ f.nested.non_form_errors }}
+                </div>
+                <ul class="list-group list-group-flus">
+                    {% for n in f.nested %}
+                    <li class="list-group-item state-form">
+                        {{ n|crispy }}
+                    </li>
+                    {% endfor %}
+                </ul>
+                <div class="card-body">
+                    <input type="button" class="btn btn-secondary add_state" value="Add state">
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <div class="mt-3">
+        <input type="submit" value="Save" class="btn btn-primary"/>
+        <input type="button" value="Add Trait" id="add_trait" class="btn btn-secondary">
+    </div>
+</form>
+<div id="empty_form" style="display:none">
+    <div class="card mb-5">
+        <div class="card-header">
+            {{ fs.empty_form|crispy }}
+        </div>
+        <div class="card-body states">
+            <div class="states-management_form">
+                {{ fs.empty_form.nested.management_form|crispy }}
+            </div>
+            <p>states</p>
+            <ul class="list-group list-group-flus">
+                <li class="list-group-item state-form">
+                    {{ fs.empty_form.nested.empty_form|crispy }}
+                </li>
+            </ul>
+            <div class="card-body">
+                <input type="button" class="btn btn-secondary add_state" value="Add state">
+            </div>
+        </div>
+    </div>
+    <script charset="utf-8">
+        // This function adds a new trait dynamically
+        $('#add_trait').click(function() {
+        // Get the number of actual total trait fields. Needed for processing
+        // with Django
+        var form_idx = $('#id_trait_set-TOTAL_FORMS').val();
+        // Get the html of empty formset and replace __prefix__ with the actual
+        // number of forms. Since formset indexes start from 0, there is no need
+        // to increment.
+        var replacement = $('#empty_form').html().
+                                    replace(/__prefix__/g, form_idx).
+                                    replace(/([a-z0-9_\-]*?)(-state_set-)(\d+)/g, "$1$20");
+        // Append the html at the end of the form (which has id = form_set
+        $('#form_set').append(replacement);
+        // Increment the total number of forms
+        $('#id_trait_set-TOTAL_FORMS').val(parseInt(form_idx) + 1);
+});
+
+        // This function add a state dynamically WITHIN an existing trait field
+        // "on" is used to work also in dynamically generated elements
+        $(document.body).on("click", ".add_state", function() {
+        // Store the actual number of states within the trait form
+        var form_idx = $(this).closest(".states").find("input:hidden[name$='TOTAL_FORMS']").val();
+        // Select the last state within the form
+        var prev_state = $(this).parent('.card-body').
+                                 siblings(".list-group").
+                                 children(".state-form").
+                                 last()
+        // Edit the html to increment the field number, using the total form
+        // number; as before, since the index starts from 0 there is no need
+        // to increment the value
+        var new_state = prev_state.prop("outerHTML").
+             replace(/([a-z0-9_\-]*?)(-state_set-)(\d+)/g, "$1$2" + form_idx);
+        // Append the html after the last state field
+        prev_state.after(new_state);
+        $(this).parent('.card-body').
+        siblings(".list-group").
+        children(".state-form").
+        last().
+        find("input[id$='numeric_id']").focus()
+        // Increment the total number of fields (within the current trait field)
+        $(this).closest(".states").find("input:hidden[name$='TOTAL_FORMS']").val(parseInt(form_idx) + 1);
+        });
+    </script>
+    {% endblock %}

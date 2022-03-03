@@ -1,0 +1,32 @@
+{% extends "frontpage/base.html" %}
+{% block title %}Calculator{% endblock %}
+{% block container %}
+<p class="h1">Seed Samples<a class="btn btn-primary ms-2" href="{% url 'collect:seedsamples-create' %}">Create</a></p>
+<table class="table table-striped table-hover">
+    <thead>
+        <th scope="col">ID</td>
+        <th scope="col">Variety</td>
+        <th scope="col">Location</td>
+        <th scope="col">Germinability</td>
+        <th scope="col">Growing season</td>
+        <th scope="col" style="width: 40%">Notes</td>
+        <th scope="col"></td>
+    </thead>
+    {% for seedsample in object_list %}
+    <tr>
+        <td>{{ seedsample.pk }}</td>
+        <td>{{ seedsample.variety.name }}</td>
+        <td>{{ seedsample.location }}</td>
+        <td>{{ seedsample.last_germinability }}</td>
+        <td>{{ seedsample.growing_season }}</td>
+        <td>{{ seedsample.notes }}</td>
+        <td>
+            <a href=""><i class="bi bi-zoom-in" style="color: black;"></i></a>
+            <a class="far fa-edit falink" href=""><i class="bi-pencil" style="color: black;"></i></a>
+            <a class="fas fa-trash-alt falink" href=""><i class="bi bi-trash" style="color: black;"></i></a>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+{% include 'frontpage/paginator.html' with page=page_obj pagevar='page' %}
+{% endblock %}

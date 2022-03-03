@@ -1,0 +1,25 @@
+{% extends "frontpage/base.html" %}
+{% block title %}Location: {{ location.name }}{% endblock %}
+{% block container %}
+<h1>Location: {{ location.name }}</h1>
+<table class="table table-striped">
+    <thead>
+      <th>Area</th>
+      <th>Length</th>
+      <th>Width</th>
+      <th>Total area</th>
+      <th>Temperature offset</th>
+    </thead>
+  {% for area in location.area_set.all %}
+    <tr>
+      <td><a href="#">{{ area.name }}</a></td>
+      <td>{{ area.length }}</td>
+      <td>{{ area.width }}</td>
+      <td>{{ area.total_area }}</td>
+      <td>{{ area.temp_offset }}</td>
+    </tr>
+  {% empty %}
+  <p>There are no areas in this location.</p>
+  {% endfor %}
+</table>
+{% endblock %}

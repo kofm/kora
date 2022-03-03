@@ -2,7 +2,7 @@
 {% block title %}Protocols{% endblock %}
 
 {% block container %}
-<h1>Protocols</h1>
+<p class="h1">Protocols<a class="btn btn-primary ms-2" href="{% url 'describe:protocol-create' %}">Create</a></p>
 <ul>
     {% for specie in species %}
     <h1>{{ specie.common_name }}</h1>

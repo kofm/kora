@@ -5,6 +5,8 @@ services:
     image: postgres
     volumes:
       - ./data/db:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
     environment:
       - POSTGRES_NAME=postgres
       - POSTGRES_USER=postgres
@@ -22,3 +24,5 @@ services:
       - POSTGRES_PASSWORD=postgres
     depends_on:
       - db
+    stdin_open: true
+    tty: true

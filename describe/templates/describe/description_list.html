@@ -3,11 +3,32 @@
 
 {% block container %}
 <h1>Descriptions</h1>
-<ul>
+<a href="{% url 'describe:description-create' %}" class="btn btn-secondary">Create</a>
+{% if object_list %}
+<table class="table table-striped">
+    <thead>
+        <th>Description</th>
+        <th>Variety</th>
+        <th>Species</th>
+        <th>Protocol</th>
+        <th></th>
+    </thead>
 {% for description in object_list %}
-<li><a href="{% url 'describe:description_detail' description.id %}">{{ description.variety.name }} - {{ description.name }}</a></li>
-{% empty %}
-    <p>There are no descriptions, yet.</p>
+<tr>
+    <td>{{ description.name }}</td>
+    <td>{{ description.variety.name }}</td>
+    <td>{{ description.variety.species }}</td>
+    <td>{{ description.protocol }}</td>
+    <td>
+        <a class="btn btn-secondary" href="{% url 'describe:description_detail' description.id %}">Detail</a>
+        <a class="btn btn-secondary" href="{% url 'describe:description-manage' description.id %}">Edit</a>
+    </td>
+</tr>
 {% endfor %}
+</table>
+{% include 'frontpage/paginator.html' with page=page_obj pagevar='page' %}
+{% else %}
+<p>There are no descriptions, yet.</p>
+{% endif %}
 </ul>
 {% endblock %}

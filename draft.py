@@ -20,7 +20,5 @@ all_traits = protocol.trait_set.all()
 exprs = []
 for trait in all_traits:
     print(trait.description)
-    expr = expressions.filter(state_of_expression__trait_id = trait.id)
+    expr = expressions.filter(state_of_expression__trait_id=trait.id)
     exprs.append(expr)
-
-

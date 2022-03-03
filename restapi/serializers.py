@@ -1,16 +1,20 @@
-from register.models import PlantSpecies
-from parameters.models import CropParameter, Parameter
 from rest_framework import serializers
 
-class CropParamSerializer(serializers.ModelSerializer):
-    name = serializers.StringRelatedField(many=False, source = 'parameter')
+from parameters.models import SpeciesParameter
+from register.models import PlantSpecies
+
+class SpeciesParamSerializer(serializers.ModelSerializer):
+    name = serializers.StringRelatedField(many=False, source="parameter")
+
     class Meta:
-        model = CropParameter
-        fields = ['name', 'value']
+        model = SpeciesParameter
+        fields = ["name", "value"]
 
 class CropSerializer(serializers.ModelSerializer):
-    cropparameter = CropParamSerializer(many=True, read_only=True, source = 'cropparameter_set')
+    speciesparameter = SpeciesParamSerializer(
+        many=True, read_only=True, source="speciesparameter_set"
+    )
+
     class Meta:
         model = PlantSpecies
-        fields = ['common_name', 'latin_name', 'cropparameter']
-
+        fields = ["common_name", "latin_name", "speciesparameter"]

@@ -4,7 +4,7 @@
 {% block container %}
 <h1>Crop Parameters</h1>
 <h2>{{ species.common_name }}</h2>
-{% include "parameters/paramsvalue_table.html" with all_params=parameters %}
+{% include "parameters/paramsvalue_table.html" with all_params=parameters param_type='crop' %}
 <p><a href="{% url 'register:add_cropparamval' species.id %}" class="btn btn-primary">Add new</a></p>
 {% endblock %}
 

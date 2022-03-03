@@ -1,12 +1,20 @@
 {% extends "frontpage/base.html" %}
 {% block title %}Species{% endblock %}
 {% block container %}
-<h1>Species</h1>
-<ul>
-	{% for specie in object_list %}
-	<li>
-		<a href="{% url 'register:plantspecie_detail' specie.id %}"> {{ specie.common_name }} </a> (<i>{{ specie.latin_name }}</i>)
-	</li>
-	{% endfor %}
-</ul>
+<p class="h1">Species<a class="btn btn-primary ms-2" href="{% url 'register:species_create' %}">Create</a></p>
+<div class="row row-cols-1 row-cols-md-3 g-4">
+    {% for specie in object_list %}
+    <a href="{% url 'register:plantspecie_detail' specie.id %}" style="text-decoration:none; color: black">
+        <div class="col">
+            <div class="card border-dark">
+                <div class="card-header">{{ specie.common_name }}</div>
+                <div class="card-body text-dark">
+                    <h5 class="card-title"><i>{{ specie.latin_name }}</i></h5>
+                    <p class="card-text"></p>
+                </div>
+            </div>
+        </div>
+    </a>
+        {% endfor %}
+</div>
 {% endblock %}

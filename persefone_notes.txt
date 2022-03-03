@@ -1,0 +1,25 @@
+- App per gestire le schede varietali
+- Ogni classe di espressione è un item del db:
+id | class\_of\_expr | characteristic\_id | variety\_id |
+     date\_of\_collection | created\_at | updated\_at | notes
+
+toc\_id | species\_id | version | created |
+
+characteristic\_id | toc\_id | version | created\_at
+
+** Deve poter gestire diverse versioni dei protocolli tecnici, 
+** Ogni protocollo tecnico contiene un certo numero di caratteristiche, ognuna con proprio id univoco, anch'esse con diverse versioni
+
+** Scrivere il software e rilasciarlo open source
+** Metterlo su un AWS e farlo diventare un centro di raccolta dati e rilasciare tutto come open data anonimo
+** I dati vengono poi rilasciati anonimizzati per fini di ricerca
+
+** Si può proporre a Bianchi di gestirla noi sui per tutto il CREA-DC e poi di promuoverla per tutto CPVO e UPOV
+** Siccome ogni caratteristica è un item singolo e la TOC una collection di caratteristiche può gestire tutte le specie
+** Può gestire inoltre una storia dei rilievi con diversi anni il rilievo della caratteristica
+    ** Es. storico delle fioriture; anche come dati quantitativo
+
+** Si può fare il software associato per i rilievi che ti mostra al momento opportuno (es. Scegli lo stadio fenologico 65, oppure fa una stima con i gradi giorno) le caratteristiche da rilevare
+
+** Deve permettere di fare randomizzazione nel campo mantenendo i confronti side by side
+    ** tu gli dici lo spazio di cui disponi e lui ti piazza le parcelle e ti stampa il quaderno

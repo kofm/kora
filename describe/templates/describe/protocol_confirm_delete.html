@@ -1,0 +1,14 @@
+{% extends "frontpage/base.html" %}
+{% block title %}Delete {{ object }}{% endblock %}
+{% block container %}
+<form method="post">
+    {% csrf_token %}
+    <p>Are you sure you want to delete "{{ object }}"?</p>
+    <p>The operation is not reversible.</p>
+    <button class="btn btn-danger" type="submit">Confirm</button>
+    <a class="btn btn-secondary" href="{% url 'describe:protocol_detail' object.id %}">Cancel</a>
+</form>
+{% endblock %}
+
+
+

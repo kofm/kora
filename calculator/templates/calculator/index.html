@@ -1,0 +1,104 @@
+{% extends "frontpage/base.html" %}
+{% block title %}Calculator{% endblock %}
+{% load static %}
+{% block javascript %}
+{% endblock %}
+
+{% block container %}
+<h1>Calculator</h1>
+{% csrf_token %}
+
+<!-- First row -->
+<div class="row">
+  <div class="col-3">
+      <div class="form-floating">
+        <select id='location_select' class="form-select" aria-label="Select location" data-url="">
+          <option value=""></option>
+        </select>
+        <label class="form-label" for="area_select">Location</label>
+      </div>
+      <div class="form-floating mt-3">
+        <select id='area_select' class="form-select" aria-label="Select area" data-url="{% url "get_area_ajax" %}">
+          {% for area in areas %}
+          <option value="{{ area.pk}}">{{ area.name }}</option>
+          {% endfor %}
+        </select>
+        <label class="form-label" for="area_select">Area</label>
+      </div>
+  </div>
+  <div class="col">
+    <h1>Dimensions</h1>
+    <p class="fs-4"><span id="width">
+    </span>x<span id="length"></span> (<span id="total_area"></span> m<sup>2</sup> total area)
+    </p>
+  </div>
+</div>
+
+<!-- Second row -->
+<div class="row">
+  <div class="col-3">
+
+      <div class="form-floating mt-3">
+        <select id='plantspecies_select' class="form-select" aria-label="Select crop" data-url="">
+          <option></option>
+          {% for crop in plantspecies %}
+          <option value="{{ crop.pk}}">{{ crop.common_name }}</option>
+          {% endfor %}
+        </select>
+        <label class="form-label" for="plantspecies_select">Crop</label>
+      </div>
+
+      <div class="form-floating mt-3">
+        <select id='plantvariety_select' class="form-select" aria-label="Select variety" data-url="{% url "register:get-varieties" %}">
+          <option value=""></option>
+        </select>
+        <label class="form-label" for="plantvariety_select">Variety</label>
+      </div>
+
+  </div>
+
+  <div class="col">
+    <h1>Crop data</h1>
+    <p class="fs-4">
+      Expected yield: <span id="expected_yield"></span> kg (<span id="yield"></span> kg/m<sup>2</sup>)
+    </p>
+    <p class="fs-4">Revenue: € 1200 (12 €/kg)</p>
+  </div>
+</div>
+<!-- End of second row -->
+<!-- Third row -->
+<div class="row">
+  <div class="col-3">
+    <div class="form-floating mt-3">
+      <label for="customRange1" class="form-label">Distb <span id="distb_select"></span></label>
+      <input type="range" class="form-range" id="distb_range" min=0 max=1 step=0.01>
+    </div>
+    <div class="form-floating mt-3">
+      <label for="customRange1" class="form-label">Distw <span id="distw_select"></span></label>
+      <input type="range" class="form-range" id="distw_range" min=0 max=1 step=0.01>
+    </div>
+  </div>
+
+  <div class="col">
+    <h1>Planting</h1>
+    <p class="fs-4">Total plants: <span id="plant_number"></span></p>
+    <p class="fs-4">Planting scheme: <span id="distb"></span>x<span id="distw"></span> (<span id="nrow"></span> rows)</p>
+  </div>
+</div>
+<!-- End of third row -->
+
+<div class="row">
+
+    <div class="col">
+      <div class="mt-4">
+        <button type="button" class="btn btn-dark btn-lg">Save</button>
+        <button type="button" class="btn btn-outline-danger btn-lg">Delete</button>
+        <button type="button" class="btn btn-outline-secondary btn-lg">Reset</button>
+      </div>
+    </div>
+
+</div>
+
+<script src="{% static 'frontpage/js/calculator.js' %}"></script>
+
+{% endblock %}
