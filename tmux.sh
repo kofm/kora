@@ -21,6 +21,9 @@ if test -n $TMUX; then
 
   tmux new-window -t$SESSION:2 -n 'neovim'
   tmux send-keys -t 'neovim' ". $DEVENV" C-m "nvim" C-m
+
+  tmux new-window -t$SESSION:3 -n 'jupyterlab'
+  tmux send-keys -t 'jupyterlab' ". $DEVENV" C-m "python manage.py shell_plus --lab" C-m
 fi
     # tmux send-keys -t 'Hugo Server' 'hugo serve -D -F' C-m # Switch to bind script?
 
