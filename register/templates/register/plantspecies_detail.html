@@ -24,7 +24,7 @@
     </form>
 </div>
 <div class="container-sm">
-    {% if species.cropparameter_set.distinct %}
+    {% if species.speciesparameter_set.distinct %}
     <h2>Parameters</h2>
     <p><i>(Last values)</i></p>
     <table class="table">
@@ -34,7 +34,7 @@
             <th>Ref.</th>
             <th></th>
         </thead>
-    {% for param in species.cropparameter_set|get_last_parameters_value %}
+    {% for param in species.speciesparameter_set|get_last_parameters_value %}
         <tr>
             <td>{{ param.parameter.code }}</td>
             <td>{{ param.value }} {{ param.parameter.measure_unit }}</td>

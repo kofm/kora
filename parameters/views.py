@@ -6,8 +6,7 @@ from django.urls.base import reverse
 from django.views.generic import CreateView, DeleteView, ListView, UpdateView
 from django.views.generic.detail import DetailView
 
-from .models import CropParameter, Parameter
-
+from .models import SpeciesParameter, Parameter
 
 class ParametersList(ListView):
     model = Parameter
@@ -17,7 +16,6 @@ class ParametersList(ListView):
         context = super().get_context_data(**kwargs)
         context["nav_parameters"] = "active"
         return context
-
 
 class ParameterCreate(CreateView):
     model = Parameter
@@ -33,7 +31,6 @@ class ParameterCreate(CreateView):
         context = super().get_context_data(**kwargs)
         context["nav_parameters"] = "active"
         return context
-
 
 class ParameterUpdate(UpdateView):
     model = Parameter
@@ -51,11 +48,9 @@ class ParameterUpdate(UpdateView):
         context["nav_parameters"] = "active"
         return context
 
-
 class ParameterDelete(DeleteView):
     model = Parameter
     success_url = reverse_lazy("parameters:parameters-list")
-
 
 class ParameterDetail(DetailView):
     model = Parameter
@@ -71,7 +66,7 @@ class ParameterDetail(DetailView):
         return context
 
     def get_related_cropparams(self):
-        queryset = self.object.cropparameter_set.all()
+        queryset = self.object.speciesparameter_set.all()
         paginator = Paginator(queryset, 5)
         page = self.request.GET.get("pagecp")
         cropparams = paginator.get_page(page)
@@ -84,9 +79,8 @@ class ParameterDetail(DetailView):
         varparams = paginator.get_page(page)
         return varparams
 
-
-class CropParameterUpdate(UpdateView):
-    model = CropParameter
+class SpeciesParameterUpdate(UpdateView):
+    model = SpeciesParameter
     fields = [
         "value",
         "url_ref",

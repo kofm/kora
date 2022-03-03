@@ -1,15 +1,15 @@
+from django.core import serializers
 from django.core.paginator import Paginator
-from django.http.response import HttpResponse, HttpResponseRedirect
+from django.http.response import Http404, HttpResponse, HttpResponseBadRequest, HttpResponseRedirect, JsonResponse
 from django.shortcuts import redirect, render, reverse
 from django.views.generic import CreateView, DetailView, ListView
 from django.views.generic.edit import FormMixin, UpdateView
 
-from parameters.forms import CropParameterForm, VarietalParameterForm
-from parameters.models import CropParameter
+from parameters.forms import SpeciesParameterForm, VarietalParameterForm
+from parameters.models import SpeciesParameter
 
 from .forms import PlantSpeciesForm, PlantVarietyForm
 from .models import PlantSpecies, PlantVariety
-
 
 class PlantSpeciesList(ListView):
     model = PlantSpecies
@@ -18,7 +18,6 @@ class PlantSpeciesList(ListView):
         context = super().get_context_data(**kwargs)
         context["nav_species"] = "active"
         return context
-
 
 class PlantSpeciesCreate(CreateView):
     model = PlantSpecies
@@ -30,7 +29,6 @@ class PlantSpeciesCreate(CreateView):
         context = super().get_context_data(**kwargs)
         context["nav_species"] = "active"
         return context
-
 
 class PlantSpeciesDetail(FormMixin, DetailView):
     """This display the varieties present for the species and allow the
@@ -68,7 +66,6 @@ class PlantSpeciesDetail(FormMixin, DetailView):
         plant_variety.save()
         return super().form_valid(form)
 
-
 class PlantSpeciesParametersList(DetailView):
     model = PlantSpecies
     context_object_name = "species"
@@ -82,12 +79,11 @@ class PlantSpeciesParametersList(DetailView):
         return context
 
     def get_related_parameters(self):
-        queryset = self.object.cropparameter_set.all()
+        queryset = self.object.speciesparameter_set.all()
         paginator = Paginator(queryset, 5)
         page = self.request.GET.get("page")
         parameters = paginator.get_page(page)
         return parameters
-
 
 class PlantVarietyParametersList(DetailView):
     model = PlantVariety
@@ -99,22 +95,20 @@ class PlantVarietyParametersList(DetailView):
         context["nav_species"] = "active"
         return context
 
-
 class PlantVarietyDetail(DetailView):
     model = PlantVariety
     context_object_name = "variety"
 
-
-def add_cropparametervervalue(request, pk):
+def add_speciesparametervervalue(request, pk):
     """
     https://stackoverflow.com/questions/37303171/django-create-new-object-in-form-update-select-box-and-save-it
     https://stackoverflow.com/questions/7782479/django-reverse-engineering-the-admin-sites-add-foreign-key-button
     Check this to add new parameter without leaving this view
     """
     species = PlantSpecies.objects.get(pk=pk)
-    form = CropParameterForm(initial={"specie": species})
+    form = SpeciesParameterForm(initial={"specie": species})
     if request.method == "POST":
-        form = CropParameterForm(request.POST)
+        form = SpeciesParameterForm(request.POST)
         if form.is_valid():
             form.save()
             return HttpResponseRedirect(
@@ -125,7 +119,6 @@ def add_cropparametervervalue(request, pk):
 
     context = {"form": form}
     return render(request, "register/plantspeciesparameters_create.html", context)
-
 
 def add_varietalparamevterervalue(request, pk):
     variety = PlantVariety.objects.get(pk=pk)
@@ -142,3 +135,15 @@ def add_varietalparamevterervalue(request, pk):
 
     context = {"form": form}
     return render(request, "register/plantspeciesparameters_create.html", context)
+
+def get_varieties(request):
+    if request.method == 'POST':
+        if 'plantspecies_id' in request.POST:
+            try:
+                varieties_list=PlantVariety.objects.filter(species_id=request.POST['plantspecies_id']).order_by('name')
+            except:
+                raise Http404("Plant Species does not exists")
+            data = serializers.serialize('json', varieties_list)
+            return JsonResponse(data, safe=False)
+    else:
+        return HttpResponseBadRequest('<h1>Page not found</h1>')

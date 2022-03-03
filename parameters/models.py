@@ -45,7 +45,7 @@ class ParameterValue(models.Model):
     def __str__(self):
         return self.parameter.code
 
-class CropParameter(ParameterValue):
+class SpeciesParameter(ParameterValue):
     """
     Crop parameters values
     """

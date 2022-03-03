@@ -46,9 +46,9 @@ INSTALLED_APPS = [
     "describe.apps.DescribeConfig",
     "frontpage.apps.FrontpageConfig",
     "parameters.apps.ParametersConfig",
-    #'garden.apps.GardenConfig',
     "spaces.apps.SpacesConfig",
-    "calculator.apps.CalculatorConfig"
+    "calculator.apps.CalculatorConfig",
+    "collect.apps.CollectConfig",
 ]
 
 MIDDLEWARE = [

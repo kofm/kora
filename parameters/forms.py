@@ -1,15 +1,13 @@
 from django.forms import ModelForm
 from django.forms.widgets import HiddenInput
 
-from .models import CropParameter, VarietalParameter
+from .models import SpeciesParameter, VarietalParameter
 
-
-class CropParameterForm(ModelForm):
+class SpeciesParameterForm(ModelForm):
     class Meta:
-        model = CropParameter
+        model = SpeciesParameter
         fields = "__all__"
         widgets = {"specie": HiddenInput()}
-
 
 class VarietalParameterForm(ModelForm):
     class Meta:

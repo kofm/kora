@@ -7,6 +7,10 @@ from django.core import serializers
 
 from spaces.models import Area
 
+"""
+This function is needed to calculate the number of plants per linear metre,
+given a specific width
+"""
 def get_plants_number(distb, distw, width=1):
     if distb==0 or distw==0:
         return (0, 0, 0)
@@ -33,7 +37,6 @@ def get_area_ajax(request):
         # Get IDs from POST request
         area_id=request.POST['area_id']
         plantspecies_id=request.POST['plantspecies_id']
-        # import pdb; pdb.set_trace()
         try:
             area=Area.objects.values('length', 'width', 'name').get(pk=area_id)
         except Area.DoesNotExist:
@@ -54,7 +57,7 @@ def get_area_ajax(request):
         fetched_parameters = ["yield", "distw", "distb"]
 
         # Get the specified parameters for the selected plant species
-        params=plantspecies.cropparameter_set.filter(parameter__code__in=fetched_parameters)
+        params=plantspecies.speciesparameter_set.filter(parameter__code__in=fetched_parameters)
         # Now filter out the most recent parameters, at first ordering by update date
         # then get distinct values based on parameter code;
         # finally iterate over the resulting QuerySet and assign value to the

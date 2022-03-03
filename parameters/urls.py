@@ -12,7 +12,7 @@ urlpatterns = [
     path("<int:pk>/delete", views.ParameterDelete.as_view(), name="parameter-delete"),
     path(
         "cropparam/<int:pk>/update",
-        views.CropParameterUpdate.as_view(),
+        views.SpeciesParameterUpdate.as_view(),
         name="cropparam-update",
     ),
 ]
