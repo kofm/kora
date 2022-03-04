@@ -15,8 +15,8 @@
     {% for seedsample in object_list %}
     <tr>
         <td>{{ seedsample.pk }}</td>
-        <td>{{ seedsample.variety.name }}</td>
-        <td>{{ seedsample.location }}</td>
+        <td><a href="{% url 'register:variety_detail' seedsample.variety.id %}">{{ seedsample.variety.name }}</a></td>
+        <td>{{ seedsample.position }}</td>
         <td>{{ seedsample.last_germinability }}</td>
         <td>{{ seedsample.growing_season }}</td>
         <td>{{ seedsample.notes }}</td>

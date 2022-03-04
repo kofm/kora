@@ -11,7 +11,6 @@ from django.views.generic import DetailView, ListView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 Paginator
 from describe.forms import ExpressionForm, TraitFormSet
-from register.models import PlantSpecies
 
 from .models import Description, Expression, Protocol, State
 
@@ -30,9 +29,9 @@ class DescriptionDetail(DetailView):
     context_object_name = "description"
 
 class ProtocolsList(ListView):
-    model = PlantSpecies
+    model = Protocol
     template_name = "describe/protocols_list.html"
-    context_object_name = "species"
+    context_object_name = "protocols"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

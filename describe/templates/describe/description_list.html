@@ -20,8 +20,8 @@
     <td>{{ description.variety.species }}</td>
     <td>{{ description.protocol }}</td>
     <td>
-        <a class="btn btn-secondary" href="{% url 'describe:description_detail' description.id %}">Detail</a>
-        <a class="btn btn-secondary" href="{% url 'describe:description-manage' description.id %}">Edit</a>
+        <a href="{% url 'describe:description_detail' description.id %}"><i class="bi bi-zoom-in" style="color: black;"></i></a>
+        <a href="{% url 'describe:description-manage' description.id %}"><i class="bi-pencil" style="color: black;"></i></a>
     </td>
 </tr>
 {% endfor %}

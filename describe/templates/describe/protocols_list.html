@@ -3,16 +3,31 @@
 
 {% block container %}
 <p class="h1">Protocols<a class="btn btn-primary ms-2" href="{% url 'describe:protocol-create' %}">Create</a></p>
-<ul>
-    {% for specie in species %}
-    <h1>{{ specie.common_name }}</h1>
-    {% for protocol in specie.protocol_set.all %}
-    <ul>
-        <li><a href="{% url 'describe:protocol_detail' protocol.id %}">{{protocol.name}}</a></li>
-    </ul>
-    {% empty %}
-    <p>There are no protocols for this species, yet.</p>
-    {% endfor %}
-    {% endfor %}
-</ul>
+
+{% if protocols %}
+<table class="table">
+<thead>
+  <tr>
+    <th>Protocol Name</th>
+    <th>Species</th>
+    <th>Described varieties</th>
+    <th></th>
+  </tr>
+  {% for protocol in protocols %}
+  <tr>
+    <td><a href="{% url 'describe:protocol_detail' protocol.id %}">{{ protocol.name }}</a></td>
+    <td><i>{{ protocol.specie.latin_name }}</i></td>
+    <td>{{ protocol.description_set.count }}</td>
+    <td>
+      <a href="{% url 'describe:protocol_detail' protocol.id %}"><i class="bi bi-zoom-in" style="color: black;"></i></a>
+      <a class="far fa-edit falink" href={% url 'describe:protocol-update' protocol.id  %}><i class="bi-pencil" style="color: black;"></i></a>
+      <a class="fas fa-trash-alt falink" href={% url 'describe:protocol-delete' protocol.id  %}><i class="bi bi-trash" style="color: black;"></i></a>
+    </td>
+  </tr>
+  {% endfor %}
+</thead>
+</table>
+{% else %}
+<p>There are no available protocols, yet.</p>
+{% endif %}
 {% endblock %}

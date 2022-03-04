@@ -51,6 +51,8 @@ class PlantSpeciesDetail(FormMixin, DetailView):
         context = super().get_context_data(**kwargs)
         context["nav_species"] = "active"
         context["form"] = self.get_form()
+        varieties = self.get_related_varieties()
+        context["varieties"] = varieties
         return context
 
     def post(self, request, **kwargs):
@@ -65,6 +67,13 @@ class PlantSpeciesDetail(FormMixin, DetailView):
         plant_variety = PlantVariety(**form.cleaned_data)
         plant_variety.save()
         return super().form_valid(form)
+
+    def get_related_varieties(self):
+        queryset = self.object.variety.all()
+        paginator = Paginator(queryset, 10)
+        page = self.request.GET.get("page")
+        varieties = paginator.get_page(page)
+        return varieties
 
 class PlantSpeciesParametersList(DetailView):
     model = PlantSpecies

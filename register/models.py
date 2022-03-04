@@ -2,7 +2,6 @@ from enum import unique
 
 from django.db import models
 
-
 class PlantSpecies(models.Model):
     common_name = models.CharField(max_length=100, unique=True)
     latin_name = models.CharField(max_length=100)
@@ -20,7 +19,6 @@ class PlantSpecies(models.Model):
     class Meta:
         ordering = ["common_name"]
 
-
 class PlantVariety(models.Model):
     name = models.CharField(max_length=100)
     species = models.ForeignKey(
@@ -28,6 +26,7 @@ class PlantVariety(models.Model):
     )
 
     class Meta:
+        ordering = ["name"]
         constraints = [
             models.UniqueConstraint(fields=["species", "name"], name="unique name")
         ]

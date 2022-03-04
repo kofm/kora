@@ -4,13 +4,52 @@
 {% block container %}
 <h1>{{ variety.name }} (<i>{{ variety.species.latin_name }}</i>)</h1>
 <h2>Descriptions</h2>
+<table class="table table-striped">
+    <thead>
+        <th>Description</th>
+        <th>Protocol</th>
+        <th></th>
+    </thead>
 {% for description in variety.description_set.all %}
-<p><a href="{% url "describe:description_detail" description.id %}">{{ description.name }}</a></p>
-{% empty %}
-<p>There are no descriptions yet.</p>
+<tr>
+    <td>{{ description.name }}</td>
+    <td>{{ description.protocol }}</td>
+    <td style="width:10%">
+        <a href="{% url 'describe:description_detail' description.id %}"><i class="bi bi-zoom-in" style="color: black;"></i></a>
+        <a href="{% url 'describe:description-manage' description.id %}"><i class="bi-pencil" style="color: black;"></i></a>
+    </td>
+</tr>
 {% endfor %}
+</table>
 
+<h2>Seed Samples</h2>
 
+<table class="table table-striped table-hover">
+    <thead>
+        <th scope="col">ID</td>
+        <th scope="col">Location</td>
+        <th scope="col">Germinability</td>
+        <th scope="col">Growing season</td>
+        <th scope="col" style="width: 40%">Notes</td>
+        <th scope="col"></td>
+    </thead>
+{% for seedsample in variety.seedsample_set.all %}
+    <tr>
+        <td>{{ seedsample.pk }}</td>
+        <td>{{ seedsample.position }}</td>
+        <td>{{ seedsample.last_germinability }}</td>
+        <td>{{ seedsample.growing_season }}</td>
+        <td>{{ seedsample.notes }}</td>
+        <td style="width:10%">
+            <a href=""><i class="bi bi-zoom-in" style="color: black;"></i></a>
+            <a class="far fa-edit falink" href=""><i class="bi-pencil" style="color: black;"></i></a>
+            <a class="fas fa-trash-alt falink" href=""><i class="bi bi-trash" style="color: black;"></i></a>
+        </td>
+    </tr>
+{% empty %}
+<p>There are no seed samples for this variety.</p>
+{% endfor %}
+</table>
 
 <h2>Parameters</h2>
 {% if variety.varietalparameter_set.all %}
@@ -33,4 +72,5 @@
 {% else %}
 <p>There are not parameters yet. <a href="{% url 'register:add_varparamval' variety.id %} ">Add one</a></p>
 {% endif %}
+
 {% endblock %}
