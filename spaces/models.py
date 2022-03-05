@@ -20,3 +20,6 @@ class Area(models.Model):
     @property
     def total_area(self):
         return round(self.length*self.width, 1)
+
+    class Meta:
+        ordering = ['name']

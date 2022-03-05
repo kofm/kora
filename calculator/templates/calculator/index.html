@@ -1,36 +1,41 @@
 {% extends "frontpage/base.html" %}
-{% block title %}Calculator{% endblock %}
+{% block title %}Crops{% endblock %}
 {% load static %}
 {% block javascript %}
 {% endblock %}
 
 {% block container %}
-<h1>Calculator</h1>
+<h1>Crops</h1>
 {% csrf_token %}
 
 <!-- First row -->
 <div class="row">
   <div class="col-3">
       <div class="form-floating">
-        <select id='location_select' class="form-select" aria-label="Select location" data-url="">
+        <select id="location" name="loc" class="form-select" aria-label="Select location" data-url="{% url 'calculator:fetch-area' %}">
           <option value=""></option>
+          {% for location in locations %}
+          <option value="{{ location.pk}}">{{ location.name }}</option>
+          {% endfor %}
         </select>
-        <label class="form-label" for="area_select">Location</label>
+        <label class="form-label" for="area">Location</label>
       </div>
       <div class="form-floating mt-3">
-        <select id='area_select' class="form-select" aria-label="Select area" data-url="{% url "get_area_ajax" %}">
-          {% for area in areas %}
-          <option value="{{ area.pk}}">{{ area.name }}</option>
-          {% endfor %}
+        <select id="area" class="form-select" name="area" aria-label="Select area" data-url="" disabled>
         </select>
         <label class="form-label" for="area_select">Area</label>
       </div>
   </div>
-  <div class="col">
-    <h1>Dimensions</h1>
-    <p class="fs-4"><span id="width">
-    </span>x<span id="length"></span> (<span id="total_area"></span> m<sup>2</sup> total area)
-    </p>
+  <div id="dimensions" class="col" style="display:none">
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">Dimensions</h5>
+        <h6 id="areainfo" class="card-subtitle mb-2 text-muted"></h6>
+        <p class="card-text fs-4">
+        <span id="width"></span>&times;<span id="length"></span>m (about <span id="total_area"></span> m<sup>2</sup>)
+        </p>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -99,6 +104,6 @@
 
 </div>
 
-<script src="{% static 'frontpage/js/calculator.js' %}"></script>
+<script src="{% static 'frontpage/js/calc.js' %}"></script>
 
 {% endblock %}
