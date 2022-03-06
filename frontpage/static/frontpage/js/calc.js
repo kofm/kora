@@ -18,9 +18,10 @@ const cropExpectedYieldSpan = document.getElementById("expected-yield-span");
 
 const cropDistbInput = document.getElementById("distb-input");
 const cropDistwInput = document.getElementById("distw-input");
+const cropStoreButton = document.getElementById("crop-store-button");
 
 var areaObjects;
-var cropParamDistw, cropParamDistb, cropParamYield;
+var cropParamInstances, cropParamDistw, cropParamDistb, cropParamYield;
 
 // Helper functions
 // ================
@@ -144,7 +145,6 @@ speciesSelect.addEventListener("change", async () => {
     });
 
     if (response.ok) {
-
       // This object contains all the instances fetched from endpoints
       // It contains all the PlantVariety instances associated to the
       // selected species and the last distw, distb, and yield parameters
@@ -154,6 +154,12 @@ speciesSelect.addEventListener("change", async () => {
       const varietyModelInstances = fetchedSpeciesInstances.filter(
         (element) => element.model == "register.plantvariety"
       );
+
+      cropParamInstances = fetchedSpeciesInstances.filter(
+        (element) => element.model == "parameters.speciesparameter"
+      );
+
+      // Extract the SpeciesParameter instances
       cropParamDistw = fetchedSpeciesInstances.filter(
         (element) => element.fields["parameter"] == "distw"
       )[0];
@@ -183,5 +189,36 @@ speciesSelect.addEventListener("change", async () => {
   } else {
     varietySelect.toggleAttribute("disabled");
     varietySelect.length = 0;
+  }
+});
+
+// cropStoreButton.addEventListener("click", async () => {
+//   const response = await fetch(url, {
+//     method: "POST",
+//     credentials: "same-origin"
+//   });
+//
+//   if (response.ok) {
+//     const tmp = await response.json();
+//   }
+// });
+cropStoreButton.addEventListener("click", async () => {
+
+  const url = cropStoreButton.getAttribute("data-url");
+  let formdata = new FormData();
+  formdata.append("species_id", speciesSelect.value);
+  formdata.append("area_id", areaSelect.value);
+  formdata.append("crop_params", JSON.stringify(cropParamInstances));
+  formdata.append("csrfmiddlewaretoken", csrfToken.value);
+
+  const response = await fetch(url, {
+    method: "POST",
+    credentials: "same-origin",
+    body: formdata,
+  });
+
+  if (response.ok) {
+  } else {
+    alert("Error");
   }
 });

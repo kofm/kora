@@ -24,13 +24,13 @@ class Parameter(models.Model):
     )
     measure_unit = models.CharField(max_length=50, help_text="The unit of measurement.")
 
-    objects=ParameterManager()
+    objects = ParameterManager()
 
     def __str__(self):
         return self.code
 
     def natural_key(self):
-        return(self.code)
+        return (self.code,)
 
 class ParameterValue(models.Model):
     """
@@ -49,6 +49,7 @@ class ParameterValue(models.Model):
         """
         This is an abstract class
         """
+
         abstract = True
 
     def __str__(self):
@@ -58,18 +59,21 @@ class SpeciesParameter(ParameterValue):
     """
     Crop parameters values
     """
+
     specie = models.ForeignKey(PlantSpecies, on_delete=models.RESTRICT)
 
 class VarietalParameter(ParameterValue):
     """
     Varietal parameters values
     """
+
     variety = models.ForeignKey(PlantVariety, on_delete=models.RESTRICT)
 
 class Measure(models.Model):
     """
     Stores the measures related to a variety
     """
+
     georeference_lat = models.FloatField()
     georeference_lon = models.FloatField()
     measure_unit = models.CharField(max_length=50)

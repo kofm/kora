@@ -6,10 +6,12 @@ from django.http.response import (
     JsonResponse,
 )
 from django.shortcuts import render
+from calculator.models import Crop, CropParameter
 from register.models import PlantSpecies, PlantVariety
 from django.core import serializers
 
 from spaces.models import Area, Location
+
 
 def get_plants_number(distb, distw, width=1):
     """
@@ -24,6 +26,7 @@ def get_plants_number(distb, distw, width=1):
     plants_per_row = 1 if plants_per_row < 2 else plants_per_row
     return (rows_per_ridge, plants_per_row, rows_per_ridge * plants_per_row)
 
+
 def calculator(request):
     locations = Location.objects.values("pk", "name")
     plantspecies = PlantSpecies.objects.values("pk", "common_name")
@@ -35,6 +38,7 @@ def calculator(request):
             "plantspecies": plantspecies,
         },
     )
+
 
 def fetch_area(request):
     """
@@ -51,6 +55,7 @@ def fetch_area(request):
         return HttpResponse(serializers.serialize("json", areas))
     else:
         return JsonResponse({"error": ""}, status=400)
+
 
 def fetch_species(request):
     if request.POST:
@@ -71,9 +76,22 @@ def fetch_species(request):
     else:
         return JsonResponse({"error": ""}, status=400)
 
+
 def store(request):
     if request.POST:
-        print("Ok")
-        return HttpResponse("Ok")
+        species = PlantSpecies.objects.get(pk=request.POST["species_id"])
+        area = Area.objects.get(pk=request.POST["area_id"])
+        crop = Crop(content_object=species, area=area, notes="")
+        crop.save()
+        des = serializers.deserialize("json", request.POST.get("crop_params"))
+        for d in des:
+            cp = CropParameter(
+                value=d.object.value,
+                parameter=d.object.parameter,
+                url_ref="https://mater.cc",
+                crop=crop,
+            )
+            cp.save()
+        return HttpResponse({"result": "ok"}, status=200)
     else:
         return JsonResponse({"error": ""}, status=400)

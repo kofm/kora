@@ -10,7 +10,7 @@ class SpeciesParamSerializer(serializers.ModelSerializer):
         model = SpeciesParameter
         fields = ["name", "value"]
 
-class CropSerializer(serializers.ModelSerializer):
+class PlantSpeciesSerializer(serializers.ModelSerializer):
     speciesparameter = SpeciesParamSerializer(
         many=True, read_only=True, source="speciesparameter_set"
     )
