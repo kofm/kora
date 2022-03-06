@@ -27,6 +27,5 @@ urlpatterns = [
     path("api/", include("restapi.urls")),
     path("spaces/", include("spaces.urls")),
     path("collect/", include("collect.urls")),
-    path("calc/", include("calculator.urls")),
-    path("get_varieties", views.get_varieties, name="get_varieties"),
+    path("crop/", include("calculator.urls")),
 ]  # + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

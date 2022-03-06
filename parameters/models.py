@@ -6,13 +6,17 @@ from django.db import models
 from describe.models import Trait
 from register.models import PlantSpecies, PlantVariety
 
+class ParameterManager(models.Manager):
+    def get_by_natural_key(self, code):
+        return self.get(code=code)
+
 class Parameter(models.Model):
     """
     Stores the parameters related to the Species
     """
 
     code = models.CharField(
-        max_length=50, help_text="A code to identify the parameter."
+        max_length=50, help_text="A code to identify the parameter.", unique=True
     )
     name = models.CharField(max_length=200, help_text="The name of the parameter.")
     description = models.CharField(
@@ -20,8 +24,13 @@ class Parameter(models.Model):
     )
     measure_unit = models.CharField(max_length=50, help_text="The unit of measurement.")
 
+    objects=ParameterManager()
+
     def __str__(self):
         return self.code
+
+    def natural_key(self):
+        return(self.code)
 
 class ParameterValue(models.Model):
     """

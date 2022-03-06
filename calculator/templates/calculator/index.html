@@ -11,28 +11,28 @@
 <!-- First row -->
 <div class="row">
   <div class="col-3">
-      <div class="form-floating">
-        <select id="location" name="loc" class="form-select" aria-label="Select location" data-url="{% url 'calculator:fetch-area' %}">
-          <option value=""></option>
-          {% for location in locations %}
-          <option value="{{ location.pk}}">{{ location.name }}</option>
-          {% endfor %}
-        </select>
-        <label class="form-label" for="area">Location</label>
-      </div>
-      <div class="form-floating mt-3">
-        <select id="area" class="form-select" name="area" aria-label="Select area" data-url="" disabled>
-        </select>
-        <label class="form-label" for="area_select">Area</label>
-      </div>
+    <div class="form-floating">
+      <select id="location-select" name="location-select" class="form-select" aria-label="Select location" data-url="{% url 'calculator:fetch-area' %}">
+        <option value=""></option>
+        {% for location in locations %}
+        <option value="{{ location.pk}}">{{ location.name }}</option>
+        {% endfor %}
+      </select>
+      <label class="form-label" for="area-select">Location</label>
+    </div>
+    <div class="form-floating mt-3">
+      <select id="area-select" class="form-select" name="area-select" aria-label="Select area" data-url="" disabled>
+      </select>
+      <label class="form-label" for="area-select">Area</label>
+    </div>
   </div>
-  <div id="dimensions" class="col" style="display:none">
-    <div class="card">
+  <div class="col">
+    <div id="dimensions-card" class="card" style="display:none">
       <div class="card-body">
         <h5 class="card-title">Dimensions</h5>
-        <h6 id="areainfo" class="card-subtitle mb-2 text-muted"></h6>
+        <h6 id="area-card-subtitle" class="card-subtitle mb-2 text-muted"></h6>
         <p class="card-text fs-4">
-        <span id="width"></span>&times;<span id="length"></span>m (about <span id="total_area"></span> m<sup>2</sup>)
+        <span id="area-width-span"></span>&times;<span id="area-length-span"></span>m (about <span id="area-total-span"></span> m<sup>2</sup>)
         </p>
       </div>
     </div>
@@ -43,31 +43,33 @@
 <div class="row">
   <div class="col-3">
 
-      <div class="form-floating mt-3">
-        <select id='plantspecies_select' class="form-select" aria-label="Select crop" data-url="">
-          <option></option>
-          {% for crop in plantspecies %}
-          <option value="{{ crop.pk}}">{{ crop.common_name }}</option>
-          {% endfor %}
-        </select>
-        <label class="form-label" for="plantspecies_select">Crop</label>
-      </div>
+    <div class="form-floating mt-3">
+      <select id='species-select' name="species-select" class="form-select" aria-label="Select crop" data-url="{% url 'calculator:fetch-species' %}" disabled>
+        <option></option>
+        {% for crop in plantspecies %}
+        <option value="{{ crop.pk}}">{{ crop.common_name }}</option>
+        {% endfor %}
+      </select>
+      <label class="form-label" for="species-select">Crop</label>
+    </div>
 
-      <div class="form-floating mt-3">
-        <select id='plantvariety_select' class="form-select" aria-label="Select variety" data-url="{% url "register:get-varieties" %}">
-          <option value=""></option>
-        </select>
-        <label class="form-label" for="plantvariety_select">Variety</label>
-      </div>
+    <div class="form-floating mt-3">
+      <select id="variety-select" name="variety-select" class="form-select" aria-label="Select variety" data-url="" disabled>
+        <option value=""></option>
+      </select>
+      <label class="form-label" for="variety-select">Variety</label>
+    </div>
 
   </div>
 
   <div class="col">
-    <h1>Crop data</h1>
-    <p class="fs-4">
-      Expected yield: <span id="expected_yield"></span> kg (<span id="yield"></span> kg/m<sup>2</sup>)
-    </p>
-    <p class="fs-4">Revenue: € 1200 (12 €/kg)</p>
+    <div id="crop-card" style="display:none" class="card mt-3">
+      <div class="card-body">
+        <h5 class="card-title">Crop data</h5>
+        <h6 id="crop-card-subtitle" class="card-subtitle mb-2 text-muted"></h6>
+        <p class="card-text fs-4">Expected yield: <span id="expected-yield-span"></span> kg (<span id="yield-span"></span> kg/m<sup>2</sup>)</p>
+      </div>
+    </div>
   </div>
 </div>
 <!-- End of second row -->
@@ -75,32 +77,32 @@
 <div class="row">
   <div class="col-3">
     <div class="form-floating mt-3">
-      <label for="customRange1" class="form-label">Distb <span id="distb_select"></span></label>
-      <input type="range" class="form-range" id="distb_range" min=0 max=1 step=0.01>
+      <label for="distb-input" class="form-label">Distb</label>
+      <input id="distb-input" name="distb-input" type="range" class="form-range" min=0 max=1 step=0.01>
     </div>
     <div class="form-floating mt-3">
-      <label for="customRange1" class="form-label">Distw <span id="distw_select"></span></label>
-      <input type="range" class="form-range" id="distw_range" min=0 max=1 step=0.01>
+      <label for="distw-input" class="form-label">Distw</label>
+      <input id="distw-input" name="distw-input" type="range" class="form-range" min=0 max=1 step=0.01>
     </div>
   </div>
 
   <div class="col">
-    <h1>Planting</h1>
-    <p class="fs-4">Total plants: <span id="plant_number"></span></p>
-    <p class="fs-4">Planting scheme: <span id="distb"></span>x<span id="distw"></span> (<span id="nrow"></span> rows)</p>
+    <!-- <h1>Planting</h1> -->
+    <!-- <p class="fs-4">Total plants: <span id="plant_number"></span></p> -->
+    <!-- <p class="fs-4">Planting scheme: <span id="distb"></span>x<span id="distw"></span> (<span id="nrow"></span> rows)</p> -->
   </div>
 </div>
 <!-- End of third row -->
 
 <div class="row">
 
-    <div class="col">
-      <div class="mt-4">
-        <button type="button" class="btn btn-dark btn-lg">Save</button>
-        <button type="button" class="btn btn-outline-danger btn-lg">Delete</button>
-        <button type="button" class="btn btn-outline-secondary btn-lg">Reset</button>
-      </div>
+  <div class="col">
+    <div class="mt-4">
+      <button type="button" class="btn btn-dark btn-lg">Save</button>
+      <button type="button" class="btn btn-outline-danger btn-lg">Delete</button>
+      <button type="button" class="btn btn-outline-secondary btn-lg">Reset</button>
     </div>
+  </div>
 
 </div>
 
