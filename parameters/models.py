@@ -73,7 +73,6 @@ class Measure(models.Model):
     """
     Stores the measures related to a variety
     """
-
     georeference_lat = models.FloatField()
     georeference_lon = models.FloatField()
     measure_unit = models.CharField(max_length=50)

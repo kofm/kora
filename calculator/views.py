@@ -2,7 +2,6 @@ import math
 from django.http.response import (
     Http404,
     HttpResponse,
-    HttpResponseBadRequest,
     JsonResponse,
 )
 from django.shortcuts import render
@@ -11,7 +10,6 @@ from register.models import PlantSpecies, PlantVariety
 from django.core import serializers
 
 from spaces.models import Area, Location
-
 
 def get_plants_number(distb, distw, width=1):
     """
@@ -26,7 +24,6 @@ def get_plants_number(distb, distw, width=1):
     plants_per_row = 1 if plants_per_row < 2 else plants_per_row
     return (rows_per_ridge, plants_per_row, rows_per_ridge * plants_per_row)
 
-
 def calculator(request):
     locations = Location.objects.values("pk", "name")
     plantspecies = PlantSpecies.objects.values("pk", "common_name")
@@ -38,7 +35,6 @@ def calculator(request):
             "plantspecies": plantspecies,
         },
     )
-
 
 def fetch_area(request):
     """
@@ -55,7 +51,6 @@ def fetch_area(request):
         return HttpResponse(serializers.serialize("json", areas))
     else:
         return JsonResponse({"error": ""}, status=400)
-
 
 def fetch_species(request):
     if request.POST:
@@ -75,7 +70,6 @@ def fetch_species(request):
         )
     else:
         return JsonResponse({"error": ""}, status=400)
-
 
 def store(request):
     if request.POST:
