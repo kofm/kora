@@ -12,7 +12,7 @@
 <div class="row">
   <div class="col-3">
     <div class="form-floating">
-      <select id="location-select" name="location-select" class="form-select" aria-label="Select location" data-url="{% url 'calculator:fetch-area' %}">
+      <select id="location-select" name="location-select" class="form-select" aria-label="Select location" data-url="{% url 'calculator:fetch-area' 1 %}">
         <option value=""></option>
         {% for location in locations %}
         <option value="{{ location.pk}}">{{ location.name }}</option>

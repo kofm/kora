@@ -1,30 +1,20 @@
-import math
 from django.http.response import (
-    Http404,
     HttpResponse,
     JsonResponse,
 )
 from django.shortcuts import render
+from django.core import serializers
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+
+from calculator.serializers import AreaSerializer
+
 from calculator.models import Crop, CropParameter
 from register.models import PlantSpecies, PlantVariety
-from django.core import serializers
-
 from spaces.models import Area, Location
 
-def get_plants_number(distb, distw, width=1):
-    """
-    This function is needed to calculate the number of plants per linear metre,
-    given a specific width
-    """
-    if distb == 0 or distw == 0:
-        return (0, 0, 0)
-    rows_per_ridge = math.floor(width / distb)
-    rows_per_ridge = 1 if rows_per_ridge < 2 else rows_per_ridge
-    plants_per_row = math.floor(1 / distw)
-    plants_per_row = 1 if plants_per_row < 2 else plants_per_row
-    return (rows_per_ridge, plants_per_row, rows_per_ridge * plants_per_row)
 
-def calculator(request):
+def index(request):
     locations = Location.objects.values("pk", "name")
     plantspecies = PlantSpecies.objects.values("pk", "common_name")
     return render(
@@ -36,21 +26,21 @@ def calculator(request):
         },
     )
 
-def fetch_area(request):
+
+@api_view(["GET"])
+def fetch_area(request, pk):
     """
-    This is the endpoint to get all the Area associated to a specific
-    location, given its ID.
+    This is the endpoint to get all the Area associated to a specific location, given
+    its ID.
     It returns a serialized object.
     """
-    if request.POST:
-        # Get location id from POST request
-        loc_id = request.POST["loc"]
+    if request.method == "GET":
         # Fetch all areas for that location
-        areas = Area.objects.filter(location__id=loc_id)
-        # Return serialized object
-        return HttpResponse(serializers.serialize("json", areas))
-    else:
-        return JsonResponse({"error": ""}, status=400)
+        areas = Area.objects.filter(location__id=pk)
+        # Return serialized objects
+        serializer = AreaSerializer(areas, many=True)
+        return Response(serializer.data)
+
 
 def fetch_species(request):
     if request.POST:
@@ -70,6 +60,7 @@ def fetch_species(request):
         )
     else:
         return JsonResponse({"error": ""}, status=400)
+
 
 def store(request):
     if request.POST:

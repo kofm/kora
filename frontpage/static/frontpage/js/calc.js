@@ -56,18 +56,18 @@ function updateCropCard() {
 // Function to update the displayed card relative to the Area dimensions
 function updateDimensionsCard() {
   const selectedArea = areaObjects.find(
-    (element) => element.pk == areaSelect.value
+    (element) => element.id == areaSelect.value
   );
   showElement("dimensions-card");
-  areaWidthSpan.textContent = selectedArea.fields.width;
-  areaLengthSpan.textContent = selectedArea.fields.length;
+  areaWidthSpan.textContent = selectedArea.width;
+  areaLengthSpan.textContent = selectedArea.length;
   areaTotalSpan.textContent = multiply(
-    selectedArea.fields.width,
-    selectedArea.fields.length
+    selectedArea.width,
+    selectedArea.length
   );
   areaCardSubtitle.textContent =
     "Area " +
-    selectedArea["fields"].name +
+    selectedArea.name +
     " (" +
     locationSelect.selectedOptions[0].text +
     ")";
@@ -78,20 +78,20 @@ locationSelect.addEventListener("change", async () => {
   hideElement("crop-card");
 
   if (locationSelect.value != "") {
-    let formdata = new FormData();
-    formdata.append("loc", locationSelect.value);
-    formdata.append("csrfmiddlewaretoken", csrfToken.value);
-
-    const url = locationSelect.getAttribute("data-url");
+    const url = locationSelect
+      .getAttribute("data-url")
+      .replace("1", locationSelect.value);
 
     const response = await fetch(url, {
-      method: "POST",
-      credentials: "same-origin",
-      body: formdata,
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+      },
     });
 
     if (response.ok) {
       areaObjects = await response.json();
+      console.log(areaObjects);
       // Enables the area select input
       areaSelect.removeAttribute("disabled");
       // Remove previous inputs
@@ -99,12 +99,13 @@ locationSelect.addEventListener("change", async () => {
       // Set the first, empty option
       areaSelect.options[0] = new Option("", "");
       // Iterate through AJAX results to populate the area select input
-      for (let i = 0; i < areaObjects.length; i += 1) {
-        areaSelect.options[areaSelect.length] = new Option(
-          areaObjects[i]["fields"].name,
-          areaObjects[i]["pk"]
-        );
-      }
+      areaObjects.forEach(
+        (element) =>
+          (areaSelect.options[areaSelect.length] = new Option(
+            element.name,
+            element.id
+          ))
+      );
     } else {
       alert("Error");
     }
@@ -203,7 +204,6 @@ speciesSelect.addEventListener("change", async () => {
 //   }
 // });
 cropStoreButton.addEventListener("click", async () => {
-
   const url = cropStoreButton.getAttribute("data-url");
   let formdata = new FormData();
   formdata.append("species_id", speciesSelect.value);
