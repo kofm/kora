@@ -22,7 +22,6 @@ class SeedSampleDetailView(DetailView):
     def get_context_data(self, **kwargs):
         # Call the base implementation first to get a context
         context = super().get_context_data(**kwargs)
-        # Add in a QuerySet of all the books
         context["storage_list"] = Storage.objects.filter(storageposition__seedsample__isnull=True)
         context["variety_list"] = PlantVariety.objects.all()
         return context

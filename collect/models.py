@@ -52,9 +52,14 @@ class Germinability(models.Model):
     seedsample = models.ForeignKey(SeedSample, on_delete=models.CASCADE)
     value = models.FloatField()
     after_days = models.IntegerField(blank=True, null=True)
-    performed_at = models.DateTimeField(blank=True, null=True)
+    performed_at = models.DateField(blank=True, null=True)
+
+    @property
+    def value_percent(self):
+        return self.value * 100
 
 
 class SampleWeight(models.Model):
     seedsample = models.ForeignKey(SeedSample, on_delete=models.CASCADE)
     value = models.FloatField()
+    created_at = models.DateField(auto_now_add=True)
