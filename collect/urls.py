@@ -7,5 +7,6 @@ app_name = "collect"
 urlpatterns = [
     path("", views.SeedSampleListView.as_view(), name="seedsamples-list"),
     path("sample/<int:pk>", views.SeedSampleDetailView.as_view(), name="seedsample-detail"),
+    path("storageposition/<int:pk>", views.fetch_storagepositions, name="fetch-storagepositions"),
     path("create", views.seedsample_create, name="seedsamples-create"),
 ]
