@@ -23,6 +23,14 @@ class Crop(models.Model):
     content_object=GenericForeignKey('content_type', 'object_id')
     area=models.ForeignKey(Area, on_delete=models.PROTECT,)
 
+    @property
+    def total_plants(self):
+        distw = self.cropparameter_set.filter(parameter__name='distw').last()
+        distb = self.cropparameter_set.filter(parameter__name='distb').last()
+        if not distw or not distb:
+            return 0
+        return round(distw*distb, 1)
+
     def __str__(self) -> str:
         if self.content_type.model=='plantspecies':
             return self.content_object.common_name

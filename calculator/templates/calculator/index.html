@@ -114,7 +114,35 @@
   </div>
 
 </div>
-
+<div class="row">
+  <div class="col">
+    <table class="table">
+      <thead>
+        <tr>
+          <td scope="col">Area</td>
+          <td scope="col">Dimensions</td>
+          <td scope="col">Crop</td>
+          <td scope="col">distw</td>
+          <td scope="col">distb</td>
+          <td scope="col">yield</td>
+          <td scope="col">Notes</td>
+        </tr>
+      </thead>
+      {% for crop in crops %}
+      <tbody>
+      <tr>
+        <td scrop="row">{{ crop.area.name }} ({{ crop.area.location.name }})</td>
+        <td>{{ crop.content_object.common_name }}</td>
+        {% for cropparameter in crop.cropparameter_set.all %}
+        <td>{{ cropparameter.value }}</td>
+        {% endfor %}
+        <td>{{ crop.notes }}</td>
+      </tr>
+      </tbody>
+      {% endfor %}
+    </table>
+  </div>
+</div>
 <script src="{% static 'frontpage/js/calc.js' %}"></script>
 
 {% endblock %}

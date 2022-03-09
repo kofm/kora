@@ -7,22 +7,46 @@
 <h1>Locations</h1>
 <div class="row row-cols-1 row-cols-md-3 g-4">
 
-{% for location in object_list %}
 
-<a href="{% url 'spaces:locations_detail' location.id %}" style="text-decoration:none; color: black">
   <div class="col">
-    <div class="card border-dark">
-      <div class="card-header">{{ location.name }}</div>
-      <div class="card-body text-dark">
-        <h5 class="card-title"><i></i></h5>
-        <p class="card-text">Coords: {{ location.latitude }}° N, {{ location.longitude }}° E</p>
-      </div>
-    </div>
+    {% for location in object_list %}
+    <h1>{{ location.name }}</h1>
+    <table class="table">
+      <thead>
+        <tr>
+          <th scope="col">Area</th>
+          <th scope="col">Dimensioni</th>
+          <th scope="col">Crop</th>
+          <th scope="col">distw</th>
+          <th scope="col">distb</th>
+          <th scope="col">Total plants</th>
+          <th scope="col">yield</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for area in location.area_set.all %}
+        <tr>
+          <th scope="row">{{ area.name }} ({{ area.temp_offset }})</th>
+          <td>{{ area.length }}&times;{{ area.width }} ({{ area.total_area }})</td>
+            {% if area.crop_set.all %}
+            {% with crop=area.crop_set.last %}
+          <td>
+            {{ crop }}
+          </td>
+          {% for cropparameter in crop.cropparameter_set.all %}
+          <td>{{ cropparameter.value }}</td>
+          {% endfor %}
+          <td>{{ crop.total_plants }}</td>
+          {% endwith %}
+          {% endif %}
+          {% endfor %}
+        </tr>
+      </tbody>
+    </table>
+    {% empty %}
+    <p>There are no stored locations, yet.</p>
+    {% endfor %}
   </div>
-</a>
 
-{% empty %}
-<p>There are no stored locations, yet.</p>
-{% endfor %}
 
 {% endblock %}

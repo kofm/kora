@@ -17,12 +17,14 @@ from spaces.models import Area, Location
 def index(request):
     locations = Location.objects.values("pk", "name")
     plantspecies = PlantSpecies.objects.values("pk", "common_name")
+    crops = Crop.objects.all()
     return render(
         request,
         "calculator/index.html",
         {
-            "locations": locations,
-            "plantspecies": plantspecies,
+            'locations': locations,
+            'plantspecies': plantspecies,
+            'crops': crops
         },
     )
 
