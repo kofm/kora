@@ -1,0 +1,13 @@
+{% extends "frontpage/base.html" %}
+{% load crispy_forms_tags %}
+{% load static %}
+{% block title %}{{ sample.variety.name }}{% endblock %}
+{% block container %}
+<h5 class="display-5">Are you sure?</h5>
+<p>You are deleting a seed sample of the variety <b>{{ object.variety.name }}</b> (#{{ object.id }}), grown in {{ object.growing_season }} from <b>{{ object.position }}</b> position. Maybe you want to <a href="{% url 'collect:seedsample-update' object.id %}">move it</a> instead?</p>
+<form method="post">
+  {% csrf_token %}
+  <button name="btn-save" type="submit" class="btn btn-outline-primary mt-3">Save</button>
+  <a class="btn btn-outline-secondary mt-3" type="submit" href="{% url 'collect:seedsamples-list'  %}">Cancel</a>
+</form>
+{% endblock %}

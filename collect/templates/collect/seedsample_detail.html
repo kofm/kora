@@ -4,50 +4,28 @@
 {% block title %}{{ sample.variety.name }}{% endblock %}
 {% block container %}
 
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 <h5 class="display-5">Seed Sample: <small class="text-muted">{{ sample.variety.name }}</small></h1>
 
 <p class="lead">{{ sample.notes }}</p>
 
 <div class="row">
-  <div class="card mx-2 py-2 col-3 d-flex">
-
-    <div class="form-floating">
-      <select id="variety-select" name="variety-select" class="form-select" aria-label="Default select example">
-        {% for variety in variety_list %}
-        <option value="{{ variety.pk }}" {% if variety.pk == sample.variety.pk %}selected{% endif %}>{{ variety.name }}</option>
-        {% endfor %}
-      </select>
-      <label for="variety-select">Variety</label>
+  <div class="card mx-2 py-2 col-3">
+    <div class="card-title"><h2>Sample</h2></div>
+    <ul class="list-group list-group-flush">
+      <li class="list-group-item">{{ sample.variety.name }}</li>
+      <li class="list-group-item">{{ sample.growing_season }}</li>
+      <li class="list-group-item">{{ sample.position }}</li>
+      <li class="list-group-item">{% if sample.notes %}{{ sample.notes }}{% else %}&nbsp;{% endif %}</li>
+    </ul>
+    <div class="card-body">
     </div>
-
-    <div class="form-floating mt-3">
-      <input id="growing-season-input" name="growing-season-input" class="form-control" type="number" min=1900 max=2100 step=1 value="{{ sample.growing_season }}">
-      <label for="growing-season-input">Growing season</label>
-    </div>
-
-    <div class="form-floating mt-3">
-      <select id="storage-select" class="form-select" name="storage-select">
-        <option value="{{ sample.position.storage.pk }}">{{ sample.position.storage.name }}</option>
-        {% for storage in storage_list %}
-        <option value="{{ storage.pk }}" {% if storage.pk == sample.position.storage.pk %}selected{% endif %}>{{ storage.name }}</option>
-        {% endfor %}
-      </select>
-      <label class="form-label" for="storage-select">Storage</label>
-    </div>
-
-    <div class="form-floating mt-3">
-      <select id="storage-position-select" class="form-select mb-3" name="storage-position-select" data-url="{% url 'collect:fetch-storagepositions' 0 %}">
-        <option value="{{ sample.position.pk }}">{{ sample.position.name }}</option>
-      </select>
-      <label class="form-label pt-2" for="storage-position-select">Position</label>
-    </div>
-
-    <button class="btn btn-primary mt-3 mt-auto">Save</button>
-
+    <a id="sample-form-button" class="btn btn-primary mt-3 mt-auto" href="{% url 'collect:seedsample-update' sample.id %}">Edit</a>
   </div>
 
 
   <div class="card mx-2 py-2 col-3 d-flex">
+    <div class="card-title"><h2>Germinability</h2></div>
     <table class="table mt-3">
       <thead>
         <tr>
@@ -55,49 +33,88 @@
           <th scope="col">Days</th>
           <th scope="col">Date</th>
         </tr>
-        <tbody>
+        <tbody id="germinability-table">
           {% for germinability in sample.germinability_set.all %}
           <tr>
-            <td>{{ germinability.value_percent }}%</td>
+            <td>{{ germinability.value }}%</td>
             <td>{{ germinability.after_days }}</td>
-            <td>{{ germinability.performed_at }}</td>
+            <td>{{ germinability.performed_at|date:'Y-m-d' }}</td>
           </tr>
           {% endfor %}
         </tbody>
       </thead>
     </table>
-    <div class="form-floating mt-auto">
-      <input id="germinability-input" name="germinability-input" class="form-control" type="number" min=0 max=100 step=1 value="">
-      <label for="germinability-input">New germinability</label>
-    </div>
-    <button class="btn btn-primary mt-3">Add</button>
+    <form id="germinability-form">
+      {% csrf_token %}
+      <div class="form-floating mt-auto">
+        <input id="germinability-value-input" name="value" class="form-control" type="number" min=0 max=100 step=1 value="">
+        <label for="germinability-value-input">Germinability</label>
+      </div>
+      <div class="form-floating mt-3">
+        <input id="germinability-days-input" name="after_days" class="form-control" type="number" min=0 max=100 step=1 value="7">
+        <label for="germinability-days-input">After days</label>
+      </div>
+      <div class="form-floating mt-3">
+        <input id="germinability-date-input" name="performed_at" class="form-control" type="text" value="{% now 'Y-m-d' %}">
+        <label for="germinability-date-input">Date</label>
+        <input id="seedsample" name="seedsample" type="hidden" value="{{ sample.id }}">
+      </div>
+    </form>
+    <button id="germinability-form-button" class="btn btn-primary mt-3" data-url="{% url 'collect:germinability' %}">Add new germinability</button>
   </div>
 
 
   <div class="card mx-2 py-2 col-3 d-flex">
+    <div class="card-title"><h2>Weight</h2></div>
     <table class="table mt-3">
       <thead>
         <tr>
           <th scope="col">Weight (g)</th>
           <th scope="col">Date</th>
         </tr>
-        <tbody>
+        <tbody id="weight-table">
           {% for sampleweight in sample.sampleweight_set.all %}
           <tr>
             <td>{{ sampleweight.value}}</td>
-            <td>{{ sampleweight.created_at }}</td>
+            <td>{{ sampleweight.created_at|date:'Y-m-d' }}</td>
           </tr>
           {% endfor %}
         </tbody>
       </thead>
     </table>
-    <div class="form-floating mt-auto">
-      <input id="germinability-input" name="germinability-input" class="form-control" type="number" min=0 max=100 step=1 value="">
-      <label for="germinability-input">New weight</label>
+    <div class="mt-auto">
+      <form id="weight-form">
+        <div class="form-floating">
+          <input id="weight-value-input" name="value" class="form-control" type="number" min=0 max=100 step=1 value="">
+          <input id="seedsample" name="seedsample" type="hidden" value="{{ sample.id }}">
+          <label for="germinability-input">New weight</label>
+        </div>
+      </form>
     </div>
-    <button class="btn btn-primary mt-3">Add</button>
+    <button id="weight-form-button" class="btn btn-primary mt-3" data-url="{% url 'collect:sample-weight' %}">Add new weight</button>
   </div>
 
+    <div class="row">
+      <div class="col"><script type="javascript">
+          var options = {
+                      chart: {
+                                  type: 'line'
+                                },
+                      series: [{
+                                  name: 'sales',
+                                  data: [30,40,35,50,49,60,70,91,125]
+                                }],
+                      xaxis: {
+                                  categories: [1991,1992,1993,1994,1995,1996,1997, 1998,1999]
+                                }
+                    }
+
+          var chart = new ApexCharts(document.querySelector("#chart"), options);
+
+          chart.render();
+      </script>
+      </div>
+    </div>
 </div>
 
 <script src="{% static 'frontpage/js/seedsample.js' %}"></script>

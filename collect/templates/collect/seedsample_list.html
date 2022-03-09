@@ -1,7 +1,21 @@
 {% extends "frontpage/base.html" %}
 {% block title %}Calculator{% endblock %}
 {% block container %}
-<p class="h1">Seed Samples<a class="btn btn-primary ms-2" href="{% url 'collect:seedsamples-create' %}">Create</a></p>
+<p class="h1">Seed Samples<a class="btn btn-primary ms-2" href="{% url 'collect:seedsample-create' %}">Create</a></p>
+<div class="row g-3">
+  <div class="col-sm">
+    <input type="text" class="form-control" placeholder="ID" aria-label="ID">
+  </div>
+  <div class="col-sm">
+    <input type="text" class="form-control" placeholder="Season" aria-label="Growing season">
+  </div>
+  <div class="col-sm-7">
+    <input type="text" class="form-control" placeholder="Variety" aria-label="Variety">
+  </div>
+  <div class="col-sm-auto">
+    <button class="btn btn-outline-primary">Search</button>
+  </div>
+</div>
 <table class="table table-striped table-hover">
     <thead>
         <th scope="col">ID</td>
@@ -23,10 +37,32 @@
         <td>
             <a href="{% url 'register:variety_detail' seedsample.variety.id %}"><i class="bi bi-zoom-in" style="color: black;"></i></a>
             <a class="far fa-edit falink" href=""><i class="bi-pencil" style="color: black;"></i></a>
-            <a class="fas fa-trash-alt falink" href=""><i class="bi bi-trash" style="color: black;"></i></a>
+            <a class="fas fa-trash-alt falink" href="{% url 'collect:seedsample-delete' seedsample.id %}"><i class="bi bi-trash" style="color: black;"></i></a>
         </td>
     </tr>
     {% endfor %}
 </table>
 {% include 'frontpage/paginator.html' with page=page_obj pagevar='page' %}
+<p class="h1">Storage<a class="btn btn-primary ms-2" href="{% url 'collect:storage-create' %}">Create</a></p>
+<table class="table">
+  <thead>
+    <tr>
+      <th scope="col">Storage</th>
+      <th scope="col">Total positions</th>
+      <th scope="col">Samples</th>
+      <th scope="col">Available position</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for storage in storage_list %}
+    <tr>
+      <th scope="row">{{ storage.name }}</th>
+      <td>{{ storage.storageposition_set.count }}</td>
+      <td>{{ storage.stored_samples }}</td>
+      <td>{{ storage.available_positions }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
 {% endblock %}
