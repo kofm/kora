@@ -7,7 +7,7 @@ from collect.forms import SeedSampleForm
 
 from collect.models import SeedSample, Storage, StoragePosition
 from collect.serializers import StoragePositionSerializer
-from register.models import PlantSpecies
+from register.models import PlantSpecies, PlantVariety
 
 
 class SeedSampleListView(ListView):
@@ -24,6 +24,7 @@ class SeedSampleDetailView(DetailView):
         context = super().get_context_data(**kwargs)
         # Add in a QuerySet of all the books
         context["storage_list"] = Storage.objects.filter(storageposition__seedsample__isnull=True)
+        context["variety_list"] = PlantVariety.objects.all()
         return context
 
 
