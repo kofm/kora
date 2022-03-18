@@ -31,6 +31,9 @@ class Crop(models.Model):
             return 0
         return round(distw*distb, 1)
 
+    def total_parameters(self):
+        return self.cropparameter_set.count()
+
     def __str__(self) -> str:
         if self.content_type.model=='plantspecies':
             return self.content_object.common_name

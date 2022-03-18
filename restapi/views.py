@@ -1,7 +1,7 @@
 from rest_framework import viewsets
 
-from register.models import PlantSpecies
-from restapi.serializers import PlantSpeciesSerializer
+from register.models import PlantSpecies, PlantVariety
+from restapi.serializers import PlantSpeciesSerializer, PlantVarietySerializer
 
 class CropViewSet(viewsets.ModelViewSet):
     """
@@ -10,3 +10,7 @@ class CropViewSet(viewsets.ModelViewSet):
 
     queryset = PlantSpecies.objects.all()
     serializer_class = PlantSpeciesSerializer
+
+class PlantVarietyViewSet(viewsets.ModelViewSet):
+    queryset = PlantVariety.objects.all()
+    serializer_class = PlantVarietySerializer

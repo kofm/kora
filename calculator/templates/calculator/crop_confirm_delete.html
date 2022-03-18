@@ -1,0 +1,13 @@
+{% extends "frontpage/base.html" %}
+{% block title %}Crop: {{ crop }}{% endblock %}
+{% block container %}
+<h5 class="display-5">Are you sure?</h5>
+<p>You are deleting a <b>{{ crop }}</b> crop located in <b>{{ crop.area.name }}</b>
+({{ crop.area.location.name }}).
+Maybe you want to <a href="">change it</a> instead?</p>
+<form method="post">
+  {% csrf_token %}
+  <button name="btn-save" type="submit" class="btn btn-danger mt-3">Confirm</button>
+  <a class="btn btn-outline-secondary mt-3" type="submit" href="{% url 'collect:seedsamples-list'  %}">Cancel</a>
+</form>
+{% endblock %}

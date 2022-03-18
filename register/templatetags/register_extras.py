@@ -1,7 +1,5 @@
 from django import template
 
-from parameters.models import SpeciesParameter
-
 register = template.Library()
 
 @register.filter

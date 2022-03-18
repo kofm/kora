@@ -52,7 +52,6 @@ weightButton.addEventListener("click", async function() {
   });
 
   const newWeight = await response.json();
-  console.log(newWeight);
   let newRow = weightTable.insertRow();
   let valueCell = newRow.insertCell();
   let dateCell = newRow.insertCell();

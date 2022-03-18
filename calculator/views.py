@@ -4,6 +4,9 @@ from django.http.response import (
 )
 from django.shortcuts import render
 from django.core import serializers
+from django.urls.base import reverse, reverse_lazy
+from django.views.generic.detail import DetailView
+from django.views.generic.edit import DeleteView
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
@@ -13,6 +16,13 @@ from calculator.models import Crop, CropParameter
 from register.models import PlantSpecies, PlantVariety
 from spaces.models import Area, Location
 
+
+class CropDetailView(DetailView):
+    model = Crop
+
+class CropDeleteView(DeleteView):
+    model = Crop
+    success_url = reverse_lazy("spaces:locations_list")
 
 def index(request):
     locations = Location.objects.values("pk", "name")

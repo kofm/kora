@@ -1,0 +1,21 @@
+{% extends "frontpage/base.html" %}
+{% block title %}Crop: {{ crop }}{% endblock %}
+{% block container %}
+<h1>Crop: {{ crop }}</h1>
+<div class="row">
+  <div class="col">
+    <h2>Area: {{ crop.area.name }} ({{ crop.area.location.name }})</h2>
+  </div>
+  <div class="col">
+    <h3>Stored Parameters</h3>
+    <ul>
+      {% for cropparam in crop.cropparameter_set.all %}
+      <li>{{ cropparam.parameter.name }}: {{ cropparam.value }} {{ cropparam.parameter.measure_unit}}</li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+<div class="row">
+  <div class="col"><a class="btn btn-danger" href="{% url 'calculator:crop-delete' crop.pk %}">Delete</a></div>
+</div>
+{% endblock %}

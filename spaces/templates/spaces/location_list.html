@@ -5,7 +5,7 @@
 {% block container %}
 
 <h1>Locations</h1>
-<div class="row row-cols-1 row-cols-md-3 g-4">
+<div class="row">
 
 
   <div class="col">
@@ -17,10 +17,6 @@
           <th scope="col">Area</th>
           <th scope="col">Dimensioni</th>
           <th scope="col">Crop</th>
-          <th scope="col">distw</th>
-          <th scope="col">distb</th>
-          <th scope="col">Total plants</th>
-          <th scope="col">yield</th>
         </tr>
       </thead>
       <tbody>
@@ -31,13 +27,11 @@
             {% if area.crop_set.all %}
             {% with crop=area.crop_set.last %}
           <td>
-            {{ crop }}
+            <a href="{% url 'calculator:crop-detail' crop.pk %}">{{ crop }}</a>
           </td>
-          {% for cropparameter in crop.cropparameter_set.all %}
-          <td>{{ cropparameter.value }}</td>
-          {% endfor %}
-          <td>{{ crop.total_plants }}</td>
           {% endwith %}
+          {% else %}
+          <td>&nbsp;</td>
           {% endif %}
           {% endfor %}
         </tr>

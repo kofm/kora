@@ -33,5 +33,4 @@ urlpatterns = [
         views.add_varietalparamevterervalue,
         name="add_varparamval",
     ),
-    path('variety/api', views.get_varieties, name="get-varieties"),
 ]

@@ -18,6 +18,8 @@ class SampleWeightSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class SeedSampleSerializer(serializers.ModelSerializer):
+    variety = serializers.StringRelatedField()
+    position = serializers.StringRelatedField()
     class Meta:
         model = SeedSample
         fields = '__all__'

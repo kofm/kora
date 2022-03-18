@@ -144,15 +144,3 @@ def add_varietalparamevterervalue(request, pk):
 
     context = {"form": form}
     return render(request, "register/plantspeciesparameters_create.html", context)
-
-def get_varieties(request):
-    if request.method == 'POST':
-        if 'plantspecies_id' in request.POST:
-            try:
-                varieties_list=PlantVariety.objects.filter(species_id=request.POST['plantspecies_id']).order_by('name')
-            except:
-                raise Http404("Plant Species does not exists")
-            data = serializers.serialize('json', varieties_list)
-            return JsonResponse(data, safe=False)
-    else:
-        return HttpResponseBadRequest('<h1>Page not found</h1>')

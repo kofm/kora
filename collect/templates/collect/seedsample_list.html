@@ -1,16 +1,13 @@
 {% extends "frontpage/base.html" %}
+{% load static %}
 {% block title %}Calculator{% endblock %}
 {% block container %}
 <p class="h1">Seed Samples<a class="btn btn-primary ms-2" href="{% url 'collect:seedsample-create' %}">Create</a></p>
 <div class="row g-3">
   <div class="col-sm">
-    <input type="text" class="form-control" placeholder="ID" aria-label="ID">
-  </div>
-  <div class="col-sm">
-    <input type="text" class="form-control" placeholder="Season" aria-label="Growing season">
-  </div>
-  <div class="col-sm-7">
-    <input type="text" class="form-control" placeholder="Variety" aria-label="Variety">
+    <select id="variety-search-input" data-url="{% url 'collect:seedsample-detail' 0 %}">
+      <option value=""></option>
+    </select>
   </div>
   <div class="col-sm-auto">
     <button class="btn btn-outline-primary">Search</button>
@@ -64,5 +61,11 @@
     {% endfor %}
   </tbody>
 </table>
+
+{% include 'frontpage/paginator.html' with page=storage_list pagevar='storage_page' %}
+
+<link href="{% static 'frontpage/css/tom-select.bootstrap5.min.css' %}" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/tom-select/dist/js/tom-select.complete.min.js"></script>
+<script src="{% static 'frontpage/js/seedsample_list.js' %}"></script>
 
 {% endblock %}
