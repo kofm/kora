@@ -1,7 +1,7 @@
 from django import forms
 from django.forms import widgets
 
-from .models import PlantSpecies, PlantVariety
+from .models import PlantSpecies, PlantVariety, PlantVarietyName
 
 
 class PlantSpeciesForm(forms.ModelForm):
@@ -16,3 +16,8 @@ class PlantVarietyForm(forms.ModelForm):
         model = PlantVariety
         fields = "__all__"
         widgets = {"species": forms.HiddenInput()}
+
+class PlantVarietyNameForm(forms.ModelForm):
+    class Meta:
+        model = PlantVarietyName
+        fields = ['name', ]

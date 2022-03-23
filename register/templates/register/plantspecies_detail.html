@@ -25,15 +25,6 @@
         {% endfor %}
     </table>
     {% include 'frontpage/paginator.html' with page=varieties pagevar='page' %}
-    <h4>Add a variety</h4>
-    <form method="post">
-        <div class="mb-2">
-        {% csrf_token %}
-            {{ form|crispy }}
-        </div>
-        <p><small>*Required</small></p>
-        <input class="btn btn-primary" type="submit" value="Save">
-    </form>
 </div>
 <div class="container-sm">
     {% if species.speciesparameter_set.distinct %}

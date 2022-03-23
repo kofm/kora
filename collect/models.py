@@ -59,7 +59,10 @@ class SeedSample(models.Model):
             return ""
 
     def __str__(self):
-        return self.variety.name
+        if self.variety.names.last():
+            return self.variety.names.last()
+        else:
+            return ''
 
 
 class Germinability(models.Model):

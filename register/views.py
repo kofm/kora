@@ -30,17 +30,13 @@ class PlantSpeciesCreate(CreateView):
         context["nav_species"] = "active"
         return context
 
-class PlantSpeciesDetail(FormMixin, DetailView):
+class PlantSpeciesDetail(DetailView):
     """This display the varieties present for the species and allow the
     user to create a new variety"""
 
     model = PlantSpecies
-    form_class = PlantVarietyForm
     template_name = "register/plantspecies_detail.html"
     context_object_name = "species"
-
-    def get_initial(self):
-        return {"species": self.get_object()}
 
     def get_success_url(self):
         return reverse(
@@ -50,23 +46,9 @@ class PlantSpeciesDetail(FormMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["nav_species"] = "active"
-        context["form"] = self.get_form()
         varieties = self.get_related_varieties()
         context["varieties"] = varieties
         return context
-
-    def post(self, request, **kwargs):
-        self.object = self.get_object()
-        form = self.get_form()
-        if form.is_valid():
-            return self.form_valid(form)
-        else:
-            return self.form_invalid(form)
-
-    def form_valid(self, form):
-        plant_variety = PlantVariety(**form.cleaned_data)
-        plant_variety.save()
-        return super().form_valid(form)
 
     def get_related_varieties(self):
         queryset = self.object.variety.all()
