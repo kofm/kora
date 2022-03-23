@@ -1,0 +1,70 @@
+{% extends "frontpage/base.html" %}
+{% block title %}Area: {{ area.name }}{% endblock %}
+{% block container %}
+<h1>Area: {{ area.name }} ({{ area.location.name }})</h1>
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'spaces:location-list' %}">Locations</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{{ area.name }}</li>
+  </ol>
+</nav>
+<div class="row">
+  <div class="col-3 card mx-2 py-2 d-flex">
+    <div class="card-title"><h2>Area info</h2></div>
+    <ul class="list-group list-group-flush">
+
+      <li class="list-group-item"><b>Name</b>: {{ area.name }}</li>
+      <li class="list-group-item"><b>Length</b>: {{ area.length }} m</li>
+      <li class="list-group-item"><b>Width</b>: {{ area.width }} m</li>
+    </ul>
+    <a class="btn btn-outline-primary mt-auto" href="{% url 'spaces:area-update' area.pk %}">Change</a>
+  </div>
+
+  <div class="col-3 card mx-2 py-2 d-flex">
+
+
+    <div class="card-title">
+      <h2>Current Crop</h2>
+    </div>
+
+    {% if area.crop_set.count > 0 %}
+    <ul class="list-group list-group-flush">
+
+      <li class="list-group-item"><b>Species/Variety</b>: {{ area.crop_set.last }}</li>
+      {% for cropparam in area.crop_set.last.cropparameter_set.all %}
+      <li class="list-group-item"><b>{{ cropparam.parameter.name }}</b>: {{ cropparam.value }} {{ cropparam.parameter.measure_unit}}</li>
+      {% endfor %}
+
+    </ul>
+
+    <a class="btn btn-outline-primary mt-auto" href="{% url 'calculator:crop-update' area.crop_set.last.pk %}">Change</a>
+    {% else %}
+    <p class="card-body">There are currently no crop in this area. <a href="">Add one</a></p>
+    {% endif %}
+
+
+  </div>
+
+
+  <div class="col-3 card mx-2 py-2 d-flex">
+
+    <div class="card-title">
+      <h2>Last Crops</h2>
+    </div>
+    <table class="table">
+      <thead>
+        <th>#</th>
+        <th>Crop</th>
+        <th>Harvest</th>
+      </thead>
+      <tbody>
+        <td>1</td>
+        <td>Basil</td>
+        <td>11 Aug</td>
+      </tbody>
+    </table>
+  </div>
+
+<div class="row mt-3">
+</div>
+{% endblock %}

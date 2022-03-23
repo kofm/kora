@@ -17,5 +17,8 @@ class Area(models.Model):
     def total_area(self):
         return round(self.length*self.width, 1)
 
+    def __str__(self):
+        return self.name
+
     class Meta:
         ordering = ['name']

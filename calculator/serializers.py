@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
-from calculator.models import Crop
+from calculator.models import Crop, CropParameter
+from parameters.models import Parameter, SpeciesParameter
 from register.models import PlantSpecies, PlantVariety
 from restapi.serializers import PlantSpeciesSerializer
 from spaces.models import Area
@@ -36,3 +37,14 @@ class AreaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Area
         fields = '__all__'
+
+class ParameterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Parameter
+        fields = '__all__'
+
+class CropParameterSerializer(serializers.ModelSerializer):
+    parameter_data = ParameterSerializer(many = False, read_only = True, source = 'parameter')
+    class Meta:
+        model = CropParameter
+        fields = ['id', 'crop', 'value', 'parameter', 'parameter_data']
