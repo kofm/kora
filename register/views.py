@@ -1,15 +1,23 @@
 from django.core import serializers
 from django.core.paginator import Paginator
-from django.http.response import Http404, HttpResponse, HttpResponseBadRequest, HttpResponseRedirect, JsonResponse
+from django.http.response import (
+    Http404,
+    HttpResponse,
+    HttpResponseBadRequest,
+    HttpResponseRedirect,
+    JsonResponse,
+)
 from django.shortcuts import redirect, render, reverse
+from django.urls.base import reverse_lazy
 from django.views.generic import CreateView, DetailView, ListView
-from django.views.generic.edit import FormMixin, UpdateView
+from django.views.generic.edit import DeleteView, FormMixin, UpdateView
 
 from parameters.forms import SpeciesParameterForm, VarietalParameterForm
 from parameters.models import SpeciesParameter
 
-from .forms import PlantSpeciesForm, PlantVarietyForm
+from .forms import PlantSpeciesForm, PlantVarietyForm, PlantVarietyNameForm
 from .models import PlantSpecies, PlantVariety
+
 
 class PlantSpeciesList(ListView):
     model = PlantSpecies
@@ -18,6 +26,7 @@ class PlantSpeciesList(ListView):
         context = super().get_context_data(**kwargs)
         context["nav_species"] = "active"
         return context
+
 
 class PlantSpeciesCreate(CreateView):
     model = PlantSpecies
@@ -29,6 +38,7 @@ class PlantSpeciesCreate(CreateView):
         context = super().get_context_data(**kwargs)
         context["nav_species"] = "active"
         return context
+
 
 class PlantSpeciesDetail(DetailView):
     """This display the varieties present for the species and allow the
@@ -57,6 +67,7 @@ class PlantSpeciesDetail(DetailView):
         varieties = paginator.get_page(page)
         return varieties
 
+
 class PlantSpeciesParametersList(DetailView):
     model = PlantSpecies
     context_object_name = "species"
@@ -76,6 +87,7 @@ class PlantSpeciesParametersList(DetailView):
         parameters = paginator.get_page(page)
         return parameters
 
+
 class PlantVarietyParametersList(DetailView):
     model = PlantVariety
     context_object_name = "variety"
@@ -86,9 +98,11 @@ class PlantVarietyParametersList(DetailView):
         context["nav_species"] = "active"
         return context
 
+
 class PlantVarietyDetail(DetailView):
     model = PlantVariety
     context_object_name = "variety"
+
 
 def add_speciesparametervervalue(request, pk):
     """
@@ -111,6 +125,7 @@ def add_speciesparametervervalue(request, pk):
     context = {"form": form}
     return render(request, "register/plantspeciesparameters_create.html", context)
 
+
 def add_varietalparamevterervalue(request, pk):
     variety = PlantVariety.objects.get(pk=pk)
     form = VarietalParameterForm(initial={"variety": variety})
@@ -126,3 +141,35 @@ def add_varietalparamevterervalue(request, pk):
 
     context = {"form": form}
     return render(request, "register/plantspeciesparameters_create.html", context)
+
+
+def plantvariety_create(request, pk):
+    species = PlantSpecies.objects.get(pk=pk)
+    if request.POST:
+        variety = PlantVarietyForm(request.POST)
+        variety_name = PlantVarietyNameForm(request.POST)
+        if variety.is_valid() and variety_name.is_valid():
+            new_variety = variety.save()
+            new_variety_name = variety_name.save(commit=False)
+            new_variety_name.variety = new_variety
+            new_variety_name.save()
+            variety_name.save_m2m()
+            return redirect(reverse_lazy('register:variety_detail', args=[new_variety.pk]))
+    else:
+        variety = PlantVarietyForm({"species": species})
+        variety_name = PlantVarietyNameForm()
+    return render(
+        request,
+        "register/plantvariety_form.html",
+        {
+            "plantvariety_form": variety,
+            "plantvarietyname_form": variety_name,
+            "species": species,
+        },
+    )
+
+class PlantVarietyDelete(DeleteView):
+    model = PlantVariety
+
+    def get_success_url(self):
+        return reverse_lazy('register:plantspecie_detail', args=[self.object.species.pk])

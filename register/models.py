@@ -1,3 +1,4 @@
+from datetime import date
 from enum import unique
 
 from django.db import models
@@ -44,4 +45,4 @@ class PlantVariety(models.Model):
 class PlantVarietyName(models.Model):
     name = models.CharField(max_length=200)
     variety = models.ForeignKey(PlantVariety, on_delete=models.CASCADE, related_name="names")
-    change_date = models.DateField(blank=True, null=True)
+    change_date = models.DateField(blank=True, null=True, default=date.today)
