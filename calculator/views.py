@@ -21,7 +21,7 @@ from spaces.models import Area, Location
 """Register CropModels here"""
 CROP_MODELS = [
     'CropModelExpectedYield',
-    'CropModelTotalPlants'
+    'CropModelTotalPlants',
 ]
 
 class CropDetailView(DetailView):

@@ -16,7 +16,7 @@ from parameters.forms import SpeciesParameterForm, VarietalParameterForm
 from parameters.models import SpeciesParameter
 
 from .forms import PlantSpeciesForm, PlantVarietyForm, PlantVarietyNameForm
-from .models import PlantSpecies, PlantVariety
+from .models import PlantSpecies, PlantVariety, PlantVarietyName
 
 
 class PlantSpeciesList(ListView):
@@ -173,3 +173,23 @@ class PlantVarietyDelete(DeleteView):
 
     def get_success_url(self):
         return reverse_lazy('register:plantspecie_detail', args=[self.object.species.pk])
+
+class PlantVarietyNameCreate(CreateView):
+    model = PlantVarietyName
+    fields = ['name', 'change_date', ]
+
+    def get_success_url(self):
+        return reverse_lazy('register:variety_detail', args=[self.kwargs['pk']])
+
+    def form_valid(self, form):
+        plantvariety = PlantVariety.objects.get(pk=self.kwargs['pk'])
+        self.object = form.save(commit=False)
+        self.object.variety = plantvariety
+        self.object.save()
+        return super().form_valid(form)
+
+class PlantVarietyNameDelete(DeleteView):
+    model = PlantVarietyName
+
+    def get_success_url(self):
+        return reverse_lazy('register:variety_detail', args=[self.object.variety.pk])

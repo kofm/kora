@@ -1,0 +1,11 @@
+{% extends "frontpage/base.html" %}
+{% block title %}{{ object.name }}{% endblock %}
+{% block container %}
+<h5 class="display-5">Are you sure?</h5>
+<p>You are deleting the denomination {{ object.name }}.</p>
+<form method="post">
+  {% csrf_token %}
+  <button name="btn-save" type="submit" class="btn btn-outline-primary mt-3">Save</button>
+  <a class="btn btn-outline-secondary mt-3" type="submit" href="{% url 'collect:seedsamples-list'  %}">Cancel</a>
+</form>
+{% endblock %}

@@ -43,4 +43,14 @@ urlpatterns = [
         views.PlantVarietyDelete.as_view(),
         name="plantvariety-delete",
     ),
+    path(
+        "variety/name/<int:pk>/delete",
+        views.PlantVarietyNameDelete.as_view(),
+        name="plantvarietyname-delete"
+    ),
+    path(
+        "variety/<int:pk>/name/create",
+        views.PlantVarietyNameCreate.as_view(),
+        name="plantvarietyname-create"
+    )
 ]
