@@ -15,6 +15,14 @@ class PlantSpecies(models.Model):
     )
     plant_type = models.CharField(max_length=100, choices=plant_types)
 
+    @property
+    def total_descriptions(self):
+        return self.variety.filter(description__isnull=False).count()
+
+    @property
+    def total_seedsamples(self):
+        return self.variety.filter(seedsample__isnull=False).count()
+
     def __str__(self):
         return self.common_name
 

@@ -2,19 +2,30 @@
 {% block title %}Species{% endblock %}
 {% block container %}
 <p class="h1">Species<a class="btn btn-primary ms-2" href="{% url 'register:species_create' %}">Create</a></p>
-<div class="row row-cols-1 row-cols-md-6 g-4">
-    {% for specie in object_list %}
-    <a href="{% url 'register:plantspecie_detail' specie.id %}" style="text-decoration:none; color: black">
-        <div class="col">
-            <div class="card border-dark">
-                <div class="card-header">{{ specie.common_name }}</div>
-                <div class="card-body text-dark">
-                    <h5 class="card-title"><i>{{ specie.latin_name }}</i></h5>
-                    <p class="card-text"></p>
-                </div>
-            </div>
-        </div>
-    </a>
-        {% endfor %}
+<div class="row">
+  <div class="col">
+    <table class="table">
+      <thead>
+        <th class="col">Species</th>
+        <th class="col">Latin Name</th>
+        <th class="col">Varieties</th>
+        <th class="col">Descriptions</th>
+        <th class="col">Seed Samples</th>
+        <th class="col">Parameters</th>
+      </thead>
+    <tbody>
+      {% for specie in object_list %}
+      <tr>
+        <td><a href="{% url 'register:plantspecie_detail' specie.pk %}">{{ specie.common_name }}</a></td>
+        <td><i>{{ specie.latin_name }}</i></td>
+        <td>{{ specie.variety.count }}</td>
+        <td>{{ specie.total_descriptions }}</td>
+        <td>{{ specie.total_seedsamples }}</td>
+        <td>{{ specie.speciesparameter_set.count }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+    </table>
+  </div>
 </div>
 {% endblock %}

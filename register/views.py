@@ -12,7 +12,7 @@ from parameters.forms import SpeciesParameterForm, VarietalParameterForm
 from .forms import PlantSpeciesForm, PlantVarietyForm, PlantVarietyNameForm
 from .models import PlantSpecies, PlantVariety, PlantVarietyName
 
-from django.db.models import CharField
+from django.db.models import CharField, Count
 from django.db.models.functions import Lower
 
 CharField.register_lookup(Lower)
@@ -25,6 +25,10 @@ class PlantSpeciesList(ListView):
         context = super().get_context_data(**kwargs)
         context["nav_species"] = "active"
         return context
+
+    def get_queryset(self):
+        queryset = PlantSpecies.objects.all().annotate(num_descriptions=Count('variety__description')).order_by('-num_descriptions', 'common_name')
+        return queryset
 
 
 class PlantSpeciesCreate(CreateView):

@@ -1,4 +1,3 @@
-from django.core.paginator import Paginator
 from django.urls.base import reverse
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
@@ -35,9 +34,18 @@ class SeedSampleListView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["storage_list"] = self.get_storages()
-        context["varieties"] = PlantVariety.objects.all()
         return context
+
+    def get_queryset(self):
+        search = self.request.GET.get("search")
+        if search and search != '':
+            if len(search) < 2:
+                queryset = SeedSample.objects.filter(variety__names__name__istartswith=search)
+            else:
+                queryset = SeedSample.objects.filter(variety__names__name__unaccent__lower__trigram_similar=search)
+        else:
+            queryset = SeedSample.objects.all()
+        return queryset
 
     def get_storages(self):
         queryset = Storage.objects.all()
@@ -79,6 +87,10 @@ class SeedSampleUpdateView(UpdateView):
 class SeedSampleDeleteView(DeleteView):
     model = SeedSample
 
+class StorageListView(ListView):
+    model = Storage
+    paginate_by = 10
+
 
 @api_view(["GET", "POST"])
 def germinability(request):
@@ -106,8 +118,3 @@ def sample_weight(request):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-class SeedSampleViewSet(viewsets.ModelViewSet):
-    queryset = SeedSample.objects.all()
-    serializer_class = SeedSampleSerializer
