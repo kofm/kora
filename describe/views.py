@@ -1,22 +1,18 @@
-import pdb
-from django.core.paginator import Paginator
-
 from django.forms.models import model_to_dict
-from django.http.response import HttpResponse, HttpResponseRedirect
+from django.http.response import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.urls.base import reverse_lazy
-from django.views.decorators.csrf import csrf_protect
 from django.views.generic import DetailView, ListView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
-Paginator
 from describe.forms import ExpressionForm, TraitFormSet
 
 from .models import Description, Expression, Protocol, State
 
+
 class DescriptionsList(ListView):
-    model=Description
-    paginate_by=10
+    model = Description
+    paginate_by = 10
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -24,9 +20,11 @@ class DescriptionsList(ListView):
         context
         return context
 
+
 class DescriptionDetail(DetailView):
     model = Description
     context_object_name = "description"
+
 
 class ProtocolsList(ListView):
     model = Protocol
@@ -37,6 +35,7 @@ class ProtocolsList(ListView):
         context = super().get_context_data(**kwargs)
         context["nav_protocols"] = "active"
         return context
+
 
 class ProtocolCreate(CreateView):
     model = Protocol
@@ -55,9 +54,11 @@ class ProtocolCreate(CreateView):
     def get_success_url(self):
         return reverse("describe:protocol-update", args=(self.object.id,))
 
+
 class ProtocolDelete(DeleteView):
     model = Protocol
     success_url = reverse_lazy("describe:protocols_list")
+
 
 class ProtocolDetail(DetailView):
     model = Protocol
@@ -67,6 +68,7 @@ class ProtocolDetail(DetailView):
         context = super().get_context_data(**kwargs)
         context["nav_protocols"] = "active"
         return context
+
 
 def protocol_update(request, pk):
     protocol = get_object_or_404(Protocol, pk=pk)
@@ -86,11 +88,10 @@ def protocol_update(request, pk):
         {"fs": form, "protocol": protocol, "nav_protocols": "active"},
     )
 
-def description_manage(request, pk):
+
+def description_update(request, pk):
     # Get the description object
     description = get_object_or_404(Description, pk=pk)
-    # Get the traits of the protocol referenced by this description
-    traits = description.available_traits
     # Collect all the existing expressions
     exist_expr = description.expressions.all()
     # This is the forms list
@@ -149,10 +150,12 @@ def description_manage(request, pk):
         request, "describe/description_manage.html", context={"formset": formset}
     )
 
+
 class ExpressionUpdate(UpdateView):
     model = Expression
     fields = "__all__"
     template_name = "describe/expression_update.html"
+
 
 class DescriptionCreate(CreateView):
     model = Description
@@ -169,4 +172,4 @@ class DescriptionCreate(CreateView):
         return context
 
     def get_success_url(self):
-        return reverse("describe:description-manage", args=(self.object.id,))
+        return reverse("describe:description-update", args=(self.object.id,))

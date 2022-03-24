@@ -9,7 +9,7 @@
   </ol>
 </nav>
 <div class="row">
-  <div class="col-3 card mx-2 py-2 d-flex">
+  <div class="col card mx-2 py-2 d-flex">
     <div class="card-title"><h2>Area info</h2></div>
     <ul class="list-group list-group-flush">
 
@@ -20,7 +20,7 @@
     <a class="btn btn-outline-primary mt-auto" href="{% url 'spaces:area-update' area.pk %}">Change</a>
   </div>
 
-  <div class="col-3 card mx-2 py-2 d-flex">
+  <div class="col card mx-2 py-2 d-flex">
 
 
     <div class="card-title">
@@ -46,21 +46,24 @@
   </div>
 
 
-  <div class="col-3 card mx-2 py-2 d-flex">
+  <div class="col card mx-2 py-2 d-flex">
 
     <div class="card-title">
       <h2>Last Crops</h2>
     </div>
     <table class="table">
       <thead>
-        <th>#</th>
         <th>Crop</th>
+        <th>Sowing</th>
         <th>Harvest</th>
       </thead>
       <tbody>
-        <td>1</td>
-        <td>Basil</td>
-        <td>11 Aug</td>
+        {% for crop in area.crop_set.all reversed %}
+        <tr>
+          <td>{{ crop }}</td>
+          <td></td>
+        </tr>
+        {% endfor %}
       </tbody>
     </table>
   </div>

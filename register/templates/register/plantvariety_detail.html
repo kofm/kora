@@ -25,7 +25,7 @@
         <td>{{ description.protocol }}</td>
         <td style="width:10%">
           <a href="{% url 'describe:description_detail' description.id %}"><i class="bi bi-zoom-in" style="color: black;"></i></a>
-          <a href="{% url 'describe:description-manage' description.id %}"><i class="bi-pencil" style="color: black;"></i></a>
+          <a href="{% url 'describe:description-update' description.id %}"><i class="bi-pencil" style="color: black;"></i></a>
         </td>
       </tr>
       {% endfor %}
