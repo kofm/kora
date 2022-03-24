@@ -8,13 +8,19 @@
 {% endblock %}
 {% block title %}Crop: {{ crop }}{% endblock %}
 {% block container %}
+
 <h1>Crop: {{ crop }} in {{ crop.area.name }} ({{ crop.area.location.name }})</h1>
+
+<div class="mt-3">
 <nav aria-label="breadcrumb">
   <ol class="breadcrumb">
-    <li class="breadcrumb-item"><a href="">Crops</a></li>
-    <li class="breadcrumb-item active" aria-current="page">{{ crop }} in {{ crop.area.name }} ({{ crop.area.location.name }})</li>
+    <li class="breadcrumb-item"><a href="{% url 'spaces:location-list'  %}">{{ crop.area.location.name }}</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'spaces:area-detail' crop.area.pk %}">{{ crop.area.name }}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{{ crop }}</li>
   </ol>
 </nav>
+</div>
+
 <div class="row">
   <div class="card col mx-2 my-2">
     <div class="card-title">

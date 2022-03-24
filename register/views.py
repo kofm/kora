@@ -50,8 +50,9 @@ class PlantSpeciesDetail(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["nav_species"] = "active"
-        varieties = self.get_related_varieties()
+        varieties, page_range = self.get_related_varieties()
         context["varieties"] = varieties
+        context["page_range"] = page_range
         context["search"] = self.request.GET.get('search')
         return context
 
@@ -66,8 +67,11 @@ class PlantSpeciesDetail(DetailView):
             queryset = self.object.variety.all()
         paginator = Paginator(queryset, 10)
         page = self.request.GET.get("page")
+        if not page:
+            page = 1
         varieties = paginator.get_page(page)
-        return varieties
+        page_range = paginator.get_elided_page_range(number=page)
+        return varieties, page_range
 
 
 class PlantSpeciesParametersList(DetailView):

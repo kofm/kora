@@ -16,7 +16,7 @@
         <tr>
           <th scope="col">Area</th>
           <th scope="col">Dimensioni</th>
-          <th scope="col">Crop</th>
+          <th scope="col">Current crop</th>
         </tr>
       </thead>
       <tbody>
@@ -27,7 +27,7 @@
             {% if area.crop_set.all %}
             {% with crop=area.crop_set.last %}
           <td>
-            <a href="{% url 'calculator:crop-detail' crop.pk %}">{{ crop }}</a>
+            <a href="{% url 'calculator:crop-update' crop.pk %}">{{ crop }}</a>
           </td>
           {% endwith %}
           {% else %}

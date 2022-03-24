@@ -4,7 +4,7 @@
 <h1>Area: {{ area.name }} ({{ area.location.name }})</h1>
 <nav aria-label="breadcrumb">
   <ol class="breadcrumb">
-    <li class="breadcrumb-item"><a href="{% url 'spaces:location-list' %}">Locations</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'spaces:location-list' %}">{{ area.location.name }}</a></li>
     <li class="breadcrumb-item active" aria-current="page">{{ area.name }}</li>
   </ol>
 </nav>

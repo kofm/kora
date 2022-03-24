@@ -11,15 +11,13 @@
     </li>
 
     {% endif %}
-
-    {% for p in page.paginator.page_range %}
-    {% if p > page.number|add:'-5' and p < page.number|add:'5' %}
-    <li class="page-item {% if forloop.counter == page.number %}active{% endif %}">
-      <a class="page-link " href="?{{ pagevar }}={{ forloop.counter }}{% if search %}&search={{ search }}{% endif %}">
-        {{ forloop.counter }}
+    {% get_proper_elided_page_range page.paginator page.number as page_range %}
+    {% for p in page_range %}
+    <li class="page-item {% if p == page.number %}active{% endif %}">
+      <a class="page-link" {% if p != page.paginator.ELLIPSIS %}href="?{{ pagevar }}={{ p }}{% endif %}{% if search %}&search={{ search }}{% endif %}">
+        {{ p }}
       </a>
     </li>
-    {% endif %}
     {% endfor %}
 
     {% if page.has_next %}
