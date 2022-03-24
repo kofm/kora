@@ -2,6 +2,13 @@
 {% load register_extras %}
 {% block title %}Species{% endblock %}
 {% block container %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'register:species_list' %}">Species</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'register:plantspecie_detail' variety.species.pk %}">{{ variety.species.latin_name }}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{{ variety.name }}</li>
+  </ol>
+</nav>
 <h1>{{ variety.name }} (<i>{{ variety.species.latin_name }}</i>)</h1>
 <div class="row mt-5">
   <div class="col">

@@ -1,22 +1,21 @@
-from django.core import serializers
 from django.core.paginator import Paginator
 from django.http.response import (
-    Http404,
-    HttpResponse,
-    HttpResponseBadRequest,
     HttpResponseRedirect,
-    JsonResponse,
 )
-from django.shortcuts import redirect, render, reverse
-from django.urls.base import reverse_lazy
+from django.shortcuts import redirect, render
+from django.urls.base import reverse, reverse_lazy
 from django.views.generic import CreateView, DetailView, ListView
-from django.views.generic.edit import DeleteView, FormMixin, UpdateView
+from django.views.generic.edit import DeleteView
 
 from parameters.forms import SpeciesParameterForm, VarietalParameterForm
-from parameters.models import SpeciesParameter
 
 from .forms import PlantSpeciesForm, PlantVarietyForm, PlantVarietyNameForm
 from .models import PlantSpecies, PlantVariety, PlantVarietyName
+
+from django.db.models import CharField
+from django.db.models.functions import Lower
+
+CharField.register_lookup(Lower)
 
 
 class PlantSpeciesList(ListView):
@@ -48,20 +47,23 @@ class PlantSpeciesDetail(DetailView):
     template_name = "register/plantspecies_detail.html"
     context_object_name = "species"
 
-    def get_success_url(self):
-        return reverse(
-            "register:plantspecie_detail", kwargs={"pk": self.get_object().pk}
-        )
-
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["nav_species"] = "active"
         varieties = self.get_related_varieties()
         context["varieties"] = varieties
+        context["search"] = self.request.GET.get('search')
         return context
 
     def get_related_varieties(self):
-        queryset = self.object.variety.all()
+        search = self.request.GET.get('search')
+        if search and search != '':
+            if len(search) < 2:
+                queryset = self.object.variety.filter(names__name__istartswith=search)
+            else:
+                queryset = self.object.variety.filter(names__name__unaccent__lower__trigram_similar=search)
+        else:
+            queryset = self.object.variety.all()
         paginator = Paginator(queryset, 10)
         page = self.request.GET.get("page")
         varieties = paginator.get_page(page)
