@@ -52,5 +52,10 @@ urlpatterns = [
         "variety/<int:pk>/name/create",
         views.PlantVarietyNameCreate.as_view(),
         name="plantvarietyname-create"
+    ),
+    path(
+        "variety/name/<int:pk>/update",
+        views.PlantVarietyNameUpdate.as_view(),
+        name="plantvarietyname-update"
     )
 ]

@@ -42,7 +42,7 @@ class PlantVariety(models.Model):
     @cached_property
     def name(self):
         if self.names.count() > 0:
-            return self.names.last().name
+            return self.names.order_by('-change_date').first().name
         else:
             return ''
 

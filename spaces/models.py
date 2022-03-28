@@ -5,9 +5,11 @@ class Location(models.Model):
     latitude = models.FloatField()
     longitude = models.FloatField()
 
+    def __str__(self):
+        return self.name
+
 class Area(models.Model):
     name = models.CharField(max_length=30)
-    # garden = models.ForeignKey(Garden, on_delete=models.PROTECT)
     location = models.ForeignKey(Location, on_delete=models.PROTECT)
     length = models.FloatField()
     width = models.FloatField()

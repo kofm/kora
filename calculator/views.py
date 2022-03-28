@@ -8,12 +8,12 @@ from django.shortcuts import redirect, render
 from django.core import serializers
 from django.urls.base import reverse, reverse_lazy
 from django.views.generic.detail import DetailView
-from django.views.generic.edit import DeleteView, UpdateView
+from django.views.generic.edit import CreateView, DeleteView, UpdateView
 from rest_framework.decorators import api_view
 from rest_framework import status
 from rest_framework.response import Response
 from calculator.serializers import AreaSerializer, CropParameterSerializer
-from calculator.models import Crop, CropParameter
+from calculator.models import Crop, CropParameter, Management
 from parameters.models import Parameter
 from register.models import PlantSpecies, PlantVariety
 from spaces.models import Area, Location
@@ -22,6 +22,7 @@ from spaces.models import Area, Location
 CROP_MODELS = [
     'CropModelExpectedYield',
     'CropModelTotalPlants',
+    'PhenologyCropModel'
 ]
 
 class CropDetailView(DetailView):
@@ -50,6 +51,8 @@ class CropUpdateView(UpdateView):
         )
         if self.object.content_type == plantspecies:
             context["plantspecie"] = self.object.object_id
+            # This list contains a list of default values for parameters
+            context["available_parameters"] = self.object.content_object.speciesparameter_set.values('parameter__code', 'value').distinct('parameter__code')
         import importlib; module = importlib.import_module('calculator.cropmodels')
         context['cropmodels'] = []
         for cm in CROP_MODELS:
@@ -169,3 +172,17 @@ def cropparameter_detail(request, pk):
     if request.method == "DELETE":
         cropparameter.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+class ManagementCreateView(CreateView):
+    model = Management
+    fields = ['type', 'date', 'notes', ]
+
+    def get_success_url(self):
+        return reverse_lazy('calculator:crop-update', args=[self.kwargs['pk']])
+
+    def form_valid(self, form):
+        crop = Crop.objects.get(pk=self.kwargs['pk'])
+        self.object = form.save(commit=False)
+        self.object.variety = crop
+        self.object.save()
+        return super().form_valid(form)

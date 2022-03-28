@@ -43,7 +43,7 @@ class SeedSample(models.Model):
     notes = models.CharField(
         max_length=500, help_text="Notes relative to the seed sample", blank=True, null=True
     )
-    growing_season = models.IntegerField(blank=True)
+    growing_season = models.IntegerField(blank=True, null=True)
     position = models.ForeignKey(
         StoragePosition, blank=True, null=True, on_delete=models.PROTECT
     )

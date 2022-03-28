@@ -37,6 +37,24 @@ class Crop(models.Model):
             return self.content_object.name
 
 
+class ManagementType(models.Model):
+    code = models.CharField(max_length=30)
+    name = models.CharField(max_length=100)
+    description = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return self.name
+
+class Management(models.Model):
+    type = models.ForeignKey(ManagementType, on_delete=models.PROTECT)
+    date = models.DateField()
+    crop = models.ForeignKey(Crop, on_delete=models.CASCADE)
+    notes = models.TextField(blank=True, null=True)
+
+    def __str__(self) -> str:
+        return self.date + " - " + self.type.name
+
+
 class CropParameter(ParameterValue):
     """
     Stores a Species/VarietalParameter ovveride for specific Crop

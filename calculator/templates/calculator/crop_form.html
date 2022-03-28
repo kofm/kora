@@ -66,7 +66,7 @@
           {% endfor %}
         </select>
         <div class="form-group mt-2">
-          <input name="value" class="form-control" type="float">
+          <input id="parameter_value" name="value" class="form-control" type="float">
           <input name="crop" type="hidden" value="{{ crop.pk }}">
         </div>
       </div>
@@ -74,48 +74,48 @@
     </form>
     <!-- <button id="parameter-add-btn" class="btn btn-outline-primary mt-auto mb-2" data-url="{% url 'calculator:cropparameter-list' %}">Add</button> -->
   </div>
+  <div class="card col d-flex mx-2 my-2">
+    <div class="card-title">
+      <h3>Management</h3>
+      <ul class="card-body">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Operation</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for mgmt in crop.management_set.all %}
+            <tr>
+              <td>{{ mgmt.date }}</td>
+              <td>{{ mgmt.type.name }}</td>
+              <td>{{ mgmt.notes }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </ul>
+    </div>
+  </div>
 </div>
 
 <!-- Display available models -->
 <div class="row">
   {% for cm in cropmodels %}
-  <div class="card col-2 my-2 mx-2">
-    <div class="card-title"><h3>{{ cm.model_name }}</h3></div>
-    <div class="card-body d-flex"><h2 class="mt-auto">{{ cm.value }} {{ cm.measure_unit }}</h2></div>
-  </div>
-  {% endfor %}
+  {% if 'timeseries' in cm %}
   <div class="col card mx-2 my-2">
-
+    {{ cm.timeseries|json_script:"plot-data" }}
     <div class="card-title">
       <h3>Phenology</h3>
     </div>
     <div id="chart" class="card-body"></div>
-
     <script type="text/javascript">
+      const value = JSON.parse(document.getElementById('plot-data').textContent);
 
         var options = {
-          series: [
-          {
-            data: [
-              {
-                x: 'Sowing',
-                y: [
-                  new Date('2022-02-27').getTime(),
-                  new Date('2022-03-24').getTime()
-                ],
-                fillColor: '#008FFB'
-              },
-              {
-                x: 'Maturity',
-                y: [
-                  new Date('2022-08-04').getTime(),
-                  new Date('2022-08-28').getTime()
-                ],
-                fillColor: '#00E396'
-              },
-            ]
-          }
-        ],
+          series: [{ data: value.data}],
           chart: {
           height: 150,
           type: 'rangeBar',
@@ -136,10 +136,6 @@
           enabled: true,
           formatter: function(val, opts) {
             var label = opts.w.globals.labels[opts.dataPointIndex]
-            //var a = moment(val[0])
-            //var b = moment(val[1])
-            //var diff = b.diff(a, 'days')
-            //return label + ': ' + diff + (diff > 1 ? ' days' : ' day')
             return label
           },
           style: {
@@ -163,10 +159,17 @@
         var chart = new ApexCharts(document.querySelector("#chart"), options);
         chart.render();
 
+        //chart.updateSeries([{ data: value.data }]);
+
     </script>
   </div>
+  {% else %}
+  <div class="card col-2 my-2 mx-2">
+    <div class="card-title"><h3>{{ cm.model_name }}</h3></div>
+    <div class="card-body d-flex"><h2 class="mt-auto">{{ cm.value }} {{ cm.measure_unit }}</h2></div>
+  </div>
+  {% endif %}
+  {% endfor %}
 </div>
 
-
-<script src="{% static 'frontpage/js/cropparameter.js' %}"></script>
 {% endblock %}

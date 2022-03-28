@@ -5,7 +5,7 @@
 {% block container %}
 <h1>{{ species.common_name }}</h1>
 <div class="container-sm mb-5">
-  <h2>Varieties</h2>
+  <h2>Varieties<a class="btn btn-primary ms-2" href="{% url 'register:plantvariety-create' species.pk %}">Create</a></h2>
   <form method="get">
     <div class="input-group mb-3">
       <input name="search" type="text" class="form-control" placeholder="Search variety" aria-label="Search variety" aria-describedby="button-addon2">

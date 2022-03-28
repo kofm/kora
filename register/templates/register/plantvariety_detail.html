@@ -32,7 +32,7 @@
     </table>
   </div>
   <div class="col">
-    <h2>Names history</h2>
+    <h2>Names history<a class="btn btn-primary ms-2" href="{% url 'register:plantvarietyname-create' variety.pk %}">Change</a></h2>
     <table class="table">
       <thead>
         <th>Name</th>
@@ -43,7 +43,7 @@
         <tr>
           <td>{{ name.name }}</td>
           <td>{{ name.change_date }}</td>
-          <td>{% if variety.names.count > 1 %}<a href="{% url 'register:plantvarietyname-delete' name.pk %}">Delete</a>{% endif %}</td>
+          <td><a href="{% url 'register:plantvarietyname-update' name.pk %}">Edit</a>{% if variety.names.count > 1 %}<a href="{% url 'register:plantvarietyname-delete' name.pk %}">Delete</a>{% endif %}</td>
         </tr>
         {% endfor %}
       </tbody>

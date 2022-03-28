@@ -1,12 +1,37 @@
 {% extends "frontpage/base.html" %}
 
+{% load static %}
+{% block javascript %}
+<script src="{% static 'frontpage/js/apexcharts/apexcharts.js' %}"></script>
+<script src="{% static 'frontpage/js/moment.min.js' %}"></script>
+{% endblock %}
 {% block title %}Locations{% endblock %}
 
 {% block container %}
 
 <h1>Locations</h1>
+<div id="chart">
+    {{ crop_totals|json_script:"plot-data" }}
+    <script type="text/javascript">
+      const value = JSON.parse(document.getElementById('plot-data').textContent);
+          var options = {
+          series: [ { data: value } ],
+          legend: {
+          show: false
+        },
+        chart: {
+          height: 350,
+          type: 'treemap'
+        },
+        title: {
+          text: 'Crops overview'
+        }
+        };
+        var chart = new ApexCharts(document.querySelector("#chart"), options);
+        chart.render();
+    </script>
+</div>
 <div class="row">
-
 
   <div class="col">
     {% for location in object_list %}

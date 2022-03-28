@@ -5,7 +5,7 @@ from django.http.response import (
 from django.shortcuts import redirect, render
 from django.urls.base import reverse, reverse_lazy
 from django.views.generic import CreateView, DetailView, ListView
-from django.views.generic.edit import DeleteView
+from django.views.generic.edit import DeleteView, UpdateView
 
 from parameters.forms import SpeciesParameterForm, VarietalParameterForm
 
@@ -197,6 +197,13 @@ class PlantVarietyNameCreate(CreateView):
         self.object.variety = plantvariety
         self.object.save()
         return super().form_valid(form)
+
+class PlantVarietyNameUpdate(UpdateView):
+    model = PlantVarietyName
+    fields = ['name', 'change_date', ]
+
+    def get_success_url(self):
+        return reverse_lazy('register:variety_detail', args=[self.object.variety.pk])
 
 class PlantVarietyNameDelete(DeleteView):
     model = PlantVarietyName

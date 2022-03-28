@@ -3,7 +3,6 @@ from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 from django.views.generic.list import ListView
 from rest_framework.decorators import api_view
-from rest_framework import status, viewsets
 from rest_framework.response import Response
 from collect.forms import SeedSampleForm
 
@@ -16,7 +15,6 @@ from collect.models import (
 from collect.serializers import (
     GerminabilitySerializer,
     SampleWeightSerializer,
-    SeedSampleSerializer,
 )
 from register.models import PlantVariety
 
