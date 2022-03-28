@@ -66,12 +66,17 @@
           {% endfor %}
         </select>
         <div class="form-group mt-2">
-          <input id="parameter_value" name="value" class="form-control" type="float">
+          <input id="parameter-value-input" name="value" class="form-control" type="float">
           <input name="crop" type="hidden" value="{{ crop.pk }}">
         </div>
       </div>
       <input class="btn btn-primary mt-3 col-12" type="submit" value="Update">
     </form>
+    {{ available_parameters|json_script:"available-parameters" }}
+    <script type="text/javascript">
+      const availableParameters = JSON.parse(document.getElementById('available-parameters').textContent);
+    </script>
+    <script src="{% static 'frontpage/js/cropparameter.js' %}"></script>
     <!-- <button id="parameter-add-btn" class="btn btn-outline-primary mt-auto mb-2" data-url="{% url 'calculator:cropparameter-list' %}">Add</button> -->
   </div>
   <div class="card col d-flex mx-2 my-2">

@@ -52,7 +52,7 @@ class CropUpdateView(UpdateView):
         if self.object.content_type == plantspecies:
             context["plantspecie"] = self.object.object_id
             # This list contains a list of default values for parameters
-            context["available_parameters"] = self.object.content_object.speciesparameter_set.values('parameter__code', 'value').distinct('parameter__code')
+            context["available_parameters"] = list(self.object.content_object.speciesparameter_set.values('parameter__id', 'value').distinct('parameter__id'))
         import importlib; module = importlib.import_module('calculator.cropmodels')
         context['cropmodels'] = []
         for cm in CROP_MODELS:
