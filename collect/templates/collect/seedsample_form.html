@@ -1,12 +1,34 @@
 {% extends "frontpage/base.html" %}
 {% load crispy_forms_tags %}
 {% load static %}
-{% block title %}{{ sample.variety.name }}{% endblock %}
+{% block title %}{% if object %}Seed sample #{{ object.sample_id }}: {{ object.variety.name }}{% else %}New sample{% endif %}{% endblock %}
 {% block container %}
-<h5 class="display-5">Seed Sample: <small class="text-muted">{% if object.variety.name %}{{ object.variety.name }}{% endif %}</small></h1>
+<h5 class="display-5">{% if object.variety.name %}Seed Sample: <small class="text-muted">{{ object.variety.name }}{% else %}New sample{% endif %}</small></h1>
+<script src="https://cdn.jsdelivr.net/npm/fuse.js/dist/fuse.js"></script>
+{{ varieties|json_script:"varieties-data" }}
+<script type="text/javascript">
+  const value = JSON.parse(document.getElementById('varieties-data').textContent);
+  const options = {
+      includeScore: true,
+      // Search in `author` and in `tags` array
+      keys: ['names__name',]
+    }
+
+  const fuse = new Fuse(value, options)
+
+  const result = fuse.search('Carnaroli')
+  console.log(result);
+
+</script>
 <form method="post">
   {% csrf_token %}
   {{ form|crispy }}
+  {% if weight_form %}
+  {{ weight_form|crispy}}
+  {% endif %}
+  {% if germinability_form %}
+  {{ germinability_form|crispy}}
+  {% endif %}
   <button name="btn-save" type="submit" class="btn btn-outline-primary mt-3">Save</button>
   <button name="btn-another" type="submit" class="btn btn-outline-primary mt-3">Save & +1</button>
   <a class="btn btn-outline-secondary mt-3" type="submit" href="{% url 'collect:seedsamples-list'  %}">Cancel</a>

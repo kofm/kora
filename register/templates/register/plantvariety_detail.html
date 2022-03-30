@@ -31,24 +31,6 @@
       {% endfor %}
     </table>
   </div>
-  <div class="col">
-    <h2>Names history<a class="btn btn-primary ms-2" href="{% url 'register:plantvarietyname-create' variety.pk %}">Change</a></h2>
-    <table class="table">
-      <thead>
-        <th>Name</th>
-        <th>Date</th>
-      </thead>
-      <tbody>
-        {% for name in variety.names.all %}
-        <tr>
-          <td>{{ name.name }}</td>
-          <td>{{ name.change_date }}</td>
-          <td><a href="{% url 'register:plantvarietyname-update' name.pk %}">Edit</a>{% if variety.names.count > 1 %}<a href="{% url 'register:plantvarietyname-delete' name.pk %}">Delete</a>{% endif %}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
 </div>
 
 <div class="row mt-5">
@@ -83,6 +65,31 @@
     <p>There are no seed samples of this variety.</p>
     {% endif %}
   </div>
+</div>
+
+<div class="row mt-5">
+  <div class="col">
+    <h2>Names history<a class="btn btn-primary ms-2" href="{% url 'register:plantvarietyname-create' variety.pk %}">Change</a></h2>
+    <table class="table">
+      <thead>
+        <th>Name</th>
+        <th>Date</th>
+      </thead>
+      <tbody>
+        {% for name in variety.names.all %}
+        <tr>
+          <td>{{ name.name }}</td>
+          <td>{{ name.change_date }}</td>
+          <td><a href="{% url 'register:plantvarietyname-update' name.pk %}">Edit</a>{% if variety.names.count > 1 %}<a href="{% url 'register:plantvarietyname-delete' name.pk %}">Delete</a>{% endif %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
+<div class="row mt-5">
   <div class="col">
     <h2>Parameters</h2>
     {% if variety.varietalparameter_set.count %}

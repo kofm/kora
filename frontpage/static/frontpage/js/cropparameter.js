@@ -1,9 +1,9 @@
 const parameterSelect = document.getElementById("parameter-select");
 const parameterValueInput = document.getElementById("parameter-value-input");
-const search = what => availableParameters.find(element => element.parameter__id == what);
+const searchParameter = what => availableParameters.find(element => element.parameter__id == what);
 
 function getParameter() {
-  const selectedParameter = search(parameterSelect.value);
+  const selectedParameter = searchParameter(parameterSelect.value);
   if (selectedParameter) {
     parameterValueInput.value = selectedParameter.value;
   } else {

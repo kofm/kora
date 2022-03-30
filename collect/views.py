@@ -1,16 +1,19 @@
-from django.urls.base import reverse
+from django.db.models.aggregates import Max
+from django.utils.timezone import now
+from django.urls.base import reverse, reverse_lazy
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 from django.views.generic.list import ListView
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from collect.forms import SeedSampleForm
+from collect.forms import GerminabilityForm, SampleWeightForm, SeedSampleForm
 
 from collect.models import (
     Germinability,
     SampleWeight,
     SeedSample,
     Storage,
+    StoragePosition,
 )
 from collect.serializers import (
     GerminabilitySerializer,
@@ -71,6 +74,35 @@ class SeedSampleCreateView(CreateView):
     form_class = SeedSampleForm
     model = SeedSample
 
+    def form_valid(self, form):
+        response = super(SeedSampleCreateView, self).form_valid(form)
+        weight_form=SampleWeightForm(self.request.POST)
+        new_weight = weight_form.save(commit=False)
+        new_weight.seedsample = self.object
+        new_weight.save()
+        if self.request.POST.get('germinability'):
+            germinability_form = GerminabilityForm(self.request.POST)
+            new_germinability = germinability_form.save(commit=False)
+            new_germinability.seedsample = self.object
+            new_germinability.save()
+        return response
+
+    def get_form(self):
+        form = super(SeedSampleCreateView, self).get_form()
+        samples_id = SeedSample.objects.all().values_list('sample_id', flat = True)
+        sample_id = max(samples_id) + 1 if samples_id else 1
+        form.fields["sample_id"].initial = sample_id
+        form.fields["growing_season"].initial = now().year - 1
+        form.fields["position"].initial = StoragePosition.objects.filter(seedsample__isnull=True).first()
+        return form
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['weight_form'] = SampleWeightForm()
+        context['germinability_form'] = GerminabilityForm(initial={'after_days': 7})
+        context['varieties'] = list(PlantVariety.objects.values('pk', 'names__name'))
+        return context
+
     def get_success_url(self):
         if "btn-another" in self.request.POST:
             return reverse("collect:seedsample-create")
@@ -84,6 +116,7 @@ class SeedSampleUpdateView(UpdateView):
 
 class SeedSampleDeleteView(DeleteView):
     model = SeedSample
+    success_url = reverse_lazy('collect:seedsamples-list')
 
 class StorageListView(ListView):
     model = Storage

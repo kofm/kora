@@ -26,12 +26,12 @@
   </thead>
   {% for seedsample in object_list %}
   <tr>
-    <td>{{ seedsample.pk }}</td>
+    <td>{{ seedsample.sample_id }}</td>
     <td><a href="{% url 'collect:seedsample-detail' seedsample.pk %}">{{ seedsample.variety.name }}</a></td>
     <td>{{ seedsample.position }}</td>
     <td>{{ seedsample.last_germinability }}</td>
     <td>{{ seedsample.growing_season }}</td>
-    <td>{{ seedsample.notes }}</td>
+    <td>{% if seedsample.notes %}{{ seedsample.notes }}{% endif %}</td>
     <td>
       <a href="{% url 'register:variety_detail' seedsample.variety.id %}"><i class="bi bi-zoom-in" style="color: black;"></i></a>
       <a class="far fa-edit falink" href=""><i class="bi-pencil" style="color: black;"></i></a>

@@ -10,21 +10,23 @@
 <p class="lead">{{ sample.notes }}</p>
 
 <div class="row">
-  <div class="card mx-2 py-2 col-3">
+  <div class="card mx-2 py-2 col">
     <div class="card-title"><h2>Sample</h2></div>
     <ul class="list-group list-group-flush">
-      <li class="list-group-item">{{ sample.variety.name }}</li>
-      <li class="list-group-item">{{ sample.growing_season }}</li>
-      <li class="list-group-item">{{ sample.position }}</li>
-      <li class="list-group-item">{% if sample.notes %}{{ sample.notes }}{% else %}&nbsp;{% endif %}</li>
+      <li class="list-group-item">ID: {{ sample.sample_id }}</li>
+      <li class="list-group-item">Variety: {{ sample.variety.name }}</li>
+      <li class="list-group-item">Growing season: {{ sample.growing_season }}</li>
+      <li class="list-group-item">Location: {{ sample.position }}</li>
+      <li class="list-group-item">Notes: {% if sample.notes %}{{ sample.notes }}{% else %}&nbsp;{% endif %}</li>
     </ul>
     <div class="card-body">
     </div>
     <a id="sample-form-button" class="btn btn-primary mt-3 mt-auto" href="{% url 'collect:seedsample-update' sample.id %}">Edit</a>
+    <a class="btn btn-danger mt-3" href="{% url 'collect:seedsample-delete' sample.id %}">Delete</a>
   </div>
 
 
-  <div class="card mx-2 py-2 col-3 d-flex">
+  <div class="card mx-2 py-2 col d-flex">
     <div class="card-title"><h2>Germinability</h2></div>
     <table class="table mt-3">
       <thead>
@@ -36,7 +38,7 @@
         <tbody id="germinability-table">
           {% for germinability in sample.germinability_set.all %}
           <tr>
-            <td>{{ germinability.value }}%</td>
+            <td>{{ germinability.germinability }}%</td>
             <td>{{ germinability.after_days }}</td>
             <td>{{ germinability.performed_at|date:'Y-m-d' }}</td>
           </tr>
@@ -64,7 +66,7 @@
   </div>
 
 
-  <div class="card mx-2 py-2 col-3 d-flex">
+  <div class="card mx-2 py-2 col d-flex">
     <div class="card-title"><h2>Weight</h2></div>
     <table class="table mt-3">
       <thead>
@@ -75,7 +77,7 @@
         <tbody id="weight-table">
           {% for sampleweight in sample.sampleweight_set.all %}
           <tr>
-            <td>{{ sampleweight.value}}</td>
+            <td>{{ sampleweight.weight}}</td>
             <td>{{ sampleweight.created_at|date:'Y-m-d' }}</td>
           </tr>
           {% endfor %}
