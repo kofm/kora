@@ -1,20 +1,43 @@
 from django import forms
 from django.db.models import Q
-from django.forms.widgets import HiddenInput, TextInput
+from django.forms.widgets import HiddenInput
+from django.utils.translation import gettext_lazy as _
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import HTML, Layout, Field
 
 from collect.models import Germinability, SampleWeight, SeedSample, StoragePosition
 
+class TomSelectWidget(forms.Select):
+    class Media:
+        css = {
+            'all': ('https://cdn.jsdelivr.net/npm/tom-select/dist/css/tom-select.css',)
+        }
+        js = ('https://cdn.jsdelivr.net/npm/tom-select/dist/js/tom-select.complete.min.js',)
+
 class SeedSampleForm(forms.ModelForm):
+    tomvar = forms.CharField(label='Variety')
+    tompos = forms.CharField(label='Position')
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['position'].queryset = StoragePosition.objects.filter(Q(seedsample__id=self.instance.pk) | Q(seedsample__isnull=True))
+        #self.fields['position'].queryset = StoragePosition.objects.filter(Q(seedsample__id=self.instance.pk) | Q(seedsample__isnull=True))
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            'tomvar',
+            'variety',
+            'sample_id',
+            'tompos',
+            'position',
+            'growing_season',
+            'notes',
+        )
 
     class Meta:
         model=SeedSample
-        fields=('sample_id', 'variety', 'growing_season', 'position', 'notes')
+        fields=('sample_id', 'tomvar', 'variety', 'tompos', 'position', 'growing_season', 'notes')
         widgets={
             'variety': HiddenInput(),
-            'position': TextInput()
+            'position': HiddenInput(),
         }
 
 class SampleWeightForm(forms.ModelForm):

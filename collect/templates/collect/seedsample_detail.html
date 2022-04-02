@@ -1,101 +1,204 @@
 {% extends "frontpage/base.html" %}
 {% load crispy_forms_tags %}
 {% load static %}
+
+{% block javascript %}
+<script src="{% static 'frontpage/js/apexcharts/apexcharts.js' %}"></script>
+<script src="{% static 'frontpage/js/moment.min.js' %}"></script>
+{% endblock %}
+
 {% block title %}{{ sample.variety.name }}{% endblock %}
+
 {% block container %}
 
-<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 <h5 class="display-5">Seed Sample: <small class="text-muted">{{ sample.variety.name }}</small></h1>
 
-<p class="lead">{{ sample.notes }}</p>
+{% if sample.notes %}<p class="lead">{{ sample.notes }}</p>{% endif %}
 
-<div class="row">
-  <div class="card mx-2 py-2 col">
+<div class="row mx-2">
+  <div class="card mx-1 py-2 col d-flex">
     <div class="card-title"><h2>Sample</h2></div>
-    <ul class="list-group list-group-flush">
-      <li class="list-group-item">ID: {{ sample.sample_id }}</li>
-      <li class="list-group-item">Variety: {{ sample.variety.name }}</li>
-      <li class="list-group-item">Growing season: {{ sample.growing_season }}</li>
-      <li class="list-group-item">Location: {{ sample.position }}</li>
-      <li class="list-group-item">Notes: {% if sample.notes %}{{ sample.notes }}{% else %}&nbsp;{% endif %}</li>
-    </ul>
     <div class="card-body">
+      <ul class="list-group list-group-flush">
+        <li class="list-group-item">ID: {{ sample.sample_id }}</li>
+        <li class="list-group-item">Variety: {{ sample.variety.name }}</li>
+        <li class="list-group-item">Growing season: {{ sample.growing_season }}</li>
+        <li class="list-group-item">Location: {{ sample.position }}</li>
+        <li class="list-group-item">Notes: {% if sample.notes %}{{ sample.notes }}{% else %}&nbsp;{% endif %}</li>
+      </ul>
     </div>
-    <a id="sample-form-button" class="btn btn-primary mt-3 mt-auto" href="{% url 'collect:seedsample-update' sample.id %}">Edit</a>
-    <a class="btn btn-danger mt-3" href="{% url 'collect:seedsample-delete' sample.id %}">Delete</a>
-  </div>
-
-
-  <div class="card mx-2 py-2 col d-flex">
-    <div class="card-title"><h2>Germinability</h2></div>
-    <table class="table mt-3">
-      <thead>
-        <tr>
-          <th scope="col">Germinability</th>
-          <th scope="col">Days</th>
-          <th scope="col">Date</th>
-        </tr>
-        <tbody id="germinability-table">
-          {% for germinability in sample.germinability_set.all %}
-          <tr>
-            <td>{{ germinability.germinability }}%</td>
-            <td>{{ germinability.after_days }}</td>
-            <td>{{ germinability.performed_at|date:'Y-m-d' }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </thead>
-    </table>
-    <form id="germinability-form">
-      {% csrf_token %}
-      <div class="form-floating mt-auto">
-        <input id="germinability-value-input" name="value" class="form-control" type="number" min=0 max=100 step=1 value="">
-        <label for="germinability-value-input">Germinability</label>
-      </div>
-      <div class="form-floating mt-3">
-        <input id="germinability-days-input" name="after_days" class="form-control" type="number" min=0 max=100 step=1 value="7">
-        <label for="germinability-days-input">After days</label>
-      </div>
-      <div class="form-floating mt-3">
-        <input id="germinability-date-input" name="performed_at" class="form-control" type="text" value="{% now 'Y-m-d' %}">
-        <label for="germinability-date-input">Date</label>
-        <input id="seedsample" name="seedsample" type="hidden" value="{{ sample.id }}">
-      </div>
-    </form>
-    <button id="germinability-form-button" class="btn btn-primary mt-3" data-url="{% url 'collect:germinability' %}">Add new germinability</button>
-  </div>
-
-
-  <div class="card mx-2 py-2 col d-flex">
-    <div class="card-title"><h2>Weight</h2></div>
-    <table class="table mt-3">
-      <thead>
-        <tr>
-          <th scope="col">Weight (g)</th>
-          <th scope="col">Date</th>
-        </tr>
-        <tbody id="weight-table">
-          {% for sampleweight in sample.sampleweight_set.all %}
-          <tr>
-            <td>{{ sampleweight.weight}}</td>
-            <td>{{ sampleweight.created_at|date:'Y-m-d' }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </thead>
-    </table>
     <div class="mt-auto">
-      <form id="weight-form">
+      <a id="sample-form-button" class="btn btn-primary mt-3 col-12" href="{% url 'collect:seedsample-update' sample.id %}">Edit</a>
+      <a class="btn btn-danger mt-3 col-12" href="{% url 'collect:seedsample-delete' sample.id %}">Delete</a>
+    </div>
+  </div>
+
+
+  <div class="card mx-1 py-2 col d-flex">
+
+    <div class="card-title"><h2>Germinability</h2></div>
+
+    <div class="card-body">
+
+      <table class="table">
+        <thead>
+          <tr>
+            <th scope="col">Germinability</th>
+            <th scope="col">Days</th>
+            <th scope="col">Date</th>
+            <th scope="col">&nbsp;</th>
+          </tr>
+          <tbody id="germinability-table">
+            {% for germinability in sample.germinability_set.all %}
+            <tr>
+              <td>{{ germinability.germinability }}%</td>
+              <td>{{ germinability.after_days }}</td>
+              <td>{{ germinability.performed_at|date:'Y-m-d' }}</td>
+              <td><a class="fas fa-trash-alt falink" href="{% url 'collect:germinability-delete' germinability.pk %}"><i class="bi bi-trash" style="color: black;"></i></a></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </thead>
+      </table>
+    </div>
+
+    <div class="mt-auto">
+      <form id="germinability-form" method='post' action="{% url 'collect:germinability-create' sample.id %}">
+        {% csrf_token %}
         <div class="form-floating">
-          <input id="weight-value-input" name="value" class="form-control" type="number" min=0 max=100 step=1 value="">
-          <input id="seedsample" name="seedsample" type="hidden" value="{{ sample.id }}">
-          <label for="germinability-input">New weight</label>
+          <input id="germinability-value-input" name="germinability" class="form-control" type="number" min=0 max=100 step=1 value="">
+          <label for="germinability-value-input">Germinability</label>
         </div>
+        <div class="form-floating mt-3">
+          <input id="germinability-days-input" name="after_days" class="form-control" type="number" min=0 max=100 step=1 value="7">
+          <label for="germinability-days-input">After days</label>
+        </div>
+        <div class="form-floating mt-3">
+          <input id="germinability-date-input" name="performed_at" class="form-control" type="text" value="{% now 'Y-m-d' %}">
+          <label for="germinability-date-input">Date</label>
+          <input id="seedsample" name="seedsample" type="hidden" value="{{ sample.id }}">
+        </div>
+        <button type="submit" id="germinability-form-button" class="btn btn-primary mt-3 col-12" data-url="{% url 'collect:germinability' %}">Add new germinability</button>
       </form>
     </div>
-    <button id="weight-form-button" class="btn btn-primary mt-3" data-url="{% url 'collect:sample-weight' %}">Add new weight</button>
+
+  </div>
+
+
+  <div class="card mx-1 py-2 col d-flex">
+    <div class="card-title"><h2>Weight</h2></div>
+    <div class="card-body">
+      <table class="table">
+        <thead>
+          <tr>
+            <th scope="col">Weight (g)</th>
+            <th scope="col">Date</th>
+          </tr>
+          <tbody id="weight-table">
+            {% for sampleweight in sample.sampleweight_set.all %}
+            <tr>
+              <td>{{ sampleweight.weight}}</td>
+              <td>{{ sampleweight.created_at|date:'Y-m-d' }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </thead>
+      </table>
+    </div>
+    <div class="mt-auto">
+      <form id="weight-form" method="post" action="{% url 'collect:sampleweight-create' sample.id %}">
+        {% csrf_token %}
+        <div class="form-floating">
+          <input id="weight-value-input" name="weight" class="form-control" type="number" min=0 step=1 value="">
+          <label for="germinability-input">New weight</label>
+        </div>
+        <button id="weight-form-button" class="btn btn-primary mt-3 col-12">Add new weight</button>
+      </form>
+    </div>
   </div>
 </div>
+<div class="row mt-3 mx-2">
+  {% if sample.germinability_set.count > 1 %}
+  <div class="card col-6 mx-1">
+    <div id="germinability-chart" class="px-2 py-2">
+      <script>
+        var options = {
+                  series: [{
+                            name: "Germinability",
+                            data: [
+                                      {% for germinability in sample.germinability_set.all %}
+                                      ['{{ germinability.performed_at }}', {{ germinability.germinability }}],
+                                      {% endfor %}
+                                    ]
+                          }],
+                  chart: {
+                            height: 350,
+                            type: 'line',
+                            zoom: {
+                                      enabled: false
+                                    }
+                          },
+                  dataLabels: {
+                            enabled: false
+                          },
+                  stroke: {
+                            curve: 'straight'
+                          },
+                  title: {
+                            text: 'Germinability over time',
+                            align: 'left'
+                          },
+                  xaxis: {
+                            type: 'datetime'
+                          }
+                };
 
-<script src="{% static 'frontpage/js/seedsample_detail.js' %}"></script>
+        var chart = new ApexCharts(document.querySelector("#germinability-chart"), options);
+        chart.render();
+      </script>
+    </div>
+  </div>
+  {% endif %}
+  {% if sample.sampleweight_set.count > 1 %}
+  <div id="sampleweight-chart" class="card col mx-1">
+    <script>
+      var options = {
+              series: [{
+                      name: "Sample weight",
+                      data: [
+                              {% for sampleweight in sample.sampleweight_set.all %}
+                              ['{{ sampleweight.created_at }}', {{ sampleweight.weight }}],
+                              {% endfor %}
+                            ]
+                    }],
+              chart: {
+                      height: 350,
+                      type: 'line',
+                      zoom: {
+                              enabled: false
+                            }
+                    },
+              dataLabels: {
+                      enabled: false
+                    },
+              stroke: {
+                      curve: 'straight'
+                    },
+              title: {
+                      text: 'Sample weight over time',
+                      align: 'left'
+                    },
+              xaxis: {
+                      type: 'datetime'
+                    }
+            };
+
+      var chart = new ApexCharts(document.querySelector("#sampleweight-chart"), options);
+      chart.render();
+    </script>
+  </div>
+  {% endif %}
+</div>
+
+<!-- <script src="{% static 'frontpage/js/seedsample_detail.js' %}"></script> -->
 {% endblock %}

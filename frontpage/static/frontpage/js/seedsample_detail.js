@@ -30,12 +30,15 @@ germinabilityButton.addEventListener("click", async function() {
     body: germinabilityFormData
   })
 
+  console.log(response);
+
   const newGerminability = await response.json();
+  console.log(newGerminability);
   let newRow = germinabilityTable.insertRow();
   let valueCell = newRow.insertCell();
   let daysCell = newRow.insertCell();
   let dateCell = newRow.insertCell();
-  valueCell.appendChild(document.createTextNode(newGerminability.value + " %"));
+  valueCell.appendChild(document.createTextNode(newGerminability.germinability + " %"));
   daysCell.appendChild(document.createTextNode(newGerminability.after_days));
   dateCell.appendChild(document.createTextNode(newGerminability.performed_at));
 });

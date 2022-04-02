@@ -51,6 +51,9 @@ class SeedSample(models.Model):
         StoragePosition, on_delete=models.PROTECT
     )
 
+    class Meta:
+        ordering = ['-sample_id', ]
+
     def get_absolute_url(self):
         return reverse('collect:seedsample-detail', kwargs={'pk' : self.pk})
 
@@ -61,9 +64,16 @@ class SeedSample(models.Model):
         else:
             return ""
 
+    @property
+    def weight(self):
+        if self.sampleweight_set.count() > 0:
+            return str(self.sampleweight_set.last().weight) + " g"
+        else:
+            return ""
+
     def __str__(self):
         if self.variety.names.last():
-            return self.variety.names.last()
+            return self.variety.names.last().name
         else:
             return ''
 
@@ -76,7 +86,7 @@ class Germinability(models.Model):
 
     class Meta:
         ordering = [
-            "performed_at",
+            "-performed_at",
         ]
 
     @property

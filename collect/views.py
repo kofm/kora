@@ -1,9 +1,14 @@
-from django.db.models.aggregates import Max
+from django.db.models.expressions import Value
+from django.db.models.functions import Cast
+from django.db.models.functions.text import Concat
+from django.db.models import IntegerField, Count
+from django.db.models.query_utils import Q
 from django.utils.timezone import now
 from django.urls.base import reverse, reverse_lazy
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 from django.views.generic.list import ListView
+from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from collect.forms import GerminabilityForm, SampleWeightForm, SeedSampleForm
@@ -31,30 +36,32 @@ class StorageCreateView(CreateView):
 
 class SeedSampleListView(ListView):
     model = SeedSample
-    paginate_by = 10
+    paginate_by = 20
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context['search'] = self.request.GET.get("search")
+        context['dupes'] = self.request.GET.get("dupes")
         return context
 
     def get_queryset(self):
         search = self.request.GET.get("search")
-        if search and search != '':
+        if search and search != "":
             if len(search) < 2:
-                queryset = SeedSample.objects.filter(variety__names__name__istartswith=search)
+                queryset = SeedSample.objects.filter(
+                    variety__names__name__istartswith=search
+                )
             else:
-                queryset = SeedSample.objects.filter(variety__names__name__unaccent__lower__trigram_similar=search)
+                queryset = SeedSample.objects.filter(
+                    variety__names__name__unaccent__lower__trigram_similar=search
+                )
         else:
             queryset = SeedSample.objects.all()
+
+        if self.request.GET.get("dupes"):
+            duplicates=SeedSample.objects.all().values('variety_id').annotate(c=Count('id')).order_by('variety').filter(c__gt=1)
+            queryset = queryset.filter(variety__in=[e['variety_id'] for e in duplicates]).order_by('variety_id', 'growing_season')
         return queryset
-
-    def get_storages(self):
-        queryset = Storage.objects.all()
-        paginator = Paginator(queryset, 5)
-        page = self.request.GET.get("storage_page")
-        storages = paginator.get_page(page)
-        return storages
-
 
 class SeedSampleDetailView(DetailView):
     model = SeedSample
@@ -76,11 +83,11 @@ class SeedSampleCreateView(CreateView):
 
     def form_valid(self, form):
         response = super(SeedSampleCreateView, self).form_valid(form)
-        weight_form=SampleWeightForm(self.request.POST)
+        weight_form = SampleWeightForm(self.request.POST)
         new_weight = weight_form.save(commit=False)
         new_weight.seedsample = self.object
         new_weight.save()
-        if self.request.POST.get('germinability'):
+        if self.request.POST.get("germinability"):
             germinability_form = GerminabilityForm(self.request.POST)
             new_germinability = germinability_form.save(commit=False)
             new_germinability.seedsample = self.object
@@ -89,19 +96,31 @@ class SeedSampleCreateView(CreateView):
 
     def get_form(self):
         form = super(SeedSampleCreateView, self).get_form()
-        samples_id = SeedSample.objects.all().values_list('sample_id', flat = True)
+        samples_id = SeedSample.objects.all().values_list("sample_id", flat=True)
         sample_id = max(samples_id) + 1 if samples_id else 1
         form.fields["sample_id"].initial = sample_id
         form.fields["growing_season"].initial = now().year - 1
-        form.fields["position"].initial = StoragePosition.objects.filter(seedsample__isnull=True).first()
+        # form.fields["position"].initial = StoragePosition.objects.filter(
+        #     seedsample__isnull=True
+        # ).first()
         return form
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['weight_form'] = SampleWeightForm()
-        context['germinability_form'] = GerminabilityForm(initial={'after_days': 7})
-        context['varieties'] = list(PlantVariety.objects.values('pk', 'names__name'))
+        context["weight_form"] = SampleWeightForm()
+        context["germinability_form"] = GerminabilityForm(initial={"after_days": 7})
+        context["varieties"] = list(PlantVariety.objects.values("pk", "names__name"))
+        context["positions"] = list(
+            StoragePosition.objects.filter(seedsample__isnull=True)
+            .annotate(
+                position_name=Concat("storage__name", Value("-"), "name"),
+                posn=Cast("name", output_field=IntegerField()),
+            )
+            .order_by("storage__name", "posn")
+            .values("pk", "position_name")
+        )
         return context
+
 
     def get_success_url(self):
         if "btn-another" in self.request.POST:
@@ -113,14 +132,65 @@ class SeedSampleUpdateView(UpdateView):
     form_class = SeedSampleForm
     model = SeedSample
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["varieties"] = list(PlantVariety.objects.values("pk", "names__name"))
+        context["positions"] = list(
+            StoragePosition.objects.filter(Q(seedsample__id=self.object.pk) | Q(seedsample__isnull=True))
+            .annotate(
+                position_name=Concat("storage__name", Value("-"), "name"),
+                posn=Cast("name", output_field=IntegerField()),
+            )
+            .order_by("storage__name", "posn")
+            .values("pk", "position_name")
+        )
+        return context
+
 
 class SeedSampleDeleteView(DeleteView):
     model = SeedSample
-    success_url = reverse_lazy('collect:seedsamples-list')
+    success_url = reverse_lazy("collect:seedsamples-list")
+
 
 class StorageListView(ListView):
     model = Storage
     paginate_by = 10
+
+
+class GerminabilityCreateView(CreateView):
+    model = Germinability
+    fields = ['germinability', 'after_days', 'performed_at']
+
+    def get_success_url(self):
+        return reverse_lazy("collect:seedsample-detail", args=[self.kwargs['pk']])
+
+    def form_valid(self, form):
+        seedsample = SeedSample.objects.get(pk=self.kwargs['pk'])
+        self.object = form.save(commit=False)
+        self.object.seedsample = seedsample
+        self.object.save()
+        return super().form_valid(form)
+
+class GerminabilityDeleteView(DeleteView):
+    model = Germinability
+
+    def get_success_url(self):
+        return reverse_lazy("collect:seedsample-detail", args=[self.object.seedsample.pk])
+
+class SampleWeightCreateView(CreateView):
+    model = SampleWeight
+    fields = ['weight',]
+    template_name = 'collect/seedsample_detail.html'
+
+    def get_success_url(self):
+        return reverse_lazy("collect:seedsample-detail", args=[self.kwargs['pk']])
+
+    def form_valid(self, form):
+        seedsample = SeedSample.objects.get(pk=self.kwargs['pk'])
+        self.object = form.save(commit=False)
+        self.object.seedsample = seedsample
+        self.object.save()
+        return super().form_valid(form)
 
 
 @api_view(["GET", "POST"])

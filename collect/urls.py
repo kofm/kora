@@ -13,5 +13,8 @@ urlpatterns = [
     path("storage/create", views.StorageCreateView.as_view(), name="storage-create"),
     path("storage", views.StorageListView.as_view(), name="storage-list"),
     path("germinability", views.germinability, name="germinability"),
+    path("sample/<int:pk>/germinability/create", views.GerminabilityCreateView.as_view(), name="germinability-create"),
+    path("sample/<int:pk>/sampleweight/create", views.SampleWeightCreateView.as_view(), name="sampleweight-create"),
+    path("germinability/<int:pk>/delete", views.GerminabilityDeleteView.as_view(), name="germinability-delete"),
     path("sampleweight", views.sample_weight, name="sample-weight"),
 ]
