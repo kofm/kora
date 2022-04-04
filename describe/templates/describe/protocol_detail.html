@@ -2,22 +2,39 @@
 {% load description_extras %}
 {% block title %}Protocol: {{ protocol.name }}{% endblock %}
 {% block container %}
-<h1>{{ protocol.name }} ({{ protocol.specie.common_name }})</h1>
+<p class="display-1">{{ protocol.name }} <small class="text-muted">(<i>{{ protocol.specie.latin_name }}</i>)</small></p>
 <div class="row my-3">
   <div class="col">
-    <h2>List of traits and available states of expression</h2>
-    <ul>
-      {% for trait in protocol.traits.all %}
-      <li><b>{{ trait.numeric_id }}. {{ trait.description }}</b></li>
-      <ul>
-        {% for state in trait.state_set.all %}
-        <li>{{ state.numeric_id }}. {{ state.description }}</li>
+    <p class="h1">
+      Table of characteristics
+      <a href="{% url 'describe:protocol-update' protocol.id %}" class="btn btn-secondary">Update</a>
+      <a href="{% url 'describe:protocol-delete' protocol.id %}" class="btn btn-danger">Delete</a>
+    </p>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Characteristic</th>
+          <th>Note</th>
+          <th>State of expression</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for trait in protocol.traits.all %}
+        <tr>
+          <td rowspan="{{ trait.state_set.count }}">{{ trait.numeric_id }}</td>
+          <td rowspan="{{ trait.state_set.count }}">{{ trait.description }}</td>
+          {% for state in trait.state_set.all %}
+          <td>{{ state.numeric_id }}</td>
+          <td>{{ state.description }}</td>
+          {% if not forloop.last %}
+        </tr>
+        {% endif %}
         {% endfor %}
-      </ul>
-      {% endfor %}
-    </ul>
-    <a href="{% url 'describe:protocol-update' protocol.id %}" class="btn btn-secondary">Update</a>
-    <a href="{% url 'describe:protocol-delete' protocol.id %}" class="btn btn-danger">Delete</a>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
 </div>
 {% endblock %}

@@ -17,4 +17,5 @@ urlpatterns = [
     path("sample/<int:pk>/sampleweight/create", views.SampleWeightCreateView.as_view(), name="sampleweight-create"),
     path("germinability/<int:pk>/delete", views.GerminabilityDeleteView.as_view(), name="germinability-delete"),
     path("sampleweight", views.sample_weight, name="sample-weight"),
+    path("sampleweight/<int:pk>/delete", views.SampleWeightDeleteView.as_view(), name="sampleweight-delete"),
 ]

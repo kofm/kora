@@ -1,3 +1,4 @@
+from django import forms
 from django.contrib.contenttypes.models import ContentType
 from django.forms.models import ModelForm
 from django.http.response import (
@@ -20,8 +21,8 @@ from spaces.models import Area, Location
 
 """Register CropModels here"""
 CROP_MODELS = [
-    'CropModelExpectedYield',
-    'CropModelTotalPlants',
+    # 'CropModelExpectedYield',
+    # 'CropModelTotalPlants',
     'PhenologyCropModel'
 ]
 
@@ -42,9 +43,17 @@ class CropUpdateView(UpdateView):
         return reverse_lazy("calculator:crop-update", args=[self.object.id])
 
     def get_context_data(self, **kwargs):
+        CropParameterFormset = forms.inlineformset_factory(
+            Crop,
+            CropParameter,
+            form = CropParameterForm,
+            extra = 1
+        )
+
         context = super().get_context_data(**kwargs)
         context["plantspecies"] = PlantSpecies.objects.all()
         context["parameters"] = Parameter.objects.all()
+        context["parameters_formset"] = CropParameterFormset(instance=self.object, queryset=self.object.cropparameter_set.all())
         # Get possible content_types
         plantspecies = ContentType.objects.get(
             app_label="register", model="plantspecies"
@@ -61,7 +70,6 @@ class CropUpdateView(UpdateView):
             if m.can_run():
                 context['cropmodels'].append(m.output())
         return context
-
 
 class CropParameterForm(ModelForm):
     class Meta:

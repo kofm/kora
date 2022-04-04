@@ -11,7 +11,7 @@
 
 {% block container %}
 
-<h5 class="display-5">Seed Sample: <small class="text-muted">{{ sample.variety.name }}</small></h1>
+<h5 class="display-5">Seed Sample: <small class="text-muted">{{ sample.variety.name }}</small></h5>
 
 {% if sample.notes %}<p class="lead">{{ sample.notes }}</p>{% endif %}
 
@@ -28,18 +28,93 @@
       </ul>
     </div>
     <div class="mt-auto">
-      <a id="sample-form-button" class="btn btn-primary mt-3 col-12" href="{% url 'collect:seedsample-update' sample.id %}">Edit</a>
+      <a id="sample-form-button" class="btn btn-primary mt-3 col-12" href="{% url 'collect:seedsample-update' sample.id %}">Update</a>
       <a class="btn btn-danger mt-3 col-12" href="{% url 'collect:seedsample-delete' sample.id %}">Delete</a>
     </div>
   </div>
 
 
+  <div class="card mx-1 py-2 col">
+    <div class="card-title">
+      <h2>Duplicate samples</h2>
+    </div>
+    <div class="card-body">
+      {% if sample.variety.seedsample_set.count > 1 %}
+      <table class="table">
+        <thead>
+          <tr>
+            <th scope="col">ID</th>
+            <th scope="col">Position</th>
+            <th scope="col">Growing season</th>
+            <th scope="col">Weight</th>
+            <th scope="col">Germinability</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for othersample in sample.variety.seedsample_set.all %}
+          {% if othersample.pk != sample.pk %}
+          <tr>
+            <td><a href="{% url 'collect:seedsample-detail' othersample.pk %}">{{ othersample.sample_id }}</a></td>
+            <td>{{ othersample.position }}</td>
+            <td>{{ othersample.growing_season }}</td>
+            <td>{{ othersample.weight }}</td>
+            <td>{{ othersample.last_germinability }}</td>
+          </tr>
+          {% endif %}
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <p>There are no other samples of this variety.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+<div class="row mt-3 mx-2">
+
+  <div class="card mx-1 py-2 col d-flex">
+    <div class="card-title"><h2>Weight</h2></div>
+    <div class="card-body">
+      <table class="table">
+        <thead>
+          <tr>
+            <th scope="col">Weight (g)</th>
+            <th scope="col">Date</th>
+            <th scope="col">&nbsp;</th>
+          </tr>
+        </thead>
+          <tbody id="weight-table">
+            {% for sampleweight in sample.sampleweight_set.all %}
+            <tr>
+              <td>{{ sampleweight.weight}}</td>
+              <td>{{ sampleweight.created_at|date:'Y-m-d' }}</td>
+              <td>
+                <a id="sampleweight-delete-btn-{{ forloop.counter }}" class="fas fa-trash-alt falink" href="{% url 'collect:sampleweight-delete' sampleweight.pk %}">
+                  <i class="bi bi-trash" style="color: black;"></i>
+                </a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+      </table>
+    </div>
+    <div class="mt-auto">
+      <form id="weight-form" method="post" action="{% url 'collect:sampleweight-create' sample.id %}">
+        {% csrf_token %}
+        <div class="form-floating">
+          <input id="weight-value-input" name="weight" class="form-control" type="number" min=0 step=1 value="">
+          <label for="germinability-input">New weight</label>
+        </div>
+        <button id="weight-form-button" class="btn btn-primary mt-3 col-12">Change weight</button>
+      </form>
+    </div>
+  </div>
   <div class="card mx-1 py-2 col d-flex">
 
     <div class="card-title"><h2>Germinability</h2></div>
 
     <div class="card-body">
-
+      {% if sample.germinability_set.all %}
       <table class="table">
         <thead>
           <tr>
@@ -48,6 +123,7 @@
             <th scope="col">Date</th>
             <th scope="col">&nbsp;</th>
           </tr>
+        </thead>
           <tbody id="germinability-table">
             {% for germinability in sample.germinability_set.all %}
             <tr>
@@ -58,8 +134,10 @@
             </tr>
             {% endfor %}
           </tbody>
-        </thead>
       </table>
+      {% else %}
+      <p>There are no recorded germinability values for this sample.</p>
+      {% endif %}
     </div>
 
     <div class="mt-auto">
@@ -78,43 +156,10 @@
           <label for="germinability-date-input">Date</label>
           <input id="seedsample" name="seedsample" type="hidden" value="{{ sample.id }}">
         </div>
-        <button type="submit" id="germinability-form-button" class="btn btn-primary mt-3 col-12" data-url="{% url 'collect:germinability' %}">Add new germinability</button>
+        <button type="submit" id="germinability-form-button" class="btn btn-primary mt-3 col-12" data-url="{% url 'collect:germinability' %}">Change germinability</button>
       </form>
     </div>
 
-  </div>
-
-
-  <div class="card mx-1 py-2 col d-flex">
-    <div class="card-title"><h2>Weight</h2></div>
-    <div class="card-body">
-      <table class="table">
-        <thead>
-          <tr>
-            <th scope="col">Weight (g)</th>
-            <th scope="col">Date</th>
-          </tr>
-          <tbody id="weight-table">
-            {% for sampleweight in sample.sampleweight_set.all %}
-            <tr>
-              <td>{{ sampleweight.weight}}</td>
-              <td>{{ sampleweight.created_at|date:'Y-m-d' }}</td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </thead>
-      </table>
-    </div>
-    <div class="mt-auto">
-      <form id="weight-form" method="post" action="{% url 'collect:sampleweight-create' sample.id %}">
-        {% csrf_token %}
-        <div class="form-floating">
-          <input id="weight-value-input" name="weight" class="form-control" type="number" min=0 step=1 value="">
-          <label for="germinability-input">New weight</label>
-        </div>
-        <button id="weight-form-button" class="btn btn-primary mt-3 col-12">Add new weight</button>
-      </form>
-    </div>
   </div>
 </div>
 <div class="row mt-3 mx-2">

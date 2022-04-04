@@ -6,7 +6,7 @@
 
 {% block container %}
 
-<p class="h1">Seed Samples<a class="btn btn-primary ms-2" href="{% url 'collect:seedsample-create' %}">Create</a></p>
+<p class="display-1">Seed Samples</p>
 <form method="get">
   <div class="input-group mb-3">
     <input name="search" type="text" class="form-control" placeholder="Search samples" aria-label="Search samples" aria-describedby="button-addon2">
@@ -15,7 +15,10 @@
 </form>
 <div class="row">
   <div class="col">
-    <a href="{% url 'collect:seedsamples-list' %}?dupes=1" class="btn btn-outline-primary">Show duplicates</a>
+    <a class="btn btn-primary ms-2" href="{% url 'collect:seedsample-create' %}">Create</a>
+    <a href="{% url 'collect:seedsamples-list' %}" class="btn btn-outline-primary">All</a>
+    <a href="{% url 'collect:seedsamples-list' %}?view=dupes" class="btn btn-outline-primary">Duplicate</a>
+    <a href="{% url 'collect:seedsamples-list' %}?view=stale" class="btn btn-outline-primary">Stale</a>
   </div>
 </div>
 <div class="row mt-3">
@@ -29,7 +32,7 @@
         <th scope="col">Weight</td>
         <th scope="col">Germinability</td>
         <th scope="col">Growing season</td>
-        <th scope="col" style="width: 40%">Notes</td>
+        <th scope="col">Notes</td>
         <th scope="col"></td>
       </thead>
       {% for seedsample in object_list %}

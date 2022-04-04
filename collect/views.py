@@ -1,3 +1,4 @@
+from django.db.models.aggregates import Max, Sum
 from django.db.models.expressions import Value
 from django.db.models.functions import Cast
 from django.db.models.functions.text import Concat
@@ -41,7 +42,7 @@ class SeedSampleListView(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['search'] = self.request.GET.get("search")
-        context['dupes'] = self.request.GET.get("dupes")
+        context['view'] = self.request.GET.get("view")
         return context
 
     def get_queryset(self):
@@ -58,9 +59,12 @@ class SeedSampleListView(ListView):
         else:
             queryset = SeedSample.objects.all()
 
-        if self.request.GET.get("dupes"):
+        if self.request.GET.get("view") == 'dupes':
             duplicates=SeedSample.objects.all().values('variety_id').annotate(c=Count('id')).order_by('variety').filter(c__gt=1)
             queryset = queryset.filter(variety__in=[e['variety_id'] for e in duplicates]).order_by('variety_id', 'growing_season')
+        if self.request.GET.get("view") == 'stale':
+            stale=SeedSample.objects.values('variety').annotate(Max('growing_season'), Sum('sampleweight__weight')).order_by('variety').filter(Q(growing_season__max__lt=now().year - 7) | Q(sampleweight__weight__sum__lt=200))
+            queryset=SeedSample.objects.filter(variety__in=[x['variety'] for x in stale]).order_by('variety_id', 'growing_season', 'sampleweight__weight')
         return queryset
 
 class SeedSampleDetailView(DetailView):
@@ -192,6 +196,11 @@ class SampleWeightCreateView(CreateView):
         self.object.save()
         return super().form_valid(form)
 
+class SampleWeightDeleteView(DeleteView):
+    model = SampleWeight
+
+    def get_success_url(self):
+        return reverse_lazy("collect:seedsample-detail", args=[self.object.seedsample.pk])
 
 @api_view(["GET", "POST"])
 def germinability(request):

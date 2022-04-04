@@ -21,8 +21,34 @@
 </nav>
 </div>
 
+<p>
+  <a class="fas fa-trash-alt falink" data-bs-toggle="collapse" href="#collapseExample" role="button" aria-expanded="false" aria-controls="collapseExample">
+    <i class="bi bi-gear" style="color: black;"></i>
+  </a>
+</p>
+<div class="collapse" id="collapseExample">
+  <div class="card card-body">
+    <div class="row">
+      <div class="col">
+        <form class="card-body" method='post'>
+          <div class="row">
+            <div class="col">
+              {% for form in  parameters_formset  %}
+              {{form|crispy}}
+              {% if forloop.counter|divisibleby:"2" and not forloop.last %}
+            </div>
+            <div class="col">
+              {% endif %}
+              {% endfor %}
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
 <div class="row">
-  <div class="card col mx-2 my-2">
+  <div class="card col-3 mx-2 my-2">
     <div class="card-title">
       <h3>Crop info</h3>
     </div>
@@ -48,121 +74,103 @@
       <input class="btn btn-primary col-12 mt-auto" type="submit" value="Update">
     </form>
   </div>
-  <div class="card col d-flex mx-2 my-2">
-    <div class="card-title">
-      <h3>Parameters</h3>
-    </div>
-    <ul class="card-body list-group list-group-flush" id="parameters-list">
-      {% for cropparam in crop.cropparameter_set.all %}
-      <li class="list-group-item" id="croppparam-{{ cropparam.pk }}"><a class="fas fa-trash-alt falink" data-url="{% url 'calculator:cropparameter-detail' cropparam.pk %}" onClick="deleteCropParameter(this);"><i class="bi bi-trash" style="color: black;"></i></a> {{ cropparam.parameter.name }}: {{ cropparam.value }} {{ cropparam.parameter.measure_unit }}</li>
-      {% endfor %}
-    </ul>
-    <form id="parameter-add-form" class="card-body" method="post" action="{% url 'calculator:cropparameter-update' %}">
-      {% csrf_token %}
-      <div class="form-group mt-5">
-        <select id="parameter-select" class="form-control select" name="parameter">
-          {% for parameter in parameters %}
-          <option value="{{ parameter.pk }}">{{ parameter.name }} ({{ parameter.measure_unit }})</option>
-          {% endfor %}
-        </select>
-        <div class="form-group mt-2">
-          <input id="parameter-value-input" name="value" class="form-control" type="float">
-          <input name="crop" type="hidden" value="{{ crop.pk }}">
-        </div>
-      </div>
-      <input class="btn btn-primary mt-3 col-12" type="submit" value="Update">
-    </form>
-    {{ available_parameters|json_script:"available-parameters" }}
-    <script type="text/javascript">
-      const availableParameters = JSON.parse(document.getElementById('available-parameters').textContent);
-    </script>
-    <script src="{% static 'frontpage/js/cropparameter.js' %}"></script>
-    <!-- <button id="parameter-add-btn" class="btn btn-outline-primary mt-auto mb-2" data-url="{% url 'calculator:cropparameter-list' %}">Add</button> -->
-  </div>
-  <div class="card col d-flex mx-2 my-2">
-    <div class="card-title">
-      <h3>Management</h3>
-      <ul class="card-body">
-        <table class="table">
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Operation</th>
-              <th>Notes</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for mgmt in crop.management_set.all %}
-            <tr>
-              <td>{{ mgmt.date }}</td>
-              <td>{{ mgmt.type.name }}</td>
-              <td>{{ mgmt.notes }}</td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </ul>
-    </div>
-  </div>
-</div>
 
 <!-- Display available models -->
-<div class="row">
   {% for cm in cropmodels %}
   {% if 'timeseries' in cm %}
   <div class="col card mx-2 my-2">
     {{ cm.timeseries|json_script:"plot-data" }}
+    {{ cm.temp_response|json_script:"temp-response-plot-data" }}
     <div class="card-title">
       <h3>Phenology</h3>
     </div>
-    <div id="chart" class="card-body"></div>
+    <div id="synced-charts">
+      <div id="chart" class="card-body"></div>
+      <div id="chartr" class="card-body"></div>
+    </div>
     <script type="text/javascript">
       const value = JSON.parse(document.getElementById('plot-data').textContent);
+      const tempRespData = JSON.parse(document.getElementById('temp-response-plot-data').textContent);
 
-        var options = {
-          series: [{ data: value.data}],
-          chart: {
-          height: 150,
-          type: 'rangeBar',
-          toolbar: {
-                  show: false
-                },
-        },
-        plotOptions: {
-          bar: {
-            horizontal: true,
-            distributed: true,
-            dataLabels: {
-              hideOverflowingLabels: false
-            }
-          }
-        },
-        dataLabels: {
-          enabled: true,
-          formatter: function(val, opts) {
-            var label = opts.w.globals.labels[opts.dataPointIndex]
-            return label
-          },
-          style: {
-            colors: ['#f3f4f5', '#fff']
-          }
-        },
-        xaxis: {
-          type: 'datetime'
-        },
-        yaxis: {
-          show: false
-        },
-        grid: {
-          row: {
-            colors: ['#f3f4f5', '#fff'],
-            opacity: 1
-          }
-        }
-        };
+      var options = {
+              series: [{ data: value.data}],
+              chart: {
+                      id: 'pheno-dates',
+                      height: 150,
+                      type: 'rangeBar',
+                      group: 'phenology',
+                      toolbar: {
+                              show: false
+                            },
+                    },
+              plotOptions: {
+                      bar: {
+                              horizontal: true,
+                              distributed: true,
+                              dataLabels: {
+                                      hideOverflowingLabels: false
+                                    }
+                            }
+                    },
+              dataLabels: {
+                      enabled: true,
+                      formatter: function(val, opts) {
+                              var label = opts.w.globals.labels[opts.dataPointIndex]
+                              return label
+                            },
+                      style: {
+                              colors: ['#f3f4f5', '#fff']
+                            }
+                    },
+              xaxis: {
+                      type: 'datetime',
+                      min: 1419984000000,
+                      max: 1451520000000
+                    },
+              yaxis: {
+                      show: false,
+                      labels: {
+                              minWidth: 40
+                            }
+                    },
+              grid: {
+                      row: {
+                              colors: ['#f3f4f5', '#fff'],
+                              opacity: 1
+                            }
+                    }
+            };
 
+
+        var optionsTempResponse = {
+                series: [{
+                        data: tempRespData.data
+                      }],
+                chart: {
+                        id: 'temp-response',
+                        type: 'area',
+                        stacked: false,
+                        height: 250,
+                        group: 'phenology',
+                      },
+                markers: {
+                        size: 0
+                      },
+                dataLabels: {
+                        enabled: false
+                      },
+                xaxis: { type: 'datetime'},
+                yaxis: {
+                        labels: {
+                                minWidth: 40
+                              }
+                      }
+              }
+
+        var chartr = new ApexCharts(document.querySelector("#chartr"), optionsTempResponse);
         var chart = new ApexCharts(document.querySelector("#chart"), options);
         chart.render();
+        chartr.render();
 
         //chart.updateSeries([{ data: value.data }]);
 

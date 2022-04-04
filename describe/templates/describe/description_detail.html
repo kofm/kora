@@ -2,8 +2,14 @@
 {% load description_extras %}
 {% block title %}Description: {{ description.variety.name }}{% endblock %}
 {% block container %}
-<h1>{{ description.variety.name }} - {{ description.name }}</h1>
-<p>Reference protocol <a href="{% url 'describe:protocol_detail' description.protocol.id %}">{{ description.protocol.name }}</a></p>
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'describe:descriptions_list' %}">Descriptions</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{{ description.variety.name }}</li>
+  </ol>
+</nav>
+<p class="display-3">{{ description.variety.name }} <small class="text-muted">{{ description.name }}</small></p>
+<p class="lead">Reference protocol <a href="{% url 'describe:protocol_detail' description.protocol.id %}">{{ description.protocol.name }}</a> (<i>{{ description.protocol.specie.latin_name }}</i>)</p>
 <p><a class="btn btn-secondary" href="{% url 'describe:description-update' description.id %}">Manage</a></p>
 <table class="table table-striped">
     <thead>

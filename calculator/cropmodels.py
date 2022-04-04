@@ -84,16 +84,21 @@ class PhenologyCropModel(CropModel):
         topt = self.get_parameter("Topt")
         thigh = self.get_parameter("Thigh")
         gddmat = self.get_parameter("GDDmat")
+        # Read CSV data. This will change in the future e.g. with a method
+        # to retrieve the weather data associated with the Location
         w = pd.read_csv("weather.csv", index_col="date", parse_dates=True)
+        # Filter only necessary columns, and only year 2015
         w = pd.DataFrame(w, columns=["tave", "tmin", "tmax", "rad"])[
             w.index.year == 2015
         ]
+        # Exclude days with tave outside the cardinal temperatures range (tbase - thigh)
         tr = w.tave[(w.tave > tbase) & (w.tave < thigh)]
+        # Calculate r
         w["r"] = ((thigh - tr) / (thigh - topt) * (tr - tbase) / (topt - tbase)) ** (
             (topt - tbase) / (thigh - topt)
         )
         w["gdd"] = w.r * (topt - tbase)
-        w["r"] = w.r.rolling(window=15, min_periods=1).mean()
+        w["r"] = w.r.rolling(window=30, min_periods=1).mean()
         w["sowing"] = w.r > 0.2
         start, end = w[w.r > 0.2].index[[0, -1]]
         start = w.index.get_loc(start)
@@ -136,8 +141,9 @@ class PhenologyCropModel(CropModel):
                     },
                 ]
             }
-        else:
-            context["timeseries"] = {
-                "data": []
+            context["temp_response"] = {
+                "data": [{'x': time.mktime(x.timetuple()) * 1000, 'y': round(y,2)} for x,y in zip(w.index,w.r.fillna(0))]
             }
+        else:
+            context["timeseries"] = {"data": []}
         return context

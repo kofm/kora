@@ -5,7 +5,7 @@
     {% if page.has_previous %}
 
     <li class="page-item">
-      <a class="page-link" href="?{{ pagevar }}={{ page.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if dupes %}&dupes={{ dupes }}{% endif %}" aria-label="Previous">
+      <a class="page-link" href="?{{ pagevar }}={{ page.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if view %}&view={{ view }}{% endif %}" aria-label="Previous">
         <span aria-hidden="true">&laquo;</span>
       </a>
     </li>
@@ -14,7 +14,7 @@
     {% get_proper_elided_page_range page.paginator page.number as page_range %}
     {% for p in page_range %}
     <li class="page-item {% if p == page.number %}active{% endif %}">
-      <a class="page-link" {% if p != page.paginator.ELLIPSIS %}href="?{{ pagevar }}={{ p }}{% endif %}{% if search %}&search={{ search }}{% endif %}{% if dupes %}&dupes={{ dupes }}{% endif %}">
+      <a class="page-link" {% if p != page.paginator.ELLIPSIS %}href="?{{ pagevar }}={{ p }}{% endif %}{% if search %}&search={{ search }}{% endif %}{% if view %}&view={{ view }}{% endif %}">
         {{ p }}
       </a>
     </li>
@@ -23,7 +23,7 @@
     {% if page.has_next %}
 
     <li class="page-item">
-      <a class="page-link" href="?{{ pagevar }}={{ page.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if dupes %}&dupes={{ dupes }}{% endif %}" aria-label="Next">
+      <a class="page-link" href="?{{ pagevar }}={{ page.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if view %}&view={{ view }}{% endif %}" aria-label="Next">
         <span aria-hidden="true">&raquo;</span>
       </a>
     </li>
@@ -32,3 +32,4 @@
 
   </ul>
 </nav>
+    <div><p>Showing {{ page.object_list|length }} of {{ page.paginator.count }} results</p></div>

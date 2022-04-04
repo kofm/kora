@@ -2,8 +2,8 @@
 {% block title %}Descriptions{% endblock %}
 
 {% block container %}
-<h1>Descriptions</h1>
-<a href="{% url 'describe:description-create' %}" class="btn btn-secondary">Create</a>
+<p class="display-1">Descriptions</p>
+<a href="{% url 'describe:description-create' %}" class="btn btn-primary">Create</a>
 {% if object_list %}
 <table class="table table-striped">
     <thead>
@@ -11,7 +11,7 @@
         <th>Variety</th>
         <th>Species</th>
         <th>Protocol</th>
-        <th></th>
+        <th class="col-1"></th>
     </thead>
 {% for description in object_list %}
 <tr>
@@ -19,7 +19,7 @@
     <td>{{ description.variety.name }}</td>
     <td>{{ description.variety.species }}</td>
     <td>{{ description.protocol }}</td>
-    <td>
+    <td align="right">
         <a href="{% url 'describe:description_detail' description.id %}"><i class="bi bi-zoom-in" style="color: black;"></i></a>
         <a href="{% url 'describe:description-update' description.id %}"><i class="bi-pencil" style="color: black;"></i></a>
     </td>

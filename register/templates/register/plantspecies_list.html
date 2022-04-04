@@ -1,7 +1,8 @@
 {% extends "frontpage/base.html" %}
 {% block title %}Species{% endblock %}
 {% block container %}
-<p class="h1">Species<a class="btn btn-primary ms-2" href="{% url 'register:species_create' %}">Create</a></p>
+<p class="display-1">Species</p>
+<div class="row"><div class="col"><a class="btn btn-primary ms-2" href="{% url 'register:species_create' %}">Create</a></div></div>
 <div class="row">
   <div class="col">
     <table class="table">
