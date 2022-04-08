@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from parameters.models import SpeciesParameter
-from register.models import PlantSpecies, PlantVariety
+from register.models import PlantSpecies, PlantVariety, PlantVarietyName
 
 class SpeciesParamSerializer(serializers.ModelSerializer):
     name = serializers.StringRelatedField(many=False, source="parameter")
@@ -19,7 +19,13 @@ class PlantSpeciesSerializer(serializers.ModelSerializer):
         model = PlantSpecies
         fields = ["common_name", "latin_name", "speciesparameter"]
 
+class PlantVarietyNameSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PlantVarietyName
+        fields = ['name', ]
+
 class PlantVarietySerializer(serializers.ModelSerializer):
+    names = PlantVarietyNameSerializer(many = True, read_only=True)
     class Meta:
         model = PlantVariety
-        fields = '__all__'
+        fields = ['id', 'name', 'names']

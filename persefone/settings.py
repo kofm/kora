@@ -141,3 +141,6 @@ CRISPY_TEMPLATE_PACK = "bootstrap4"
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 DATE_FORMAT = ['Y-m-d']
+
+LOGIN_REDIRECT_URL = "/"
+LOGOUT_REDIRECT_URL = "/"

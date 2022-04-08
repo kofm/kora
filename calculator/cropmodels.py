@@ -1,6 +1,7 @@
 from calculator.models import Crop
 import math
 import time
+import pandas as pd
 
 
 class CropModel:
@@ -67,10 +68,6 @@ class CropModelTotalPlants(CropModel):
         result = round(ncol * nrow * self.area.total_area, 0)
         context["value"] = result
         return context
-
-
-from datetime import datetime
-import pandas as pd
 
 
 class PhenologyCropModel(CropModel):
@@ -142,7 +139,10 @@ class PhenologyCropModel(CropModel):
                 ]
             }
             context["temp_response"] = {
-                "data": [{'x': time.mktime(x.timetuple()) * 1000, 'y': round(y,2)} for x,y in zip(w.index,w.r.fillna(0))]
+                "data": [
+                    {"x": time.mktime(x.timetuple()) * 1000, "y": round(y, 2)}
+                    for x, y in zip(w.index, w.r.fillna(0))
+                ]
             }
         else:
             context["timeseries"] = {"data": []}

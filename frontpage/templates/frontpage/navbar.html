@@ -12,7 +12,7 @@
 
         <!-- Menu container -->
         <div class="collapse navbar-collapse" id="navbarNavDropdown">
-            <ul class="navbar-nav">
+            <ul class="navbar-nav me-auto">
                 <!-- Home -->
                 <li class="nav-item">
                     <a class="nav-link {% nav_css_class nav_home %}" aria-current="page" href="{% url 'front:index' %}">Home</a>
@@ -53,6 +53,14 @@
                 </li>
 
             </ul>
+                  <span class="navbar-text">
+                    {% if user.is_authenticated %}
+                      {{ user.username }}
+                      <small><a href="{% url 'logout'  %}">Logout</a></small>
+                    {% else %}
+                    <a href="{% url 'login'  %}">Login</a>
+                    {% endif %}
+                  </span>
         </div>
     </div>
 </nav>

@@ -25,7 +25,7 @@ from collect.serializers import (
     GerminabilitySerializer,
     SampleWeightSerializer,
 )
-from register.models import PlantVariety
+from register.models import PlantVariety, PlantVarietyName
 
 
 class StorageCreateView(CreateView):
@@ -113,7 +113,7 @@ class SeedSampleCreateView(CreateView):
         context = super().get_context_data(**kwargs)
         context["weight_form"] = SampleWeightForm()
         context["germinability_form"] = GerminabilityForm(initial={"after_days": 7})
-        context["varieties"] = list(PlantVariety.objects.values("pk", "names__name"))
+        context["varieties"] = list(PlantVarietyName.objects.values('variety__id', 'name'))
         context["positions"] = list(
             StoragePosition.objects.filter(seedsample__isnull=True)
             .annotate(
@@ -138,7 +138,7 @@ class SeedSampleUpdateView(UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["varieties"] = list(PlantVariety.objects.values("pk", "names__name"))
+        context["varieties"] = list(PlantVarietyName.objects.values('variety__id', 'name'))
         context["positions"] = list(
             StoragePosition.objects.filter(Q(seedsample__id=self.object.pk) | Q(seedsample__isnull=True))
             .annotate(

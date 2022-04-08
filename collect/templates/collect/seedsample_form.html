@@ -2,8 +2,8 @@
 {% load crispy_forms_tags %}
 {% load static %}
 {% block javascript %}
-  <link href="https://cdn.jsdelivr.net/npm/tom-select/dist/css/tom-select.bootstrap4.css" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/tom-select/dist/js/tom-select.complete.min.js"></script>
+  <link href="{% static 'frontpage/css/tom-select.bootstrap5.min.css' %}" rel="stylesheet">
+  <script src="{% static 'frontpage/js/tom-select.complete.min.js' %}"></script>
 {% endblock %}
 {% block title %}{% if object %}Seed sample #{{ object.sample_id }}: {{ object.variety.name }}{% else %}New sample{% endif %}{% endblock %}
 
@@ -36,14 +36,33 @@
     const varietyInput = document.getElementById('id_variety');
       var config = {
           options: varietiesData,
-          valueField: "pk",
-          labelField: "names__name",
-          searchField: ["names__name",],
+          valueField: "variety__id",
+          labelField: "name",
+          searchField: ["name",],
           items: [varietyHiddenInput.value, ],
           maxItems: 1,
+          selectOnTab: true,
           onChange: function (value) {
-              varietyInput.value = value;
+              varietyHiddenInput.value = value;
             },
+          //load: function(query, callback) {
+          //    var self = this;
+          //    if( self.loading > 1 ){
+          //        callback();
+          //        return;
+          //      }
+
+          //    var url = 'http://localhost:8000/api/varieties';
+          //    fetch(url)
+          //      .then(response => response.json())
+          //      .then(json => {
+          //          callback(json);
+          //          self.settings.load = null;
+          //        }).catch(()=>{
+          //            callback();
+          //          });
+
+          //  },
         };
       const tomVarInput = new TomSelect("#id_tomvar", config);
       if (varietyHiddenInput.value == "") {
@@ -61,9 +80,16 @@
           // Otherwise select the actual data (we're in UpdateView)
           items: [positionHiddenInput.value == "" ? positionsData[0].pk : positionHiddenInput.value, ],
           maxItems: 1,
-          sortField:[{field:'$order'},{field:'$score'}]
+          selectOnTab: true,
+          sortField:[{field:'$order'},{field:'$score'}],
+          onChange: function (value) {
+              positionHiddenInput.value = value;
+            },
         }
       new TomSelect("#id_tompos", configPos);
+      if (positionHiddenInput.value == "") {
+          positionHiddenInput.value = positionsData[0].pk
+        }
 
     });
   document.addEventListener('keydown', (event) => {
@@ -72,7 +98,6 @@
       if (event.shiftKey & keyName === 'Enter') {
           // Even though event.key is not 'Control' (e.g., 'a' is pressed),
           // event.ctrlKey may be true if Ctrl key is pressed at the same time.
-          alert(`Combination of shiftKey + ${keyName}`);
           btnAnother.click();
         }
     }, false);
