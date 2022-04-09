@@ -18,4 +18,7 @@ urlpatterns = [
     path("germinability/<int:pk>/delete", views.GerminabilityDeleteView.as_view(), name="germinability-delete"),
     path("sampleweight", views.sample_weight, name="sample-weight"),
     path("sampleweight/<int:pk>/delete", views.SampleWeightDeleteView.as_view(), name="sampleweight-delete"),
+    path("cart/add/<int:seedsample_id>", views.add_cartitem, name="cart-add"),
+    path("cart/", views.CartItemList.as_view(), name="cart-list"),
+    path("cartitem/<int:cartitem_id>/weight/update", views.change_weight_cartitem, name="cartitem-weight-update"),
 ]

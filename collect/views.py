@@ -1,9 +1,13 @@
+from django import forms
+from django.core.exceptions import ValidationError
 from django.db.models.aggregates import Max, Sum
 from django.db.models.expressions import Value
 from django.db.models.functions import Cast
 from django.db.models.functions.text import Concat
 from django.db.models import IntegerField, Count
 from django.db.models.query_utils import Q
+from django.http.response import JsonResponse
+from django.shortcuts import get_object_or_404, redirect
 from django.utils.timezone import now
 from django.urls.base import reverse, reverse_lazy
 from django.views.generic.detail import DetailView
@@ -13,8 +17,11 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from collect.forms import GerminabilityForm, SampleWeightForm, SeedSampleForm
+from django.contrib.auth.decorators import login_required
 
 from collect.models import (
+    Cart,
+    CartItem,
     Germinability,
     SampleWeight,
     SeedSample,
@@ -228,3 +235,54 @@ def sample_weight(request):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@login_required
+def add_cartitem(request, seedsample_id):
+
+    if request.user.cart_set.count() == 0:
+        cart = Cart(user = request.user)
+        cart.save()
+        print("Cart created")
+    else:
+        cart = request.user.cart_set.last()
+
+    sample = get_object_or_404(SeedSample, pk = seedsample_id)
+    cartitem = CartItem(sample = sample, cart = cart)
+    cartitem.save()
+
+    return redirect('collect:seedsamples-list')
+
+class CartItemWeightForm(forms.ModelForm):
+    class Meta:
+        fields = ('weight',)
+        model = CartItem
+
+    def clean(self):
+        cleaned_data = super().clean()
+        weight = cleaned_data.get("weight")
+        if weight > self.instance.sample.weight:
+            raise ValidationError("Quantity retrieved cannot exceed the sample weight (" + self.instance.sample.variety.name + ")")
+        return cleaned_data
+
+
+@login_required
+def change_weight_cartitem(request, cartitem_id):
+    if request.user.cart_set.last():
+        cartitem = get_object_or_404(CartItem, pk = cartitem_id)
+        form = CartItemWeightForm(request.POST, instance=cartitem)
+        if form.is_valid():
+            form.save()
+            return JsonResponse({'data': 'ok'})
+        else:
+            return JsonResponse(form.errors, status=status.HTTP_400_BAD_REQUEST)
+    else:
+        return JsonResponse({'error': 'no cart!'})
+
+class CartItemList(ListView):
+    model = CartItem
+    template_name = 'collect/cart.html'
+    paginate_by = 20
+
+    def get_queryset(self):
+        queryset = self.model.objects.filter(cart=self.request.user.cart_set.last())
+        return queryset
