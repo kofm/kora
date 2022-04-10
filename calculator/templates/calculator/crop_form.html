@@ -70,7 +70,10 @@
           <option value=""></option>
         </select>
       </div>
+      <div class="form-group mb-3">
       {{ form|crispy }}
+      {{ management_formset|crispy}}
+      </div>
       <input class="btn btn-primary col-12 mt-auto" type="submit" value="Update">
     </form>
   </div>

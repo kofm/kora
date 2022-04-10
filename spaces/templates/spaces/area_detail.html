@@ -1,17 +1,26 @@
 {% extends "frontpage/base.html" %}
-{% block title %}Area: {{ area.name }}{% endblock %}
+
+
+{% block title %}
+  Area: {{ area.name }}
+{% endblock %}
+
+
 {% block container %}
-<h1>Area: {{ area.name }} ({{ area.location.name }})</h1>
+
 <nav aria-label="breadcrumb">
   <ol class="breadcrumb">
     <li class="breadcrumb-item"><a href="{% url 'spaces:location-list' %}">{{ area.location.name }}</a></li>
     <li class="breadcrumb-item active" aria-current="page">{{ area.name }}</li>
   </ol>
 </nav>
+
+<h1>Area: {{ area.name }} ({{ area.location.name }})</h1>
+
 <div class="row">
   <div class="col card mx-2 py-2 d-flex">
     <div class="card-title"><h2>Area info</h2></div>
-    <ul class="list-group list-group-flush">
+    <ul class="list-group list-group-flush mt-3">
 
       <li class="list-group-item"><b>Name</b>: {{ area.name }}</li>
       <li class="list-group-item"><b>Length</b>: {{ area.length }} m</li>
@@ -27,20 +36,21 @@
       <h2>Current Crop</h2>
     </div>
 
-    {% if area.crop_set.count > 0 %}
-    <ul class="list-group list-group-flush">
+    {% for current_crop in area.current_crops %}
+    <ul class="list-group list-group-flush mt-3">
 
-      <li class="list-group-item"><b>Species/Variety</b>: {{ area.crop_set.last }}</li>
-      {% for cropparam in area.crop_set.last.cropparameter_set.all %}
+      <li class="list-group-item"><b>{% if current_crop.has_variety %}Variety{% else %}Species{% endif %}</b>: {{ current_crop }}</li>
+      {% for cropparam in current_crop.cropparameter_set.all %}
       <li class="list-group-item"><b>{{ cropparam.parameter.name }}</b>: {{ cropparam.value }} {{ cropparam.parameter.measure_unit}}</li>
       {% endfor %}
 
     </ul>
 
+
     <a class="btn btn-outline-primary mt-auto" href="{% url 'calculator:crop-update' area.crop_set.last.pk %}">Change</a>
-    {% else %}
+    {% empty %}
     <p class="card-body">There are currently no crop in this area. <a href="">Add one</a></p>
-    {% endif %}
+    {% endfor %}
 
 
   </div>
@@ -58,10 +68,11 @@
         <th>Harvest</th>
       </thead>
       <tbody>
-        {% for crop in area.crop_set.all reversed %}
-        <tr>
-          <td>{{ crop }}</td>
-          <td></td>
+        {% for crop in area.crop_set.all %}
+        <tr {% if crop.is_current %}class="table-primary"{% endif %}>
+          <td><a href="{% url 'calculator:crop-update' crop.pk %}">{{ crop }}</a></td>
+          <td>{{ crop.sowing|default_if_none:"" }}</td>
+          <td>{{ crop.harvest|default_if_none:"" }}</td>
         </tr>
         {% endfor %}
       </tbody>

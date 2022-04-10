@@ -1,6 +1,7 @@
 from django.core.paginator import Paginator
 from django.http.response import (
     HttpResponseRedirect,
+    JsonResponse,
 )
 from django.shortcuts import redirect, render
 from django.urls.base import reverse, reverse_lazy
@@ -91,7 +92,7 @@ class PlantSpeciesParametersList(DetailView):
         return context
 
     def get_related_parameters(self):
-        queryset = self.object.speciesparameter_set.all()
+        queryset = self.object.parameters.all()
         paginator = Paginator(queryset, 5)
         page = self.request.GET.get("page")
         parameters = paginator.get_page(page)
@@ -210,3 +211,7 @@ class PlantVarietyNameDelete(DeleteView):
 
     def get_success_url(self):
         return reverse_lazy('register:variety_detail', args=[self.object.variety.pk])
+
+def plantvariety_list(request, species_id):
+    queryset = list(PlantVariety.objects.filter(species_id=species_id).values('pk', 'names__name').distinct('pk').order_by('pk', '-names__change_date'))
+    return JsonResponse(queryset, safe=False)

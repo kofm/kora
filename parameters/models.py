@@ -6,9 +6,11 @@ from django.db import models
 from describe.models import Trait
 from register.models import PlantSpecies, PlantVariety
 
+
 class ParameterManager(models.Manager):
     def get_by_natural_key(self, code):
         return self.get(code=code)
+
 
 class Parameter(models.Model):
     """
@@ -32,6 +34,7 @@ class Parameter(models.Model):
     def natural_key(self):
         return (self.code,)
 
+
 class ParameterValue(models.Model):
     """
     Abstract class for parameters values
@@ -39,7 +42,9 @@ class ParameterValue(models.Model):
 
     value = models.FloatField()
     url_ref = models.URLField(
-        help_text="a url reference for the source of the parameter", blank=True, null=True
+        help_text="a url reference for the source of the parameter",
+        blank=True,
+        null=True,
     )
     parameter = models.ForeignKey(Parameter, on_delete=models.RESTRICT)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -55,24 +60,30 @@ class ParameterValue(models.Model):
     def __str__(self):
         return self.parameter.code
 
+
 class SpeciesParameter(ParameterValue):
     """
     Crop parameters values
     """
 
-    specie = models.ForeignKey(PlantSpecies, on_delete=models.RESTRICT)
+    specie = models.ForeignKey(
+        PlantSpecies, on_delete=models.RESTRICT, related_name="parameters"
+    )
+
 
 class VarietalParameter(ParameterValue):
     """
     Varietal parameters values
     """
 
-    variety = models.ForeignKey(PlantVariety, on_delete=models.RESTRICT)
+    variety = models.ForeignKey(PlantVariety, on_delete=models.RESTRICT, related_name='parameters')
+
 
 class Measure(models.Model):
     """
     Stores the measures related to a variety
     """
+
     georeference_lat = models.FloatField()
     georeference_lon = models.FloatField()
     measure_unit = models.CharField(max_length=50)

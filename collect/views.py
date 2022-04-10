@@ -1,5 +1,3 @@
-from django import forms
-from django.core.exceptions import ValidationError
 from django.db.models.aggregates import Max, Sum
 from django.db.models.expressions import Value
 from django.db.models.functions import Cast
@@ -16,6 +14,7 @@ from django.views.generic.list import ListView
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from calculator.forms import CartItemWeightForm
 from collect.forms import GerminabilityForm, SampleWeightForm, SeedSampleForm
 from django.contrib.auth.decorators import login_required
 
@@ -251,18 +250,6 @@ def add_cartitem(request, seedsample_id):
     cartitem.save()
 
     return redirect('collect:seedsamples-list')
-
-class CartItemWeightForm(forms.ModelForm):
-    class Meta:
-        fields = ('weight',)
-        model = CartItem
-
-    def clean(self):
-        cleaned_data = super().clean()
-        weight = cleaned_data.get("weight")
-        if weight > self.instance.sample.weight:
-            raise ValidationError("Quantity retrieved cannot exceed the sample weight (" + self.instance.sample.variety.name + ")")
-        return cleaned_data
 
 
 @login_required

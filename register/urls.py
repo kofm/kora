@@ -57,5 +57,6 @@ urlpatterns = [
         "variety/name/<int:pk>/update",
         views.PlantVarietyNameUpdate.as_view(),
         name="plantvarietyname-update"
-    )
+    ),
+    path("species/<int:species_id>/varieties", views.plantvariety_list, name="plantvariety-list")
 ]

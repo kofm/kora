@@ -2,13 +2,16 @@
 {% load crispy_forms_tags %}
 {% block title %}New operation{% endblock %}
 {% block container %}
-<h1>Area: {{ area.name }} ({{ area.location.name }})</h1>
+
 <nav aria-label="breadcrumb">
   <ol class="breadcrumb">
     <li class="breadcrumb-item"><a href="{% url 'spaces:location-list' %}">Locations</a></li>
-    <li class="breadcrumb-item active" aria-current="page">{{ area.name }}</li>
+    <li class="breadcrumb-item active" aria-current="page">{{ crop.area.name }}</li>
   </ol>
 </nav>
+
+<h1>Area: {{ crop.area.name }} ({{ crop.area.location.name }})</h1>
+
 <form method="post">
   {% csrf_token %}
   {{ form|crispy }}

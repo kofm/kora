@@ -1,0 +1,78 @@
+{% extends "frontpage/base.html" %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block javascript %}
+  <link href="{% static 'frontpage/css/tom-select.bootstrap5.min.css' %}" rel="stylesheet">
+  <script src="{% static 'frontpage/js/tom-select.complete.min.js' %}"></script>
+{% endblock %}
+
+{% block title %}Crop: {{ crop }}{% endblock %}
+{% block container %}
+
+<div class="mt-3">
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'spaces:location-list'  %}">{{ crop.area.location.name }}</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'spaces:area-detail' crop.area.pk %}">{{ crop.area.name }}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{{ crop }}</li>
+  </ol>
+</nav>
+</div>
+
+<p class="display-1">{{ crop }} <small class="text-muted">({{ crop.area.name }}, {{ crop.area.location.name }})</small></p>
+
+<div class="row">
+  <div class="col-2 card py-3 px-3">
+
+    <form method="post">
+      {% csrf_token %}
+      {{ form|crispy }}
+      {{ management_formset|crispy }}
+      <button class="btn btn-primary mt-3" type="submit">Submit</button>
+    </form>
+
+    {{ plantspecies|json_script:"plantspecies" }}
+    <script>
+      const plantspecies = JSON.parse(document.getElementById('plantspecies').textContent);
+      const speciesID = document.getElementById("id_species").value;
+      const varietyID = document.getElementById("id_variety").value;
+      var getVarieties = function(id) {
+              fetch('/register/species/' + id + '/varieties').
+                then(response => response.json()).
+                then(data => {
+                        tsVariety.clear();
+                        tsVariety.clearOptions();
+                        tsVariety.addOptions(data);
+                        if (tsSpecies.getValue() == speciesID) {
+                                tsVariety.addItem(varietyID);
+                              }
+                      })
+            }
+
+      const tsSpecies = new TomSelect("#id_species",{
+              options: plantspecies,
+              valueField: "pk",
+              labelField: "common_name",
+              searchField: ["common_name", ],
+              maxItems: 1,
+              create: false,
+              onChange: function(value) { getVarieties(value); },
+            });
+
+
+      const tsVariety = new TomSelect("#id_variety", {
+              options: [],
+              valueField: "pk",
+              labelField: "names__name",
+              searchField: ["names__name", ],
+              maxItems: 1,
+              create: false
+            })
+      getVarieties(document.getElementById("id_species").value);
+
+    </script>
+  </div>
+  <div class="col"></div>
+</div>
+{% endblock %}

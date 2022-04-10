@@ -45,24 +45,6 @@
           onChange: function (value) {
               varietyHiddenInput.value = value;
             },
-          //load: function(query, callback) {
-          //    var self = this;
-          //    if( self.loading > 1 ){
-          //        callback();
-          //        return;
-          //      }
-
-          //    var url = 'http://localhost:8000/api/varieties';
-          //    fetch(url)
-          //      .then(response => response.json())
-          //      .then(json => {
-          //          callback(json);
-          //          self.settings.load = null;
-          //        }).catch(()=>{
-          //            callback();
-          //          });
-
-          //  },
         };
       const tomVarInput = new TomSelect("#id_tomvar", config);
       if (varietyHiddenInput.value == "") {

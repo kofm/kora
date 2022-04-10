@@ -54,3 +54,6 @@ class PlantVarietyName(models.Model):
     name = models.CharField(max_length=200)
     variety = models.ForeignKey(PlantVariety, on_delete=models.CASCADE, related_name="names")
     change_date = models.DateField(blank=True, null=True, default=date.today)
+
+    class Meta:
+        ordering = ['-change_date', ]
