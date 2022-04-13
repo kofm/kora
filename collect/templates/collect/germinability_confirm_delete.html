@@ -6,6 +6,6 @@
 <form method="post">
   {% csrf_token %}
   <button name="btn-delete" type="submit" class="btn btn-outline-danger mt-3">Delete</button>
-  <a class="btn btn-outline-secondary mt-3" type="submit" href="{% url 'collect:seedsamples-list'  %}">Cancel</a>
+  <a class="btn btn-outline-secondary mt-3" type="submit" href="{% url 'collect:seedsample-list'  %}">Cancel</a>
 </form>
 {% endblock %}

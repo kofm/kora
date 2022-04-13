@@ -1,0 +1,21 @@
+{% extends "frontpage/base.html" %}
+{% load crispy_forms_tags %}
+{% load static %}
+{% block title %}Are you sure?{% endblock %}
+{% block container %}
+<h5 class="display-5">Are you sure?</h5>
+<div class="my-3">
+  <p>You are about to {{ message_action|safe }}. The cart contains the following samples and quantities:</p>
+  <ul>
+    {% for cartitem in cartitems  %}
+    <li><b>{{ cartitem.sample.variety.name }}</b> (#{{ cartitem.sample.sample_id }} - {{ cartitem.sample.position }}) {{ cartitem.sample.growing_season }} - {{ cartitem.weight }}g</li>
+    {% endfor %}
+  </ul>
+  <p>{{ message_info }}.</p>
+  <form method="post">
+    {% csrf_token %}
+    <button name="btn-save" type="submit" class="btn btn-outline-primary mt-3">Confirm</button>
+    <a class="btn btn-outline-secondary mt-3" type="submit" href="{% url 'collect:cart-list' %}">Cancel</a>
+  </form>
+</div>
+{% endblock %}

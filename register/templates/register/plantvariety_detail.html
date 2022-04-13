@@ -55,7 +55,7 @@
         <td>{{ seedsample.pk }}</td>
         <td>{{ seedsample.position }}</td>
         <td>{{ seedsample.sampleweight_set.last.weight }}</td>
-        <td>{{ seedsample.last_germinability }}</td>
+        <td>{{ seedsample.germinability }}</td>
         <td>{{ seedsample.growing_season }}</td>
         <td>{{ seedsample.notes }}</td>
         <td  align="right" class="col-1">
@@ -98,13 +98,13 @@
 <div class="row mt-5">
   <div class="col">
     <h2>Parameters</h2>
-    {% if variety.varietalparameter_set.count %}
+    {% if variety.parameters.count %}
     <table>
       <tr>
         <td>Parameter</td>
         <td>Value</td>
       </tr>
-      {% for param in variety.varietalparameter_set|get_last_parameters_value %}
+      {% for param in variety.parameters|get_last_parameters_value %}
       <tr>
         <td>{{ param.parameter.code }}</td>
         <td>{{ param.value }} {{ param.parameter.measure_unit }}</td>

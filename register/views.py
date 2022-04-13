@@ -165,7 +165,7 @@ def plantvariety_create(request, pk):
             new_variety_name.variety = new_variety
             new_variety_name.save()
             variety_name.save_m2m()
-            return redirect(reverse_lazy('register:variety_detail', args=[new_variety.pk]))
+            return redirect(reverse_lazy('register:plantvariety-detail', args=[new_variety.pk]))
     else:
         variety = PlantVarietyForm({"species": species})
         variety_name = PlantVarietyNameForm()
@@ -190,7 +190,7 @@ class PlantVarietyNameCreate(CreateView):
     fields = ['name', 'change_date', ]
 
     def get_success_url(self):
-        return reverse_lazy('register:variety_detail', args=[self.kwargs['pk']])
+        return reverse_lazy('register:plantvariety-detail', args=[self.kwargs['pk']])
 
     def form_valid(self, form):
         plantvariety = PlantVariety.objects.get(pk=self.kwargs['pk'])
@@ -204,13 +204,13 @@ class PlantVarietyNameUpdate(UpdateView):
     fields = ['name', 'change_date', ]
 
     def get_success_url(self):
-        return reverse_lazy('register:variety_detail', args=[self.object.variety.pk])
+        return reverse_lazy('register:plantvariety-detail', args=[self.object.variety.pk])
 
 class PlantVarietyNameDelete(DeleteView):
     model = PlantVarietyName
 
     def get_success_url(self):
-        return reverse_lazy('register:variety_detail', args=[self.object.variety.pk])
+        return reverse_lazy('register:plantvariety-detail', args=[self.object.variety.pk])
 
 def plantvariety_list(request, species_id):
     queryset = list(PlantVariety.objects.filter(species_id=species_id).values('pk', 'names__name').distinct('pk').order_by('pk', '-names__change_date'))

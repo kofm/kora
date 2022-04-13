@@ -5,7 +5,8 @@ from . import views
 app_name = "collect"
 
 urlpatterns = [
-    path("", views.SeedSampleListView.as_view(), name="seedsamples-list"),
+    path("", views.SeedSampleListView.as_view(), name="seedsample-list"),
+    path("sample/labels", views.sample_labels, name="seedsample-labels"),
     path("sample/<int:pk>", views.SeedSampleDetailView.as_view(), name="seedsample-detail"),
     path("sample/<int:pk>/update", views.SeedSampleUpdateView.as_view(), name="seedsample-update"),
     path("sample/create", views.SeedSampleCreateView.as_view(), name="seedsample-create"),
@@ -18,7 +19,12 @@ urlpatterns = [
     path("germinability/<int:pk>/delete", views.GerminabilityDeleteView.as_view(), name="germinability-delete"),
     path("sampleweight", views.sample_weight, name="sample-weight"),
     path("sampleweight/<int:pk>/delete", views.SampleWeightDeleteView.as_view(), name="sampleweight-delete"),
-    path("cart/add/<int:seedsample_id>", views.add_cartitem, name="cart-add"),
+    path("cart/add/<int:seedsample_id>", views.CartItemAdd.as_view(), name="cart-add"),
     path("cart/", views.CartItemList.as_view(), name="cart-list"),
+    path("cart/retrieve", views.CartRetrieve.as_view(), name="cart-retrieve"),
+    path("cart/trash", views.CartDeleteSamples.as_view(), name="cart-delete-samples"),
+    path("cart/<int:pk>/delete", views.CartDelete.as_view(), name="cart-delete"),
     path("cartitem/<int:cartitem_id>/weight/update", views.change_weight_cartitem, name="cartitem-weight-update"),
+    path("cartitem/<int:pk>/delete", views.CartItemDelete.as_view(), name="cartitem-delete"),
+    path("export", views.samples_export, name="samples-export"),
 ]

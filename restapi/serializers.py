@@ -12,7 +12,7 @@ class SpeciesParamSerializer(serializers.ModelSerializer):
 
 class PlantSpeciesSerializer(serializers.ModelSerializer):
     speciesparameter = SpeciesParamSerializer(
-        many=True, read_only=True, source="speciesparameter_set"
+        many=True, read_only=True, source="parameters"
     )
 
     class Meta:

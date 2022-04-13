@@ -23,7 +23,7 @@
   {% endif %}
   <button name="btn-save" type="submit" class="btn btn-outline-primary mt-3">Save</button>
   {% if not object %}<button id="btn-another" name="btn-another" type="submit" class="btn btn-outline-primary mt-3">Save & +1</button>{% endif %}
-  <a class="btn btn-outline-secondary mt-3" type="submit" href="{% url 'collect:seedsamples-list'  %}">Cancel</a>
+  <a class="btn btn-outline-secondary mt-3" type="submit" href="{% url 'collect:seedsample-list'  %}">Cancel</a>
 </form>
 <script type="text/javascript">
   const varietiesData = JSON.parse(document.getElementById('varieties-data').textContent);

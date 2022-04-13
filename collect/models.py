@@ -22,7 +22,7 @@ class Storage(models.Model):
         return self.name
 
     def get_absolute_url(self):
-        return reverse("collect:seedsamples-list")
+        return reverse("collect:seedsample-list")
 
     @property
     def available_positions(self):
@@ -63,11 +63,11 @@ class SeedSample(models.Model):
         return reverse("collect:seedsample-detail", kwargs={"pk": self.pk})
 
     @property
-    def last_germinability(self):
+    def germinability(self):
         if self.germinability_set.count() > 0:
-            return str(self.germinability_set.last().germinability) + "%"
+            return self.germinability_set.last().germinability
         else:
-            return ""
+            return None
 
     @property
     def weight(self):
@@ -75,6 +75,13 @@ class SeedSample(models.Model):
             return self.sampleweight_set.last().weight
         else:
             return None
+
+    @property
+    def in_cart(self):
+        if self.cartitem_set.all():
+            return True
+        else:
+            return False
 
     def __str__(self):
         if self.variety.names.last():
@@ -94,9 +101,8 @@ class Germinability(models.Model):
             "-performed_at",
         ]
 
-    @property
-    def value_percent(self):
-        return self.germinability
+    def __str__(self):
+        return str(self.germinability)
 
 
 class SampleWeight(models.Model):
@@ -115,7 +121,7 @@ class Cart(models.Model):
     created_at = models.DateField(auto_now_add=True)
 
     def __str__(self) -> str:
-        return self.user.username + " " + self.created_at
+        return self.user.username
 
 
 class CartItem(models.Model):
@@ -125,3 +131,9 @@ class CartItem(models.Model):
         default=0,
     )
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.sample.variety.name
+
+    class Meta:
+        ordering = ["sample__position"]

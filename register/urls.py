@@ -22,7 +22,7 @@ urlpatterns = [
         views.add_speciesparametervervalue,
         name="add_cropparamval",
     ),
-    path("variety/<int:pk>", views.PlantVarietyDetail.as_view(), name="variety_detail"),
+    path("variety/<int:pk>", views.PlantVarietyDetail.as_view(), name="plantvariety-detail"),
     path(
         "species/<int:pk>/variety/create",
         views.plantvariety_create,

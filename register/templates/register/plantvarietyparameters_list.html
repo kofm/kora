@@ -6,7 +6,7 @@
 <h2>Variety {{ variety.name }}</h2>
 <p>
     <a href="{% url 'register:add_varparamval' variety.id %} ">Add new</a>
-    <a href="{% url 'register:variety_detail' variety.id %}">Back</a>
+    <a href="{% url 'register:plantvariety-detail' variety.id %}">Back</a>
 </p>
-{% include "parameters/paramsvalue_table.html" with all_params=variety.varietalparameter_set.all %}
+{% include "parameters/paramsvalue_table.html" with all_params=variety.parameters.all %}
 {% endblock %}

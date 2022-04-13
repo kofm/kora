@@ -39,13 +39,9 @@ class PlantVariety(models.Model):
     class Meta:
         ordering = ["names__name"]
 
-    @cached_property
+    @property
     def name(self):
-        if self.names.count() > 0:
-            return self.names.order_by('-change_date').first().name
-        else:
-            return ''
-
+        return self.names.order_by('-change_date').first().name
 
     def __str__(self):
         return self.name

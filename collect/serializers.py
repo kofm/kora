@@ -10,16 +10,18 @@ class StoragePositionSerializer(serializers.ModelSerializer):
 class GerminabilitySerializer(serializers.ModelSerializer):
     class Meta:
         model = Germinability
-        fields = '__all__'
+        fields = ['germinability', 'after_days', 'performed_at']
 
 class SampleWeightSerializer(serializers.ModelSerializer):
     class Meta:
         model = SampleWeight
-        fields = '__all__'
+        fields = ['weight', 'created_at']
 
 class SeedSampleSerializer(serializers.ModelSerializer):
     variety = serializers.StringRelatedField()
     position = serializers.StringRelatedField()
+    # weight = SampleWeightSerializer(many=True, read_only=True, source="sampleweight_set")
+    # germinability = GerminabilitySerializer(many=True, read_only=True, source="germinability_set")
     class Meta:
         model = SeedSample
-        fields = '__all__'
+        fields = ['sample_id', 'variety', 'position', 'weight', 'germinability']

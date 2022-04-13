@@ -1,4 +1,5 @@
 {% extends "frontpage/base.html" %}
+
 {% load crispy_forms_tags %}
 {% load static %}
 
@@ -7,11 +8,20 @@
 <script src="{% static 'frontpage/js/moment.min.js' %}"></script>
 {% endblock %}
 
-{% block title %}{{ sample.variety.name }}{% endblock %}
+{% block title %}
+  {{ sample.variety.name }}
+{% endblock %}
 
 {% block container %}
 
-<h5 class="display-5">Seed Sample: <small class="text-muted">{{ sample.variety.name }}</small></h5>
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'collect:seedsample-list' %}">Seed Samples</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{{ sample.variety.name }}</li>
+  </ol>
+</nav>
+
+<p class="display-1">{{ sample.variety.name }}</p>
 
 {% if sample.notes %}<p class="lead">{{ sample.notes }}</p>{% endif %}
 
@@ -21,7 +31,7 @@
     <div class="card-body">
       <ul class="list-group list-group-flush">
         <li class="list-group-item">ID: {{ sample.sample_id }}</li>
-        <li class="list-group-item">Variety: {{ sample.variety.name }}</li>
+        <li class="list-group-item">Variety: <a href="{% url 'register:plantvariety-detail' sample.variety.pk %}">{{ sample.variety.name }}</a></li>
         <li class="list-group-item">Growing season: {{ sample.growing_season }}</li>
         <li class="list-group-item">Location: {{ sample.position }}</li>
         <li class="list-group-item">Notes: {% if sample.notes %}{{ sample.notes }}{% else %}&nbsp;{% endif %}</li>
@@ -58,7 +68,7 @@
             <td>{{ othersample.position }}</td>
             <td>{{ othersample.growing_season }}</td>
             <td>{{ othersample.weight }}</td>
-            <td>{{ othersample.last_germinability }}</td>
+            <td>{{ othersample.germinability }}</td>
           </tr>
           {% endif %}
           {% endfor %}

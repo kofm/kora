@@ -22,7 +22,7 @@
     <tr>
       {% for variety in varieties %}
       <td>
-        <a href="{% url 'register:variety_detail' variety.id %}">{{ variety }}</a>
+        <a href="{% url 'register:plantvariety-detail' variety.id %}">{{ variety }}</a>
       </td>
       <td>{{ variety.seedsample_set.count }}</td>
       <td>{{ variety.description_set.count }}</td>
@@ -33,7 +33,7 @@
   {% include 'frontpage/paginator.html' with page=varieties pagevar='page' %}
 </div>
 <div class="container-sm">
-  {% if species.speciesparameter_set.distinct %}
+  {% if species.parameters.distinct %}
   <h2>Parameters</h2>
   <p><i>(Last values)</i></p>
   <table class="table">
@@ -43,7 +43,7 @@
       <th>Ref.</th>
       <th></th>
     </thead>
-    {% for param in species.speciesparameter_set|get_last_parameters_value %}
+    {% for param in species.parameters|get_last_parameters_value %}
     <tr>
       <td>{{ param.parameter.code }}</td>
       <td>{{ param.value }} {{ param.parameter.measure_unit }}</td>

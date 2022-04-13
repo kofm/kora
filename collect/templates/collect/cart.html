@@ -10,10 +10,57 @@
 {% endblock %}
 
 {% block container %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'collect:seedsample-list' %}">Seed Samples</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Cart</li>
+  </ol>
+</nav>
 <p class="display-1">Seed Samples Cart</p>
 <div id="alert-box" class="alert alert-danger" role="alert" style="display:none">
 </div>
 <script src="{% static 'frontpage/js/cart.js' %}"></script>
+<div class="row">
+  <div class="col">
+    <div class="btn-group" role="group" aria-label="Toolbar">
+      <a class="btn btn-outline-primary" href="{% url 'collect:cart-delete' cart.pk %}">Clear</a>
+      <a class="btn btn-outline-primary" href="{% url 'collect:cart-retrieve' %}">Retrieve</a>
+      <a class="btn btn-outline-primary" href="{% url 'collect:cart-delete-samples' %}">Trash</a>
+    </div>
+  </div>
+  <div class="col-3">
+    <div class="input-group mb-3">
+      <button onclick="changeWeightSelected(this.nextElementSibling.value)" class="btn btn-outline-secondary" type="submit" id="button-set-selected">Set selected</button>
+      <input type="number" class="form-control" placeholder="Set amount" aria-label="Amount" aria-describedby="basic-addon2">
+      <span class="input-group-text" id="basic-addon2">g</span>
+    </div>
+  </div>
+  <div class="col-3">
+    <form method="post">
+      {% csrf_token %}
+      <div class="input-group mb-3">
+        <button class="btn btn-outline-secondary" type="submit" id="button-addon1">Set all</button>
+        <input name="weight" type="number" class="form-control" placeholder="Set amount" aria-label="Amount" aria-describedby="basic-addon2">
+        <span class="input-group-text" id="basic-addon2">g</span>
+      </div>
+    </form>
+  </div>
+</div>
+{% if cartitem_weight_errors %}
+<div class="row my-3">
+  <div class="col">
+    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+      Some items could not be set to the desired quantity.
+      They have been set to the maximum amount available, i.e.:
+      {% for error in cartitem_weight_errors %}
+      <li>{{ error }}</li>
+      {% endfor %}
+      </ul>
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  </div>
+</div>
+{% endif %}
 <div class="row mt-3">
   <div class="col">
     {% if object_list %}
@@ -31,13 +78,13 @@
         <th scope="col"></th>
       </thead>
       {% for cartitem in object_list %}
-      <tr>
-        <td><input type="checkbox"></td>
+      <tr id="cartitem-{{ forloop.counter }}">
+        <td><input class="chk" type="checkbox"></td>
         <td>{{ cartitem.sample.sample_id }}</td>
         <td>{{ cartitem.sample.variety.name }}</td>
         <td>{{ cartitem.sample.position }}</td>
         <td>{{ cartitem.sample.weight }}</td>
-        <td>{{ cartitem.sample.last_germinability }}</td>
+        <td>{{ cartitem.sample.germinability }}</td>
         <td>{{ cartitem.sample.growing_season }}</td>
         <td>{% if cartitem.sample.notes %}{{ cartitem.sample.notes }}{% endif %}</td>
         <td>
@@ -56,8 +103,11 @@
               >
           </form></td>
         <td>
-          <a href="{% url 'register:variety_detail' cartitem.sample.variety.id %}"><i class="bi bi-zoom-in" style="color: black;"></i></a>
-          <a href=""><i class="bi bi-trash" style="color: black;"></i></a>
+          <form id="cartitem-delete-form-{{ forloop.counter }}" action="{% url 'collect:cartitem-delete' cartitem.pk %}" method="post">
+            {% csrf_token %}
+            <a href="{% url 'register:plantvariety-detail' cartitem.sample.variety.id %}"><i class="bi bi-zoom-in" style="color: black;"></i></a>
+            <a href="#" onclick="this.parentElement.submit()"><i class="bi bi-trash" style="color: black;" ></i></a>
+          </form>
         </td>
       </tr>
       {% endfor %}

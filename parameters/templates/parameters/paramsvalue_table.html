@@ -19,8 +19,6 @@
     </tr>
     {% endfor %}
 </table>
-{% include 'frontpage/paginator.html' with page=all_params pagevar='page' %}
 {% else %}
 <p>There are no parameters registered.</p>
 {% endif %}
-
