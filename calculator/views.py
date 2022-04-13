@@ -54,6 +54,7 @@ def crop_update_view(request, pk):
                 del crop.harvest
 
             crop.save()
+            crop.parameters.all().delete()
 
     # Instantiate the form
     form = CropForm(
@@ -70,19 +71,19 @@ def crop_update_view(request, pk):
         form.initial["species"] = crop.content_object.species.id # type: ignore
         form.initial["variety"] = crop.object_id
 
-    # module = importlib.import_module("calculator.cropmodels")
+    module = importlib.import_module("calculator.cropmodels")
     cropmodels = []
-    # for cm in CROP_MODELS:
-    #     class_ = getattr(module, cm)
-    #     m = class_(self.object)  # type: ignore
-    #     if m.can_run():
-    #         cropmodels.append(m.output())
+    for cm in CROP_MODELS:
+        class_ = getattr(module, cm)
+        m = class_(crop)  # type: ignore
+        if m.can_run():
+            cropmodels.append(m.output())
     # JSON data to populate the species tom-select
     plantspecies = list(PlantSpecies.objects.all().values("pk", "common_name"))
     return render(
         request,
         "calculator/crop_update.html",
-        {"crop": crop, "form": form, "plantspecies": plantspecies, "cropmodels": cropmodels},
+        {"crop": crop, "form": form, "plantspecies": plantspecies, "cropmodels": cropmodels, },
     )
 
 

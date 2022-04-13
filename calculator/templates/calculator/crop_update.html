@@ -5,6 +5,7 @@
 {% block javascript %}
   <link href="{% static 'frontpage/css/tom-select.bootstrap5.min.css' %}" rel="stylesheet">
   <script src="{% static 'frontpage/js/tom-select.complete.min.js' %}"></script>
+  <script src="{% static 'frontpage/js/apexcharts/apexcharts.js' %}"></script>
 {% endblock %}
 
 {% block title %}Crop: {{ crop }}{% endblock %}
@@ -73,6 +74,135 @@
 
     </script>
   </div>
-  <div class="col"></div>
+
+<!-- Display available models -->
+  {% for cm in cropmodels %}
+  {% if 'timeseries' in cm %}
+  <div class="col card mx-2 my-2">
+    {{ cm.timeseries|json_script:"plot-data" }}
+    {{ cm.temp_response|json_script:"temp-response-plot-data" }}
+    <div class="card-title">
+      <h3>Phenology</h3>
+    </div>
+    <div id="synced-charts">
+      <div id="chart" class="card-body"></div>
+      <div id="chartr" class="card-body"></div>
+    </div>
+    <script type="text/javascript">
+      const value = JSON.parse(document.getElementById('plot-data').textContent);
+      const tempRespData = JSON.parse(document.getElementById('temp-response-plot-data').textContent);
+
+      var options = {
+              series: [{ data: value.data}],
+              chart: {
+                      id: 'pheno-dates',
+                      height: 150,
+                      type: 'rangeBar',
+                      group: 'phenology',
+                      toolbar: {
+                              show: false
+                            },
+                    },
+              plotOptions: {
+                      bar: {
+                              horizontal: true,
+                              distributed: true,
+                              dataLabels: {
+                                      hideOverflowingLabels: false
+                                    }
+                            }
+                    },
+              dataLabels: {
+                      enabled: true,
+                      formatter: function(val, opts) {
+                              var label = opts.w.globals.labels[opts.dataPointIndex]
+                              return label
+                            },
+                      style: {
+                              colors: ['#f3f4f5', '#fff']
+                            }
+                    },
+              xaxis: {
+                      type: 'datetime',
+                      min: Date.UTC(2015,11,13),
+                      max: Date.UTC(2017,1,1)
+                    },
+              yaxis: {
+                      show: false,
+                      labels: {
+                              minWidth: 40
+                            }
+                    },
+              grid: {
+                      row: {
+                              colors: ['#f3f4f5', '#fff'],
+                              opacity: 1
+                            }
+                    }
+            };
+
+
+      var optionsTempResponse = {
+              series: [{
+                      data: tempRespData.data
+                    }],
+              chart: {
+                      id: 'temp-response',
+                      type: 'area',
+                      stacked: false,
+                      height: 250,
+                      group: 'phenology',
+                      events: {
+                              click: function(event, chartContext, config) {
+
+                                      // gets the position of the marker in the series
+                                      const dp = config.dataPointIndex
+
+                                      // use the series position of the clicked marker to find the corresponding x axis data at that point in the series
+                                      let date = chartContext.data.twoDSeriesX[dp]
+
+                                      // convert to date
+                                      date = new Date(date);
+                                      date.setYear(2022);
+
+                                      // update sowing date input
+                                      document.getElementById("id_sowing").value = date.toISOString().split("T")[0]
+
+                                    }
+                            },
+                      },
+                markers: {
+                        size: 0
+                      },
+                dataLabels: {
+                        enabled: false
+                      },
+                xaxis: { type: 'datetime',
+                        min: Date.UTC(2015,11,13),
+                        max: Date.UTC(2017,1,1)
+                      },
+                yaxis: {
+                        labels: {
+                                minWidth: 40
+                              }
+                      }
+              }
+
+        var chartr = new ApexCharts(document.querySelector("#chartr"), optionsTempResponse);
+        var chart = new ApexCharts(document.querySelector("#chart"), options);
+        chart.render();
+        chartr.render();
+
+    </script>
+  </div>
+  {% else %}
+  <div class="card col-2 my-2 mx-2">
+    <div class="card-title"><h3>{{ cm.model_name }}</h3></div>
+    <div class="card-body d-flex"><h2 class="mt-auto">{{ cm.value }} {{ cm.measure_unit }}</h2></div>
+  </div>
+  {% endif %}
+  {% endfor %}
+</div>
+
 </div>
 {% endblock %}

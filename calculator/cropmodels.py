@@ -12,18 +12,28 @@ class CropModel:
 
     def __init__(self, crop: Crop):
         self.object = crop
-        self.parameters = self.object.cropparameter_set.all()
+        self.parameters = self.object.parameters.all()
         self.area = self.object.area
 
     def can_run(self):
-        available_params_crop = [p.parameter.code for p in self.parameters]
-        return all(x in available_params_crop for x in self.inputs_crop)
+        available_params =  list(self.object.parameters.values_list('parameter__code', flat=True))
+        available_params = available_params + list(self.object.content_object.parameters.values_list('parameter__code', flat=True))
+        if self.object.has_variety():
+            available_params = available_params + list(self.object.content_object.species.parameters.values_list('parameter__code', flat=True))
+        # elif self.object.has_species():
+        #     available_params = available_params + list(self.object.content_object.parameters.values_list('parameter__code', flat=True))
+        return all(x in available_params for x in set(self.inputs_crop))
 
     def has_area(self):
         return self.area.total_area > 0
 
     def get_parameter(self, code):
-        return self.parameters.get(parameter__code=code).value
+        param=self.object.parameters.filter(parameter__code=code).last()
+        if not param:
+            param=self.object.content_object.parameters.filter(parameter__code=code).last()
+        if not param and self.object.has_variety():
+            param=self.object.content_object.species.parameters.filter(parameter__code=code).last()
+        return param.value
 
     def output(self):
         context = {}
@@ -86,7 +96,7 @@ class PhenologyCropModel(CropModel):
         w = pd.read_csv("weather.csv", index_col="date", parse_dates=True)
         # Filter only necessary columns, and only year 2015
         w = pd.DataFrame(w, columns=["tave", "tmin", "tmax", "rad"])[
-            w.index.year == 2015
+            w.index.year == 2016
         ]
         # Exclude days with tave outside the cardinal temperatures range (tbase - thigh)
         tr = w.tave[(w.tave > tbase) & (w.tave < thigh)]
@@ -96,8 +106,8 @@ class PhenologyCropModel(CropModel):
         )
         w["gdd"] = w.r * (topt - tbase)
         w["r"] = w.r.rolling(window=30, min_periods=1).mean()
-        w["sowing"] = w.r > 0.2
-        start, end = w[w.r > 0.2].index[[0, -1]]
+        w["sowing"] = w.r > 0.3
+        start, end = w[w.r > 0.3].index[[0, -1]]
         start = w.index.get_loc(start)
         end = w.index.get_loc(end)
         mat_dates = []
@@ -107,7 +117,7 @@ class PhenologyCropModel(CropModel):
             t.gdd = t.gdd.cumsum()
             try:
                 mat_date = t[t.gdd - gddmat > 0].index[0]
-                if t.loc[mat_date]["r"] > 0.2:
+                if t.loc[mat_date]["r"] > 0.3:
                     mat_dates.append(mat_date)
                     sow_dates.append(t.index[0])
             except:

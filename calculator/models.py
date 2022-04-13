@@ -140,4 +140,4 @@ class CropParameter(ParameterValue):
     Stores a Species/VarietalParameter ovveride for specific Crop
     """
 
-    crop = models.ForeignKey(Crop, on_delete=models.CASCADE)
+    crop = models.ForeignKey(Crop, on_delete=models.CASCADE, related_name="parameters")
