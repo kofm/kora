@@ -24,6 +24,7 @@
   <div class="col">
     <div class="btn-group" role="group" aria-label="Toolbar">
       <a class="btn btn-outline-primary" href="{% url 'collect:cart-delete' cart.pk %}">Clear</a>
+      <a class="btn btn-outline-primary" href="{% url 'collect:cartitem-labels' %}">Labels</a>
       <a class="btn btn-outline-primary" href="{% url 'collect:cart-retrieve' %}">Retrieve</a>
       <a class="btn btn-outline-primary" href="{% url 'collect:cart-delete-samples' %}">Trash</a>
     </div>

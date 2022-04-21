@@ -18,7 +18,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from calculator.forms import CartItemWeightForm
-from collect.forms import GerminabilityForm, SampleWeightForm, SeedSampleForm
+from collect.forms import GerminabilityForm, SampleWeightForm, SeedSampleForm, SeedSampleYearForm
 from django.contrib.auth.decorators import login_required
 
 from collect.models import (
@@ -51,13 +51,18 @@ class SeedSampleListView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        year = self.request.GET.get("year")
         context["search"] = self.request.GET.get("search")
         context["view"] = self.request.GET.get("view")
+        context["year"] = year
+        context["form_year"] = SeedSampleYearForm(initial={'year': year})
         return context
 
     def get_queryset(self):
         queryset = SeedSample.objects.all()
         search = self.request.GET.get("search")
+        view = self.request.GET.get("view")
+        year = self.request.GET.get("year")
         if search:
             if len(search) < 2:
                 queryset = queryset.filter(variety__names__name__istartswith=search)
@@ -66,7 +71,7 @@ class SeedSampleListView(ListView):
                     variety__names__name__unaccent__lower__trigram_similar=search
                 )
 
-        if self.request.GET.get("view") == "dupes":
+        if view == "dupes":
             duplicates = (
                 SeedSample.objects.all()
                 .values("variety_id")
@@ -80,7 +85,7 @@ class SeedSampleListView(ListView):
 
         # Get samples older than 7 years or weighing less than 200g.
         # The weight is summed across samples of the same variety.
-        if self.request.GET.get("view") == "stale":
+        if view == "stale":
             stale = (
                 SeedSample.objects.values("variety")
                 .annotate(Max("growing_season"), Sum("sampleweight__weight"))
@@ -93,6 +98,10 @@ class SeedSampleListView(ListView):
             queryset = SeedSample.objects.filter(
                 variety__in=stale,
             ).order_by("variety_id", "growing_season")
+
+        if year:
+            queryset = queryset.filter(growing_season=year)
+
         return queryset
 
 
@@ -455,5 +464,21 @@ def sample_labels(request):
     writer.writerow(["pos", "ids"])
     for x, y in zip(pos, ids):
         writer.writerow([x, y])
+
+    return response
+
+def cartitem_labels(request):
+    # Create the HttpResponse object with the appropriate CSV header.
+    response = HttpResponse(
+        content_type="text/csv",
+        headers={"Content-Disposition": 'attachment; filename="labels.csv"'},
+    )
+
+    cart = request.user.cart_set.last()
+
+    writer = csv.writer(response)
+    writer.writerow(["variety", "id", "position"])
+    for cartitem in cart.cartitem_set.all():
+        writer.writerow([cartitem.sample.variety, cartitem.sample.sample_id, cartitem.sample.position])
 
     return response

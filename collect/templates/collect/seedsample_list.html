@@ -1,6 +1,7 @@
 {% extends "frontpage/base.html" %}
 
 {% load static %}
+{% load crispy_forms_tags %}
 
 {% block title %}Seed Samples{% endblock %}
 
@@ -8,31 +9,41 @@
 
 <p class="display-1">Seed Samples</p>
 
-<div class="btn-toolbar d-flex">
-  <div class="btn-group" role="group" aria-label="Toolbar">
-    <a class="btn btn-outline-success" href="{% url 'collect:seedsample-create' %}">Create</a>
-    <a href="{% url 'collect:seedsample-list' %}" class="btn btn-outline-primary {% if not view %}active{% endif %}">All</a>
-    <a href="{% url 'collect:seedsample-list' %}?view=dupes" class="btn btn-outline-primary {% if view == 'dupes' %}active{% endif %}">Dupes</a>
-    <a href="{% url 'collect:seedsample-list' %}?view=stale" class="btn btn-outline-primary {% if view == 'stale' %}active{% endif %}">Stale</a>
-    <a href="{% url 'collect:seedsample-labels' %}" class="btn btn-outline-primary">Labels</a>
-    {% if user.is_authenticated and user.cart_set.count > 0 %}
-    <a href="{% url 'collect:cart-list'  %}" class="btn btn-outline-primary position-relative">Cart
-      <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-        {{ user.cart_set.last.cartitem_set.count }}
-        <span class="visually-hidden">Cart items</span>
-      </span>
-    </a>
-    {% endif %}
-  </div>
-  <form method="get">
-    <div class="input-group ms-3 w-100">
-      <input name="search" type="text" class="form-control" placeholder="Search" aria-label="Search samples" aria-describedby="button-addon2">
-      <button class="btn btn-outline-secondary" type="button" id="button-addon2">Search</button>
+<div class="row">
+  <div class="col">
+    <div class="btn-toolbar">
+      <div class="btn-group" role="group" aria-label="Toolbar">
+        <a class="btn btn-outline-success" href="{% url 'collect:seedsample-create' %}">Create</a>
+        <a href="{% url 'collect:seedsample-list' %}" class="btn btn-outline-primary {% if not view %}active{% endif %}">All</a>
+        <a href="{% url 'collect:seedsample-list' %}?view=dupes" class="btn btn-outline-primary {% if view == 'dupes' %}active{% endif %}">Dupes</a>
+        <a href="{% url 'collect:seedsample-list' %}?view=stale" class="btn btn-outline-primary {% if view == 'stale' %}active{% endif %}">Stale</a>
+        <a href="{% url 'collect:seedsample-labels' %}" class="btn btn-outline-primary">Labels</a>
+        {% if user.is_authenticated and user.cart_set.count > 0 %}
+        <a href="{% url 'collect:cart-list'  %}" class="btn btn-outline-primary position-relative">Cart
+          <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+            {{ user.cart_set.last.cartitem_set.count }}
+            <span class="visually-hidden">Cart items</span>
+          </span>
+        </a>
+        {% endif %}
+      </div>
+
     </div>
-  </form>
+  </div>
+  <div class="col">
+      <form method="get">
+        {{ form_year.year }}
+      </form>
+  </div>
+  <div class="col">
+    <form method="get">
+      <div class="input-group ms-3 w-100">
+        <input name="search" type="text" class="form-control" placeholder="Search" aria-label="Search samples" aria-describedby="button-addon2">
+        <button class="btn btn-outline-secondary" type="button" id="button-addon2">Search</button>
+      </div>
+    </form>
+  </div>
 </div>
-
-
 <div class="row mt-3">
   <div class="col">
     {% if object_list %}
@@ -58,7 +69,7 @@
         <td>{{ seedsample.notes|default_if_none:"&nbsp;" }}</td>
         <td align="right">
           {% if user.is_authenticated and not seedsample.in_cart %}
-          <a href="{% url 'collect:cart-add' seedsample.id %}?{% if search %}search={{ search }}{% endif %}{% if view %}view={{ view }}{% endif %}"><i class="bi bi-plus-square" style="color:black"></i></a>
+          <a href="{% url 'collect:cart-add' seedsample.id %}?{% if page_obj %}page={{ page_obj.number }}{% endif %}{% if search %}&search={{ search }}{% endif %}{% if view %}&view={{ view }}{% endif %}"><i class="bi bi-plus-square" style="color:black"></i></a>
           {% endif %}
           <a href="{% url 'register:plantvariety-detail' seedsample.variety.id %}"><i class="bi bi-zoom-in" style="color: black;"></i></a>
           <a href="{% url 'collect:seedsample-update' seedsample.id %}"><i class="bi-pencil" style="color: black;"></i></a>
