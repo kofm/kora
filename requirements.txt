@@ -4,3 +4,4 @@ djangorestframework
 django-crispy-forms
 pandas
 numpy
+django-extensions
