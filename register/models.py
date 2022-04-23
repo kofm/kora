@@ -1,8 +1,6 @@
 from datetime import date
-from enum import unique
-
 from django.db import models
-from django.utils.functional import cached_property
+
 
 class PlantSpecies(models.Model):
     common_name = models.CharField(max_length=100, unique=True)
@@ -29,7 +27,9 @@ class PlantSpecies(models.Model):
     class Meta:
         ordering = ["common_name"]
 
+
 class PlantVariety(models.Model):
+    name = models.CharField(max_length=100)
     species = models.ForeignKey(
         PlantSpecies, on_delete=models.CASCADE, related_name="variety"
     )
@@ -37,19 +37,20 @@ class PlantVariety(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ["names__name"]
-
-    @property
-    def name(self):
-        return self.names.order_by('-change_date').first().name
+        ordering = ["name"]
 
     def __str__(self):
         return self.name
 
+
 class PlantVarietyName(models.Model):
     name = models.CharField(max_length=200)
-    variety = models.ForeignKey(PlantVariety, on_delete=models.CASCADE, related_name="names")
+    variety = models.ForeignKey(
+        PlantVariety, on_delete=models.CASCADE, related_name="names"
+    )
     change_date = models.DateField(blank=True, null=True, default=date.today)
 
     class Meta:
-        ordering = ['-change_date', ]
+        ordering = [
+            "-change_date",
+        ]
