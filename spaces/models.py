@@ -14,7 +14,6 @@ class Area(models.Model):
     location = models.ForeignKey(Location, on_delete=models.PROTECT)
     length = models.FloatField()
     width = models.FloatField()
-    temp_offset = models.IntegerField()
 
     @property
     def total_area(self):
