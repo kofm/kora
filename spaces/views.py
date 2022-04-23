@@ -19,7 +19,7 @@ class LocationListView(ListView):
         a=[]
         for c in Crop.objects.all():
             a.append({'y': c.area.total_area, 'x': str(c.content_object)})
-        d=pd.DataFrame(a).groupby('x', as_index=False).mean().sort_values(by='y', ascending=False)
+        d=pd.DataFrame(a).groupby('x', as_index=False).sum().sort_values(by='y', ascending=False)
         return d.to_dict(orient='records')
 
 class LocationDetailView(DetailView):
