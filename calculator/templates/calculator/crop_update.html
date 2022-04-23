@@ -31,6 +31,7 @@
       {{ form|crispy }}
       {{ management_formset|crispy }}
       <button class="btn btn-primary mt-3" type="submit">Submit</button>
+      <a class="btn btn-danger mt-3" type="submit" href="{% url 'calculator:crop-delete' crop.pk %}">Delete</a>
     </form>
 
     {{ plantspecies|json_script:"plantspecies" }}

@@ -93,7 +93,7 @@ class PhenologyCropModel(CropModel):
         gddmat = self.get_parameter("GDDmat")
         # Read CSV data. This will change in the future e.g. with a method
         # to retrieve the weather data associated with the Location
-        w = pd.read_csv("weather.csv", index_col="date", parse_dates=True)
+        w = pd.read_csv("raw_data/weather.csv", index_col="date", parse_dates=True)
         # Filter only necessary columns, and only year 2015
         w = pd.DataFrame(w, columns=["tave", "tmin", "tmax", "rad"])[
             w.index.year == 2016

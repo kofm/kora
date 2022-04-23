@@ -9,11 +9,7 @@ from calculator.models import Crop, Management
 from register.models import PlantSpecies
 
 """Register CropModels here"""
-CROP_MODELS = [
-    # 'CropModelExpectedYield',
-    # 'CropModelTotalPlants',
-    "PhenologyCropModel"
-]
+CROP_MODELS = ["CropModelExpectedYield", "CropModelTotalPlants", "PhenologyCropModel"]
 
 
 class CropDetailView(DetailView):
@@ -22,7 +18,8 @@ class CropDetailView(DetailView):
 
 class CropDeleteView(DeleteView):
     model = Crop
-    success_url = reverse_lazy("spaces:locations_list")
+    success_url = reverse_lazy("spaces:location-list")
+
 
 def crop_update_view(request, pk):
     # Get the crop
@@ -68,7 +65,7 @@ def crop_update_view(request, pk):
     if crop.has_species():
         form.initial["species"] = crop.object_id
     elif crop.has_variety():
-        form.initial["species"] = crop.content_object.species.id # type: ignore
+        form.initial["species"] = crop.content_object.species.id  # type: ignore
         form.initial["variety"] = crop.object_id
 
     module = importlib.import_module("calculator.cropmodels")
@@ -83,7 +80,12 @@ def crop_update_view(request, pk):
     return render(
         request,
         "calculator/crop_update.html",
-        {"crop": crop, "form": form, "plantspecies": plantspecies, "cropmodels": cropmodels, },
+        {
+            "crop": crop,
+            "form": form,
+            "plantspecies": plantspecies,
+            "cropmodels": cropmodels,
+        },
     )
 
 
