@@ -50,6 +50,9 @@ class Description(models.Model):
         help_text="the variety to which the description refers to",
     )
 
+    class Meta:
+        ordering = ['variety__name']
+
     @cached_property
     def available_traits(self):
         return self.protocol.traits.all()

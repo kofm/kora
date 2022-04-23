@@ -26,7 +26,7 @@
 </tr>
 {% endfor %}
 </table>
-{% include 'frontpage/paginator.html' with page=page_obj pagevar='page' %}
+{% include 'frontpage/paginator.html' with page=page_obj page_get_variable='page' %}
 {% else %}
 <p>There are no descriptions, yet.</p>
 {% endif %}

@@ -84,10 +84,7 @@ class SeedSample(models.Model):
             return False
 
     def __str__(self):
-        if self.variety.names.last():
-            return self.variety.names.last().name
-        else:
-            return ""
+        return f'#{self.sample_id} - {self.variety.name} ({self.growing_season})'
 
 
 class Germinability(models.Model):

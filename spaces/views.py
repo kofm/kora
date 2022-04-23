@@ -1,6 +1,6 @@
 from django.urls.base import reverse_lazy
 from django.views.generic import DetailView, ListView
-from django.views.generic.edit import UpdateView
+from django.views.generic.edit import CreateView, UpdateView
 from calculator.models import Crop
 from parameters.models import Parameter
 import pandas as pd
@@ -41,3 +41,16 @@ class AreaUpdateView(UpdateView):
     fields = ['location', 'name', 'width', 'length']
     def get_success_url(self):
         return reverse_lazy("spaces:area-detail", args=[self.object.id])
+
+class AreaCreateView(CreateView):
+    model = Area
+    fields = ['location', 'name', 'width', 'length']
+
+    def get_success_url(self):
+        return reverse_lazy("spaces:area-detail", args=[self.object.id])
+
+    def get_initial(self):
+        initial = super().get_initial()
+        initial = initial.copy()
+        initial['location'] = self.kwargs['location_id']
+        return initial

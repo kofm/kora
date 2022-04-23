@@ -7,6 +7,7 @@ app_name = "spaces"
 urlpatterns = [
     path("locations", views.LocationListView.as_view(), name="location-list"),
     path("locations/<int:pk>", views.LocationDetailView.as_view(), name='location-detail'),
-    path("locations/area/<int:pk>", views.AreaDetailView.as_view(), name='area-detail'),
-    path("locations/area/<int:pk>/update", views.AreaUpdateView.as_view(), name='area-update'),
+    path("area/<int:pk>", views.AreaDetailView.as_view(), name='area-detail'),
+    path("area/<int:pk>/update", views.AreaUpdateView.as_view(), name='area-update'),
+    path("location/<int:location_id>/area/create", views.AreaCreateView.as_view(), name='area-create'),
 ]
