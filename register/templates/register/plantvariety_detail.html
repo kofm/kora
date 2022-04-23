@@ -40,30 +40,7 @@
   <div class="col">
     <h2>Seed Samples</h2>
     {% if variety.seedsample_set.count %}
-    <table class="table table-striped table-hover">
-      <thead>
-        <th scope="col">#</td>
-        <th scope="col">Location</td>
-        <th scope="col">Weight</td>
-        <th scope="col">Germinability</td>
-        <th scope="col">Growing season</td>
-        <th scope="col" class="col-2">Notes</td>
-        <th scope="col"></td>
-      </thead>
-      {% for seedsample in variety.seedsample_set.all %}
-      <tr>
-        <td>{{ seedsample.pk }}</td>
-        <td>{{ seedsample.position }}</td>
-        <td>{{ seedsample.sampleweight_set.last.weight }}</td>
-        <td>{{ seedsample.germinability }}</td>
-        <td>{{ seedsample.growing_season }}</td>
-        <td>{{ seedsample.notes }}</td>
-        <td  align="right" class="col-1">
-          <a href="{% url 'collect:seedsample-detail' seedsample.pk %}"><i class="bi bi-zoom-in" style="color: black;"></i></a>
-        </td>
-      </tr>
-      {% endfor %}
-    </table>
+    {% include 'collect/seedsample_table.html' with object_list=variety.seedsample_set.all %}
     {% else %}
     <p>There are no seed samples of this variety.</p>
     {% endif %}

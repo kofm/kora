@@ -30,7 +30,7 @@
     </tr>
     {% endfor %}
   </table>
-  {% include 'frontpage/paginator.html' with page=varieties pagevar='page' %}
+  {% include 'frontpage/paginator.html' with page=varieties page_get_variable='page' %}
 </div>
 <div class="container-sm">
   {% if species.parameters.distinct %}

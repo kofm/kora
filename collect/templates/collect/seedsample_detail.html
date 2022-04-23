@@ -49,31 +49,8 @@
       <h2>Duplicate samples</h2>
     </div>
     <div class="card-body">
-      {% if sample.variety.seedsample_set.count > 1 %}
-      <table class="table">
-        <thead>
-          <tr>
-            <th scope="col">ID</th>
-            <th scope="col">Position</th>
-            <th scope="col">Growing season</th>
-            <th scope="col">Weight</th>
-            <th scope="col">Germinability</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for othersample in sample.variety.seedsample_set.all %}
-          {% if othersample.pk != sample.pk %}
-          <tr>
-            <td><a href="{% url 'collect:seedsample-detail' othersample.pk %}">{{ othersample.sample_id }}</a></td>
-            <td>{{ othersample.position }}</td>
-            <td>{{ othersample.growing_season }}</td>
-            <td>{{ othersample.weight }}</td>
-            <td>{{ othersample.germinability }}</td>
-          </tr>
-          {% endif %}
-          {% endfor %}
-        </tbody>
-      </table>
+      {% if duplicate_samples %}
+      {% include 'collect/seedsample_table.html' with object_list=duplicate_samples %}
       {% else %}
       <p>There are no other samples of this variety.</p>
       {% endif %}

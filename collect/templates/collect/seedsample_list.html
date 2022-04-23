@@ -1,8 +1,6 @@
 {% extends "frontpage/base.html" %}
-
 {% load static %}
 {% load crispy_forms_tags %}
-
 {% block title %}Seed Samples{% endblock %}
 
 {% block container %}
@@ -46,39 +44,9 @@
 </div>
 <div class="row mt-3">
   <div class="col">
-    {% if object_list %}
-    <table class="table table-striped table-hover">
-      <thead>
-        <th scope="col">ID</td>
-        <th scope="col">Variety</td>
-        <th scope="col">Location</td>
-        <th scope="col">Weight</td>
-        <th scope="col">Germinability</td>
-        <th scope="col">Growing season</td>
-        <th scope="col">Notes</td>
-        <th scope="col"></td>
-      </thead>
-      {% for seedsample in object_list %}
-      <tr>
-        <td>{{ seedsample.sample_id }}</td>
-        <td><a href="{% url 'collect:seedsample-detail' seedsample.pk %}">{{ seedsample.variety.name }}</a></td>
-        <td>{{ seedsample.position }}</td>
-        <td>{{ seedsample.weight|stringformat:"d g" }}</td>
-        <td>{{ seedsample.germinability|stringformat:"d%%"|default_if_none:"&nbsp;" }}</td>
-        <td>{{ seedsample.growing_season }}</td>
-        <td>{{ seedsample.notes|default_if_none:"&nbsp;" }}</td>
-        <td align="right">
-          {% if user.is_authenticated and not seedsample.in_cart %}
-          <a href="{% url 'collect:cart-add' seedsample.id %}?{% if page_obj %}page={{ page_obj.number }}{% endif %}{% if search %}&search={{ search }}{% endif %}{% if view %}&view={{ view }}{% endif %}"><i class="bi bi-plus-square" style="color:black"></i></a>
-          {% endif %}
-          <a href="{% url 'register:plantvariety-detail' seedsample.variety.id %}"><i class="bi bi-zoom-in" style="color: black;"></i></a>
-          <a href="{% url 'collect:seedsample-update' seedsample.id %}"><i class="bi-pencil" style="color: black;"></i></a>
-          <a href="{% url 'collect:seedsample-delete' seedsample.id %}"><i class="bi bi-trash" style="color: black;"></i></a>
-        </td>
-      </tr>
-      {% endfor %}
-    </table>
-    {% include 'frontpage/paginator.html' with page=page_obj pagevar='page' %}
+    {% if page_obj %}
+    {% include 'collect/seedsample_table.html' with object_list=page_obj %}
+    {% include 'frontpage/paginator.html' with page=page_obj page_get_variable='page' %}
     {% else %}
     <p class="mt-5">There are no stored seed samples corresponding to your query.</p>
     {% endif %}

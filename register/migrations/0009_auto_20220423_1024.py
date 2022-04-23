@@ -3,8 +3,9 @@
 from django.db import migrations, models
 
 def forwards_func(apps, schema_editor):
-    # We get the model from the versioned app registry;
-    # if we directly import it, it'll be the wrong version
+    # Get the newest associated PlantVarietyName instance to set the new property 'name'
+    # We get the model from the versioned app registry; if we directly import
+    # it, it'll be the wrong version
     PlantVariety = apps.get_model("register", "PlantVariety")
     db_alias = schema_editor.connection.alias
     for var in PlantVariety.objects.using(db_alias).all():

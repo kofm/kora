@@ -116,6 +116,7 @@ class SeedSampleDetailView(DetailView):
         )
         context["variety_list"] = PlantVariety.objects.all()
         context["sample_form"] = SeedSampleForm(instance=self.object)
+        context["duplicate_samples"] = SeedSample.objects.filter(variety=self.object.variety).exclude(pk=self.object.pk)
         return context
 
 

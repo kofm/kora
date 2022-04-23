@@ -1,5 +1,6 @@
 from datetime import date
 from django.db import models
+from pandas.core.dtypes.common import classes_and_not_datetimelike
 
 
 class PlantSpecies(models.Model):
@@ -49,6 +50,7 @@ class PlantVarietyName(models.Model):
         PlantVariety, on_delete=models.CASCADE, related_name="names"
     )
     change_date = models.DateField(blank=True, null=True, default=date.today)
+
 
     class Meta:
         ordering = [
