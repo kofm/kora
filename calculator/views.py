@@ -4,7 +4,7 @@ from django.shortcuts import get_object_or_404, render
 from django.urls.base import reverse_lazy
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, DeleteView
-from calculator.forms import CropForm, ManagementForm
+from calculator.forms import CropForm, CropModelForm, ManagementForm
 from calculator.models import Crop, Management
 from register.models import PlantSpecies
 
@@ -18,7 +18,9 @@ class CropDetailView(DetailView):
 
 class CropDeleteView(DeleteView):
     model = Crop
-    success_url = reverse_lazy("spaces:location-list")
+
+    def get_success_url(self):
+        return reverse_lazy("spaces:area-detail", kwargs={'pk': self.object.area.pk })
 
 
 def crop_update_view(request, pk):
@@ -26,48 +28,29 @@ def crop_update_view(request, pk):
     crop = get_object_or_404(Crop, pk=pk)
 
     if request.POST:
-        form = CropForm(request.POST)
+        form = CropModelForm(request.POST, instance=crop)
         if form.is_valid():
-            variety = form.cleaned_data["variety"]
-            species = form.cleaned_data["species"]
-            area = form.cleaned_data["area"]
-            sowing = form.cleaned_data["sowing"]
-            harvest = form.cleaned_data["harvest"]
-            notes = form.cleaned_data["notes"]
-            crop.area = area
-            crop.notes = notes
-            if variety:
-                crop.set_crop(variety, "plantvariety")
-            else:
-                crop.set_crop(species, "plantspecies")
-
-            if sowing:
-                crop.sowing = sowing
-            elif crop.sowing:
-                del crop.sowing
-            if harvest:
-                crop.harvest = harvest
-            elif crop.harvest:
-                del crop.harvest
-
-            crop.save()
+            form.save()
             crop.parameters.all().delete()
 
     # Instantiate the form
-    form = CropForm(
+    form = CropModelForm(
+        instance=crop,
         initial={
             "area": crop.area,
             "sowing": crop.sowing,
             "harvest": crop.harvest,
-            "notes": crop.notes,
+            "notes": crop.notes
         }
     )
+
     if crop.has_species():
         form.initial["species"] = crop.object_id
     elif crop.has_variety():
         form.initial["species"] = crop.content_object.species.id  # type: ignore
         form.initial["variety"] = crop.object_id
 
+    # Display Crop Models
     module = importlib.import_module("calculator.cropmodels")
     cropmodels = []
     for cm in CROP_MODELS:
@@ -88,6 +71,27 @@ def crop_update_view(request, pk):
         },
     )
 
+class CropCreateView(CreateView):
+    form_class = CropModelForm
+    model = Crop
+    template_name = 'calculator/crop_update.html'
+
+    def get_success_url(self):
+        return reverse_lazy("calculator:crop-update", kwargs={'pk': self.object.pk })
+
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["plantspecies"] = list(PlantSpecies.objects.all().values("pk", "common_name"))
+        return context
+
+    def get_initial(self):
+        initial = super().get_initial()
+        initial = initial.copy()
+        area = self.kwargs['area_id']
+        if area:
+            initial['area'] = area
+        return initial
 
 class ManagementCreateView(CreateView):
     model = Management

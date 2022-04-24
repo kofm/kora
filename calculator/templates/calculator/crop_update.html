@@ -8,9 +8,10 @@
   <script src="{% static 'frontpage/js/apexcharts/apexcharts.js' %}"></script>
 {% endblock %}
 
-{% block title %}Crop: {{ crop }}{% endblock %}
+{% block title %}Crop{% if crop %}: {{ crop }}{% endif %}{% endblock %}
 {% block container %}
 
+  {% if crop %}
 <div class="mt-3">
 <nav aria-label="breadcrumb">
   <ol class="breadcrumb">
@@ -19,9 +20,13 @@
     <li class="breadcrumb-item active" aria-current="page">{{ crop }}</li>
   </ol>
 </nav>
-</div>
+</div>{% endif %}
 
+{% if crop %}
 <p class="display-1">{{ crop }} <small class="text-muted">({{ crop.area.name }}, {{ crop.area.location.name }})</small></p>
+{% else %}
+<p class="display-1">New crop</p>
+{% endif %}
 
 <div class="row">
   <div class="col-2 card py-3 px-3">
@@ -31,7 +36,7 @@
       {{ form|crispy }}
       {{ management_formset|crispy }}
       <button class="btn btn-primary mt-3" type="submit">Submit</button>
-      <a class="btn btn-danger mt-3" type="submit" href="{% url 'calculator:crop-delete' crop.pk %}">Delete</a>
+      {% if crop %}<a class="btn btn-danger mt-3" type="submit" href="{% url 'calculator:crop-delete' crop.pk %}">Delete</a>{% endif %}
     </form>
 
     {{ plantspecies|json_script:"plantspecies" }}

@@ -2,7 +2,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.forms.widgets import DateInput, HiddenInput
 
-from calculator.models import CropParameter, Management
+from calculator.models import Crop, CropParameter, Management
 from collect.models import CartItem
 from spaces.models import Area
 
@@ -42,17 +42,42 @@ class CropManagementForm(forms.ModelForm):
         }
 
 
-class CropForm(forms.Form):
+class CropModelForm(forms.ModelForm):
     species = forms.CharField(label="Species")
     variety = forms.CharField(label="Variety", required=False)
-    area = forms.ModelChoiceField(queryset=Area.objects.all())
-    notes = forms.CharField(required=False)
     sowing = forms.DateField(
         label="Sowing", required=False, widget=DateInput(attrs={"type": "date"})
     )
     harvest = forms.DateField(
         label="Harvest", required=False, widget=DateInput(attrs={"type": "date"})
     )
+    class Meta:
+        fields = ["area", "notes"]
+        model = Crop
+
+    def save(self, commit = True):
+        crop = super().save(commit = False)
+        variety = self.cleaned_data["variety"]
+        species = self.cleaned_data["species"]
+        sowing = self.cleaned_data["sowing"]
+        harvest = self.cleaned_data["harvest"]
+
+        if variety:
+            crop.set_crop(variety, "plantvariety")
+        else:
+            crop.set_crop(species, "plantspecies")
+
+        crop.save()
+
+        if sowing:
+            crop.sowing = sowing
+        elif crop.sowing:
+            del crop.sowing
+        if harvest:
+            crop.harvest = harvest
+        elif crop.harvest:
+            del crop.harvest
+        return crop
 
 
 class CartItemWeightForm(forms.ModelForm):
