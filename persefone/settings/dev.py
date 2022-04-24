@@ -14,3 +14,6 @@ DATABASES = {
         "PORT": 5432,
     },
 }
+
+DEFAULT_EXCEPTION_REPORTER = "exceptionite.django.ExceptioniteReporter"
+STATIC_ROOT = "/home/kofm/code/persefone/static/"

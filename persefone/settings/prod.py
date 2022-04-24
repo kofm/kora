@@ -14,3 +14,4 @@ DATABASES = {
         "PORT": 5432,
     },
 }
+STATIC_ROOT = "/var/www/static/"
