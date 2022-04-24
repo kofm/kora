@@ -30,7 +30,7 @@ class Crop(models.Model):
     content_object = GenericForeignKey("content_type", "object_id")
     area = models.ForeignKey(
         Area,
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
     )
 
     def __str__(self) -> str:

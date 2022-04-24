@@ -1,6 +1,6 @@
 from django.urls.base import reverse_lazy
 from django.views.generic import DetailView, ListView
-from django.views.generic.edit import CreateView, UpdateView
+from django.views.generic.edit import CreateView, DeleteView, UpdateView
 from calculator.models import Crop
 from parameters.models import Parameter
 import pandas as pd
@@ -54,3 +54,7 @@ class AreaCreateView(CreateView):
         initial = initial.copy()
         initial['location'] = self.kwargs['location_id']
         return initial
+
+class AreaDeleteView(DeleteView):
+    model = Area
+    success_url = reverse_lazy("spaces:location-list")
