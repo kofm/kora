@@ -4,7 +4,6 @@ from django.forms.widgets import DateInput, HiddenInput
 
 from calculator.models import Crop, CropParameter, Management
 from collect.models import CartItem
-from spaces.models import Area
 
 
 class CropParameterForm(forms.ModelForm):

@@ -4,7 +4,7 @@ from django.shortcuts import get_object_or_404, render
 from django.urls.base import reverse_lazy
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, DeleteView
-from calculator.forms import CropForm, CropModelForm, ManagementForm
+from calculator.forms import CropModelForm, ManagementForm
 from calculator.models import Crop, Management
 from register.models import PlantSpecies
 
