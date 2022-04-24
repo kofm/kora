@@ -14,7 +14,10 @@ services:
     networks:
       - default
   web:
-    build: .
+    build:
+      dockerfile: Dockerfile
+      args:
+        secretkey: ${SECRET_KEY}
     command: python manage.py runserver 0.0.0.0:8000
     env_file: .env
     volumes:
