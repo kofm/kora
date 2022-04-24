@@ -17,23 +17,13 @@ if test -n $TMUX; then
     tmux send-keys -t 'Main' 'docker-compose up db' C-m
 
   tmux split-window -t 'Main'
-  tmux send-keys -t$SESSION:1.2 ". $DEVENV" C-m "python manage.py runserver" C-m
+  tmux send-keys -t$SESSION:1.2 ". $DEVENV" C-m "source .env" C-m "python manage.py runserver" C-m
 
   tmux new-window -t$SESSION:2 -n 'neovim'
   tmux send-keys -t 'neovim' ". $DEVENV" C-m "nvim" C-m
 
   tmux new-window -t$SESSION:3 -n 'jupyterlab'
-  tmux send-keys -t 'jupyterlab' ". $DEVENV" C-m "python manage.py shell_plus --lab" C-m
+  tmux send-keys -t 'jupyterlab' ". $DEVENV" C-m "source .env" C-m "python manage.py shell_plus --lab" C-m
 
   tmux select-window -t$SESSION:2
 fi
-    # tmux send-keys -t 'Hugo Server' 'hugo serve -D -F' C-m # Switch to bind script?
-
-# setup Writing window
-
-# Setup an additional shell
-# tmux new-window -t $SESSION:3 -n 'Shell'
-# tmux send-keys -t 'Shell' "zsh" C-m 'clear' C-m
-
-# Attach Session, on the Main window
-# tmux attach-session -t $SESSION:0

@@ -1,6 +1,7 @@
 from calculator.models import Crop
 import math
 import time
+import datetime
 import pandas as pd
 
 
@@ -16,10 +17,20 @@ class CropModel:
         self.area = self.object.area
 
     def can_run(self):
-        available_params =  list(self.object.parameters.values_list('parameter__code', flat=True))
-        available_params = available_params + list(self.object.content_object.parameters.values_list('parameter__code', flat=True))
+        available_params = list(
+            self.object.parameters.values_list("parameter__code", flat=True)
+        )
+        available_params = available_params + list(
+            self.object.content_object.parameters.values_list(
+                "parameter__code", flat=True
+            )
+        )
         if self.object.has_variety():
-            available_params = available_params + list(self.object.content_object.species.parameters.values_list('parameter__code', flat=True))
+            available_params = available_params + list(
+                self.object.content_object.species.parameters.values_list(
+                    "parameter__code", flat=True
+                )
+            )
         # elif self.object.has_species():
         #     available_params = available_params + list(self.object.content_object.parameters.values_list('parameter__code', flat=True))
         return all(x in available_params for x in set(self.inputs_crop))
@@ -28,11 +39,15 @@ class CropModel:
         return self.area.total_area > 0
 
     def get_parameter(self, code):
-        param=self.object.parameters.filter(parameter__code=code).last()
+        param = self.object.parameters.filter(parameter__code=code).last()
         if not param:
-            param=self.object.content_object.parameters.filter(parameter__code=code).last()
+            param = self.object.content_object.parameters.filter(
+                parameter__code=code
+            ).last()
         if not param and self.object.has_variety():
-            param=self.object.content_object.species.parameters.filter(parameter__code=code).last()
+            param = self.object.content_object.species.parameters.filter(
+                parameter__code=code
+            ).last()
         return param.value
 
     def output(self):
@@ -56,7 +71,7 @@ class CropModelExpectedYield(CropModel):
     def output(self):
         context = super().output()
         result = self.get_parameter("yield") * self.area.total_area
-        context["value"] = result
+        context["value"] = int(result)
         return context
 
 
@@ -76,7 +91,7 @@ class CropModelTotalPlants(CropModel):
         nrow = math.floor(self.object.area.width / self.get_parameter("distb"))
         ncol = math.floor(1 / self.get_parameter("distw"))
         result = round(ncol * nrow * self.area.total_area, 0)
-        context["value"] = result
+        context["value"] = int(result)
         return context
 
 
@@ -126,34 +141,113 @@ class PhenologyCropModel(CropModel):
             w["maturity"] = pd.Series(True, index=pd.Series(mat_dates).unique())
             w["sowing"] = w.sowing & pd.Series(True, index=sow_dates)
             context = {}
-            context["timeseries"] = {
-                "data": [
+            plot_pheno_dates = {
+                "series": [
                     {
-                        "x": "Sowing",
-                        "y": [
-                            # datetime.strftime(d, "%Y-%m-%d")
-                            time.mktime(d.timetuple()) * 1000
-                            for d in w[w.sowing == True].index[[0, -1]]
-                        ],
-                        "fillcolor": "#008FFB",
-                    },
+                        "data": [
+                            {
+                                "x": "Sowing",
+                                "y": [
+                                    # datetime.strftime(d, "%Y-%m-%d")
+                                    time.mktime(d.timetuple()) * 1000
+                                    for d in w[w.sowing == True].index[[0, -1]]
+                                ],
+                                "fillcolor": "#008FFB",
+                            },
+                            {
+                                "x": "Maturity",
+                                "y": [
+                                    # datetime.strftime(d, "%Y-%m-%d")
+                                    time.mktime(d.timetuple()) * 1000
+                                    for d in w[w.maturity == True].index[[0, -1]]
+                                ],
+                                "fillcolor": "#00E396",
+                            },
+                        ]
+                    }
+                ],
+                "chart": {
+                    "id": "pheno-dates",
+                    "height": 150,
+                    "type": "rangeBar",
+                    "group": "phenology",
+                    "toolbar": {"show": False},
+                },
+                "plotOptions": {
+                    "bar": {
+                        "horizontal": True,
+                        "distributed": True,
+                        "dataLabels": {"hideOverflowingLabels": False},
+                    }
+                },
+                "dataLabels": {
+                    "enabled": True,
+                    "style": {"colors": ["#f3f4f5", "#fff"]},
+                },
+                "xaxis": {
+                    "type": "datetime",
+                    "min": time.mktime(
+                        datetime.date.fromisoformat("2015-12-31").timetuple()
+                    )
+                    * 1000,
+                    "max": time.mktime(
+                        datetime.date.fromisoformat("2017-01-01").timetuple()
+                    )
+                    * 1000,
+                },
+                "yaxis": [
                     {
-                        "x": "Maturity",
-                        "y": [
-                            # datetime.strftime(d, "%Y-%m-%d")
-                            time.mktime(d.timetuple()) * 1000
-                            for d in w[w.maturity == True].index[[0, -1]]
+                        "show": False,
+                        "showAlways": False,
+                        "tooltip": {"enabled": False, "offsetX": 0},
+                        "crosshairs": {
+                            "show": True,
+                            "position": "front",
+                            "stroke": {"color": "#b6b6b6", "width": 1, "dashArray": 0},
+                        },
+                    }
+                ],
+                "grid": {"row": {"colors": ["#f3f4f5", "#fff"], "opacity": 1}},
+                "annotations": {"yaxis": [], "xaxis": [], "points": []},
+            }
+            plot_temp_response = {
+                "chart": {
+                    "id": "temp-response",
+                    "type": "area",
+                    "stacked": False,
+                    "height": 250,
+                    "group": "phenology",
+                },
+                "series": [
+                    {
+                        "data": [
+                            {"x": time.mktime(x.timetuple()) * 1000, "y": round(y, 2)}
+                            for x, y in zip(w.index, w.r.fillna(0))
                         ],
-                        "fillcolor": "#00E396",
+                    }
+                ],
+                "xaxis": {
+                    "type": "datetime",
+                    "min": time.mktime(
+                        datetime.date.fromisoformat("2015-12-31").timetuple()
+                    )
+                    * 1000,
+                    "max": time.mktime(
+                        datetime.date.fromisoformat("2017-01-01").timetuple()
+                    )
+                    * 1000,
+                },
+                "yaxis": {
+                    "labels": {
+                        "minWidth": 40,
                     },
-                ]
+                },
+                "dataLabels": {"enabled": False},
+                "markers": {
+                    "size": 0,
+                },
             }
-            context["temp_response"] = {
-                "data": [
-                    {"x": time.mktime(x.timetuple()) * 1000, "y": round(y, 2)}
-                    for x, y in zip(w.index, w.r.fillna(0))
-                ]
-            }
+            context["plots"] = [plot_pheno_dates, plot_temp_response]
         else:
             context["timeseries"] = {"data": []}
         return context

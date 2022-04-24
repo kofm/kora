@@ -9,7 +9,11 @@ from calculator.models import Crop, Management
 from register.models import PlantSpecies
 
 """Register CropModels here"""
-CROP_MODELS = ["CropModelExpectedYield", "CropModelTotalPlants", "PhenologyCropModel"]
+CROP_MODELS = [
+    "PhenologyCropModel",
+    "CropModelExpectedYield",
+    "CropModelTotalPlants",
+]
 
 
 class CropDetailView(DetailView):
