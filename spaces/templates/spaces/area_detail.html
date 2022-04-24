@@ -33,7 +33,7 @@
 
 
     <div class="card-title">
-      <h2>Crop<a class="btn btn-outline-primary ms-2" href="{% url 'calculator:crop-create-area' area.crop_set.last.pk %}">New</a></h2>
+      <h2>Crop<a class="btn btn-outline-primary ms-2" href="{% url 'calculator:crop-create-area' area.pk %}">New</a></h2>
     </div>
 
     {% for current_crop in area.current_crops %}
