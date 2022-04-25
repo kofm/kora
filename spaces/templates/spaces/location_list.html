@@ -19,15 +19,17 @@ Plan
 <div id="treeplot">
 </div>
 
+<h1>Locations<a class="btn btn-primary ms-2" href="{% url 'spaces:location-create' %}">New</a></h1>
 <div class="row">
 
   <div class="col">
     {% for location in object_list %}
-    <h1>{{ location.name }}<a class="btn btn-primary ms-2" href="{% url 'spaces:area-create' location.pk %}">New area</a></h1>
+    <a class="h1 falink" href="{% url 'spaces:location-update' location.pk %}">{{ location.name }}<i class="bi bi-pencil ms-2 h5"></i></a>
+
     <table class="table">
       <thead>
         <tr>
-          <th scope="col">Area</th>
+          <th scope="col">Area<a class="h5 ms-2" href="{% url 'spaces:area-create' location.pk %}"><i class="bi bi-plus-circle"></i></a></th>
           <th scope="col">Dimensioni</th>
           <th scope="col">Current crop</th>
         </tr>
@@ -47,6 +49,11 @@ Plan
           <td>&nbsp;</td>
           {% endif %}
           {% endfor %}
+        </tr>
+        <tr>
+          <td><a class="h5 ms-2" href="{% url 'spaces:area-create' location.pk %}"><i class="bi bi-plus-circle"></i></a></td>
+          <td>&nbsp;</td>
+          <td>&nbsp;</td>
         </tr>
       </tbody>
     </table>

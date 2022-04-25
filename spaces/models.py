@@ -12,8 +12,8 @@ class Location(models.Model):
 class Area(models.Model):
     name = models.CharField(max_length=30)
     location = models.ForeignKey(Location, on_delete=models.PROTECT)
-    length = models.FloatField()
-    width = models.FloatField()
+    length = models.FloatField(help_text="The length of the area, in meters.")
+    width = models.FloatField(help_text="The width of the area, in meters.")
 
     @property
     def total_area(self):

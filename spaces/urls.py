@@ -11,4 +11,6 @@ urlpatterns = [
     path("area/<int:pk>/delete", views.AreaDeleteView.as_view(), name='area-delete'),
     path("area/<int:pk>/update", views.AreaUpdateView.as_view(), name='area-update'),
     path("location/<int:location_id>/area/create", views.AreaCreateView.as_view(), name='area-create'),
+    path("location/<int:pk>/update", views.LocationUpdateView.as_view(), name='location-update'),
+    path("location/create", views.LocationCreateView.as_view(), name='location-create'),
 ]
