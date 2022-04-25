@@ -52,5 +52,4 @@ function renderPlot(data, id) {
 for (var i in plotData) {
   // For each plot data item, render a plot to the div with the same ID
   renderPlot(plotData[i], plotData[i].chart.id);
-  console.log(plotData[i])
 }
