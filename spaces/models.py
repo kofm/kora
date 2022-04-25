@@ -3,8 +3,8 @@ from django.utils.timezone import now
 
 class Location(models.Model):
     name = models.CharField(max_length=30)
-    latitude = models.FloatField()
-    longitude = models.FloatField()
+    latitude = models.FloatField(blank=True, null=True)
+    longitude = models.FloatField(blank=True, null=True)
 
     def __str__(self):
         return self.name

@@ -7,44 +7,68 @@ import pandas as pd
 
 from spaces.models import Area, Location
 
+
 class LocationListView(ListView):
     model = Location
 
     def get_context_data(self, **kwargs):
-        context =  super().get_context_data(**kwargs)
-        context["crop_totals"] = self.get_crop_totals()
+        context = super().get_context_data(**kwargs)
+        context["crop_total_areas"] = self.get_crop_total_areas()
         return context
 
-    def get_crop_totals(self):
-        a=[]
-        for c in Crop.objects.all():
-            a.append({'y': c.area.total_area, 'x': str(c.content_object)})
-        d=pd.DataFrame(a).groupby('x', as_index=False).sum().sort_values(by='y', ascending=False)
-        return d.to_dict(orient='records')
+    def get_crop_total_areas(self):
+        crop_areas = []
+        for crop in Crop.objects.all():
+            species = (
+                crop.content_object if not crop.has_variety() else crop.content_object.species
+            )
+            crop_areas.append(
+                {
+                    "y": crop.area.total_area,
+                    "x": str(species),
+                }
+            )
+        plot_data = (
+            pd.DataFrame(crop_areas)
+            .groupby("x", as_index=False)
+            .sum()
+            .sort_values(by="y", ascending=False)
+            .to_dict(orient="records")
+        )
+        return plot_data
+
 
 class LocationDetailView(DetailView):
     model = Location
     context_object_name = "location"
 
+
+class LocationCreateView(CreateView):
+    model = Location
+    fields = "__all__"
+
+
 class AreaDetailView(DetailView):
     model = Area
-    context_object_name = 'area'
+    context_object_name = "area"
 
     def get_context_data(self, **kwargs):
-        context =  super().get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         context["parameters"] = Parameter.objects.all()
         return context
 
 
 class AreaUpdateView(UpdateView):
     model = Area
-    fields = ['location', 'name', 'width', 'length']
+    fields = ["location", "name", "width", "length"]
+
     def get_success_url(self):
         return reverse_lazy("spaces:area-detail", args=[self.object.id])
 
+
 class AreaCreateView(CreateView):
     model = Area
-    fields = ['location', 'name', 'width', 'length']
+    fields = ["location", "name", "width", "length"]
 
     def get_success_url(self):
         return reverse_lazy("spaces:area-detail", args=[self.object.id])
@@ -52,8 +76,9 @@ class AreaCreateView(CreateView):
     def get_initial(self):
         initial = super().get_initial()
         initial = initial.copy()
-        initial['location'] = self.kwargs['location_id']
+        initial["location"] = self.kwargs["location_id"]
         return initial
+
 
 class AreaDeleteView(DeleteView):
     model = Area

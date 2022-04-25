@@ -5,7 +5,7 @@
 {% block javascript %}
 <script src="{% static 'frontpage/js/apexcharts/apexcharts.js' %}"></script>
 <script src="{% static 'frontpage/js/moment.min.js' %}"></script>
-{{ crop_totals|json_script:"plot-data" }}
+{{ crop_total_areas|json_script:"plot-data" }}
 {% endblock %}
 
 {% block title %}
