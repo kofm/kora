@@ -48,20 +48,22 @@ def crop_update_view(request, pk):
         }
     )
 
+    # Set initial value depending on the set crop
     if crop.has_species():
         form.initial["species"] = crop.object_id
     elif crop.has_variety():
         form.initial["species"] = crop.content_object.species.id  # type: ignore
         form.initial["variety"] = crop.object_id
 
-    # Display Crop Models
-    module = importlib.import_module("calculator.cropmodels")
+    # Loop over CROP_MODELS, run the models and store output to the cropmodels list
     cropmodels = []
+    module = importlib.import_module("calculator.cropmodels")
     for cm in CROP_MODELS:
         class_ = getattr(module, cm)
         m = class_(crop)  # type: ignore
         if m.can_run():
             cropmodels.append(m.output())
+
     # JSON data to populate the species tom-select
     plantspecies = list(PlantSpecies.objects.all().values("pk", "common_name"))
     return render(
