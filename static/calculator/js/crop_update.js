@@ -41,7 +41,7 @@ function renderPlot(data, id) {
       click: clickEventHandler,
     };
   }
-
+  console.log(options);
   // Create the plot at the specified id
   let plot = new ApexCharts(document.getElementById(id), options);
   // Render the plot
@@ -52,4 +52,5 @@ function renderPlot(data, id) {
 for (var i in plotData) {
   // For each plot data item, render a plot to the div with the same ID
   renderPlot(plotData[i], plotData[i].chart.id);
+  console.log(plotData[i])
 }

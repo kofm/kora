@@ -2,6 +2,7 @@ from calculator.models import Crop
 import math
 import time
 import datetime
+import os
 import pandas as pd
 
 
@@ -35,6 +36,31 @@ class CropModel:
 
     def has_area(self):
         return self.area.total_area > 0
+
+    def has_weather(self):
+        """
+        TODO: this method will check if weather is availble for the crop
+        """
+        if os.path.exists("raw_data/weather.csv"):
+            return True
+        else:
+            return False
+
+    def get_weather_data(self):
+        if self.has_weather():
+            # Read CSV data. This will change in the future e.g. with a method
+            # to retrieve the weather data associated with the Location. This
+            # should be in the abstract class
+            weather_data = pd.read_csv(
+                "raw_data/weather.csv", index_col="date", parse_dates=True
+            )
+            # Filter only necessary columns, and only selected year
+            weather_data = pd.DataFrame(
+                weather_data, columns=["tave", "tmin", "tmax", "rad"]
+            )[weather_data.index.year == self.year]
+            return weather_data
+        else:
+            return None
 
     def get_parameter(self, code):
         param = self.object.parameters.filter(parameter__code=code).last()
@@ -92,40 +118,10 @@ class CropModelTotalPlants(CropModel):
         context["value"] = int(result)
         return context
 
+class ModelBasePlots:
 
-class PhenologyCropModel(CropModel):
-    inputs_crop = ["Tbase", "Topt", "Thigh", "GDDmat"]
-    context_name = "phenology"
-    model_name = "Phenology"
-
-    def __init__(self, crop: Crop, year: int = 2016, rmin: float = 0.4):
-        super().__init__(crop)
+    def __init__(self, year: int):
         self.year = year
-        self.rmin = rmin
-
-    def get_weather_data(self):
-        # Read CSV data. This will change in the future e.g. with a method
-        # to retrieve the weather data associated with the Location. This
-        # should be in the abstract class
-        weather_data = pd.read_csv(
-            "raw_data/weather.csv", index_col="date", parse_dates=True
-        )
-        # Filter only necessary columns, and only selected year
-        weather_data = pd.DataFrame(
-            weather_data, columns=["tave", "tmin", "tmax", "rad"]
-        )[weather_data.index.year == self.year]
-        return weather_data
-
-    def temp_response(self, t, tbase, topt, thigh):
-        """
-        Function to calculate the temperature response according to Yan, Weikai
-        and Hunt, Leslie A "An Equation for Modelling the Temperature Response
-        of Plants using only the Cardinal Temperatures" Annals of Botany (1999)
-        """
-        r = ((thigh - t) / (thigh - topt) * (t - tbase) / (topt - tbase)) ** (
-            (topt - tbase) / (thigh - topt)
-        )
-        return r
 
     def get_base_range_bar_plot(self):
         base_range_bar_plot = {
@@ -161,6 +157,8 @@ class PhenologyCropModel(CropModel):
             ],
             "grid": {"row": {"colors": ["#f3f4f5", "#fff"], "opacity": 1}},
             "annotations": {"yaxis": [], "xaxis": [], "points": []},
+            "theme": { "palette": "palette3" },
+            "stroke": { "width": 1 }
         }
         return base_range_bar_plot
 
@@ -199,6 +197,28 @@ class PhenologyCropModel(CropModel):
         epoch = time.mktime(date.timetuple()) * 1000
         return int(epoch)
 
+
+class PhenologyCropModel(CropModel, ModelBasePlots):
+    inputs_crop = ["Tbase", "Topt", "Thigh", "GDDmat"]
+    context_name = "phenology"
+    model_name = "Phenology"
+
+    def __init__(self, crop: Crop, year: int = 2016, rmin: float = 0.4):
+        super().__init__(crop)
+        self.year = year
+        self.rmin = rmin
+
+    def temp_response(self, t, tbase, topt, thigh):
+        """
+        Function to calculate the temperature response according to Yan, Weikai
+        and Hunt, Leslie A "An Equation for Modelling the Temperature Response
+        of Plants using only the Cardinal Temperatures" Annals of Botany (1999)
+        """
+        r = ((thigh - t) / (thigh - topt) * (t - tbase) / (topt - tbase)) ** (
+            (topt - tbase) / (thigh - topt)
+        )
+        return r
+
     def get_datetime_range_to_epoch(self, dates_list):
         dates_range = [min(dates_list), max(dates_list)]
         dates_range = [self.datetime_to_epoch(date) for date in dates_range]
@@ -222,23 +242,42 @@ class PhenologyCropModel(CropModel):
         weather_data["r"] = weather_data.r.rolling(window=30, min_periods=1).mean().fillna(0)
         # Define the range of usable temperatures based on a threshold
         r_range = weather_data.r > self.rmin
+        # Initialize the lists containg the simulated sowing/maturity dates
         maturity_dates = []
         sowing_dates = []
+        sowing = self.object.sowing.replace(year=self.year) if self.object.sowing else None
+        maturity = None
+        # Loop over the days within the range of usable temperatures
         for date in weather_data[r_range].index:
+            # Create a subsetted timeserie starting from date
             t = weather_data.loc[date:].copy()
+            # Get the cumulative sum of GDDs until the end of the timeserie
             t.gdd = t.gdd.cumsum()
             try:
+                # Try to find the first day where the accumulated GDDs are
+                # greater than GDDmat
                 maturity_date = t[t.gdd - gddmat > 0].index[0]
+                # Check if r is greater than rmin in that specific maturity day
                 if t.loc[maturity_date].r > self.rmin:
+                    # If it is, append both the sowing and the maturity dates
+                    # found to their respective lists
                     sowing_dates.append(date)
+                    if date == sowing:
+                        maturity = maturity_date
                     maturity_dates.append(maturity_date)
             except:
+                # If there is no possible maturity date (i.e. not enough
+                # accumulated GDDs) do nothing
                 pass
+
+        # Prepare the plots
         plot_pheno_dates = self.get_base_range_bar_plot()
         plot_pheno_dates = self.set_plot_xaxis(plot_pheno_dates)
         plot_temp_response = self.get_base_area_plot()
         plot_temp_response = self.set_plot_xaxis(plot_temp_response)
 
+        # If there are at least 2 maturity dates to define a range set the plot
+        # options accordingly
         if len(maturity_dates) > 1:
             sowing_range = self.get_datetime_range_to_epoch(sowing_dates)
             maturity_range = self.get_datetime_range_to_epoch(maturity_dates)
@@ -250,19 +289,34 @@ class PhenologyCropModel(CropModel):
                             "x": "Sowing",
                             "y": sowing_range,
                             "fillcolor": "#008FFB",
+                            "goals": [
+                                {
+                                    "name": "Break",
+                                    "value": self.datetime_to_epoch(sowing) if sowing else 0,
+                                    "strokeColor": "#CD2F2A"
+                                }
+                            ]
                         },
                         {
                             "x": "Maturity",
                             "y": maturity_range,
                             "fillcolor": "#00E396",
+                            "goals": [
+                                {
+                                    "name": "Break",
+                                    "value": self.datetime_to_epoch(maturity) if maturity else 0,
+                                    "strokeColor": "#CD2F2A"
+                                }
+                            ]
                         },
                     ]
                 }
             ]
-            # Temperature reponse plot
+        # Otherwise the series should be empty
         else:
             plot_pheno_dates["serie"] = [{ "data": []}]
 
+        # Set the temperature reponse plot data serie
         plot_temp_response["series"] = [
             {
                 "data": [
