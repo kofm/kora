@@ -111,10 +111,10 @@ class Crop(models.Model):
 
     @property
     def is_current(self):
-        if self.harvest and self.harvest > now().date():
-            return True
-        else:
-            return False
+        if self.sowing and self.sowing < now().date():
+            if not self.harvest or self.harvest > now().date():
+                return True
+        return False
 
 
 class ManagementType(models.Model):

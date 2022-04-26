@@ -46,12 +46,12 @@ class LocationDetailView(DetailView):
 class LocationCreateView(CreateView):
     model = Location
     fields = "__all__"
-    success_url = reverse_lazy('spaces:location_list')
+    success_url = reverse_lazy('spaces:location-list')
 
 class LocationUpdateView(UpdateView):
     model = Location
     fields = "__all__"
-    success_url = reverse_lazy('spaces:location_list')
+    success_url = reverse_lazy('spaces:location-list')
 
 class AreaDetailView(DetailView):
     model = Area
