@@ -2,7 +2,7 @@
 {% block title %}Species{% endblock %}
 {% block container %}
 <p class="display-1">Species</p>
-<div class="row"><div class="col"><a class="btn btn-primary ms-2" href="{% url 'register:species_create' %}">Create</a></div></div>
+<div class="row"><div class="col"><a class="btn btn-primary ms-2" href="{% url 'register:plantspecies-create' %}">Create</a></div></div>
 <div class="row">
   <div class="col">
     <table class="table">
@@ -17,7 +17,7 @@
     <tbody>
       {% for specie in object_list %}
       <tr>
-        <td><a href="{% url 'register:plantspecie_detail' specie.pk %}">{{ specie.common_name }}</a></td>
+        <td><a href="{% url 'register:plantspecies-detail' specie.pk %}">{{ specie.common_name }}</a></td>
         <td><i>{{ specie.latin_name }}</i></td>
         <td>{{ specie.variety.count }}</td>
         <td>{{ specie.total_descriptions }}</td>

@@ -1,3 +1,4 @@
+from typing import Any, Dict
 from django.core.paginator import Paginator
 from django.http.response import (
     HttpResponseRedirect,
@@ -154,36 +155,35 @@ def add_varietalparamevterervalue(request, pk):
     return render(request, "register/plantspeciesparameters_create.html", context)
 
 
-def plantvariety_create(request, pk):
-    species = PlantSpecies.objects.get(pk=pk)
-    if request.POST:
-        variety = PlantVarietyForm(request.POST)
-        variety_name = PlantVarietyNameForm(request.POST)
-        if variety.is_valid() and variety_name.is_valid():
-            new_variety = variety.save()
-            new_variety_name = variety_name.save(commit=False)
-            new_variety_name.variety = new_variety
-            new_variety_name.save()
-            variety_name.save_m2m()
-            return redirect(reverse_lazy('register:plantvariety-detail', args=[new_variety.pk]))
-    else:
-        variety = PlantVarietyForm({"species": species})
-        variety_name = PlantVarietyNameForm()
-    return render(
-        request,
-        "register/plantvariety_form.html",
-        {
-            "plantvariety_form": variety,
-            "plantvarietyname_form": variety_name,
-            "species": species,
-        },
-    )
+class PlantVarietyCreate(CreateView):
+    model = PlantVariety
+    form_class = PlantVarietyForm
+
+    def get_initial(self):
+        initial = super().get_initial()
+        initial = initial.copy()
+        initial["species"] = self.kwargs["species_id"]
+        return initial
+
+    def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        context["species"] = PlantSpecies.objects.get(pk=self.kwargs["species_id"])
+        return context
+
+    def get_success_url(self) -> str:
+        return reverse_lazy('register:plantvariety-detail', args=[self.object.pk])
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        plantvariety_name = PlantVarietyName(name = self.object.name, variety = self.object)
+        plantvariety_name.save()
+        return response
 
 class PlantVarietyDelete(DeleteView):
     model = PlantVariety
 
     def get_success_url(self):
-        return reverse_lazy('register:plantspecie_detail', args=[self.object.species.pk])
+        return reverse_lazy('register:plantspecies-detail', args=[self.object.species.pk])
 
 class PlantVarietyNameCreate(CreateView):
     model = PlantVarietyName

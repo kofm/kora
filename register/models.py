@@ -30,7 +30,7 @@ class PlantSpecies(models.Model):
 
 
 class PlantVariety(models.Model):
-    name = models.CharField(max_length=100)
+    name = models.CharField(help_text="The name of the variety", max_length=100)
     species = models.ForeignKey(
         PlantSpecies, on_delete=models.CASCADE, related_name="variety"
     )

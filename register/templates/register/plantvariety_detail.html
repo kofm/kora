@@ -4,8 +4,8 @@
 {% block container %}
 <nav aria-label="breadcrumb">
   <ol class="breadcrumb">
-    <li class="breadcrumb-item"><a href="{% url 'register:species_list' %}">Species</a></li>
-    <li class="breadcrumb-item"><a href="{% url 'register:plantspecie_detail' variety.species.pk %}"><i>{{ variety.species.latin_name }}</i></a></li>
+    <li class="breadcrumb-item"><a href="{% url 'register:plantspecies-list' %}">Species</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'register:plantspecies-detail' variety.species.pk %}"><i>{{ variety.species.latin_name }}</i></a></li>
     <li class="breadcrumb-item active" aria-current="page">{{ variety.name }}</li>
   </ol>
 </nav>
@@ -13,6 +13,7 @@
 <div class="row mt-5">
   <div class="col">
     <h2>Descriptions</h2>
+    {% if variety.description_set.count %}
     <table class="table">
       <thead>
         <th scope="col">#</th>
@@ -33,6 +34,9 @@
       </tr>
       {% endfor %}
     </table>
+    {% else %}
+    <p>There are no descriptions of this variety available.</p>
+    {% endif %}
   </div>
 </div>
 

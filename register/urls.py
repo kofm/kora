@@ -5,12 +5,12 @@ from . import views
 app_name = "register"
 
 urlpatterns = [
-    path("species/", views.PlantSpeciesList.as_view(), name="species_list"),
-    path("species/create", views.PlantSpeciesCreate.as_view(), name="species_create"),
+    path("species/", views.PlantSpeciesList.as_view(), name="plantspecies-list"),
+    path("species/create", views.PlantSpeciesCreate.as_view(), name="plantspecies-create"),
     path(
         "species/<int:pk>",
         views.PlantSpeciesDetail.as_view(),
-        name="plantspecie_detail",
+        name="plantspecies-detail",
     ),
     path(
         "species/<int:pk>/parameters",
@@ -24,8 +24,8 @@ urlpatterns = [
     ),
     path("variety/<int:pk>", views.PlantVarietyDetail.as_view(), name="plantvariety-detail"),
     path(
-        "species/<int:pk>/variety/create",
-        views.plantvariety_create,
+        "species/<int:species_id>/variety/create",
+        views.PlantVarietyCreate.as_view(),
         name="plantvariety-create",
     ),
     path(

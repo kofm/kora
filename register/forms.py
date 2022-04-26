@@ -14,7 +14,7 @@ class PlantSpeciesForm(forms.ModelForm):
 class PlantVarietyForm(forms.ModelForm):
     class Meta:
         model = PlantVariety
-        fields = "__all__"
+        fields = ['name', 'species', ]
         widgets = {"species": forms.HiddenInput()}
 
 class PlantVarietyNameForm(forms.ModelForm):

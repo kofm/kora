@@ -1,12 +1,19 @@
 {% extends "frontpage/base.html" %}
 {% load crispy_forms_tags %}
-{% block title %}Add new variety{% endblock %}
+{% block title %}Create Variety{% endblock %}
 {% block container %}
-<h1>Add new {{ species.common_name|lower }} (<i>{{ species.latin_name }}</i>) variety</h1>
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'register:plantspecies-list' %}">Species</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'register:plantspecies-detail' species.pk %}">{{ species }}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Create Variety</li>
+  </ol>
+</nav>
+<h1 class="display-1">Create Variety</h1>
+<p class="lead">New {{ species.common_name|lower }} (<i>{{ species.latin_name }}</i>) variety</p>
 <form method="post">
   {% csrf_token %}
-  {{ plantvarietyname_form|crispy }}
-  {{ plantvariety_form|crispy }}
+  {{ form|crispy }}
   <input class="btn btn-primary mt-3" type="submit" value="Save">
 </form>
 {% endblock %}
