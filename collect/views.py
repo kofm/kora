@@ -1,14 +1,19 @@
 import csv
+from typing import Any, Dict
+from django import forms
+from django.core.paginator import Paginator
 from django.db.models.aggregates import Max, Sum
 from django.db.models.expressions import Value
 from django.db.models.functions import Cast
 from django.db.models.functions.text import Concat
 from django.db.models import IntegerField, Count
+from django.db.models.query import QuerySet
 from django.db.models.query_utils import Q
 from django.http.response import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.timezone import now
 from django.urls.base import reverse, reverse_lazy
+from django.views.decorators.http import require_http_methods
 from django.views.generic.base import View
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
@@ -18,7 +23,12 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from calculator.forms import CartItemWeightForm
-from collect.forms import GerminabilityForm, SampleWeightForm, SeedSampleForm, SeedSampleYearForm
+from collect.forms import (
+    GerminabilityForm,
+    SampleWeightForm,
+    SeedSampleForm,
+    SeedSampleYearForm,
+)
 from django.contrib.auth.decorators import login_required
 
 from collect.models import (
@@ -49,16 +59,21 @@ class SeedSampleListView(ListView):
     model = SeedSample
     paginate_by = 20
 
-    def get_context_data(self, **kwargs):
+    def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         context = super().get_context_data(**kwargs)
         year = self.request.GET.get("year")
         context["search"] = self.request.GET.get("search")
         context["view"] = self.request.GET.get("view")
         context["year"] = year
-        context["form_year"] = SeedSampleYearForm(initial={'year': year})
+        context["form_year"] = SeedSampleYearForm(initial={"year": year})
+        if self.request.user:
+            try:
+                context["cart"] = Cart.objects.get(user=self.request.user, active=True)
+            except:
+                pass
         return context
 
-    def get_queryset(self):
+    def get_queryset(self) -> QuerySet[SeedSample]:
         queryset = SeedSample.objects.all()
         search = self.request.GET.get("search")
         view = self.request.GET.get("view")
@@ -116,7 +131,9 @@ class SeedSampleDetailView(DetailView):
         )
         context["variety_list"] = PlantVariety.objects.all()
         context["sample_form"] = SeedSampleForm(instance=self.object)
-        context["duplicate_samples"] = SeedSample.objects.filter(variety=self.object.variety).exclude(pk=self.object.pk)
+        context["duplicate_samples"] = SeedSample.objects.filter(
+            variety=self.object.variety
+        ).exclude(pk=self.object.pk)
         return context
 
 
@@ -287,13 +304,7 @@ def sample_weight(request):
 class CartItemAdd(LoginRequiredMixin, View):
     def get(self, *args, **kwargs):
         user = self.request.user
-
-        if user.cart_set.count() == 0:
-            cart = Cart(user=user)
-            cart.save()
-        else:
-            cart = user.cart_set.last()
-
+        cart = get_object_or_404(Cart, user=user, active=True)
         sample = get_object_or_404(SeedSample, pk=self.kwargs["seedsample_id"])
         sample_present = cart.cartitem_set.filter(sample=sample)
         if not sample_present:
@@ -305,30 +316,22 @@ class CartItemAdd(LoginRequiredMixin, View):
 
 @login_required
 def change_weight_cartitem(request, cartitem_id):
-    if request.user.cart_set.last():
-        cartitem = get_object_or_404(CartItem, pk=cartitem_id)
+    cartitem = get_object_or_404(CartItem, pk=cartitem_id)
+    if cartitem.cart.user == request.user:
         form = CartItemWeightForm(request.POST, instance=cartitem)
         if form.is_valid():
             form.save()
             return JsonResponse({"data": "ok"})
         else:
             return JsonResponse(form.errors, status=status.HTTP_400_BAD_REQUEST)
-    else:
-        return JsonResponse({"error": "no cart!"})
 
 
-class CartItemList(LoginRequiredMixin, ListView):
-    model = CartItem
-    template_name = "collect/cart.html"
-    paginate_by = 20
+class CartDetailView(DetailView, LoginRequiredMixin):
+    model = Cart
     cartitem_weight_errors = []
 
-    def get_queryset(self):
-        queryset = self.model.objects.filter(cart=self.request.user.cart_set.last()).order_by("sample__position")  # type: ignore
-        return queryset
-
     def post(self, request, *args, **kwargs):
-        cart = request.user.cart_set.last()  # type: ignore
+        cart = Cart.objects.get(user=self.request.user, active=True)
         weight = float(request.POST.get("weight"))  # type: ignore
         if cart and weight:
             self.cartitem_weight_errors = []
@@ -346,16 +349,32 @@ class CartItemList(LoginRequiredMixin, ListView):
                 cartitem.save()
         return super().get(request, *args, **kwargs)
 
-    def get_context_data(self):
-        context = super().get_context_data()
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
         context["cartitem_weight_errors"] = self.cartitem_weight_errors
-        context["cart"] = self.request.user.cart_set.last()
+        cartitems = self.object.cartitem_set.all()
+        paginator = Paginator(cartitems, 15)
+        page = self.request.GET.get("page") or 1
+        context["cartitems"] = paginator.page(page)
         return context
+
+@require_http_methods(["POST", ])
+def cart_detail_htx(request, cart_id):
+    search = request.POST.get("search")
+    queryset = CartItem.objects.filter(cart_id=cart_id)
+    if search:
+        queryset = queryset.filter(
+            sample__variety__names__name__unaccent__lower__trigram_similar=search
+        )
+    paginator = Paginator(queryset, 15)
+    context = {}
+    context["cartitems"] = paginator.page(1)
+    return render(request, "collect/cart_detail_table.html", context)
 
 
 class CartItemBulkUpdate(View, LoginRequiredMixin):
     def post(self, request, *args, **kwargs):
-        cart = request.user.cart_set.last()  # type: ignore
+        cart = self.request.user.carts.get(active=True)
         weight = float(request.POST.get("weight"))  # type: ignore
         if cart and weight:
             self.cartitem_weight_errors = []
@@ -375,7 +394,7 @@ class CartItemBulkUpdate(View, LoginRequiredMixin):
 
 class CartItemDelete(LoginRequiredMixin, DeleteView):
     model = CartItem
-    success_url = reverse_lazy("collect:cart-list")
+    success_url = reverse_lazy("collect:cart-detail")
 
 
 def samples_export(request):
@@ -394,7 +413,9 @@ class CartDelete(LoginRequiredMixin, DeleteView):
 
 class CartRetrieve(LoginRequiredMixin, View):
     def get(self, request):
-        cartitems = self.request.user.cart_set.last().cartitem_set.all()
+        cartitems = CartItem.objects.filter(
+            cart__user=self.request.user, cart__active=True
+        )
         return render(
             request,
             "collect/cart_confirm_retrieve.html",
@@ -406,20 +427,21 @@ class CartRetrieve(LoginRequiredMixin, View):
         )
 
     def post(self, request):
-        cart = request.user.cart_set.last()
+        cart = request.user.carts.get(active=True)
+
         for cartitem in cart.cartitem_set.all():
-            weight = cartitem.sample.weight - cartitem.weight
-            weight_record = SampleWeight(
-                seedsample=cartitem.sample, weight=weight, created_at=now().date()
-            )
-            weight_record.save()
-        cart.delete()
+            new_weight = cartitem.sample.weight - cartitem.weight
+            weight_updated = SampleWeight(seedsample=cartitem.sample, weight=new_weight)
+            weight_updated.save()
+
         return redirect("collect:seedsample-list")
 
 
 class CartDeleteSamples(LoginRequiredMixin, View):
     def get(self, request):
-        cartitems = self.request.user.cart_set.last().cartitem_set.all()  # type: ignore
+        cartitems = CartItem.objects.filter(
+            cart__user=self.request.user, cart__active=True
+        )
         return render(
             request,
             "collect/cart_confirm_retrieve.html",
@@ -468,6 +490,7 @@ def sample_labels(request):
 
     return response
 
+
 def cartitem_labels(request):
     # Create the HttpResponse object with the appropriate CSV header.
     response = HttpResponse(
@@ -480,6 +503,51 @@ def cartitem_labels(request):
     writer = csv.writer(response)
     writer.writerow(["variety", "id", "position"])
     for cartitem in cart.cartitem_set.all():
-        writer.writerow([cartitem.sample.variety, cartitem.sample.sample_id, cartitem.sample.position])
+        writer.writerow(
+            [
+                cartitem.sample.variety,
+                cartitem.sample.sample_id,
+                cartitem.sample.position,
+            ]
+        )
 
     return response
+
+
+class CartCreateView(CreateView, LoginRequiredMixin):
+    model = Cart
+    fields = ["name", "active", "user"]
+    success_url = reverse_lazy("collect:seedsample-list")
+
+    def get_form(self):
+        form = super().get_form()
+        form.fields["user"].widget = forms.HiddenInput()
+        form.fields["user"].initial = self.request.user
+        return form
+
+
+class CartListView(ListView, LoginRequiredMixin):
+    model = Cart
+
+    def get_queryset(self):
+        return Cart.objects.filter(user=self.request.user)
+
+
+class CartActiveView(View, LoginRequiredMixin):
+    def get(self, request, *args, **kwargs):
+        active_cart = Cart.objects.get(pk=self.kwargs["pk"], user=self.request.user)
+        active_cart.active = True
+        active_cart.save()
+        return redirect(reverse_lazy("collect:cart-list"))
+
+
+def cart_active(request):
+    if request.method == "GET":
+        cart_id = request.GET.get("cart")
+        if cart_id:
+            cart = get_object_or_404(Cart, pk=cart_id)
+            cart.active = True
+            cart.save()
+        else:
+            cart = None
+        return render(request, "collect/seedsample_list_toolbar.html", {"cart": cart})

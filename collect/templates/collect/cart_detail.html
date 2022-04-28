@@ -1,0 +1,75 @@
+{% extends "frontpage/base.html" %}
+
+{% load static %}
+
+{% block javascript %}<script src="{% static 'frontpage/js/htmx.min.js' %}" defer></script>{% endblock %}
+
+{% block title %}
+{{ object.name }}
+{% endblock %}
+
+{% block container %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'collect:seedsample-list' %}">Seed Samples</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{{ cart.name }}</li>
+  </ol>
+</nav>
+<p class="display-1">{{ cart.name }}</p>
+<div id="alert-box" class="alert alert-danger" role="alert" style="display:none">
+</div>
+<script src="{% static 'frontpage/js/cart.js' %}"></script>
+<div class="row">
+  <div class="col">
+    <div class="btn-group" role="group" aria-label="Toolbar">
+      <a class="btn btn-outline-primary" href="{% url 'collect:cart-delete' cart.pk %}">Clear</a>
+      <a class="btn btn-outline-primary" href="{% url 'collect:cartitem-labels' %}">Labels</a>
+      <a class="btn btn-outline-primary" href="{% url 'collect:cart-retrieve' %}">Retrieve</a>
+      <a class="btn btn-outline-primary" href="{% url 'collect:cart-delete-samples' %}">Trash</a>
+    </div>
+  </div>
+  <div class="col-3">
+    <div class="input-group mb-3">
+      <button onclick="changeWeightSelected(this.nextElementSibling.value)" class="btn btn-outline-secondary" type="submit" id="button-set-selected">Set selected</button>
+      <input type="number" class="form-control" placeholder="Set amount" aria-label="Amount" aria-describedby="basic-addon2">
+      <span class="input-group-text" id="basic-addon2">g</span>
+    </div>
+  </div>
+  <div class="col-3">
+    <form method="post">
+      {% csrf_token %}
+      <div class="input-group mb-3">
+        <button class="btn btn-outline-secondary" type="submit" id="button-addon1">Set all</button>
+        <input name="weight" type="number" class="form-control" placeholder="Set amount" aria-label="Amount" aria-describedby="basic-addon2">
+        <span class="input-group-text" id="basic-addon2">g</span>
+      </div>
+    </form>
+  </div>
+  <div class="col">
+    <form id="search-form">
+      {% csrf_token %}
+        <input hx-include="#search-form" hx-post="{% url 'collect:cart-detail-htx' cart.pk %}" hx-target="#cartitem-table" hx-trigger="keyup changed delay:100ms" id="search" name="search" type="text" class="form-control" placeholder="Search" aria-label="Search samples" aria-describedby="button-addon2">
+    </form>
+  </div>
+</div>
+{% if cartitem_weight_errors %}
+<div class="row my-3">
+  <div class="col">
+    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+      Some items could not be set to the desired quantity.
+      They have been set to the maximum amount available, i.e.:
+      {% for error in cartitem_weight_errors %}
+      <li>{{ error }}</li>
+      {% endfor %}
+      </ul>
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  </div>
+</div>
+{% endif %}
+<div class="row mt-3"> 
+  <div id="cartitem-table" class="col">
+    {% include 'collect/cart_detail_table.html' with page=cartitems page_get_variable='page' %}
+  </div>
+</div>
+{% endblock %}

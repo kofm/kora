@@ -1,0 +1,14 @@
+{% extends "frontpage/base.html" %}
+{% load crispy_forms_tags %}
+{% load static %}
+{% block title %}New Cart{% endblock %}
+
+{% block container %}
+<h1 class="display-1">New Cart</h1>
+<form method="POST">
+  {% csrf_token %}
+  {{ form | crispy}}
+  <button class="btn btn-primary" type="submit">Confirm</button>
+  <a class="btn btn-secondary" href="{% url 'collect:seedsample-list' %}">Cancel</a>
+</form>
+{% endblock %}

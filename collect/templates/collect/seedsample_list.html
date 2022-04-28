@@ -1,38 +1,36 @@
 {% extends "frontpage/base.html" %}
 {% load static %}
 {% load crispy_forms_tags %}
+{% block javascript %}<script src="{% static 'frontpage/js/htmx.min.js' %}" defer></script>{% endblock %}
 {% block title %}Seed Samples{% endblock %}
 
 {% block container %}
 
 <p class="display-1">Seed Samples</p>
 
-<div class="row">
-  <div class="col">
-    <div class="btn-toolbar">
-      <div class="btn-group" role="group" aria-label="Toolbar">
-        <a class="btn btn-outline-success" href="{% url 'collect:seedsample-create' %}">Create</a>
-        <a href="{% url 'collect:seedsample-list' %}" class="btn btn-outline-primary {% if not view %}active{% endif %}">All</a>
-        <a href="{% url 'collect:seedsample-list' %}?view=dupes" class="btn btn-outline-primary {% if view == 'dupes' %}active{% endif %}">Dupes</a>
-        <a href="{% url 'collect:seedsample-list' %}?view=stale" class="btn btn-outline-primary {% if view == 'stale' %}active{% endif %}">Stale</a>
-        <a href="{% url 'collect:seedsample-labels' %}" class="btn btn-outline-primary">Labels</a>
-        {% if user.is_authenticated and user.cart_set.count > 0 %}
-        <a href="{% url 'collect:cart-list'  %}" class="btn btn-outline-primary position-relative">Cart
-          <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-            {{ user.cart_set.last.cartitem_set.count }}
-            <span class="visually-hidden">Cart items</span>
-          </span>
-        </a>
-        {% endif %}
-      </div>
 
-    </div>
+<div class="row">
+
+  <div class="col">
+    {% include 'collect/seedsample_list_toolbar.html' %}
   </div>
+
+  {% if user.is_authenticated and cart %}
+  <div class="col">
+    <select id="cart-select" class="form-select" hx-trigger="change" hx-target="#cart-button" hx-get="{% url 'collect:cart-fav' %}" name="cart">
+      {% for c in user.carts.all %}
+      <option value="{{ c.pk }}" {% if c.pk == cart.pk %}selected{% endif %}>{{ c.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  {% endif %}
+
   <div class="col">
       <form method="get">
         {{ form_year.year }}
       </form>
   </div>
+
   <div class="col">
     <form method="get">
       <div class="input-group ms-3 w-100">
@@ -41,10 +39,17 @@
       </div>
     </form>
   </div>
+
 </div>
 <div class="row mt-3">
   <div class="col">
     {% if page_obj %}
+      <p class="text-monospace">
+      Filter: 
+        <a class="text-decoration-none ms-1" href="{% url 'collect:seedsample-list' %}">All</a> 
+        <a class="text-decoration-none ms-1" href="{% url 'collect:seedsample-list' %}?view=dupes" class="">Duplicates</a> 
+        <a class="text-decoration-none ms-1" href="{% url 'collect:seedsample-list' %}?view=stale" class="">Stale</a> 
+      </p>
     {% include 'collect/seedsample_table.html' with object_list=page_obj %}
     {% include 'frontpage/paginator.html' with page=page_obj page_get_variable='page' %}
     {% else %}

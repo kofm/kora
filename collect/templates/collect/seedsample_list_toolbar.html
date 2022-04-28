@@ -1,0 +1,17 @@
+<div class="btn-toolbar">
+  <div id="cart-button" class="btn-group" role="group" aria-label="Toolbar">
+    <a class="btn btn-outline-success" href="{% url 'collect:seedsample-create' %}">Create</a>
+    <a href="{% url 'collect:seedsample-labels' %}" class="btn btn-outline-primary">Labels</a>
+    {% if user.is_authenticated and cart %}
+    <a href="{% url 'collect:cart-detail' cart.pk %}" class="btn btn-outline-primary position-relative">Cart
+      <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+        {{ cart.cartitem_set.count }}
+      </span>
+    </a>
+    {% else %}
+    <a href="{% url 'collect:cart-create' %}" class="btn btn-outline-primary position-relative">Cart
+    </a>
+    {% endif %}
+  </div>
+</div>
+

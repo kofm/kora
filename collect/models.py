@@ -1,10 +1,11 @@
 from django.db import models
+from django.db.models.constraints import UniqueConstraint
+from django.db.models.query_utils import Q
 from django.urls import reverse
 from django.utils.timezone import now
 
 from register.models import PlantVariety
 from django.contrib.auth.models import User
-
 
 class Storage(models.Model):
     """
@@ -114,11 +115,19 @@ class SampleWeight(models.Model):
 
 
 class Cart(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    name = models.CharField(help_text="An identificative name for your cart", max_length=100, default="Cart")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="carts")
+    active = models.BooleanField(default=False)
     created_at = models.DateField(auto_now_add=True)
 
     def __str__(self) -> str:
         return self.user.username
+
+    class Meta:
+        constraints = [
+            UniqueConstraint(fields=['user',], condition=Q(active=True), name='unique_user_active')
+        ]
+        ordering = ["-active", "name"]
 
 
 class CartItem(models.Model):
