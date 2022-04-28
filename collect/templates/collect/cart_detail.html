@@ -2,19 +2,23 @@
 
 {% load static %}
 
-{% block javascript %}<script src="{% static 'frontpage/js/htmx.min.js' %}" defer></script>{% endblock %}
+{% block javascript %}
+<script src="{% static 'frontpage/js/htmx.min.js' %}" defer></script>
+{% endblock %}
 
 {% block title %}
 {{ object.name }}
 {% endblock %}
 
 {% block container %}
+<!-- NavBar -->
 <nav aria-label="breadcrumb">
   <ol class="breadcrumb">
     <li class="breadcrumb-item"><a href="{% url 'collect:seedsample-list' %}">Seed Samples</a></li>
     <li class="breadcrumb-item active" aria-current="page">{{ cart.name }}</li>
   </ol>
 </nav>
+
 <p class="display-1">{{ cart.name }}</p>
 <div id="alert-box" class="alert alert-danger" role="alert" style="display:none">
 </div>
@@ -48,7 +52,7 @@
   <div class="col">
     <form id="search-form">
       {% csrf_token %}
-        <input hx-include="#search-form" hx-post="{% url 'collect:cart-detail-htx' cart.pk %}" hx-target="#cartitem-table" hx-trigger="keyup changed delay:100ms" id="search" name="search" type="text" class="form-control" placeholder="Search" aria-label="Search samples" aria-describedby="button-addon2">
+        <input hx-include="#search-form" hx-get="{% url 'collect:cart-detail-htx' cart.pk %}" hx-target="#cartitem-table" hx-trigger="keyup changed delay:100ms" id="search" name="search" type="text" class="form-control" placeholder="Search" aria-label="Search samples" aria-describedby="button-addon2">
     </form>
   </div>
 </div>
@@ -68,8 +72,7 @@
 </div>
 {% endif %}
 <div class="row mt-3"> 
-  <div id="cartitem-table" class="col">
-    {% include 'collect/cart_detail_table.html' with page=cartitems page_get_variable='page' %}
+  <div id="cartitem-table" class="col" hx-get="{% url 'collect:cart-detail-htx' cart.pk  %}" hx-target="this" hx-swap="innerHTML" hx-trigger="load">
   </div>
 </div>
 {% endblock %}

@@ -17,10 +17,10 @@
     <td>{{ cartitem.sample.sample_id }}</td>
     <td>{{ cartitem.sample.variety.name }}</td>
     <td>{{ cartitem.sample.position }}</td>
-    <td>{{ cartitem.sample.weight }}</td>
-    <td>{{ cartitem.sample.germinability }}</td>
+    <td>{{ cartitem.sample.weight |stringformat:"d g" }}</td>
+    <td>{{ cartitem.sample.germinability|stringformat:"d%%"|default_if_none:"&nbsp;"  }}</td>
     <td>{{ cartitem.sample.growing_season }}</td>
-    <td>{% if cartitem.sample.notes %}{{ cartitem.sample.notes }}{% endif %}</td>
+    <td>{{ cartitem.sample.notes| default_if_none:"&nbsp;" }}</td>
     <td>
       <form id="cartitem-weight-{{ cartitem.pk }}">
         {% csrf_token %}
@@ -46,4 +46,4 @@
   </tr>
   {% endfor %}
 </table>
-{% include 'frontpage/paginator.html' with page=cartitems page_get_variable='page' %}
+{% include 'frontpage/paginator-hx.html' with page=cartitems page_get_variable='page' cart_id=cart_id %}

@@ -14,7 +14,13 @@
     {% get_proper_elided_page_range page.paginator page.number as page_range %}
     {% for p in page_range %}
     <li class="page-item {% if p == page.number %}active{% endif %}">
-      <a class="page-link" {% if p != page.paginator.ELLIPSIS %}href="?{{ page_get_variable }}={{ p }}{% endif %}{% if search %}&search={{ search }}{% endif %}{% if view %}&view={{ view }}{% endif %}{% if year %}&year={{ year }}{% endif %}">
+      <a 
+        class="page-link" 
+        {% if p != page.paginator.ELLIPSIS %}href="?{{ page_get_variable }}={{ p }}{% endif %}
+        {% if search %}&search={{ search }}{% endif %}
+        {% if view %}&view={{ view }}{% endif %}
+        {% if year %}&year={{ year }}{% endif %}"
+        >
         {{ p }}
       </a>
     </li>

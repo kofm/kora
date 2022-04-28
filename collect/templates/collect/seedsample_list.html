@@ -17,11 +17,13 @@
 
   {% if user.is_authenticated and cart %}
   <div class="col">
+    <div class="input-group">
     <select id="cart-select" class="form-select" hx-trigger="change" hx-target="#cart-button" hx-get="{% url 'collect:cart-fav' %}" name="cart">
       {% for c in user.carts.all %}
       <option value="{{ c.pk }}" {% if c.pk == cart.pk %}selected{% endif %}>{{ c.name }}</option>
       {% endfor %}
     </select>
+    </div>
   </div>
   {% endif %}
 

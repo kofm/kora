@@ -358,17 +358,19 @@ class CartDetailView(DetailView, LoginRequiredMixin):
         context["cartitems"] = paginator.page(page)
         return context
 
-@require_http_methods(["POST", ])
+@require_http_methods(["GET", ])
 def cart_detail_htx(request, cart_id):
-    search = request.POST.get("search")
+    search = request.GET.get("search")
+    page = request.GET.get("page") or 1
     queryset = CartItem.objects.filter(cart_id=cart_id)
     if search:
         queryset = queryset.filter(
             sample__variety__names__name__unaccent__lower__trigram_similar=search
         )
-    paginator = Paginator(queryset, 15)
+    paginator = Paginator(queryset, 5)
     context = {}
-    context["cartitems"] = paginator.page(1)
+    context["cart_id"] = cart_id
+    context["cartitems"] = paginator.page(page)
     return render(request, "collect/cart_detail_table.html", context)
 
 
@@ -540,8 +542,12 @@ class CartActiveView(View, LoginRequiredMixin):
         active_cart.save()
         return redirect(reverse_lazy("collect:cart-list"))
 
+def cart_create_redirect_htx(request):
+    response = HttpResponse()
+    response["HX-Redirect"] = reverse_lazy('collect:cart-create')
+    return response
 
-def cart_active(request):
+def cart_active_hx(request):
     if request.method == "GET":
         cart_id = request.GET.get("cart")
         if cart_id:

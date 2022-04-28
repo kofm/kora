@@ -31,6 +31,7 @@ urlpatterns = [
     path("cart/labels", views.cartitem_labels, name="cartitem-labels"),
     path("carts/", views.CartListView.as_view(), name="cart-list"),
     path("cart/<int:pk>/favourite", views.CartActiveView.as_view(), name="cart-favourite"),
-    path("cart/favourite", views.cart_active, name="cart-fav"),
+    path("cart/favourite", views.cart_active_hx, name="cart-fav"),
     path("cart/create", views.CartCreateView.as_view(), name="cart-create"),
+    path("cart/htx/create", views.cart_create_redirect_htx, name="cart-create-htx"),
 ]
