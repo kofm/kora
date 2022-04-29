@@ -1,3 +1,5 @@
+
+{% load frontpage_extras %}
 <table class="table table-striped">
   <thead>
     <th scope="col">ID</th>
@@ -29,3 +31,63 @@
   </tr>
   {% endfor %}
 </table>
+
+
+{% if is_paginated %}
+<nav aria-label="Table navigation">
+  <ul 
+    class="pagination"
+    hx-target="#seedsample-table"
+    hx-swap="innerHTML"
+    hx-include="#search-form, #year-form, #view-form"
+    >
+
+    <li class="page-item">
+      <a 
+        class="page-link"
+        {% if object_list.has_previous %}
+        href="#"
+        hx-get="_hx?page={{ object_list.previous_page_number }}"
+        {% endif %}
+        aria-label="Previous">
+        <span aria-hidden="true">&laquo;</span>
+      </a>
+    </li>
+
+
+    {% get_proper_elided_page_range object_list.paginator object_list.number as page_range %}
+
+    {% for page in page_range %}
+    <li 
+      class="page-item 
+      {% if page == object_list.number %}
+      active
+      {% endif %}"
+      >
+      <a 
+        class="page-link" 
+        {% if page != object_list.paginator.ELLIPSIS %}
+        href="#"
+        hx-get="_hx?page={{ page }}"
+        {% endif %}
+        >
+        {{ page }}
+      </a>
+    </li>
+    {% endfor %}
+
+
+    <li class="page-item">
+      <a 
+        class="page-link"
+        {% if object_list.has_next %}
+        href="#"
+        hx-get="_hx?page={{ object_list.next_page_number }}"
+        {% endif %}
+        aria-label="Previous">
+        <span aria-hidden="true">&raquo;</span>
+      </a>
+    </li>
+  </ul>
+</nav>
+{% endif %}

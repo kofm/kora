@@ -55,6 +55,61 @@ class StorageCreateView(CreateView):
     ]
 
 
+def seedsample_list_hx(request):
+    search = request.GET.get("search")
+    page = request.GET.get("page") or 1
+    year = request.GET.get("year") or 0
+    view = request.GET.get("view")
+
+    queryset = SeedSample.objects.all()
+
+    if search:
+        queryset = queryset.filter(
+            variety__names__name__unaccent__lower__trigram_similar=search
+        )
+    if int(year):
+        queryset = queryset.filter(growing_season=year)
+    if view == "dupes":
+        duplicates = (
+            SeedSample.objects.all()
+            .values("variety_id")
+            .annotate(c=Count("id"))
+            .order_by("variety")
+            .filter(c__gt=1)
+        )
+        queryset = queryset.filter(
+            variety__in=[e["variety_id"] for e in duplicates]
+        ).order_by("variety_id", "growing_season")
+
+    # Get samples older than 7 years or weighing less than 200g.
+    # The weight is summed across samples of the same variety.
+    if view == "stale":
+        stale = (
+            SeedSample.objects.values("variety")
+            .annotate(Max("growing_season"), Sum("sampleweight__weight"))
+            .filter(
+                Q(growing_season__max__lt=now().year - 7)
+                | Q(sampleweight__weight__sum__lt=200)
+            )
+            .values_list("variety", flat=True)
+        )
+        queryset = SeedSample.objects.filter(
+            variety__in=stale,
+        ).order_by("variety_id", "growing_season")
+
+    paginator = Paginator(queryset, 10)
+    page_object = paginator.page(page)
+    return render(
+        request,
+        'collect/seedsample_table.html',
+        {
+            'object_list': page_object,
+            'is_paginated': True
+        }
+    )
+
+
+
 class SeedSampleListView(ListView):
     model = SeedSample
     paginate_by = 20
@@ -371,7 +426,7 @@ def cart_detail_htx(request, cart_id):
     context = {}
     context["cart_id"] = cart_id
     context["cartitems"] = paginator.page(page)
-    return render(request, "collect/cart_detail_table.html", context)
+    return render(request, "collect/partials/cart_detail_table.html", context)
 
 
 class CartItemBulkUpdate(View, LoginRequiredMixin):
