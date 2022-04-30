@@ -16,6 +16,7 @@ class Area(models.Model):
     location = models.ForeignKey(Location, on_delete=models.PROTECT)
     length = models.FloatField(help_text="The length of the area, in meters.")
     width = models.FloatField(help_text="The width of the area, in meters.")
+    order = models.PositiveIntegerField(help_text="The ordering of the area within its location")
 
     @property
     def total_area(self):
@@ -30,4 +31,4 @@ class Area(models.Model):
         return self.name
 
     class Meta:
-        ordering = ["name"]
+        ordering = ["order", "name"]

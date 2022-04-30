@@ -6,6 +6,7 @@ app_name = "spaces"
 
 urlpatterns = [
     path("locations", views.LocationListView.as_view(), name="location-list"),
+    path("area/sort_hx", views.area_sort_hx, name="area-sort"),
     path("locations/<int:pk>", views.LocationDetailView.as_view(), name='location-detail'),
     path("area/<int:pk>", views.AreaDetailView.as_view(), name='area-detail'),
     path("area/<int:pk>/delete", views.AreaDeleteView.as_view(), name='area-delete'),

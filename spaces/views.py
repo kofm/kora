@@ -1,4 +1,7 @@
+from django.http.response import HttpResponse
+from django.shortcuts import render
 from django.urls.base import reverse_lazy
+from django.views.decorators.http import require_http_methods
 from django.views.generic import DetailView, ListView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 from calculator.models import Crop
@@ -36,6 +39,18 @@ class LocationListView(ListView):
             .to_dict(orient="records")
         )
         return plot_data
+
+@require_http_methods(["POST",])
+def area_sort_hx(request):
+    area_pks_order = request.POST.getlist("area_order")
+    areas = []
+    print(area_pks_order)
+    for idx, area_pk in enumerate(area_pks_order, start=1):
+        area = Area.objects.get(pk=area_pk)
+        area.order = idx
+        area.save()
+        areas.append(area)
+    return render(request, 'spaces/partials/area_list.html', {'areas': areas})
 
 
 class LocationDetailView(DetailView):

@@ -1,0 +1,28 @@
+{
+  "name": "persefone",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "npx webpack; cp dist/htmx.js frontpage/static/frontpage/js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kofm/persefone.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/kofm/persefone/issues"
+  },
+  "homepage": "https://github.com/kofm/persefone#readme",
+  "dependencies": {
+    "create-index": "^2.6.0",
+    "htmx": "^0.0.2",
+    "htmx.org": "^1.7.0",
+    "sortablejs": "^1.15.0",
+    "webpack": "^5.72.0",
+    "webpack-cli": "^4.9.2"
+  }
+}
