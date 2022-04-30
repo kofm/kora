@@ -36,8 +36,8 @@ Plan
 
 
 <div class="row justify-content-center">
-  <div class="col-6">
-    <form hx-post="{% url 'spaces:area-sort' %}" hx-trigger="end" class="sortable"> 
+  <div class="col-4">
+    <form hx-post="{% url 'spaces:area-sort' %}" hx-trigger="end"> 
       {% include 'spaces/partials/area_list.html' with areas=location.area_set.all %}
     </form>
     <a class="h5 ms-2" href="{% url 'spaces:area-create' location.pk %}"><i class="bi bi-plus-circle"></i></a>
@@ -51,14 +51,8 @@ Plan
 
 <script>
   htmx.onLoad(function(content) {
-    var sortables = content.querySelectorAll(".sortable");
-    for (var i = 0; i < sortables.length; i++) {
-      var sortable = sortables[i];
-      new Sortable(sortable, {
-          animation: 150,
-          ghostClass: 'blue-background-class'
-      });
-    }
-})
+      var s = document.getElementById("list-sort");
+      var sort = new Sortable.create(s);
+    })
 </script>
-  {% endblock %}
+{% endblock %}

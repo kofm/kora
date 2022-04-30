@@ -1,15 +1,12 @@
-{% for area in areas %}
-
-<div class="card my-2">
-  <div class="card-body">
-
-    <input type="hidden" name="area_order" value="{{ area.pk }}">
-
-    <a href="{% url 'spaces:area-detail' area.pk %}">{{ area.name }}</a>
-    {{ area.length }}&times;{{ area.width }} ({{ area.total_area }})
-
-  </div>
-</div>
-
-{% endfor %}
+<ul id="list-sort" class="list-group">
+  {% for area in areas %}
+  
+      <li class="list-group-item" align="center">
+        <input type="hidden" name="area_order" value="{{ area.pk }}">
+        
+        <a href="{% url 'spaces:area-detail' area.pk %}">{{ area.name }}</a>
+      </li>
+  
+  {% endfor %}
+</ul>
 
