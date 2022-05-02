@@ -13,3 +13,4 @@ dumps
 dist
 node_modules
 src
+static/frontpage/js
