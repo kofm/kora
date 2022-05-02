@@ -53,7 +53,7 @@ def area_sort_hx(request):
         area.location = location
         area.save()
         area_list.append(area)
-    return render(request, 'spaces/partials/area_list.html', {'area_list': area_list})
+    return render(request, 'spaces/partials/area_list.html', {'area_list': area_list, 'location': location})
 
 
 class LocationDetailView(DetailView):
