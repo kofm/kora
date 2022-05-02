@@ -4,7 +4,7 @@
 {% block container %}
 <nav aria-label="breadcrumb">
   <ol class="breadcrumb">
-    <li class="breadcrumb-item"><a href="{% url 'spaces:location-list' %}">Locations</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'spaces:location-list' %}">Zones</a></li>
 
     <li class="breadcrumb-item active" aria-current="page">{% if area %}{{ area.name }}{% else %}New Area{% endif %}</li>
   </ol>

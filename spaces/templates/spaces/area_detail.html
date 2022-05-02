@@ -2,7 +2,7 @@
 
 
 {% block title %}
-  Area: {{ area.name }}
+  Area {{ area.name }}
 {% endblock %}
 
 
@@ -10,14 +10,15 @@
 
 <nav aria-label="breadcrumb">
   <ol class="breadcrumb">
-    <li class="breadcrumb-item"><a href="{% url 'spaces:location-list' %}">{{ area.location.name }}</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'spaces:location-list' %}">Zones</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'spaces:location-detail' area.location.pk %}">{{ area.location.name }}</a></li>
     <li class="breadcrumb-item active" aria-current="page">{{ area.name }}</li>
   </ol>
 </nav>
 
-<h1>Area: {{ area.name }} ({{ area.location.name }})</h1>
+<h1 class="display-1">{{ area.name }} <small class="text-muted">({{ area.location.name }})</small></h1>
 
-<div class="row">
+<div class="row my-3">
   <div class="col card mx-2 py-2 d-flex">
     <div class="card-title"><h2>Area info</h2></div>
     <ul class="list-group list-group-flush my-3">

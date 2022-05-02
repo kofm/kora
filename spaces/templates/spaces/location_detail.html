@@ -1,25 +1,45 @@
 {% extends "frontpage/base.html" %}
+{% load static %}
+
+
+{% block javascript %}
+<script src="{% static 'frontpage/js/htmx.js' %}" type="text/javascript"></script>
+{% endblock %}
+
+
 {% block title %}Location: {{ location.name }}{% endblock %}
+
+
 {% block container %}
-<h1>Location: {{ location.name }}</h1>
-<table class="table table-striped">
-    <thead>
-      <th>Area</th>
-      <th>Length</th>
-      <th>Width</th>
-      <th>Total area</th>
-      <th>Temperature offset</th>
-    </thead>
-  {% for area in location.area_set.all %}
-    <tr>
-      <td><a href="#">{{ area.name }}</a></td>
-      <td>{{ area.length }}</td>
-      <td>{{ area.width }}</td>
-      <td>{{ area.total_area }}</td>
-      <td>{{ area.temp_offset }}</td>
-    </tr>
-  {% empty %}
-  <p>There are no areas in this location.</p>
-  {% endfor %}
-</table>
+
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'spaces:location-list' %}">Zones</a></li>
+    <li class="breadcrumb-item">{{ location.name }}</li>
+  </ol>
+</nav>
+
+<h1 class="display-1">{{ location }}</h1>
+
+<form hx-post="{% url 'spaces:area-sort' %}" hx-trigger="end" hx-target="#grid-area"> 
+
+  <div id="grid" class="row">
+    <div id="grid-area" class="col">
+      {% include 'spaces/partials/area_list.html' with area_list=location.area_set.all %}
+    </div>
+  </div>
+
+  <input type="hidden" name="location" value="{{ location.pk }}">
+
+</form>
+
+<script>
+  htmx.onLoad(function(content) {
+      var el = document.getElementById("grid-area")
+      new Sortable(el, {
+          filter: '.filtered',
+        })
+    })
+</script>
+
 {% endblock %}

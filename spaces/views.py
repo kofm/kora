@@ -7,6 +7,7 @@ from django.views.generic.edit import CreateView, DeleteView, UpdateView
 from calculator.models import Crop
 from parameters.models import Parameter
 import pandas as pd
+from .utils import get_max_order
 
 from spaces.models import Area, Location
 
@@ -42,15 +43,17 @@ class LocationListView(ListView):
 
 @require_http_methods(["POST",])
 def area_sort_hx(request):
-    area_pks_order = request.POST.getlist("area_order")
-    areas = []
-    print(area_pks_order)
-    for idx, area_pk in enumerate(area_pks_order, start=1):
+    area_pks_ordered = request.POST.getlist("area_order")
+    location_pk = request.POST.get("location")
+    location = Location.objects.get(pk=location_pk)
+    area_list = []
+    for idx, area_pk in enumerate(area_pks_ordered, start=1):
         area = Area.objects.get(pk=area_pk)
         area.order = idx
+        area.location = location
         area.save()
-        areas.append(area)
-    return render(request, 'spaces/partials/area_list.html', {'areas': areas})
+        area_list.append(area)
+    return render(request, 'spaces/partials/area_list.html', {'area_list': area_list})
 
 
 class LocationDetailView(DetailView):
@@ -99,7 +102,16 @@ class AreaCreateView(CreateView):
         initial["location"] = self.kwargs["location_id"]
         return initial
 
+    def form_valid(self, form):
+        self.object = form.save(commit=False)
+        order = get_max_order(self.object.location)
+        self.object.order = order
+        self.object.save()
+        return super().form_valid(form)
 
 class AreaDeleteView(DeleteView):
     model = Area
     success_url = reverse_lazy("spaces:location-list")
+
+def test(request):
+    return render(request, 'spaces/test.html')

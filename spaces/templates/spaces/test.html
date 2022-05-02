@@ -1,0 +1,36 @@
+{% load static %}
+<script src="{% static 'frontpage/js/htmx.js'  %}"></script>
+  <ul class="list list-group">
+    <form hx-post="." hx-trigger="end, add"> 
+      <li class="list-group-item">A
+        <input type="hidden" name="letter" value="A">
+        <ul class="list list-group">
+          <li class="list-group-item list n1"><input type="hidden" name="number" value="1">1</li>
+          <li class="list-group-item list n1"><input type="hidden" name="number" value="2">2</li>
+        </ul>
+      </li>
+    </form>
+    <form hx-post="." hx-trigger="end, add"> 
+      <li class="list list-group-item">B
+        <input type="hidden" name="letter" value="B">
+        <ul class="list-group">
+          <li class="list-group-item list n1"><input type="hidden" name="number" value="3">3</li>
+          <li class="list-group-item list n1"><input type="hidden" name="number" value="4">4</li>
+        </ul>
+      </li>
+    </form>
+  </ul>
+<script>
+htmx.onLoad(function(content) {
+	var elements = document.getElementsByClassName('list');
+
+	for (var i = 0; i < elements.length; i++) {
+		new Sortable(elements[i], {
+        group: 'nested',
+        animation: 150,
+        fallbackOnBody: true,
+        swapThreshold: 0.65
+      });
+    }
+  })
+</script>

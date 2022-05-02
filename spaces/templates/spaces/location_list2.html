@@ -1,0 +1,54 @@
+{% extends "frontpage/base.html" %}
+
+{% load static %}
+
+{% block javascript %}
+<script src="{% static 'frontpage/js/apexcharts/apexcharts.js' %}"></script>
+<script src="{% static 'frontpage/js/moment.min.js' %}"></script>
+{{ crop_total_areas|json_script:"plot-data" }}
+  <script src="{% static 'frontpage/js/htmx.js' %}" type="text/javascript"></script>
+{% endblock %}
+
+{% block title %}
+Plan
+{% endblock %}
+
+{% block container %}
+
+<p class="display-1">Plan</p>
+
+<div id="treeplot">
+</div>
+
+<h1>Zones<a class="btn btn-primary ms-2" href="{% url 'spaces:location-create' %}">New</a></h1>
+
+      {% for location in object_list %}
+
+      <form hx-post="{% url 'spaces:area-sort' %}" hx-trigger="add, end" hx-target="find .list"> 
+          <input type="hidden" name="location" value="{{ location.pk }}">
+          <p class="display-5">{{ location }}</p>
+          <ul class="list-group list n1">
+            {% include 'spaces/partials/area_list.html' with areas=location.area_set.all %}
+          </ul>
+      </form>
+
+      {% endfor %}
+
+<script src="{% static 'spaces/js/location_list.js' %}" type="text/javascript"></script>
+
+<script>
+  htmx.onLoad(function(content) {
+      var elements = document.getElementsByClassName('list');
+
+      for (var i = 0; i < elements.length; i++) {
+          new Sortable(elements[i], {
+              group: 'nested',
+              animation: 150,
+              fallbackOnBody: true,
+              swapThreshold: 0.65,
+              scrollSensitivity: 1000,
+            });
+        }
+    })
+</script>
+{% endblock %}

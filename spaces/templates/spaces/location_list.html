@@ -1,58 +1,24 @@
 {% extends "frontpage/base.html" %}
-
+{% load crispy_forms_tags %}
 {% load static %}
-
 {% block javascript %}
 <script src="{% static 'frontpage/js/apexcharts/apexcharts.js' %}"></script>
 <script src="{% static 'frontpage/js/moment.min.js' %}"></script>
 {{ crop_total_areas|json_script:"plot-data" }}
-  <script src="{% static 'frontpage/js/htmx.js' %}" type="text/javascript"></script>
 {% endblock %}
-
-{% block title %}
-Plan
-{% endblock %}
+{% block title %}Zones{% endblock %}
 
 {% block container %}
-
-<p class="display-1">Plan</p>
-
+<h1 class="display-1">Zones</h1>
+<div class="row">
+{% for location in object_list %}
+<div class="grid-square"> 
+  <h5><a class="text-decoration-none link-dark" href="{% url 'spaces:location-detail' location.pk  %}">{{ location.name }}</a></h5>
+  <small class="text-muted">Areas: {{ location.area_set.count }}</small>
+</div>
+{% endfor %}
 <div id="treeplot">
 </div>
-
-<h1>Locations<a class="btn btn-primary ms-2" href="{% url 'spaces:location-create' %}">New</a></h1>
-
-<div class="row">
-
-  <div class="col">
-
-    {% for location in object_list %}
-
-    <a class="h1 falink" href="{% url 'spaces:location-update' location.pk %}">
-      {{ location.name }}<i class="bi bi-pencil ms-2 h5"></i>
-    </a>
-
-  </div>
-
-
-<div class="row justify-content-center">
-  <div class="col-4">
-    <form hx-post="{% url 'spaces:area-sort' %}" hx-trigger="end"> 
-      {% include 'spaces/partials/area_list.html' with areas=location.area_set.all %}
-    </form>
-    <a class="h5 ms-2" href="{% url 'spaces:area-create' location.pk %}"><i class="bi bi-plus-circle"></i></a>
-  </div>
-  {% empty %}
-  <p>There are no stored locations, yet.</p>
-  {% endfor %}
+<script src="{% static 'spaces/js/location_list.js' %}" type="text/javascript"></script>
 </div>
-
-  <script src="{% static 'spaces/js/location_list.js' %}" type="text/javascript"></script>
-
-<script>
-  htmx.onLoad(function(content) {
-      var s = document.getElementById("list-sort");
-      var sort = new Sortable.create(s);
-    })
-</script>
 {% endblock %}
