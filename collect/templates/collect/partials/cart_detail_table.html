@@ -1,49 +1,70 @@
-<table class="table table-striped table-hover">
-  <thead>
-    <th scope="col">&nbsp;</th>
-    <th scope="col">ID</th>
-    <th scope="col">Variety</th>
-    <th scope="col">Location</th>
-    <th scope="col">Weight</th>
-    <th scope="col">Germinability</th>
-    <th scope="col">Growing season</th>
-    <th scope="col">Notes</th>
-    <th class="col-1" scope="col">Quantity</th>
-    <th scope="col"></th>
-  </thead>
-  {% for cartitem in cartitems.object_list %}
-  <tr id="cartitem-{{ forloop.counter }}">
-    <td><input class="chk" type="checkbox"></td>
-    <td>{{ cartitem.sample.sample_id }}</td>
-    <td>{{ cartitem.sample.variety.name }}</td>
-    <td>{{ cartitem.sample.position }}</td>
-    <td>{{ cartitem.sample.weight |stringformat:"d g" }}</td>
-    <td>{{ cartitem.sample.germinability|stringformat:"d%%"|default_if_none:"&nbsp;"  }}</td>
-    <td>{{ cartitem.sample.growing_season }}</td>
-    <td>{{ cartitem.sample.notes| default_if_none:"&nbsp;" }}</td>
-    <td>
-      <form id="cartitem-weight-{{ cartitem.pk }}">
-        {% csrf_token %}
+<form id="cartitem-table">
+  <table class="table table-striped table-hover">
+    <thead>
+      <th scope="col">
         <input
-        name="weight"
-        class="form-control"
-        id="cartitem-weight-input-{{ cartitem.pk }}"
-        type="number"
-        min=0
-        max={{ cartitem.sample.sampleweight_set.last.weight }}
-        value={{ cartitem.weight }}
-        onchange="changeWeight(this);"
-        data-url="{% url 'collect:cartitem-weight-update' cartitem.pk %}"
+        type="checkbox"
+        _="on click 
+            repeat in <input.chk/>
+            set it.checked to not it.checked
+            end"
         >
-      </form></td>
+      </th>
+      <th scope="col">ID</th>
+      <th scope="col">Variety</th>
+      <th scope="col">Location</th>
+      <th scope="col">Weight</th>
+      <th scope="col">Germinability</th>
+      <th scope="col">Growing season</th>
+      <th scope="col">Notes</th>
+      <th class="col-1" scope="col">Quantity</th>
+      <th scope="col"></th>
+    </thead>
+    {% for cartitem in cartitems.object_list %}
+    <tr id="cartitem-{{ forloop.counter }}">
+      <td><input
+              id="cartitem_pk"
+              name="cartitem_pk"
+              class="chk"
+              type="checkbox"
+              value={{ cartitem.pk }}
+              ></td>
+      <td>{{ cartitem.sample.sample_id }}</td>
+      <td>{{ cartitem.sample.variety.name }}</td>
+      <td>{{ cartitem.sample.position }}</td>
+      <td>{{ cartitem.sample.weight |stringformat:"d g" }}</td>
+      <td>{{ cartitem.sample.germinability|stringformat:"d%%"|default_if_none:"&nbsp;"  }}</td>
+      <td>{{ cartitem.sample.growing_season }}</td>
+      <td>{{ cartitem.sample.notes| default_if_none:"&nbsp;" }}</td>
       <td>
-        <form id="cartitem-delete-form-{{ forloop.counter }}" action="{% url 'collect:cartitem-delete' cartitem.pk %}" method="post">
-          {% csrf_token %}
-          <a href="{% url 'register:plantvariety-detail' cartitem.sample.variety.id %}"><i class="bi bi-zoom-in" style="color: black;"></i></a>
-          <a href="#" onclick="this.parentElement.submit()"><i class="bi bi-trash" style="color: black;" ></i></a>
-        </form>
+        <input
+            name="weight"
+            class="form-control wgt"
+            id="cartitem-weight-input-{{ cartitem.pk }}"
+            type="number"
+            min=0
+            max={{ cartitem.sample.sampleweight_set.last.weight }}
+            value={{ cartitem.weight|stringformat:"d" }}
+            hx-post={% url 'collect:cartitem-weight-update-hx' cartitem.pk %}
+            hx-swap="none"
+            _="
+               on click from #button-set-selected
+               if (the previous <input/>) matches <:checked/>
+               set @value to #weight_selected.value
+                end
+                end
+               "
+            >
+            <input type="hidden" name="cartitem_id" value="{{ cartitem.pk }}">
       </td>
-  </tr>
-  {% endfor %}
-</table>
+        <td>
+          <form id="cartitem-delete-form-{{ forloop.counter }}" action="{% url 'collect:cartitem-delete' cartitem.pk %}" method="post">
+            <a href="{% url 'register:plantvariety-detail' cartitem.sample.variety.id %}"><i class="bi bi-zoom-in" style="color: black;"></i></a>
+            <a href="#" onclick="this.parentElement.submit()"><i class="bi bi-trash" style="color: black;" ></i></a>
+          </form>
+        </td>
+    </tr>
+    {% endfor %}
+  </table>
+</form>
 {% include 'frontpage/paginator-cart-hx.html' with page=cartitems page_get_variable='page' cart_id=cart_id %}

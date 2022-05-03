@@ -21,6 +21,7 @@
     "create-index": "^2.6.0",
     "htmx": "^0.0.2",
     "htmx.org": "^1.7.0",
+    "hyperscript.org": "^0.9.5",
     "sortablejs": "^1.15.0",
     "webpack": "^5.72.0",
     "webpack-cli": "^4.9.2"

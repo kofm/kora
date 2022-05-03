@@ -404,6 +404,7 @@ class CartDetailView(DetailView, LoginRequiredMixin):
                 cartitem.save()
         return super().get(request, *args, **kwargs)
 
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["cartitem_weight_errors"] = self.cartitem_weight_errors
@@ -422,12 +423,32 @@ def cart_detail_htx(request, cart_id):
         queryset = queryset.filter(
             sample__variety__names__name__unaccent__lower__trigram_similar=search
         )
-    paginator = Paginator(queryset, 5)
+    paginator = Paginator(queryset, 15)
     context = {}
     context["cart_id"] = cart_id
     context["cartitems"] = paginator.page(page)
     return render(request, "collect/partials/cart_detail_table.html", context)
 
+@login_required
+@require_http_methods(['POST', ])
+def cartitem_update_weight_hx(request, pk):
+    cartitem = get_object_or_404(CartItem, pk=pk)
+    new_weight = request.POST.get("weight")
+    if new_weight:
+        cartitem.weight = new_weight
+        cartitem.save()
+    return HttpResponse('')
+
+@login_required
+@require_http_methods(['POST',])
+def cartitem_update_weight_selected_hx(request):
+    # import pdb; pdb.set_trace()
+    cartitem_pks = request.POST.getlist("cartitem_pk")
+    new_weight = request.POST.get("weight_selected")
+    CartItem.objects.filter(pk__in = cartitem_pks).update(weight=new_weight)
+    return HttpResponse(new_weight)
+
+        
 
 class CartItemBulkUpdate(View, LoginRequiredMixin):
     def post(self, request, *args, **kwargs):
