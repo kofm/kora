@@ -27,6 +27,9 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django_extensions",
     "django.contrib.postgres",
+    "django_tables2",
+    "django_filters",
+    "django_htmx",
     "rest_framework",
     "crispy_forms",
     "register.apps.RegisterConfig",
@@ -46,6 +49,8 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "django_htmx.middleware.HtmxMiddleware",
+
 ]
 
 ROOT_URLCONF = "persefone.urls"
@@ -113,3 +118,4 @@ DATE_FORMAT = ['Y-m-d']
 
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
+DJANGO_TABLES2_TEMPLATE = 'django_tables2/bootstrap4.html'

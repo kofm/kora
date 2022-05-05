@@ -10,6 +10,8 @@ from django.shortcuts import redirect, render
 from django.urls.base import reverse, reverse_lazy
 from django.views.generic import CreateView, DetailView, ListView
 from django.views.generic.edit import DeleteView, UpdateView
+from collect.models import SeedSample
+from collect.tables import SeedSampleTable
 
 from parameters.forms import SpeciesParameterForm, VarietalParameterForm
 
@@ -116,6 +118,11 @@ class PlantVarietyParametersList(DetailView):
 class PlantVarietyDetail(DetailView):
     model = PlantVariety
     context_object_name = "variety"
+
+    def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        context["seedsample_table"] = SeedSampleTable(SeedSample.objects.filter(variety=self.object.pk))
+        return context
 
 
 def add_speciesparametervervalue(request, pk):

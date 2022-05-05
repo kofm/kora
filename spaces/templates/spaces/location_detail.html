@@ -22,10 +22,18 @@
 <h1 class="display-1">{{ location }}</h1>
 
 <form hx-post="{% url 'spaces:area-sort' %}" hx-trigger="end" hx-target="#grid-area"> 
-
-  <div id="grid" class="row">
-    <div id="grid-area" class="col">
-      {% include 'spaces/partials/area_list.html' with area_list=location.area_set.all %}
+  <p>Sort: 
+  {% if sortable %}
+  Custom
+  {% else %}
+  <a href="{% url 'spaces:location-detail' location.pk %}">Custom</a> 
+  {% endif %}
+  <a href="?order_by=name">Name</a> 
+  <a href="?order_by=crop">Crop</a> 
+  <a href="?order_by=length">Length</a>
+  </p>
+    <div id="grid-area" class="row">
+      {% include 'spaces/partials/area_list.html' with area_list=areas %}
     </div>
   </div>
 
@@ -35,10 +43,22 @@
 
 <script>
   htmx.onLoad(function(content) {
-      var el = document.getElementById("grid-area")
-      new Sortable(el, {
-          filter: '.filtered',
-        })
+    //  var el = document.getElementById("grid-area")
+    //  new Sortable(el, {
+    //      filter: '.filtered',
+    //    })
+          var sortables = content.querySelectorAll("#grid-area");
+    for (var i = 0; i < sortables.length; i++) {
+        var sortable = sortables[i];
+        new Sortable(sortable, {
+            animation: 150,
+            {% if sortable %}
+            sort: true,
+            {% else %}
+            sort: false,
+            {% endif %}
+          });
+    }
     })
 </script>
 

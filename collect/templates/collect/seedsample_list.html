@@ -1,84 +1,41 @@
 {% extends "frontpage/base.html" %}
-{% load static %}
 {% load crispy_forms_tags %}
-{% block javascript %}{% endblock %}
-{% block title %}Seed Samples{% endblock %}
+{% load static %}
+{% load render_table from django_tables2 %}
+{% block javascript %}
+  <link rel="stylesheet" href="{% static 'frontpage/css/tables.css' %}">
+{% endblock %}
+{% block title %}
+Seed Samples
+{% endblock %}
 
 {% block container %}
-
-<p class="display-1">Seed Samples</p>
-
-
-<div class="row">
-
-  <div class="col">
-    {% include 'collect/seedsample_list_toolbar.html' %}
-  </div>
-
-  {% if user.is_authenticated and cart %}
-  <div class="col">
-    <div class="input-group">
-    <select id="cart-select" class="form-select" hx-trigger="change" hx-target="#cart-button" hx-get="{% url 'collect:cart-fav' %}" name="cart">
-      {% for c in user.carts.all %}
-      <option value="{{ c.pk }}" {% if c.pk == cart.pk %}selected{% endif %}>{{ c.name }}</option>
-      {% endfor %}
-    </select>
+<h1 class="display-1">Seed Samples</h1>
+    <div class="row">
+    <div class="col">
+      <form hx-get="{% url 'collect:seedsample-list' %}" 
+            hx-target="div.table-container" 
+            hx-swap="outerHTML" 
+            class="form-inline">
+          {% crispy filter.form %}
     </div>
-  </div>
-  {% endif %}
+    <div class="col-1">
+          <button class="btn btn-primary" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasRight" aria-controls="offcanvasRight">
+            <i class="bi bi-cart"></i>
+          </button>
+    </div>
+    </div>
 
-  <div class="col">
-      <form id="year-form" method="get">
-        {{ form_year.year }}
-      </form>
-  </div>
-
-  <div class="col">
-    <form id="search-form">
-        <input
-        name="search"
-        type="text"
-        class="form-control"
-        placeholder="Search"
-        aria-label="Search samples"
-        hx-get="_hx"
-        hx-target="#seedsample-table"
-        hx-trigger="keyup changed delay:100ms"
-        hx-include="#year-form"
-        >
     </form>
-  </div>
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasRight" aria-labelledby="offcanvasRightLabel">
+      <div class="offcanvas-header">
+        <h5 id="offcanvasRightLabel">Offcanvas right</h5>
+        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+      </div>
+      <div class="offcanvas-body">
+        ...
+      </div>
+    </div>
+ {% render_table table %}
 
-</div>
-<div class="row mt-3">
-
-<form 
-     id="view-form"
-     hx-get="_hx"
-     hx-trigger="change"
-     hx-target="#seedsample-table"
-     >
-  <span class="me-3">Filter:</span> 
-  <div class="form-check form-check-inline">
-    <input class="form-check-input" type="radio" name="view" id="inlineRadio1" value="all">
-    <label class="form-check-label" for="inlineRadio1">All</label>
-  </div>
-  <div class="form-check form-check-inline">
-    <input
-        class="form-check-input"
-        type="radio"
-        name="view"
-        id="inlineRadio2"
-        value="dupes"
-        >
-    <label class="form-check-label" for="inlineRadio2">Duplicates</label>
-  </div>
-  <div class="form-check form-check-inline">
-    <input class="form-check-input" type="radio" name="view" id="inlineRadio3" value="stale">
-    <label class="form-check-label" for="inlineRadio3">Stale</label>
-  </div>
-</form>
-  <div class="col" id="seedsample-table" hx-get="{% url 'collect:seedsample-list-hx'  %}" hx-trigger="load">
-  </div>
-</div>
 {% endblock %}

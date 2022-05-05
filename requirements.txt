@@ -5,3 +5,5 @@ django-crispy-forms
 pandas
 numpy
 django-extensions
+django-tables2
+django-filter

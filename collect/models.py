@@ -43,7 +43,11 @@ class StoragePosition(models.Model):
 
 
 class SeedSample(models.Model):
-    sample_id = models.PositiveIntegerField(unique=True)
+    sample_id = models.PositiveIntegerField(
+        verbose_name="ID",
+        help_text="An unique identificative number of the seed sample",
+        unique=True
+    )
     variety = models.ForeignKey(PlantVariety, on_delete=models.PROTECT)
     notes = models.CharField(
         max_length=500,
@@ -83,6 +87,11 @@ class SeedSample(models.Model):
             return True
         else:
             return False
+
+    @property
+    def duplicate_samples(self):
+        return SeedSample.objects.filter(variety=self.variety).exclude(pk=self.pk)
+
 
     def __str__(self):
         return f'#{self.sample_id} - {self.variety.name} ({self.growing_season})'

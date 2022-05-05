@@ -1,3 +1,5 @@
+from typing import Any, Dict
+from django.http.request import HttpRequest
 from django.http.response import HttpResponse
 from django.shortcuts import render
 from django.urls.base import reverse_lazy
@@ -14,17 +16,19 @@ from spaces.models import Area, Location
 
 class LocationListView(ListView):
     model = Location
+    order_by = None
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["crop_total_areas"] = self.get_crop_total_areas()
-        return context
 
     def get_crop_total_areas(self):
         crop_areas = []
         for crop in Crop.objects.all():
             species = (
-                crop.content_object if not crop.has_variety() else crop.content_object.species
+                crop.content_object
+                if not crop.has_variety()
+                else crop.content_object.species
             )
             crop_areas.append(
                 {
@@ -41,7 +45,12 @@ class LocationListView(ListView):
         )
         return plot_data
 
-@require_http_methods(["POST",])
+
+@require_http_methods(
+    [
+        "POST",
+    ]
+)
 def area_sort_hx(request):
     area_pks_ordered = request.POST.getlist("area_order")
     location_pk = request.POST.get("location")
@@ -53,23 +62,44 @@ def area_sort_hx(request):
         area.location = location
         area.save()
         area_list.append(area)
-    return render(request, 'spaces/partials/area_list.html', {'area_list': area_list, 'location': location})
+    return render(
+        request,
+        "spaces/partials/area_list.html",
+        {"area_list": area_list, "location": location},
+    )
 
 
 class LocationDetailView(DetailView):
     model = Location
     context_object_name = "location"
+    order_by = None
+
+    def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+        self.order_by = self.request.GET.get("order_by")
+        return super().get(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        areas = self.object.area_set.all()
+        if self.order_by:
+            areas = areas.order_by(self.order_by)
+        else:
+            context["sortable"] = True
+        context["areas"] = areas
+        return context
 
 
 class LocationCreateView(CreateView):
     model = Location
     fields = "__all__"
-    success_url = reverse_lazy('spaces:location-list')
+    success_url = reverse_lazy("spaces:location-list")
+
 
 class LocationUpdateView(UpdateView):
     model = Location
     fields = "__all__"
-    success_url = reverse_lazy('spaces:location-list')
+    success_url = reverse_lazy("spaces:location-list")
+
 
 class AreaDetailView(DetailView):
     model = Area
@@ -109,9 +139,11 @@ class AreaCreateView(CreateView):
         self.object.save()
         return super().form_valid(form)
 
+
 class AreaDeleteView(DeleteView):
     model = Area
     success_url = reverse_lazy("spaces:location-list")
 
+
 def test(request):
-    return render(request, 'spaces/test.html')
+    return render(request, "spaces/test.html")

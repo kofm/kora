@@ -1,11 +1,10 @@
 from django import forms
-from django.db.models import Q
 from django.forms.widgets import HiddenInput
 from django.utils.translation import gettext_lazy as _
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import HTML, Layout, Field
+from crispy_forms.layout import Layout, Submit
 
-from collect.models import Germinability, SampleWeight, SeedSample, StoragePosition
+from collect.models import Germinability, SampleWeight, SeedSample
 
 
 class TomSelectWidget(forms.Select):
@@ -58,6 +57,11 @@ class SampleWeightForm(forms.ModelForm):
     class Meta:
         model = SampleWeight
         fields = ("weight",)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.add_input(Submit("submit", "Submit", css_class="col-12 mt-3"))
 
 
 class GerminabilityForm(forms.ModelForm):

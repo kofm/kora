@@ -31,6 +31,7 @@
             }
 
         </style>
+        {% load django_htmx %}
         {% block javascript %}
         {% endblock %}
         <meta charset="UTF-8">
@@ -44,5 +45,6 @@
             {% block container %}
             {% endblock %}
         </div>
+        {% django_htmx_script %}
     </body>
 </html>

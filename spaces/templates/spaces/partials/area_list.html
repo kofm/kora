@@ -1,6 +1,6 @@
 {% for area in area_list %}
 
-<div class="grid-square">
+<div class="col-2 border m-3 p-3 rounded-3">
 
 
   <h5>
@@ -34,8 +34,9 @@
 
 </div>
 
+
 {% endfor %}
 
-<div class="grid-square d-flex justify-content-center filtered"> 
+<div class="col-2 border m-3 p-3 rounded-3 text-center">
   <a class="text-decoration-none link-dark" href="{% url 'spaces:area-create' location.pk %}"><h1 class="bi bi-plus-circle mt-2"></h1></a>
 </div>

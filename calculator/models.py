@@ -116,6 +116,9 @@ class Crop(models.Model):
                 return True
         return False
 
+    class Meta:
+        ordering = ['content_type', 'object_id']
+
 
 class ManagementType(models.Model):
     code = models.CharField(max_length=30)

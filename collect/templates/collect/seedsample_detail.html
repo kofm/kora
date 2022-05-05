@@ -1,6 +1,7 @@
 {% extends "frontpage/base.html" %}
 
 {% load crispy_forms_tags %}
+{% load render_table from django_tables2 %}
 {% load static %}
 
 {% block javascript %}
@@ -21,9 +22,13 @@
   </ol>
 </nav>
 
-<p class="display-1">{{ sample.variety.name }}</p>
+<h1 class="display-1">{{ sample.variety.name }}</h1>
 
-{% if sample.notes %}<p class="lead">{{ sample.notes }}</p>{% endif %}
+{% if sample.notes %}
+<p class="lead">
+  {{ sample.notes }}
+</p>
+{% endif %}
 
 <div class="row mx-2">
   <div class="card mx-1 py-2 col d-flex">
@@ -32,9 +37,8 @@
       <ul class="list-group list-group-flush">
         <li class="list-group-item">ID: {{ sample.sample_id }}</li>
         <li class="list-group-item">Variety: <a href="{% url 'register:plantvariety-detail' sample.variety.pk %}">{{ sample.variety.name }}</a></li>
-        <li class="list-group-item">Growing season: {{ sample.growing_season }}</li>
+        <li class="list-group-item">Growing Season: {{ sample.growing_season|default_if_none:"&nbsp;" }}</li>
         <li class="list-group-item">Location: {{ sample.position }}</li>
-        <li class="list-group-item">Notes: {% if sample.notes %}{{ sample.notes }}{% else %}&nbsp;{% endif %}</li>
       </ul>
     </div>
     <div class="mt-auto">
@@ -49,53 +53,18 @@
       <h2>Duplicate samples</h2>
     </div>
     <div class="card-body">
-      {% if duplicate_samples %}
-      {% include 'collect/seedsample_table.html' with object_list=duplicate_samples %}
-      {% else %}
-      <p>There are no other samples of this variety.</p>
-      {% endif %}
+      {% render_table duplicate_samples_table %}
     </div>
   </div>
-</div>
-<div class="row mt-3 mx-2">
 
-  <div class="card mx-1 py-2 col d-flex">
-    <div class="card-title"><h2>Weight</h2></div>
-    <div class="card-body">
-      <table class="table">
-        <thead>
-          <tr>
-            <th scope="col">Weight (g)</th>
-            <th scope="col">Date</th>
-            <th scope="col">&nbsp;</th>
-          </tr>
-        </thead>
-          <tbody id="weight-table">
-            {% for sampleweight in sample.sampleweight_set.all %}
-            <tr>
-              <td>{{ sampleweight.weight}}</td>
-              <td>{{ sampleweight.created_at|date:'Y-m-d' }}</td>
-              <td>
-                <a id="sampleweight-delete-btn-{{ forloop.counter }}" class="fas fa-trash-alt falink" href="{% url 'collect:sampleweight-delete' sampleweight.pk %}">
-                  <i class="bi bi-trash" style="color: black;"></i>
-                </a>
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-      </table>
-    </div>
-    <div class="mt-auto">
-      <form id="weight-form" method="post" action="{% url 'collect:sampleweight-create' sample.id %}">
-        {% csrf_token %}
-        <div class="form-floating">
-          <input id="weight-value-input" name="weight" class="form-control" type="number" min=0 step=1 value="">
-          <label for="germinability-input">New weight</label>
-        </div>
-        <button id="weight-form-button" class="btn btn-primary mt-3 col-12">Change weight</button>
-      </form>
-    </div>
-  </div>
+</div>
+
+
+<div class="row mt-3 mx-2">
+  <div id="seedsample-weight-form" class="card mx-1 py-2 col d-flex">
+  {% include 'collect/partials/seedsample_weight_form.html' with seedsample=sample%}
+</div>
+
   <div class="card mx-1 py-2 col d-flex">
 
     <div class="card-title"><h2>Germinability</h2></div>
@@ -143,7 +112,7 @@
           <label for="germinability-date-input">Date</label>
           <input id="seedsample" name="seedsample" type="hidden" value="{{ sample.id }}">
         </div>
-        <button type="submit" id="germinability-form-button" class="btn btn-primary mt-3 col-12" data-url="{% url 'collect:germinability' %}">Change germinability</button>
+        <button type="submit" id="germinability-form-button" class="btn btn-primary mt-3 col-12" data-url="">Change germinability</button>
       </form>
     </div>
 
