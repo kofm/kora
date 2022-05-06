@@ -101,6 +101,10 @@ class LocationUpdateView(UpdateView):
     success_url = reverse_lazy("spaces:location-list")
 
 
+class LocationDeleteView(DeleteView):
+    model = Location
+    success_url = reverse_lazy("spaces:location-list")
+
 class AreaDetailView(DetailView):
     model = Area
     context_object_name = "area"
