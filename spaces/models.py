@@ -13,7 +13,7 @@ class Location(models.Model):
 
 class Area(models.Model):
     name = models.CharField(max_length=30)
-    location = models.ForeignKey(Location, on_delete=models.PROTECT)
+    location = models.ForeignKey(Location, on_delete=models.CASCADE)
     length = models.FloatField(help_text="The length of the area, in meters.")
     width = models.FloatField(help_text="The width of the area, in meters.")
     order = models.PositiveIntegerField(help_text="The ordering of the area within its location")
