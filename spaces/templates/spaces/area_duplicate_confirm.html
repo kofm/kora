@@ -1,0 +1,17 @@
+{% extends "frontpage/base.html" %}
+{% load crispy_forms_tags %}
+{% load static %}
+{% block title %}Duplicate Area {{ area }}{% endblock %}
+
+{% block container %}
+<h1 class="display-1">
+  Duplicate Area {{ area }}
+</h1>
+<form method="POST">
+  {% csrf_token %}
+  <div class="row">
+    <div class="col"><button class="btn btn-primary col-12" type="submit">Confirm</button></div>
+    <div class="col"><button class="btn btn-secondary col-12">Cancel</button></div>
+  </div>
+</form>
+{% endblock %}

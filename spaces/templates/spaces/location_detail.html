@@ -24,15 +24,11 @@
 <div class="row">
   <div class="col">
     <form hx-post="{% url 'spaces:area-sort' %}" hx-trigger="end" hx-target="#grid-area"> 
-      <p>Sort: 
-      {% if sortable %}
-      Custom
-      {% else %}
-      <a href="{% url 'spaces:location-detail' location.pk %}">Custom</a> 
-      {% endif %}
-      <a href="?order_by=name">Name</a> 
-      <a href="?order_by=crop__name">Crop</a> 
-      <a href="?order_by=length">Length</a>
+      <p class="text-small text-muted">Sort: 
+      <a class="text-decoration-none" href="{% url 'spaces:location-detail' location.pk %}">Custom</a> 
+      <a class="text-decoration-none" href="?order_by=name">Name</a> 
+      <a class="text-decoration-none" href="?order_by=crop">Crop</a> 
+      <a class="text-decoration-none" href="?order_by=area">Area</a>
       </p>
       <div id="grid-area" class="row">
         {% include 'spaces/partials/area_list.html' with area_list=areas %}

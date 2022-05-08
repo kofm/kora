@@ -22,13 +22,13 @@ class CropModel:
             self.object.parameters.values_list("parameter__code", flat=True)
         )
         available_params = available_params + list(
-            self.object.content_object.parameters.values_list(
+            self.object.species.parameters.values_list(
                 "parameter__code", flat=True
             )
         )
         if self.object.has_variety():
             available_params = available_params + list(
-                self.object.content_object.species.parameters.values_list(
+                self.object.variety.species.parameters.values_list(
                     "parameter__code", flat=True
                 )
             )
@@ -65,11 +65,11 @@ class CropModel:
     def get_parameter(self, code):
         param = self.object.parameters.filter(parameter__code=code).last()
         if not param:
-            param = self.object.content_object.parameters.filter(
+            param = self.object.species.parameters.filter(
                 parameter__code=code
             ).last()
         if not param and self.object.has_variety():
-            param = self.object.content_object.species.parameters.filter(
+            param = self.object.variety.species.parameters.filter(
                 parameter__code=code
             ).last()
         return param.value

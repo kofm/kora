@@ -1,10 +1,13 @@
 from typing import Any, Dict
+from django.db.models.base import Model
+from django.db.models.expressions import F
 from django.http.request import HttpRequest
 from django.http.response import HttpResponse
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, redirect, render
+from django.template.response import TemplateResponse
 from django.urls.base import reverse_lazy
 from django.views.decorators.http import require_http_methods
-from django.views.generic import DetailView, ListView
+from django.views.generic import DetailView, ListView, detail
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 from calculator.models import Crop
 from parameters.models import Parameter
@@ -26,9 +29,7 @@ class LocationListView(ListView):
         crop_areas = []
         for crop in Crop.objects.all():
             species = (
-                crop.content_object
-                if not crop.has_variety()
-                else crop.content_object.species
+                crop.species if not crop.has_variety() else crop.variety.species
             )
             crop_areas.append(
                 {
@@ -62,31 +63,41 @@ def area_sort_hx(request):
         area.location = location
         area.save()
         area_list.append(area)
-    return render(
+    return TemplateResponse(
         request,
         "spaces/partials/area_list.html",
         {"area_list": area_list, "location": location},
     )
 
-
-class LocationDetailView(DetailView):
-    model = Location
-    context_object_name = "location"
-    order_by = None
-
-    def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
-        self.order_by = self.request.GET.get("order_by")
-        return super().get(request, *args, **kwargs)
-
-    def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
-        context = super().get_context_data(**kwargs)
-        areas = self.object.area_set.all()
-        if self.order_by:
-            areas = areas.order_by(self.order_by)
+def location_detail(request, pk):
+    """
+    Returns the detail view of a Location.
+    `order_by` defines the order of the within-location areas
+    `sortable` disable sorting (using Sortable.js) if any sorting methods is
+    selected by the user. Defaults to True so the user can arrange Area cards
+    to their liking
+    """
+    order_by = request.GET.get("order_by")
+    location = get_object_or_404(Location, pk = pk)
+    areas = location.area_set.all()
+    sortable = True
+    if order_by:
+        sortable = False
+        if order_by == "area":
+                areas = areas.order_by(F('length') * F('width'))
         else:
-            context["sortable"] = True
-        context["areas"] = areas
-        return context
+            areas = areas.order_by(order_by)
+    context = {
+        "sortable": sortable,
+        "location": location,
+        "areas": areas,
+        "order_by": order_by
+    }
+    return TemplateResponse(
+        request,
+        'spaces/location_detail.html',
+        context
+    )
 
 
 class LocationCreateView(CreateView):
@@ -109,11 +120,25 @@ class AreaDetailView(DetailView):
     model = Area
     context_object_name = "area"
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["parameters"] = Parameter.objects.all()
-        return context
+def duplicate_object(object: Model):
+    object.pk = None
+    object._state.adding = True
+    return object
 
+def area_duplicate(request, pk):
+    area = get_object_or_404(Area, pk = pk)
+    if request.POST:
+        new_area = duplicate_object(area)
+        new_area.name = new_area.name + " copy"
+        new_area.save()
+        return redirect(reverse_lazy('spaces:area-update', args=[new_area.pk]))
+    return TemplateResponse(
+        request,
+        "spaces/area_duplicate_confirm.html",
+        {
+            "area": area,
+        }
+    )
 
 class AreaUpdateView(UpdateView):
     model = Area

@@ -49,11 +49,12 @@ def crop_update_view(request, pk):
     )
 
     # Set initial value depending on the set crop
-    if crop.has_species():
-        form.initial["species"] = crop.object_id
-    elif crop.has_variety():
-        form.initial["species"] = crop.content_object.species.id  # type: ignore
-        form.initial["variety"] = crop.object_id
+    # import pdb; pdb.set_trace()
+    if crop.has_variety():
+        form.initial["species"] = crop.variety.species.pk
+        form.initial["variety"] = crop.variety.pk
+    elif crop.has_species():
+        form.initial["species"] = crop.species.pk
 
     # Loop over CROP_MODELS, run the models and store output to the cropmodels list
     cropmodels = []

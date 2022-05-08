@@ -28,7 +28,8 @@
       <li class="list-group-item"><b>Width</b>: {{ area.width }} m</li>
     </ul>
     <a class="btn btn-outline-primary mt-auto" href="{% url 'spaces:area-update' area.pk %}">Change</a>
-    <a class="btn btn-outline-danger my-2" href="{% url 'spaces:area-delete' area.pk %}">Delete</a>
+    <a class="btn btn-outline-secondary my-2" href="{% url 'spaces:area-duplicate' area.pk %}">Duplicate</a>
+    <a class="btn btn-outline-danger mt-2" href="{% url 'spaces:area-delete' area.pk %}">Delete</a>
   </div>
 
   <div class="col card mx-2 py-2 d-flex">
