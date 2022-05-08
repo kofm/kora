@@ -27,16 +27,16 @@
       <li class="list-group-item"><b>Length</b>: {{ area.length }} m</li>
       <li class="list-group-item"><b>Width</b>: {{ area.width }} m</li>
     </ul>
-    <a class="btn btn-outline-primary mt-auto" href="{% url 'spaces:area-update' area.pk %}">Change</a>
-    <a class="btn btn-outline-secondary my-2" href="{% url 'spaces:area-duplicate' area.pk %}">Duplicate</a>
-    <a class="btn btn-outline-danger mt-2" href="{% url 'spaces:area-delete' area.pk %}">Delete</a>
+    <a class="btn btn-lg btn-primary mt-auto" href="{% url 'spaces:area-update' area.pk %}">Change</a>
+    <a class="btn btn-lg btn-secondary mt-2" href="{% url 'spaces:area-duplicate' area.pk %}">Duplicate</a>
+    <a class="btn btn-lg btn-danger mt-2" href="{% url 'spaces:area-delete' area.pk %}">Delete</a>
   </div>
 
   <div class="col card mx-2 py-2 d-flex">
 
 
     <div class="card-title">
-      <h2>Crop<a class="btn btn-outline-primary ms-2" href="{% url 'calculator:crop-create-area' area.pk %}">New</a></h2>
+      <h2>Crop<a class="btn btn-lg btn-primary ms-2" href="{% url 'calculator:crop-create-area' area.pk %}">New</a></h2>
     </div>
 
     {% for current_crop in area.current_crops %}
