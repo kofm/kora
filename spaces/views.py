@@ -16,6 +16,22 @@ from .utils import get_max_order
 
 from spaces.models import Area, Location
 
+# def location_update(request, pk):
+#     location = get_object_or_404(Area, pk = pk)
+#     if request.POST:
+#         form = LocationForm(request.POST, instance = location)
+#         if form.is_valid():
+#             instance = form.save()
+#             return redirect(reverse_lazy('spaces:location-detail', args=[instance.pk]))
+#     else:
+#         form = LocationForm(instance = location)
+#         return TemplateResponse(
+#             request,
+#             'spaces/location_form.html',
+#             "form": form
+#
+#         )
+
 
 class LocationListView(ListView):
     model = Location

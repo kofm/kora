@@ -50,7 +50,7 @@
     </ul>
 
 
-    <a class="btn btn-outline-primary mt-auto" href="{% url 'calculator:crop-update' area.crop_set.last.pk %}">Change</a>
+    <a class="btn btn-lg btn-primary mt-auto" href="{% url 'calculator:crop-update' area.crop_set.last.pk %}">Change</a>
     {% empty %}
     <p class="card-body">There are currently no crop in this area.</p>
     {% endfor %}
