@@ -33,6 +33,7 @@ def crop_update_view(request, pk):
 
     if request.POST:
         form = CropModelForm(request.POST, instance=crop)
+        import pdb; pdb.set_trace()
         if form.is_valid():
             form.save()
             crop.parameters.all().delete()

@@ -53,8 +53,10 @@ class Crop(models.Model):
             self.variety = variety
         elif model == "plantspecies":
             self.species = PlantSpecies.objects.get(pk=object_id)
+            self.variety = None
         else:
             return TypeError
+        self.save()
 
 
     @property
