@@ -1,10 +1,12 @@
 # pyright: reportGeneralTypeIssues=false
 import importlib
 from django.shortcuts import get_object_or_404, render
+from django.template.response import TemplateResponse
 from django.urls.base import reverse_lazy
+from django.views.decorators.http import require_http_methods
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, DeleteView
-from calculator.forms import CropModelForm, ManagementForm
+from calculator.forms import CropModelForm, CropParameterForm, ManagementForm
 from calculator.models import Crop, Management
 from register.models import PlantSpecies
 
@@ -33,7 +35,6 @@ def crop_update_view(request, pk):
 
     if request.POST:
         form = CropModelForm(request.POST, instance=crop)
-        import pdb; pdb.set_trace()
         if form.is_valid():
             form.save()
             crop.parameters.all().delete()
@@ -78,6 +79,24 @@ def crop_update_view(request, pk):
             "cropmodels": cropmodels,
         },
     )
+
+def crop_add_parameter_hx(request, pk):
+    form = CropParameterForm()
+    return TemplateResponse(
+        request,
+        'calculator/partials/cropparameter_form.html',
+        { "form": form }
+    )
+
+@require_http_methods(['POST',])
+def crop_update_parameter_hx(request, pk):
+    form = CropParameterForm(request.POST)
+    crop = get_object_or_404(Crop, pk = pk)
+    if form.is_valid():
+        instance = form.save(commit=False)
+        instance.crop = crop
+        instance.save()
+    
 
 class CropCreateView(CreateView):
     form_class = CropModelForm

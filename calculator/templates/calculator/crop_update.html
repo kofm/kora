@@ -40,7 +40,35 @@
 {% endif %}
 
 <div class="row">
-  <div class="col-3 card py-3 px-3">
+<div class="col">
+  <p>
+    <a class="btn btn-primary"
+      data-bs-toggle="collapse"
+      href="#collapseExample"
+      role="button"
+      aria-expanded="false"
+      aria-controls="collapseExample">
+      <i class="bi bi-gear-fill"></i>
+    </a>
+  </p>
+  <div class="collapse" id="collapseExample">
+    <div class="card card-body">
+      <button class="btn btn-primary col-2"
+        hx-post="{% url 'calculator:cropparameter-add' crop.pk %}"
+        hx-target="#cropparameter-forms"
+        hx-swap="beforeend"
+        >
+        Add
+      </button>
+        <div id="cropparameter-forms" class="row">
+        </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<div class="row">
+  <div class="col-3">
 
     <form method="post">
       {% csrf_token %}

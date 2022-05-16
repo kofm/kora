@@ -8,3 +8,5 @@ django-extensions
 django-tables2
 django-filter
 django-htmx
+django-countries
+pyuca

@@ -145,3 +145,6 @@ class CropParameter(ParameterValue):
     """
 
     crop = models.ForeignKey(Crop, on_delete=models.CASCADE, related_name="parameters")
+    
+    class Meta:
+        unique_together = ['parameter', 'crop']

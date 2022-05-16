@@ -1,7 +1,10 @@
 {% extends "frontpage/base.html" %}
 {% load register_extras %}
+{% load static %}
 {% load render_table from django_tables2 %}
-
+{% block javascript %}
+<link rel="stylesheet" href="{% static 'flags/sprite.css' %}">
+{% endblock %}
 {% block title %}Species{% endblock %}
 
 {% block container %}
@@ -15,9 +18,16 @@
 </nav>
 
 
-<h3 class="display-3">
+<h1 class="display-1">
   {{ variety.name }} <small class="text-muted">(<i>{{ variety.species.latin_name }}</i>)</small>
-</h3>
+</h1>
+{% if variety.has_breeder %}
+<p class="lead">
+  <a class="text-decoration-none link-dark" href="{% url 'register:entity-detail' variety.breeder.pk %}">
+    {{ variety.breeder.name }}<i class="{{ variety.breeder.country.flag_css }} mx-3"></i>
+  </a>
+</p>
+{% endif %}
 
 <div class="row mt-5">
   <div class="col">
@@ -87,6 +97,13 @@
 
 <div class="row mt-5">
   <div class="col">
+    <h2>Protection<a class="btn btn-lg btn-secondary ms-2" href="{% url 'register:protection-create' variety.pk %}">Create</a></h2>
+    {% render_table protection_table %}
+  </div>
+</div>
+
+<div class="row mt-5">
+  <div class="col">
     <h2>Parameters</h2>
     {% if variety.parameters.count %}
     <table>
@@ -102,8 +119,8 @@
       {% endfor %}
     </table>
     <p>
-    <a href="{% url 'register:plantvarietyparameters_list' variety.id %}">View all</a>
-    <a href="{% url 'register:add_varparamval' variety.id %}">Add</a>
+      <a href="{% url 'register:plantvarietyparameters_list' variety.id %}">View all</a>
+      <a href="{% url 'register:add_varparamval' variety.id %}">Add</a>
     </p>
     {% else %}
     <p>There are not parameters yet. <a href="{% url 'register:add_varparamval' variety.id %} ">Add one</a></p>

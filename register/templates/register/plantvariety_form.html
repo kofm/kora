@@ -1,19 +1,35 @@
 {% extends "frontpage/base.html" %}
 {% load crispy_forms_tags %}
+
 {% block title %}Create Variety{% endblock %}
+
 {% block container %}
+
 <nav aria-label="breadcrumb">
   <ol class="breadcrumb">
     <li class="breadcrumb-item"><a href="{% url 'register:plantspecies-list' %}">Species</a></li>
+    {% if object %}
+    <li class="breadcrumb-item"><a href="{% url 'register:plantspecies-detail' object.species.pk %}">{{ object.species }}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{{ object.name }}</li>
+    {% else %}
     <li class="breadcrumb-item"><a href="{% url 'register:plantspecies-detail' species.pk %}">{{ species }}</a></li>
     <li class="breadcrumb-item active" aria-current="page">Create Variety</li>
+    {% endif %}
   </ol>
 </nav>
+
+{% if object %}
+<h1 class="display-1">
+  Update: {{ object }} <span class="text-muted">{{ object.species.latin_name }}</span>
+</h1>
+{% else %}
 <h1 class="display-1">Create Variety</h1>
 <p class="lead">New {{ species.common_name|lower }} (<i>{{ species.latin_name }}</i>) variety</p>
+{% endif %}
 <form method="post">
   {% csrf_token %}
   {{ form|crispy }}
   <input class="btn btn-primary mt-3" type="submit" value="Save">
 </form>
+
 {% endblock %}

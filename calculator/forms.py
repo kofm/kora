@@ -9,7 +9,7 @@ from collect.models import CartItem
 class CropParameterForm(forms.ModelForm):
     class Meta:
         model = CropParameter
-        fields = ("value",)
+        fields = ("value", "parameter", )
 
 
 class ManagementForm(forms.ModelForm):

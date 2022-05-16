@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     "django_htmx",
     "rest_framework",
     "crispy_forms",
+    "django_countries",
     "register.apps.RegisterConfig",
     "describe.apps.DescribeConfig",
     "frontpage.apps.FrontpageConfig",

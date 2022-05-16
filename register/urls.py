@@ -58,5 +58,12 @@ urlpatterns = [
         views.PlantVarietyNameUpdate.as_view(),
         name="plantvarietyname-update"
     ),
-    path("species/<int:species_id>/varieties", views.plantvariety_list, name="plantvariety-list")
+    path("species/<int:species_id>/varieties", views.plantvariety_list, name="plantvariety-list"),
+    path("protection/<int:pk>", views.ProtectionDetailView.as_view(), name="protection-detail"),
+    path("protection/<int:pk>/update", views.protection_update, name="protection-update"),
+    path("variety/<int:variety_id>/protection/create", views.protection_create, name="protection-create"),
+    path("entity/create", views.EntityCreateView.as_view(), name="entity-create"),
+    path("entity/", views.entity_list, name="entity-list"),
+    path("entity/<int:pk>", views.EntityDetailView.as_view(), name="entity-detail"),
+    path("variety/<int:pk>/update", views.PlantVarietyUpdateView.as_view(), name="plantvariety-update"),
 ]

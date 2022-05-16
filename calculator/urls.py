@@ -11,4 +11,5 @@ urlpatterns = [
     path("crop/<int:pk>/update", views.crop_update_view, name="crop-update"),
     path("crop/<int:pk>/management/create", views.ManagementCreateView.as_view(), name="management-create"),
     path("crop/<int:pk>/delete", views.CropDeleteView.as_view(), name="crop-delete"),
+    path("crop/<int:pk>/parameter/add", views.crop_add_parameter_hx, name="cropparameter-add"),
 ]

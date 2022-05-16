@@ -1,3 +1,4 @@
+from django.utils.html import format_html
 import django_tables2 as tables
 
 from collect.models import SeedSample
@@ -52,7 +53,7 @@ class SeedSampleTable(tables.Table):
             extra_columns
         )
         self.columns['sample_id'].column.attrs = {"td":{"class" : "col-1" }}
-        self.columns['variety'].column.attrs = {"td":{"class" : "col-2" }}
+        self.columns['variety'].column.attrs = {"td":{"class" : "col-2" }, "a": {"class": "text-decoration-none link-dark"}}
         self.columns['notes'].column.attrs = {"td":{"class" : "col-3" }}
 
     def render_germinability(self, record):
@@ -60,6 +61,12 @@ class SeedSampleTable(tables.Table):
 
     def render_weight(self, record):
         return int(record.weight)
+
+    # def render_variety(self, record):
+    #     if record.variety.breeder:
+    #         return format_html("{} <i class='{}'></i>", record.variety.name, record.variety.breeder.country.flag_css)
+    #     else:
+    #         return record.variety
 
     class Meta:
         model = SeedSample

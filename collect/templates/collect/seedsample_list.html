@@ -1,12 +1,16 @@
 {% extends "frontpage/base.html" %}
+
 {% load crispy_forms_tags %}
 {% load static %}
 {% load render_table from django_tables2 %}
+
 {% block javascript %}
   <link rel="stylesheet" href="{% static 'frontpage/css/tables.css' %}">
+  <link rel="stylesheet" href="{% static 'flags/sprite.css' %}">
 {% endblock %}
+
 {% block title %}
-Seed Samples
+  Seed Samples
 {% endblock %}
 
 {% block container %}
