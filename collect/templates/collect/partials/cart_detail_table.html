@@ -44,7 +44,7 @@
           min=0
           max={{ cartitem.sample.sampleweight_set.last.weight }}
           value={{ cartitem.weight|stringformat:"d" }}
-          hx-post={% url 'collect:cartitem-weight-update-hx' cartitem.pk %}
+          hx-post={% url 'collect:cartitem-update-hx' cartitem.pk %}
           hx-swap="none"
           hx-trigger="change"
           _="

@@ -100,7 +100,7 @@
               max={{ cartitem.sample.sampleweight_set.last.weight }}
               value={{ cartitem.weight }}
               onchange="changeWeight(this);"
-              data-url="{% url 'collect:cartitem-weight-update' cartitem.pk %}"
+              data-url="{% url 'collect:cartitem-update-hx' cartitem.pk %}"
               >
           </form></td>
         <td>

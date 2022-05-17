@@ -29,6 +29,7 @@ from collect.forms import (
 )
 
 from collect.models import (
+    Cart,
     Germinability,
     SampleWeight,
     SeedSample,
@@ -57,6 +58,12 @@ class SeedSampleListView(SingleTableMixin, FilterView):
     template_name = ''
     paginate_by = 15
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        cart = get_object_or_404(Cart, user=self.request.user, active=True)
+        context["cart"] = cart
+        return context
+
     def get_template_names(self):
         if self.request.htmx:
             template_name = "collect/partials/seedsample_table.html"
@@ -64,6 +71,8 @@ class SeedSampleListView(SingleTableMixin, FilterView):
             template_name = "collect/seedsample_list.html"
 
         return template_name
+
+
     
 
 class SeedSampleDetailView(DetailView):

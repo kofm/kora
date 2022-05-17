@@ -14,7 +14,7 @@
 {% endblock %}
 
 {% block container %}
-<h1 class="display-1">Seed Samples</h1>
+<h1 class="display-1">Seed Samples <a class="btn btn-secondary" href="{% url 'collect:seedsample-create' %}">Create</a></h1>
     <div class="row">
     <div class="col">
       <form hx-get="{% url 'collect:seedsample-list' %}" 
@@ -28,16 +28,25 @@
             <i class="bi bi-cart"></i>
           </button>
     </div>
+
     </div>
 
     </form>
+
+
     <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasRight" aria-labelledby="offcanvasRightLabel">
       <div class="offcanvas-header">
-        <h5 id="offcanvasRightLabel">Offcanvas right</h5>
+        <h1 id="offcanvasRightLabel">List <a class="btn btn-secondary" href="{% url 'collect:cart-detail' cart.pk %}">Detail</a></h1>
         <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
       </div>
       <div class="offcanvas-body">
-        ...
+        <ul>
+          {% for cartitem in cart.cartitem_set.all %}
+          <li>
+            {{ cartitem }} {{ cartitem.weight|stringformat:"d" }} g
+          </li>
+          {% endfor %}
+        </ul>
       </div>
     </div>
  {% render_table table %}

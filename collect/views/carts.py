@@ -65,17 +65,17 @@ class CartDetailView(DetailView, LoginRequiredMixin):
         return context
 
 @require_http_methods(["GET", ])
-def cart_detail_htx(request, cart_id):
+def cart_detail_hx(request, pk):
     search = request.GET.get("search")
     page = request.GET.get("page") or 1
-    queryset = CartItem.objects.filter(cart_id=cart_id)
+    queryset = CartItem.objects.filter(cart_id=pk)
     if search:
         queryset = queryset.filter(
             sample__variety__names__name__unaccent__lower__trigram_similar=search
         )
     paginator = Paginator(queryset, 15)
     context = {}
-    context["cart_id"] = cart_id
+    context["cart_id"] = pk
     context["cartitems"] = paginator.page(page)
     return render(request, "collect/partials/cart_detail_table.html", context)
 

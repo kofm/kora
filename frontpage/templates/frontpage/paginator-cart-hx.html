@@ -9,7 +9,7 @@
       <a
         href="#"
         class="page-link"
-        hx-get="{% url 'collect:cart-detail-htx' cart_id %}?page={{ page.previous_page_number }}"
+        hx-get="{% url 'collect:cart-detail-hx' cart_id %}?page={{ page.previous_page_number }}"
         hx-trigger="click"
         hx-target="#cartitem-table"
         hx-include="#search-form"
@@ -26,7 +26,7 @@
       <a
         href="#"
         class="page-link"
-        hx-get="{% url 'collect:cart-detail-htx' cart_id %}?page={{ p }}"
+        hx-get="{% url 'collect:cart-detail-hx' cart_id %}?page={{ p }}"
         hx-trigger="click"
         hx-target="#cartitem-table"
         hx-include="#search-form"
@@ -42,7 +42,7 @@
       <a
         href="#"
         class="page-link"
-        hx-get="{% url 'collect:cart-detail-htx' cart_id %}?page={{ page.next_page_number }}"
+        hx-get="{% url 'collect:cart-detail-hx' cart_id %}?page={{ page.next_page_number }}"
         hx-trigger="click"
         hx-target="#cartitem-table"
         hx-include="#search-form"
