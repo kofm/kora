@@ -60,8 +60,9 @@ class SeedSampleListView(SingleTableMixin, FilterView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        cart = get_object_or_404(Cart, user=self.request.user, active=True)
-        context["cart"] = cart
+        if self.request.user.is_authenticated:
+            cart = get_object_or_404(Cart, user=self.request.user, active=True)
+            context["cart"] = cart
         return context
 
     def get_template_names(self):

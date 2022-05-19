@@ -5,9 +5,19 @@ from collect.models import SeedSample
 
 
 class SeedSampleTable(tables.Table):
-    variety = tables.Column(linkify=True)
+    sample_id = tables.Column(linkify=True)
+    variety = tables.Column()
     germinability = tables.Column(verbose_name="Germinability")
     weight = tables.Column(verbose_name="Weight (g)")
+    actions = tables.TemplateColumn(
+        """
+        <a class="text-decoration-none link-dark" href="{% url "register:plantvariety-detail" record.variety.pk %}"><i class="bi bi-flower1"></i></a>
+        <a class="text-decoration-none link-dark" href="{% url "collect:cartitem-add" record.pk %}"><i class="bi bi-list"></i></a>
+        """,
+        verbose_name="",
+        orderable=False
+    )
+
 
     def __init__(
         self,
@@ -62,14 +72,14 @@ class SeedSampleTable(tables.Table):
     def render_weight(self, record):
         return int(record.weight)
 
-    # def render_variety(self, record):
-    #     if record.variety.breeder:
-    #         return format_html("{} <i class='{}'></i>", record.variety.name, record.variety.breeder.country.flag_css)
-    #     else:
-    #         return record.variety
+    def render_variety(self, record):
+        if record.variety.breeder:
+            return format_html("{} <i class='{}'></i>", record.variety.name, record.variety.breeder.country.flag_css)
+        else:
+            return record.variety
 
     class Meta:
         model = SeedSample
-        fields = ("sample_id", "variety", "position", "weight", "germinability", "growing_season", "notes")
+        fields = ("sample_id", "variety", "position", "weight", "germinability", "growing_season", "notes", "actions")
         template_name = "collect/partials/seedsample_table.html"
         empty_text = "There are no corresponding seed samples to be displayed."

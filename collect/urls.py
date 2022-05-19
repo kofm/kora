@@ -26,4 +26,5 @@ urlpatterns = [
     path("cartitem/<int:pk>/update", views.cartitem_update_weight_hx, name="cartitem-update-hx"),
     path("cart/<int:pk>/hx", views.cart_detail_hx, name="cart-detail-hx"),
     path("cartitem/<int:pk>/delete", views.CartItemDelete.as_view(), name="cartitem-delete"),
+    path("cartitem/<int:pk>/add", views.CartItemAdd.as_view(), name="cartitem-add"),
 ]

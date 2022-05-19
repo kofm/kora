@@ -1,9 +1,12 @@
 {% extends "frontpage/base.html" %}
 {% load crispy_forms_tags %}
 {% load static %}
-{% block title %}Create new protection for variety {{ variety }}{% endblock %}
+{% block title %}Create Protection ({{ variety }}){% endblock %}
 
 {% block container %}
+<h1 class="display-1">
+  Create Protection <small class="text-muted">({{ variety }})</small>
+</h1>
 <form action="" method="POST">
   {% csrf_token %}
   {{ form|crispy }}

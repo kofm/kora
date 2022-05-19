@@ -5,7 +5,7 @@
 {% block javascript %}
 <link rel="stylesheet" href="{% static 'flags/sprite.css' %}">
 {% endblock %}
-{% block title %}Species{% endblock %}
+{% block title %}{{ variety.name }} ({{ variety.species.latin_name }}){% endblock %}
 
 {% block container %}
 
