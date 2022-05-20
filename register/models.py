@@ -1,6 +1,5 @@
 from datetime import date
 from django.db import models
-from django.shortcuts import redirect
 from django.urls.base import reverse
 from django_countries.fields import CountryField
 
@@ -24,7 +23,7 @@ class Entity(models.Model):
     def get_absolute_url(self):
         return reverse('register:entity-detail', args=[self.pk, ])
 
-    def __str__(self) -> str:
+    def __str__(self):
         return self.name
 
 class PlantSpecies(models.Model):
@@ -56,11 +55,11 @@ class PlantSpecies(models.Model):
 class PlantVariety(models.Model):
     name = models.CharField(help_text="The name of the variety", max_length=100)
     species = models.ForeignKey(
-        PlantSpecies, on_delete=models.CASCADE, related_name="variety"
+        PlantSpecies, on_delete=models.PROTECT, related_name="variety"
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    breeder = models.ForeignKey(Entity, on_delete=models.PROTECT, null=True, blank=True)
+    breeder = models.ForeignKey(Entity, on_delete=models.SET_NULL, null=True, blank=True)
 
     class Meta:
         ordering = ["name"]
@@ -90,6 +89,9 @@ class PlantVarietyName(models.Model):
             "-change_date",
         ]
 
+    def get_absolute_url(self):
+        return reverse('register:plantvariety-detail', args=[self.variety.pk, ])
+
 
 class Protection(models.Model):
     PBR = "PBR"
@@ -104,8 +106,8 @@ class Protection(models.Model):
     country = CountryField()
     variety = models.ForeignKey(PlantVariety, on_delete=models.CASCADE)
     reference = models.CharField(max_length=100, blank=True, null=True)
-    applicant = models.ForeignKey(Entity, on_delete=models.PROTECT, related_name="applicants")
-    maintainer = models.ForeignKey(Entity, on_delete=models.PROTECT, related_name="maintainers")
+    applicant = models.ForeignKey(Entity, on_delete=models.PROTECT, related_name="applicants", blank=True, null=True)
+    maintainer = models.ForeignKey(Entity, on_delete=models.PROTECT, related_name="maintainers", blank=True, null=True)
     date_start = models.DateField()
     date_end = models.DateField(blank=True, null=True)
 

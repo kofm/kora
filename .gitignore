@@ -15,3 +15,6 @@ node_modules
 src
 static/frontpage/js
 static
+
+databk/db
+.DS_Store
