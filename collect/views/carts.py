@@ -1,3 +1,5 @@
+import csv
+from typing import List
 from django import forms
 from django.core.paginator import Paginator
 from django.http.response import HttpResponse, JsonResponse
@@ -17,6 +19,9 @@ from collect.models import (
     SampleWeight,
     SeedSample,
 )
+from collect.serializers import SeedSampleSerializer
+from collect.views.samples import SeedSampleListView
+
 
 class CartItemAdd(LoginRequiredMixin, View):
     def get(self, *args, **kwargs):
@@ -27,17 +32,17 @@ class CartItemAdd(LoginRequiredMixin, View):
         if not sample_present:
             cartitem = CartItem(sample=sample, cart=cart)
             cartitem.save()
-
         return SeedSampleListView.as_view()(self.request)
 
 
-class CartDetailView(DetailView, LoginRequiredMixin):
+class CartDetailView(LoginRequiredMixin, DetailView):
     model = Cart
-    cartitem_weight_errors = []
+    cartitem_weight_errors: List[str] = []
 
     def post(self, request, *args, **kwargs):
         cart = Cart.objects.get(user=self.request.user, active=True)
         weight = float(request.POST.get("weight"))  # type: ignore
+        Cart.objects.first().cartitem_set.all()
         if cart and weight:
             self.cartitem_weight_errors = []
             cartitems = cart.cartitem_set.all()
@@ -54,7 +59,6 @@ class CartDetailView(DetailView, LoginRequiredMixin):
                 cartitem.save()
         return super().get(request, *args, **kwargs)
 
-
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["cartitem_weight_errors"] = self.cartitem_weight_errors
@@ -64,7 +68,12 @@ class CartDetailView(DetailView, LoginRequiredMixin):
         context["cartitems"] = paginator.page(page)
         return context
 
-@require_http_methods(["GET", ])
+
+@require_http_methods(
+    [
+        "GET",
+    ]
+)
 def cart_detail_hx(request, pk):
     search = request.GET.get("search")
     page = request.GET.get("page") or 1
@@ -79,28 +88,37 @@ def cart_detail_hx(request, pk):
     context["cartitems"] = paginator.page(page)
     return render(request, "collect/partials/cart_detail_table.html", context)
 
+
 @login_required
-@require_http_methods(['POST', ])
+@require_http_methods(
+    [
+        "POST",
+    ]
+)
 def cartitem_update_weight_hx(request, pk):
     cartitem = get_object_or_404(CartItem, pk=pk)
     new_weight = request.POST.get("weight")
     if new_weight:
         cartitem.weight = new_weight
         cartitem.save()
-    return HttpResponse('')
+    return HttpResponse("")
+
 
 @login_required
-@require_http_methods(['POST',])
+@require_http_methods(
+    [
+        "POST",
+    ]
+)
 def cartitem_update_weight_selected_hx(request):
     # import pdb; pdb.set_trace()
     cartitem_pks = request.POST.getlist("cartitem_pk")
     new_weight = request.POST.get("weight_selected")
-    CartItem.objects.filter(pk__in = cartitem_pks).update(weight=new_weight)
+    CartItem.objects.filter(pk__in=cartitem_pks).update(weight=new_weight)
     return HttpResponse(new_weight)
 
-        
 
-class CartItemBulkUpdate(View, LoginRequiredMixin):
+class CartItemBulkUpdate(LoginRequiredMixin, View):
     def post(self, request, *args, **kwargs):
         cart = self.request.user.carts.get(active=True)
         weight = float(request.POST.get("weight"))  # type: ignore
@@ -180,6 +198,7 @@ class CartDeleteSamples(LoginRequiredMixin, View):
             },
         )
 
+
 def cartitem_labels(request):
     # Create the HttpResponse object with the appropriate CSV header.
     response = HttpResponse(
@@ -203,7 +222,7 @@ def cartitem_labels(request):
     return response
 
 
-class CartCreateView(CreateView, LoginRequiredMixin):
+class CartCreateView(LoginRequiredMixin, CreateView):
     model = Cart
     fields = ["name", "active", "user"]
     success_url = reverse_lazy("collect:seedsample-list")
@@ -215,24 +234,26 @@ class CartCreateView(CreateView, LoginRequiredMixin):
         return form
 
 
-class CartListView(ListView, LoginRequiredMixin):
+class CartListView(LoginRequiredMixin, ListView):
     model = Cart
 
     def get_queryset(self):
         return Cart.objects.filter(user=self.request.user)
 
 
-class CartActiveView(View, LoginRequiredMixin):
+class CartActiveView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         active_cart = Cart.objects.get(pk=self.kwargs["pk"], user=self.request.user)
         active_cart.active = True
         active_cart.save()
         return redirect(reverse_lazy("collect:cart-list"))
 
+
 def cart_create_redirect_htx(request):
     response = HttpResponse()
-    response["HX-Redirect"] = reverse_lazy('collect:cart-create')
+    response["HX-Redirect"] = reverse_lazy("collect:cart-create")
     return response
+
 
 def cart_active_hx(request):
     if request.method == "GET":
