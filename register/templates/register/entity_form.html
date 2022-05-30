@@ -1,11 +1,21 @@
 {% extends "frontpage/base.html" %}
 {% load crispy_forms_tags %}
 {% load static %}
-{% block title %}Create Entity{% endblock %}
+{% block title %}
+{% if object %}
+Update {{ object }}
+{% else %}
+Create Entity
+{% endif %}
+{% endblock %}
 
 {% block container %}
 <h1 class="display-1">
+  {% if object %}
+  Update {{ entity }}
+  {% else %}
   New Entity
+  {% endif %}
 </h1>
 <div class="row">
   <div class="col">

@@ -22,3 +22,8 @@ class EntityTable(tables.Table, CountryRenderer):
       model = Entity
       fields = ['name', 'country', 'email' ]
 
+class PlantVarietyEntityTable(tables.Table):
+    country = tables.TemplateColumn("<i class='{{ record.protection_set.last.country.flag_css }}'></i>", verbose_name="Country")
+    class Meta:
+        model = Entity
+        fields = ['name', 'species', 'country']

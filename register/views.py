@@ -14,7 +14,7 @@ from collect.models import SeedSample
 from collect.tables import SeedSampleTable
 
 from parameters.forms import SpeciesParameterForm, VarietalParameterForm
-from register.tables import EntityTable, ProtectionTable
+from register.tables import EntityTable, PlantVarietyEntityTable, ProtectionTable
 from register.utils import paged_object_list_context
 
 from .forms import PlantSpeciesForm, PlantVarietyForm, ProtectionForm
@@ -122,9 +122,13 @@ class PlantVarietyParametersList(DetailView):
         context["nav_species"] = "active"
         return context
 
+
 class PlantVarietyUpdateView(UpdateView):
-  model = PlantVariety
-  fields = ['breeder', ]
+    model = PlantVariety
+    fields = [
+        "breeder",
+    ]
+
 
 class PlantVarietyDetail(DetailView):
     model = PlantVariety
@@ -310,6 +314,19 @@ class EntityCreateView(CreateView):
 
 class EntityDetailView(DetailView):
     model = Entity
+
+
+def entity_detail(request, pk):
+    context = {}
+    entity = get_object_or_404(Entity, pk=pk)
+    context["entity"] = entity
+    context["varieties_table"] = PlantVarietyEntityTable(entity.plantvariety_set.all()) 
+    return TemplateResponse(request, "register/entity_detail.html", context)
+
+
+class EntityUpdateView(UpdateView):
+    model = Entity
+    fields = "__all__"
 
 
 def entity_list(request):

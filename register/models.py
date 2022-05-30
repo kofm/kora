@@ -113,3 +113,6 @@ class Protection(models.Model):
 
     def get_absolute_url(self):
         return reverse('register:protection-detail', kwargs={"pk": self.pk})
+
+    class Meta:
+        ordering = ["-date_start"]

@@ -64,6 +64,7 @@ urlpatterns = [
     path("variety/<int:variety_id>/protection/create", views.protection_create, name="protection-create"),
     path("entity/create", views.EntityCreateView.as_view(), name="entity-create"),
     path("entity/", views.entity_list, name="entity-list"),
-    path("entity/<int:pk>", views.EntityDetailView.as_view(), name="entity-detail"),
+    path("entity/<int:pk>", views.entity_detail, name="entity-detail"),
+    path("entity/<int:pk>/update", views.EntityUpdateView.as_view(), name="entity-update"),
     path("variety/<int:pk>/update", views.PlantVarietyUpdateView.as_view(), name="plantvariety-update"),
 ]
