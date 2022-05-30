@@ -1,3 +1,4 @@
+from typing import List
 from calculator.models import Crop
 import math
 import time
@@ -7,7 +8,8 @@ import pandas as pd
 
 
 class CropModel:
-    inputs_crop = []
+    inputs: List[str] = []
+    inputs_optional: List[str] = []
     context_name = "unnamed_model"
     model_name = "Unnamed Model"
     measure_unit = ""
@@ -32,7 +34,7 @@ class CropModel:
                     "parameter__code", flat=True
                 )
             )
-        return all(x in available_params for x in set(self.inputs_crop))
+        return all(x in available_params for x in set(self.inputs))
 
     def has_area(self):
         return self.area.total_area > 0
@@ -72,6 +74,8 @@ class CropModel:
             param = self.object.variety.species.parameters.filter(
                 parameter__code=code
             ).last()
+        if not param:
+            return None
         return param.value
 
     def output(self):
@@ -82,7 +86,7 @@ class CropModel:
 
 
 class CropModelExpectedYield(CropModel):
-    inputs_crop = [
+    inputs = [
         "yield",
     ]
     context_name = "expected_yield"
@@ -100,10 +104,11 @@ class CropModelExpectedYield(CropModel):
 
 
 class CropModelTotalPlants(CropModel):
-    inputs_crop = [
+    inputs = [
         "distw",
         "distb",
     ]
+    inputs_optional: List[str] = ["totplants", ]
     context_name = "total_plants"
     model_name = "Total plants"
 
@@ -112,9 +117,12 @@ class CropModelTotalPlants(CropModel):
 
     def output(self):
         context = super().output()
+        totplants = self.get_parameter("totplants")
         nrow = math.floor(self.object.area.width / self.get_parameter("distb"))
         ncol = math.floor(1 / self.get_parameter("distw"))
         result = round(ncol * nrow * self.area.total_area, 0)
+        if totplants:
+            result = totplants
         context["value"] = int(result)
         return context
 
@@ -199,7 +207,7 @@ class ModelBasePlots:
 
 
 class PhenologyCropModel(CropModel, ModelBasePlots):
-    inputs_crop = ["Tbase", "Topt", "Thigh", "GDDmat"]
+    inputs = ["Tbase", "Topt", "Thigh", "GDDmat"]
     context_name = "phenology"
     model_name = "Phenology"
 
@@ -230,7 +238,7 @@ class PhenologyCropModel(CropModel, ModelBasePlots):
         topt = self.get_parameter("Topt")
         thigh = self.get_parameter("Thigh")
         gddmat = self.get_parameter("GDDmat")
-        weather_data = self.get_weather_data()
+        weather_data: pd.DataFrame = self.get_weather_data()
         # Exclude days with tave outside the cardinal temperatures range (tbase - thigh)
         tr = weather_data.tave[
             (weather_data.tave > tbase) & (weather_data.tave < thigh)
@@ -262,7 +270,7 @@ class PhenologyCropModel(CropModel, ModelBasePlots):
                     # If it is, append both the sowing and the maturity dates
                     # found to their respective lists
                     sowing_dates.append(date)
-                    if date == sowing:
+                    if date.date() == sowing:
                         maturity = maturity_date
                     maturity_dates.append(maturity_date)
             except:

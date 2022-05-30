@@ -6,6 +6,11 @@
   <link href="{% static 'frontpage/css/tom-select.bootstrap5.min.css' %}" rel="stylesheet">
   <script src="{% static 'frontpage/js/tom-select.complete.min.js' %}"></script>
   <script src="{% static 'frontpage/js/apexcharts/apexcharts.js' %}"></script>
+  <script src="{% static 'frontpage/js/htmx.js' %}" type="text/javascript"></script>
+  <script>
+    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+  </script>
 {% endblock %}
 
 {% block title %}
@@ -39,6 +44,7 @@
 <p class="display-1">New crop</p>
 {% endif %}
 
+{% if crop %}
 <div class="row">
 <div class="col">
   <p>
@@ -52,20 +58,11 @@
     </a>
   </p>
   <div class="collapse" id="collapseExample">
-    <div class="card card-body">
-      <button class="btn btn-primary col-2"
-        hx-post="{% url 'calculator:cropparameter-add' crop.pk %}"
-        hx-target="#cropparameter-forms"
-        hx-swap="beforeend"
-        >
-        Add
-      </button>
-        <div id="cropparameter-forms" class="row">
-        </div>
-    </div>
+    {% include 'calculator/partials/cropparams_collapse.html' with crop=crop %}
   </div>
 </div>
 </div>
+{% endif %}
 
 <div class="row">
   <div class="col-3">
@@ -82,35 +79,7 @@
     <script type="text/javascript" src="{% static 'calculator/js/crop_update_ts.js' %}"></script>
   </div>
 
-  <div class="col">
-    <div class="row">
-<!-- Display available models -->
-  {% for cm in cropmodels %}
-  {% if 'plots' in cm %}
-  {{ cm.plots|json_script:"plot-data" }}
-  <div class="col card mx-2 my-2">
-    <div class="card-title">
-      <h3>Phenology</h3>
-    </div>
-    <div id="synced-charts">
-      {% for plot in cm.plots %}
-      <div id="{{ plot.chart.id }}" class="card-body"></div>
-      {% endfor %}
-    </div>
-
-    <script type="text/javascript" src="{% static 'calculator/js/crop_update.js' %}"></script>
-  </div>
-  </div>
-  <div class="row">
-  {% else %}
-  <div class="card col-3 my-2 mx-2">
-    <div class="card-title"><p>{{ cm.model_name }}</p></div>
-    <div class="card-body d-flex"><h2 class="display-3 mt-auto">{{ cm.value }} {{ cm.measure_unit }}</h2></div>
-  </div>
-  {% endif %}
-  {% endfor %}
-  </div>
-</div>
+    {% include "calculator/partials/cropmodels.html" with oob="false" %}
 
     </div>
   </div>

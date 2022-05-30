@@ -1,7 +1,7 @@
-
-////////////////////////////////////////
-
-const plotData = JSON.parse(document.getElementById("plot-data").textContent);
+function getPlotData() {
+  let plotData = JSON.parse(document.getElementById("plot-data").textContent);
+  return plotData;
+}
 
 function renderPlot(data, id) {
   let options = data;
@@ -30,7 +30,7 @@ function renderPlot(data, id) {
 
         // convert to date
         date = new Date(date);
-        date.setYear(2022);
+       date.setYear(2022);
 
         // update sowing date input
         document.getElementById("id_sowing").value = date
@@ -43,8 +43,21 @@ function renderPlot(data, id) {
 
   let plot = new ApexCharts(document.getElementById(id), options);
   plot.render()
+  return plot
 }
 
-for (var i in plotData) {
-  renderPlot(plotData[i], plotData[i].chart.id)
-}
+var plots = []
+
+const plotData = getPlotData();
+// htmx.onLoad(function(content) {
+//   if (plots) {
+//     var plotData = JSON.parse(document.getElementById("plot-data").textContent);
+//     plots.forEach(function(value, key) {
+//       // value.updateSeries(plotData[key].series)
+//       value.destroy()
+//     })
+//   }
+  for (var i in plotData) {
+    plots.push(renderPlot(plotData[i], plotData[i].chart.id))
+  }
+// })

@@ -28,7 +28,7 @@ class Crop(models.Model):
         on_delete=models.CASCADE,
     )
 
-    def __str__(self) -> str:
+    def __str__(self):
         if self.has_variety():
             return f"{self.variety.name} ({self.variety.species.common_name})"
         else:
@@ -147,4 +147,4 @@ class CropParameter(ParameterValue):
     crop = models.ForeignKey(Crop, on_delete=models.CASCADE, related_name="parameters")
     
     class Meta:
-        unique_together = ['parameter', 'crop']
+        ordering = ['parameter__code']

@@ -1,5 +1,6 @@
 from django import forms
 from django.core.exceptions import ValidationError
+from django.db.models.base import Model
 from django.forms.widgets import DateInput, HiddenInput
 
 from calculator.models import Crop, CropParameter, Management
@@ -9,7 +10,18 @@ from collect.models import CartItem
 class CropParameterForm(forms.ModelForm):
     class Meta:
         model = CropParameter
-        fields = ("value", "parameter", )
+        fields = ("value", "parameter", "crop")
+        widgets = {"crop": HiddenInput()}
+
+    def save(self, commit: bool = ...) -> Model:
+        parameter = self.cleaned_data["parameter"]
+        value = self.cleaned_data["value"]
+        crop = self.cleaned_data["crop"]
+        created, cropparameter = CropParameter.objects.update_or_create(
+            crop=crop, parameter=parameter, defaults={"value": value}
+        )
+        return cropparameter
+
 
 
 class ManagementForm(forms.ModelForm):
@@ -50,12 +62,13 @@ class CropModelForm(forms.ModelForm):
     harvest = forms.DateField(
         label="Harvest", required=False, widget=DateInput(attrs={"type": "date"})
     )
+
     class Meta:
         fields = ["area", "notes"]
         model = Crop
 
-    def save(self, commit = True):
-        crop = super().save(commit = False)
+    def save(self, commit=True):
+        crop = super().save(commit=False)
         variety = self.cleaned_data["variety"]
         species = self.cleaned_data["species"]
         sowing = self.cleaned_data["sowing"]
