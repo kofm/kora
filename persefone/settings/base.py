@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "crispy_forms",
     "django_countries",
+    'widget_tweaks',
     "register.apps.RegisterConfig",
     "describe.apps.DescribeConfig",
     "frontpage.apps.FrontpageConfig",

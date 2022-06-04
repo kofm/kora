@@ -2,12 +2,37 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.db.models.base import Model
 from django.forms.widgets import DateInput, HiddenInput
+from django.shortcuts import get_object_or_404
+from dynamic_forms import DynamicField, DynamicFormMixin
 
 from calculator.models import Crop, CropParameter, Management
+from calculator.utils import get_crop_params_list
 from collect.models import CartItem
 
 
-class CropParameterForm(forms.ModelForm):
+def get_form_initial_value(form, key):
+    # Check if the key is present in the initial data dict
+    if key in form.initial:
+        # Data is returned in a list
+        list_val = form[key].value()
+        # Check if the list has exactly one item and use "sequence unpacking"
+        # to retrieve the number. If list length is 0 or > 1 return None
+        (val,) = list_val if len(list_val) == 1 else None
+        return val
+    # Return None by default
+    return None
+
+
+def get_parameter_value(form):
+    if parameter := get_form_initial_value(form, "parameter"):
+        crop = get_object_or_404(Crop, pk=get_form_initial_value(form, "crop"))
+        cropparams = get_crop_params_list(crop)
+        for param in filter(lambda x: x["parameter"] == int(parameter), cropparams):
+            return param["value"]
+    return None
+
+
+class CropParameterForm(DynamicFormMixin, forms.ModelForm):
     class Meta:
         model = CropParameter
         fields = ("value", "parameter", "crop")
@@ -17,11 +42,20 @@ class CropParameterForm(forms.ModelForm):
         parameter = self.cleaned_data["parameter"]
         value = self.cleaned_data["value"]
         crop = self.cleaned_data["crop"]
-        created, cropparameter = CropParameter.objects.update_or_create(
+        _, cropparameter = CropParameter.objects.update_or_create(
             crop=crop, parameter=parameter, defaults={"value": value}
         )
         return cropparameter
 
+    value = DynamicField(
+        forms.CharField,
+        required=False,
+        # initial = lambda form: form["parameter"].value(),
+        initial=get_parameter_value,
+        widget=lambda _: forms.TextInput(
+            attrs={"class": "form-control my-3", "type": "numeric"}
+        ),
+    )
 
 
 class ManagementForm(forms.ModelForm):

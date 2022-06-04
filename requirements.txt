@@ -10,3 +10,5 @@ django-filter
 django-htmx
 django-countries
 pyuca
+django-forms-dynamic
+django-widget-tweaks

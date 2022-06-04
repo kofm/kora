@@ -24,7 +24,7 @@ def get_all_params(
     return (
         Model.objects.filter(**kwargs)
         .values(
-            "parameter__code", "value", "parameter__measure_unit", "parameter__name"
+            "parameter", "parameter__code", "value", "parameter__measure_unit", "parameter__name"
         )
     )
 

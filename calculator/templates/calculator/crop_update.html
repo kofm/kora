@@ -1,6 +1,7 @@
 {% extends "frontpage/base.html" %}
 {% load static %}
 {% load crispy_forms_tags %}
+{% load widget_tweaks %}
 
 {% block javascript %}
   <link href="{% static 'frontpage/css/tom-select.bootstrap5.min.css' %}" rel="stylesheet">
@@ -46,20 +47,11 @@ const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstra
 
 {% if crop %}
 <div class="row">
-<div class="col">
-  <p>
-    <a class="btn btn-primary"
-      data-bs-toggle="collapse"
-      href="#collapseExample"
-      role="button"
-      aria-expanded="false"
-      aria-controls="collapseExample">
-      <i class="bi bi-gear-fill"></i>
-    </a>
-  </p>
-  <div class="collapse" id="collapseExample">
-    {% include 'calculator/partials/cropparams_collapse.html' with crop=crop %}
-  </div>
+<div class="col-2">
+  {{ cropparameter_form.parameter.label_tag }}
+  {% render_field cropparameter_form.parameter class="form-select" hx-get="/plan/value" hx-trigger="change" hx-include="#id_crop" hx-target="#id_value" hx-swap="outerHTML" %}
+  {{ cropparameter_form.value }}
+  {{ cropparameter_form.crop }}
 </div>
 </div>
 {% endif %}

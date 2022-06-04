@@ -1,4 +1,5 @@
-# pyright: reportGeneralTypeIssues=false
+# pyright: reportGexeralTypeIssues=false
+from django.http.response import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.template.response import TemplateResponse
 from django.urls.base import reverse_lazy
@@ -36,8 +37,8 @@ def crop_update_view(request, pk):
     if request.POST:
         form = CropModelForm(request.POST, instance=crop)
         if form.is_valid():
-            instance = form.save()
-            if instance.species != crop.species or instance.variety != crop.variety:
+            form.save()
+            if any(x in form.changed_data for x in ["species", "variety"]):
                 crop.parameters.all().delete()
 
     # Instantiate the form
@@ -95,6 +96,11 @@ def cropparam_update_hx(request, pk):
         request, "calculator/partials/cropparams_collapse.html", context
     )
 
+
+def cropparam_value(request):
+    form = CropParameterForm(initial=request.GET)
+    print(form)
+    return HttpResponse(form["value"])
 
 class CropCreateView(CreateView):
     form_class = CropModelForm
