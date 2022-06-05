@@ -10,22 +10,17 @@ from calculator.utils import get_crop_params_list
 from collect.models import CartItem
 
 
-def get_form_initial_value(form, key):
-    # Check if the key is present in the initial data dict
-    if key in form.initial:
-        # Data is returned in a list
-        list_val = form[key].value()
-        # Check if the list has exactly one item and use "sequence unpacking"
-        # to retrieve the number. If list length is 0 or > 1 return None
-        (val,) = list_val if len(list_val) == 1 else None
-        return val
-    # Return None by default
-    return None
+def get_form_initial_value(form: forms.Form, key: str) -> str:
+    field = form.initial.get(key, None)
+    # Sometimes a list is used instead of a single value
+    return field[0] if isinstance(field, list) else field
 
 
-def get_parameter_value(form):
-    if parameter := get_form_initial_value(form, "parameter"):
-        crop = get_object_or_404(Crop, pk=get_form_initial_value(form, "crop"))
+def get_parameter_value(form: forms.Form) -> int:
+    parameter = get_form_initial_value(form, "parameter")
+    crop_id = get_form_initial_value(form, "crop")
+    if parameter and crop_id:
+        crop = get_object_or_404(Crop, pk=crop_id)
         cropparams = get_crop_params_list(crop)
         for param in filter(lambda x: x["parameter"] == int(parameter), cropparams):
             return param["value"]
@@ -101,7 +96,10 @@ class CropModelForm(forms.ModelForm):
         fields = ["area", "notes"]
         model = Crop
 
-    def save(self, commit=True):
+    def has_changed(self) -> bool:
+        return super().has_changed()
+
+    def save(self, commit):
         crop = super().save(commit=False)
         variety = self.cleaned_data["variety"]
         species = self.cleaned_data["species"]
@@ -113,7 +111,8 @@ class CropModelForm(forms.ModelForm):
         else:
             crop.set_crop(species, "plantspecies")
 
-        crop.save()
+        if commit:
+            crop.save()
 
         if sowing:
             crop.sowing = sowing

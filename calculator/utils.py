@@ -21,11 +21,12 @@ def get_params(queryset: QuerySet, params_list: list) -> list:
 def get_all_params(
     Model: Union[CropParameter, VarietalParameter, SpeciesParameter], **kwargs
 ) -> QuerySet:
-    return (
-        Model.objects.filter(**kwargs)
-        .values(
-            "parameter", "parameter__code", "value", "parameter__measure_unit", "parameter__name"
-        )
+    return Model.objects.filter(**kwargs).values(
+        "parameter",
+        "parameter__code",
+        "value",
+        "parameter__measure_unit",
+        "parameter__name",
     )
 
 
@@ -51,7 +52,7 @@ def get_crop_params_list(crop: Crop) -> list:
             get_available_params(speciesparams) - found_cropparams - found_varparams
         )
         params_list += get_params(speciesparams, found_speciesparams)
-    return sorted(params_list, key = lambda d: d['parameter__code'])
+    return sorted(params_list, key=lambda d: d["parameter__code"])
 
 
 def get_cropmodels(crop, cropmodels_list):

@@ -30,35 +30,38 @@ class CropDeleteView(DeleteView):
         return reverse_lazy("spaces:area-detail", kwargs={"pk": self.object.area.pk})
 
 
-def crop_update_view(request, pk):
-    # Get the crop
+def cropparam_table_hx(request, pk):
     crop = get_object_or_404(Crop, pk=pk)
-
-    if request.POST:
-        form = CropModelForm(request.POST, instance=crop)
-        if form.is_valid():
-            form.save()
-            if any(x in form.changed_data for x in ["species", "variety"]):
-                crop.parameters.all().delete()
-
-    # Instantiate the form
-    form = CropModelForm(
-        instance=crop,
-        initial={
-            "area": crop.area,
-            "sowing": crop.sowing,
-            "harvest": crop.harvest,
-            "notes": crop.notes,
+    cropparameter_table = get_crop_params_list(crop)
+    return TemplateResponse(
+        request,
+        "calculator/partials/cropparameter_table.html",
+        {
+            "cropparameter_table": cropparameter_table,
         },
     )
 
-    # Set initial value depending on the set crop
-    # import pdb; pdb.set_trace()
-    if crop.has_variety():
-        form.initial["species"] = crop.variety.species.pk
-        form.initial["variety"] = crop.variety.pk
-    elif crop.has_species():
-        form.initial["species"] = crop.species.pk
+
+def crop_update_view(request, pk):
+
+    # Get the crop
+    crop = get_object_or_404(Crop, pk=pk)
+
+    # Instantiate the form
+    init = {
+        "species": crop.species.pk if crop.has_species() else None,
+        "variety": crop.variety.pk if crop.has_variety() else None,
+    }
+    form = CropModelForm(initial=init, instance=crop)
+
+    if request.POST:
+        form = CropModelForm(request.POST, initial=init, instance=crop)
+        if form.is_valid():
+            instance = form.save(commit=False)
+            if instance.species != crop.species:
+            # if any(x in form.changed_data for x in ["species", "variety"]):
+                instance.parameters.all().delete()
+            instance.save()
 
     cropparameter_form = CropParameterForm(initial={"crop": crop})
 
@@ -89,18 +92,15 @@ def cropparam_update_hx(request, pk):
         form.save()
     # context["cropparameter_table"] = CropParameterTable(get_crop_params_list(crop))
     context["cropparameter_table"] = get_crop_params_list(crop)
-    context["cropparameter_form"] = form
-    context["crop"] = crop
-    context.update(get_cropmodels(crop, CROP_MODELS))
     return TemplateResponse(
-        request, "calculator/partials/cropparams_collapse.html", context
+        request, "calculator/partials/cropparameter_table.html", context
     )
 
 
 def cropparam_value(request):
     form = CropParameterForm(initial=request.GET)
-    print(form)
     return HttpResponse(form["value"])
+
 
 class CropCreateView(CreateView):
     form_class = CropModelForm
