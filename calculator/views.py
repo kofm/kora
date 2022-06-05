@@ -48,7 +48,9 @@ def crop_update_view(request, pk):
     crop = get_object_or_404(Crop, pk=pk)
 
     # Instantiate the form
-    form = CropModelForm(instance=crop)
+    form = CropModelForm(
+        initial={"sowing": crop.sowing, "harvest": crop.harvest}, instance=crop
+    )
 
     if request.POST:
         form = CropModelForm(request.POST, instance=crop)
