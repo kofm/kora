@@ -47,7 +47,7 @@ const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstra
 
 {% if crop %}
 <div class="row">
-  <div class="col-2">
+  <div class="col-3">
     <form 
        hx-post="{% url 'calculator:cropparameter-update' crop.pk %}"
        hx-target="#cropparameter-table"
@@ -56,7 +56,7 @@ const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstra
       {% render_field cropparameter_form.parameter class="form-select" hx-get="/plan/value" hx-trigger="change" hx-include="#id_crop" hx-target="#id_value" hx-swap="outerHTML" %}
       {{ cropparameter_form.value }}
       {{ cropparameter_form.crop }}
-      <button class="btn btn-primary my-3">Set</button>
+      <button class="btn btn-lg btn-primary my-3 col-12">Set</button>
 
     </form>
   </div>
@@ -73,11 +73,11 @@ const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstra
       {% csrf_token %}
       {{ form|crispy }}
       {% if crop %}
-        <button class="btn btn-primary mt-3" type="submit">Refresh</button>
-        <a class="btn btn-danger mt-3" type="submit" href="{% url 'calculator:crop-delete' crop.pk %}">Delete</a>
+        <button class="btn btn-lg btn-primary mt-3 col-12" type="submit">Refresh</button>
+        <a class="btn btn-lg btn-danger mt-3 col-12" type="submit" href="{% url 'calculator:crop-delete' crop.pk %}">Delete</a>
         {% else %}
 
-        <button class="btn btn-primary mt-3" type="submit">Submit</button>
+        <button class="btn btn-lg btn-primary mt-3" type="submit">Submit</button>
       {% endif %}
     </form>
     {{ plantspecies|json_script:"plantspecies" }}

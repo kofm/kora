@@ -44,7 +44,6 @@ class CropParameterForm(DynamicFormMixin, forms.ModelForm):
 
     value = DynamicField(
         forms.CharField,
-        required=False,
         # initial = lambda form: form["parameter"].value(),
         initial=get_parameter_value,
         widget=lambda _: forms.TextInput(
@@ -83,8 +82,8 @@ class CropManagementForm(forms.ModelForm):
 
 
 class CropModelForm(forms.ModelForm):
-    species = forms.CharField(label="Species")
-    variety = forms.CharField(label="Variety", required=False)
+    # species = forms.CharField(label="Species")
+    # variety = forms.CharField(label="Variety", required=False)
     sowing = forms.DateField(
         label="Sowing", required=False, widget=DateInput(attrs={"type": "date"})
     )
@@ -93,26 +92,18 @@ class CropModelForm(forms.ModelForm):
     )
 
     class Meta:
-        fields = ["area", "notes"]
+        fields = ["species", "variety", "area", "notes"]
         model = Crop
 
     def has_changed(self) -> bool:
         return super().has_changed()
 
-    def save(self, commit):
+    def save(self):
         crop = super().save(commit=False)
-        variety = self.cleaned_data["variety"]
-        species = self.cleaned_data["species"]
         sowing = self.cleaned_data["sowing"]
         harvest = self.cleaned_data["harvest"]
 
-        if variety:
-            crop.set_crop(variety, "plantvariety")
-        else:
-            crop.set_crop(species, "plantspecies")
-
-        if commit:
-            crop.save()
+        crop.save()
 
         if sowing:
             crop.sowing = sowing

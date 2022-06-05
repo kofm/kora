@@ -48,20 +48,14 @@ def crop_update_view(request, pk):
     crop = get_object_or_404(Crop, pk=pk)
 
     # Instantiate the form
-    init = {
-        "species": crop.species.pk if crop.has_species() else None,
-        "variety": crop.variety.pk if crop.has_variety() else None,
-    }
-    form = CropModelForm(initial=init, instance=crop)
+    form = CropModelForm(instance=crop)
 
     if request.POST:
-        form = CropModelForm(request.POST, initial=init, instance=crop)
+        form = CropModelForm(request.POST, instance=crop)
         if form.is_valid():
-            instance = form.save(commit=False)
-            if instance.species != crop.species:
-            # if any(x in form.changed_data for x in ["species", "variety"]):
-                instance.parameters.all().delete()
-            instance.save()
+            form.save()
+            if any(x in form.changed_data for x in ["species", "variety"]):
+                crop.parameters.all().delete()
 
     cropparameter_form = CropParameterForm(initial={"crop": crop})
 

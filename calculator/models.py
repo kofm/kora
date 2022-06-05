@@ -20,8 +20,8 @@ class Crop(models.Model):
     notes = models.CharField(
         max_length=500, help_text="Notes relative to the Crop", blank=True, null=True
     )
-    species = models.ForeignKey(PlantSpecies, null=True, on_delete=models.CASCADE)
-    variety = models.ForeignKey(PlantVariety, null=True, on_delete=models.CASCADE)
+    species = models.ForeignKey(PlantSpecies, null=True, blank=True, on_delete=models.CASCADE)
+    variety = models.ForeignKey(PlantVariety, null=True, blank=True, on_delete=models.CASCADE)
     # TODO: delete GenericForeignKey relation
     area = models.ForeignKey(
         Area,
