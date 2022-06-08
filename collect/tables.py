@@ -70,7 +70,9 @@ class SeedSampleTable(tables.Table):
         return str(record.germinability) + "%"
 
     def render_weight(self, record):
-        return int(record.weight)
+        # record.weight == record.weight is just a smart way to check if it's NAN
+        # TODO: it shouldn't be possible to store nan in db
+        return int(record.weight) if record.weight == record.weight else None
 
     def render_variety(self, record):
         if record.variety.breeder:

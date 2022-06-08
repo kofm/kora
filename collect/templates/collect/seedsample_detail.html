@@ -128,7 +128,7 @@
                             name: "Germinability",
                             data: [
                                       {% for germinability in sample.germinability_set.all %}
-                                      ['{{ germinability.performed_at }}', {{ germinability.germinability }}],
+                                      ['{{ germinability.performed_at|date:"Y-m-d" }}', {{ germinability.germinability }}],
                                       {% endfor %}
                                     ]
                           }],
@@ -168,7 +168,7 @@
                       name: "Sample weight",
                       data: [
                               {% for sampleweight in sample.sampleweight_set.all %}
-                              ['{{ sampleweight.created_at }}', {{ sampleweight.weight }}],
+                              ['{{ sampleweight.created_at|date:"Y-m-d" }}', {{ sampleweight.weight }}],
                               {% endfor %}
                             ]
                     }],
