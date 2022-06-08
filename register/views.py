@@ -312,10 +312,6 @@ class EntityCreateView(CreateView):
     fields = "__all__"
 
 
-class EntityDetailView(DetailView):
-    model = Entity
-
-
 def entity_detail(request, pk):
     context = {}
     entity = get_object_or_404(Entity, pk=pk)

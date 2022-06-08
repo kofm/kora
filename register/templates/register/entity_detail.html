@@ -11,7 +11,13 @@
 {% endblock %}
 
 {% block container %}
-<h1 class="display-1">{{ entity }} <span class="text-muted">{{ entity.type }}<span><a class="btn btn-lg btn-secondary" href="{% url 'register:entity-update' entity.pk %}">Update</a></span></h1>
+<h1 class="display-1">{{ entity }} 
+  <a class="text-decoration-none link-dark" href="{% url 'register:entity-update' entity.pk %}">
+    <i class="bi bi-pencil-square" style="font-size:2rem"></i>
+  </a></span></h1>
+  <p class="lead">
+    {{ entity.get_type_display }} based in {{ entity.country.name }} <i class="{{ entity.country.flag_css }}"></i>
+  </p>
 <div class="row">
   <div class="col">
     {% render_table varieties_table %}

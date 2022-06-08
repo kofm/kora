@@ -102,7 +102,15 @@ class Protection(models.Model):
         (NLI, "National Listing"),
         (CAT, "Common Catalogue"),
     ]
+    PROTECTION_STATUS_CHOICES = [
+        ("G", "Granted"),
+        ("T", "Terminated"),
+        ("A", "Active Application"),
+        ("W", "Withdrawn"),
+        ("R", "Refused"),
+    ]
     type = models.CharField(max_length=3, choices=PROTECTION_TYPE_CHOICES)
+    status = models.CharField(max_length=1, blank=True, null=True, choices=PROTECTION_STATUS_CHOICES)
     country = CountryField()
     variety = models.ForeignKey(PlantVariety, on_delete=models.CASCADE)
     reference = models.CharField(max_length=100, blank=True, null=True)
@@ -116,3 +124,6 @@ class Protection(models.Model):
 
     class Meta:
         ordering = ["-date_start"]
+
+    def __str__(self) -> str:
+        return self.get_type_display() + " for " + self.variety.name
