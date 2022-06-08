@@ -11,7 +11,7 @@ Breeders
 
 {% block container %}
 <h1 class="display-1">
-  Breeders
+  Breeders <a class="btn btn-primary" href="{% url 'register:entity-create' %}">Create</a>
 </h1>
 {% render_table table %}
 {% endblock %}

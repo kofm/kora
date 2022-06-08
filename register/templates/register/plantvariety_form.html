@@ -1,5 +1,11 @@
 {% extends "frontpage/base.html" %}
 {% load crispy_forms_tags %}
+{% load static %}
+
+{% block javascript %}
+  <link href="{% static 'frontpage/css/tom-select.bootstrap5.min.css' %}" rel="stylesheet">
+  <script src="{% static 'frontpage/js/tom-select.complete.min.js' %}"></script>
+{% endblock %}
 
 {% block title %}Create Variety{% endblock %}
 
@@ -19,8 +25,8 @@
 </nav>
 
 {% if object %}
-<h1 class="display-1">
-  Update: {{ object }} <span class="text-muted">{{ object.species.latin_name }}</span>
+<h1>
+  {{ object }} <span class="text-muted">({{ object.species.latin_name }})</span>
 </h1>
 {% else %}
 <h1 class="display-1">Create Variety</h1>
@@ -29,7 +35,12 @@
 <form method="post">
   {% csrf_token %}
   {{ form|crispy }}
-  <input class="btn btn-primary mt-3" type="submit" value="Save">
+  {% if object %}
+  <input class="btn btn-primary mt-3" type="submit" value="Update">
+  {% else %}
+  <input class="btn btn-primary mt-3" type="submit" value="Create">
+  {% endif %}
+  <script>new TomSelect("#id_breeder")</script>
 </form>
 
 {% endblock %}

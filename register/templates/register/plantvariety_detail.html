@@ -20,6 +20,9 @@
 
 <h1 class="display-1">
   {{ variety.name }} <small class="text-muted">(<i>{{ variety.species.latin_name }}</i>)</small>
+  <a class="text-decoration-none link-dark" href="{% url 'register:plantvariety-update' variety.pk %}">
+    <i class="bi bi-pencil-square" style="font-size:2rem"></i>
+  </a>
 </h1>
 {% if variety.has_breeder %}
 <p class="lead">
