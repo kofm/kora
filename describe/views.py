@@ -24,6 +24,9 @@ class DescriptionDetail(DetailView):
     model = Description
     context_object_name = "description"
 
+class DescriptionDeleteView(DeleteView):
+  model = Description
+  success_url = reverse_lazy('describe:description-list')
 
 class ProtocolsList(ListView):
     model = Protocol

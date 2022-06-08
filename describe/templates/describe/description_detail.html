@@ -4,13 +4,16 @@
 {% block container %}
 <nav aria-label="breadcrumb">
   <ol class="breadcrumb">
-    <li class="breadcrumb-item"><a href="{% url 'describe:descriptions_list' %}">Descriptions</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'describe:description-list' %}">Descriptions</a></li>
     <li class="breadcrumb-item active" aria-current="page">{{ description.variety.name }}</li>
   </ol>
 </nav>
 <p class="display-3">{{ description.variety.name }} <small class="text-muted">{{ description.name }}</small></p>
 <p class="lead">Reference protocol <a href="{% url 'describe:protocol_detail' description.protocol.id %}">{{ description.protocol.name }}</a> (<i>{{ description.protocol.specie.latin_name }}</i>)</p>
-<p><a class="btn btn-secondary" href="{% url 'describe:description-update' description.id %}">Update</a></p>
+<p>
+  <a class="btn btn-secondary" href="{% url 'describe:description-update' description.id %}">Update</a>
+  <a class="btn btn-danger" href="{% url 'describe:description-delete' description.id %}">Delete</a>
+</p>
 <table class="table table-striped">
     <thead>
         <th>Trait</th>

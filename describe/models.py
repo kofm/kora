@@ -120,7 +120,7 @@ class Expression(models.Model):
 
     state_of_expression = models.ForeignKey(State, on_delete=models.PROTECT)
     description = models.ForeignKey(
-        Description, on_delete=models.RESTRICT, related_name="expressions"
+        Description, on_delete=models.CASCADE, related_name="expressions"
     )
 
     def __str__(self):

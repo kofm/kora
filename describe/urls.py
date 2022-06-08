@@ -5,8 +5,9 @@ from . import views
 app_name = "describe"
 
 urlpatterns = [
-    path("", views.DescriptionsList.as_view(), name="descriptions_list"),
+    path("", views.DescriptionsList.as_view(), name="description-list"),
     path("create", views.DescriptionCreate.as_view(), name="description-create"),
+    path("<int:pk>/delete", views.DescriptionDeleteView.as_view(), name="description-delete"),
     path("<int:pk>/", views.DescriptionDetail.as_view(), name="description_detail"),
     path("<int:pk>/update", views.description_update, name="description-update"),
     path("protocols/", views.ProtocolsList.as_view(), name="protocols_list"),

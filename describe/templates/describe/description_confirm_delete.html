@@ -1,0 +1,5 @@
+{% extends "frontpage/confirm_delete.html" %}
+{% block delete_message %}
+You are about to delete the {{ description.name }} description of the {{ description.variety.name }} variety ({{ description.variety.species }}).
+{% endblock %}
+{% block extended_delete_message %}{% endblock %}
