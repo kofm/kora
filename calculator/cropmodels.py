@@ -135,10 +135,9 @@ class ModelBasePlots:
         base_range_bar_plot = {
             "chart": {
                 "id": "pheno-dates",
-                "height": 150,
+                "height": 250,
                 "type": "rangeBar",
                 "group": "phenology",
-                "toolbar": {"show": False},
             },
             "plotOptions": {
                 "bar": {
@@ -151,20 +150,13 @@ class ModelBasePlots:
                 "enabled": True,
                 "style": {"colors": ["#f3f4f5", "#fff"]},
             },
-            "yaxis": [
-                {
-                    "show": False,
-                    "showAlways": False,
-                    "tooltip": {"enabled": False, "offsetX": 0},
-                    "crosshairs": {
-                        "show": True,
-                        "position": "front",
-                        "stroke": {"color": "#b6b6b6", "width": 1, "dashArray": 0},
-                    },
-                }
-            ],
+            "yaxis": {
+                "labels": {
+                    "minWidth": 40,
+                },
+            },
+            "xaxis": { "show": False},
             "grid": {"row": {"colors": ["#f3f4f5", "#fff"], "opacity": 1}},
-            "annotations": {"yaxis": [], "xaxis": [], "points": []},
             "theme": { "palette": "palette3" },
             "stroke": { "width": 1 }
         }
@@ -176,18 +168,25 @@ class ModelBasePlots:
                 "id": "temp-response",
                 "type": "area",
                 "stacked": False,
-                "height": 250,
+                "height": 120,
                 "group": "phenology",
+                "toolbar": {"show": False},
             },
             "yaxis": {
                 "labels": {
                     "minWidth": 40,
                 },
+                "reversed": True,
+                "min": 0,
+                "max": 1,
+                "tickAmount": 4
             },
             "dataLabels": {"enabled": False},
-            "markers": {
-                "size": 0,
-            },
+            "grid": { "yaxis" : {
+                "lines": {
+                    "show": False
+                }
+            }}
         }
         return base_area_plot
 
