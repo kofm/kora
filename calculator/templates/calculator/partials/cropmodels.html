@@ -5,7 +5,7 @@
     {% for cm in cropmodels %}
     {% if 'plots' in cm %}
     {{ cm.plots|json_script:"plot-data" }}
-    <div class="col card mx-2 my-2">
+    <div class="col-9 card mx-2 my-2">
       <div class="card-title">
         <h3>Phenology</h3>
       </div>
@@ -16,6 +16,7 @@
       </div>
 
       <script type="text/javascript" src="{% static 'calculator/js/crop_update.js' %}"></script>
+
     </div>
   </div>
   <div class="row">
