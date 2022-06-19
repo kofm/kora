@@ -1,7 +1,7 @@
 from django import forms
 from django.core.exceptions import ValidationError
 from django.db.models.base import Model
-from django.forms.widgets import DateInput, HiddenInput
+from django.forms.widgets import DateInput, HiddenInput, NumberInput, TextInput
 from django.shortcuts import get_object_or_404
 from dynamic_forms import DynamicField, DynamicFormMixin
 
@@ -31,7 +31,10 @@ class CropParameterForm(DynamicFormMixin, forms.ModelForm):
     class Meta:
         model = CropParameter
         fields = ("value", "parameter", "crop")
-        widgets = {"crop": HiddenInput()}
+        widgets = {
+            "crop": HiddenInput(),
+            "value": NumberInput()
+        }
 
     def save(self, commit: bool = ...) -> Model:
         parameter = self.cleaned_data["parameter"]
