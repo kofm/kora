@@ -72,6 +72,7 @@ class Trait(models.Model):
         help_text="the numeric identifier often used in official \
                     protocols",
     )
+    # TODO: this can be removed?
     description = models.CharField(
         max_length=200,
         help_text="trait description",
@@ -99,6 +100,7 @@ class State(models.Model):
         null=True,
         blank=True,
     )
+    # TODO: REMOVE THIS!!
     description = models.CharField(max_length=200, null=False, blank=False)
     trait = models.ForeignKey(Trait, models.CASCADE)
 

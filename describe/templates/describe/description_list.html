@@ -1,10 +1,25 @@
 {% extends "frontpage/base.html" %}
+{% load crispy_forms_tags %}
 {% block title %}Descriptions{% endblock %}
 
 {% block container %}
 <p class="display-1">Descriptions</p>
+<form method="POST">
+  {% csrf_token %}
+  {{ formset.management_form }}
+  <div class="row">
+  {% for form in formset %}
+  <div class="col">{{ form|crispy }}</div>
+  {% if forloop.counter|divisibleby:"4" and not forloop.last %}
+  </div>
+  <div class="row">
+  {% endif %}
+  {% endfor %}
+  </div>
+  <button class="btn btn-primary" type="submit">Confirm</button>
+</form>
 <a href="{% url 'describe:description-create' %}" class="btn btn-primary">Create</a>
-{% if object_list %}
+{% if page_obj %}
 <table class="table table-striped">
     <thead>
         <th>Description</th>
@@ -13,7 +28,7 @@
         <th>Protocol</th>
         <th class="col-1"></th>
     </thead>
-{% for description in object_list %}
+{% for description in page_obj %}
 <tr>
     <td>{{ description.name }}</td>
     <td>{{ description.variety.name }}</td>
