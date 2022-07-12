@@ -13,6 +13,8 @@ from calculator.models import Crop
 from parameters.models import Parameter
 import pandas as pd
 from .utils import get_max_order
+import influxdb as db
+from dateutil import parser
 
 from spaces.models import Area, Location
 
@@ -103,11 +105,19 @@ def location_detail(request, pk):
                 areas = areas.order_by(F('length') * F('width'))
         else:
             areas = areas.order_by(order_by)
+
+    client = db.InfluxDBClient(host='192.168.0.99', port=8086)
+    client.switch_database('home_assistant')
+    res = client.query('select time, value from "°C"')
+    series = [x for x in res['°C']]
+    temperatures = [[int(parser.parse(x['time']).timestamp()) * 1000, x['value']] for x in series]
+
     context = {
         "sortable": sortable,
         "location": location,
         "areas": areas,
-        "order_by": order_by
+        "order_by": order_by,
+        "temperatures": temperatures
     }
     return TemplateResponse(
         request,

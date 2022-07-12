@@ -4,6 +4,7 @@
 
 {% block javascript %}
 <script src="{% static 'frontpage/js/htmx.js' %}" type="text/javascript"></script>
+  <script src="{% static 'frontpage/js/apexcharts/apexcharts.js' %}"></script>
 {% endblock %}
 
 
@@ -49,6 +50,64 @@
   </div>
 </div>
 
+<div id="chart">
+
+</div>
+
+{{ temperatures|json_script:"temperatures" }}
+
+<script>
+
+  let plotData = JSON.parse(document.getElementById("temperatures").textContent);
+  console.log(plotData);
+        var options = {
+          series:[{data: plotData}],
+          chart: {
+          type: 'area',
+          stacked: false,
+          height: 350,
+          zoom: {
+            type: 'x',
+            enabled: true,
+            autoScaleYaxis: true
+          },
+          toolbar: {
+            autoSelected: 'zoom'
+          }
+        },
+        dataLabels: {
+          enabled: false
+        },
+        markers: {
+          size: 0,
+        },
+        title: {
+          text: 'Temperatures',
+          align: 'left'
+        },
+        fill: {
+          type: 'gradient',
+          gradient: {
+            shadeIntensity: 1,
+            inverseColors: false,
+            opacityFrom: 0.5,
+            opacityTo: 0,
+            stops: [0, 90, 100]
+          },
+        },
+        yaxis: {
+          title: {
+            text: '°C'
+          },
+        },
+        xaxis: {
+          type: 'datetime',
+        },
+        };
+
+        var chart = new ApexCharts(document.querySelector("#chart"), options);
+        chart.render();
+</script>
 
 <script>
   htmx.onLoad(function(content) {
