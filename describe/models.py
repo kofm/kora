@@ -10,6 +10,47 @@ from django.utils.functional import cached_property
 from register.models import PlantSpecies, PlantVariety
 
 
+class PlantSpecies(models.Model):
+    common_name = models.CharField(max_length=100, unique=True)
+    latin_name = models.CharField(max_length=100)
+    plant_types = (
+        ("tree", "Tree"),
+        ("shrub", "Shrub"),
+        ("vegetable", "Vegetable"),
+        ("herbaceous", "Herbaceous"),
+    )
+    plant_type = models.CharField(max_length=100, choices=plant_types)
+
+    @property
+    def total_descriptions(self):
+        return self.variety.filter(description__isnull=False).count()
+
+    @property
+    def total_seedsamples(self):
+        return self.variety.filter(seedsample__isnull=False).count()
+
+    def __str__(self):
+        return self.common_name
+
+    class Meta:
+        ordering = ["common_name"]
+
+
+class PlantVariety(models.Model):
+    name = models.CharField(help_text="The name of the variety", max_length=100)
+    species = models.ForeignKey(
+        PlantSpecies, on_delete=models.PROTECT, related_name="variety"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+
 class Protocol(models.Model):
     """
     Stores a Protocols used in descriptions. It is basically a collection
@@ -17,7 +58,7 @@ class Protocol(models.Model):
     """
 
     name = models.CharField(max_length=200, help_text="the name of the protocol")
-    specie = models.ForeignKey(
+    plantspecies = models.ForeignKey(
         PlantSpecies,
         on_delete=models.PROTECT,
         help_text="reference to the specie it is meant to use with",
@@ -51,7 +92,7 @@ class Description(models.Model):
     )
 
     class Meta:
-        ordering = ['variety__name']
+        ordering = ["variety__name"]
 
     @cached_property
     def available_traits(self):
@@ -72,7 +113,6 @@ class Trait(models.Model):
         help_text="the numeric identifier often used in official \
                     protocols",
     )
-    # TODO: this can be removed?
     description = models.CharField(
         max_length=200,
         help_text="trait description",
@@ -100,9 +140,9 @@ class State(models.Model):
         null=True,
         blank=True,
     )
-    # TODO: REMOVE THIS!!
     description = models.CharField(max_length=200, null=False, blank=False)
     trait = models.ForeignKey(Trait, models.CASCADE)
+    # trait = models.ManyToManyField(Trait)
 
     def __str__(self):
         return str(self.numeric_id) + ". " + self.description
