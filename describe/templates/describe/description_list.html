@@ -1,49 +1,70 @@
 {% extends "frontpage/base.html" %}
 {% load crispy_forms_tags %}
+{% load widget_tweaks %}
 {% block title %}Descriptions{% endblock %}
 
-{% block container %}
-<p class="display-1">Descriptions</p>
-<form method="POST">
-  {% csrf_token %}
-  {{ formset.management_form }}
-  <div class="row">
-  {% for form in formset %}
-  <div class="col">{{ form|crispy }}</div>
-  {% if forloop.counter|divisibleby:"4" and not forloop.last %}
-  </div>
-  <div class="row">
-  {% endif %}
-  {% endfor %}
-  </div>
-  <button class="btn btn-primary" type="submit">Confirm</button>
-</form>
-<a href="{% url 'describe:description-create' %}" class="btn btn-primary">Create</a>
-{% if page_obj %}
-<table class="table table-striped">
-    <thead>
-        <th>Description</th>
-        <th>Variety</th>
-        <th>Species</th>
-        <th>Protocol</th>
-        <th class="col-1"></th>
-    </thead>
-{% for description in page_obj %}
-<tr>
-    <td>{{ description.name }}</td>
-    <td>{{ description.variety.name }}</td>
-    <td>{{ description.variety.species }}</td>
-    <td>{{ description.protocol }}</td>
-    <td align="right">
-        <a href="{% url 'describe:description_detail' description.id %}"><i class="bi bi-zoom-in" style="color: black;"></i></a>
-        <a href="{% url 'describe:description-update' description.id %}"><i class="bi-pencil" style="color: black;"></i></a>
-    </td>
-</tr>
-{% endfor %}
-</table>
-{% include 'frontpage/paginator.html' with page=page_obj page_get_variable='page' %}
-{% else %}
-<p>There are no descriptions, yet.</p>
-{% endif %}
+<ul class="nav nav-tabs">
+  <li class="nav-item">
+    <a class="nav-link active" aria-current="page" href="#">Active</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="#">Link</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="#">Link</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link disabled">Disabled</a>
+  </li>
 </ul>
+
+{% block container %}
+<p class="display-1">Descriptions <button class="btn btn-lg btn-primary" href="{% url 'describe:description-create' %}">Create</button>
+</p>
+    <form method="POST">
+        {% csrf_token %}
+        {{ formset.management_form }}
+            <div class="card-group">
+                {% for form in formset %}
+                    <div class="card">
+                        <div class="card-body d-flex align-items-start flex-column">
+                            <h5 class="card-title">{{ form.state_of_expression.label }}</h5>
+                            <div class="card-text col-12 mt-auto">{{ form.state_of_expression|add_class:'form-control' }}</div>
+                        </div>
+                    </div>
+                    {% if forloop.counter|divisibleby:"4" and not forloop.last %}
+                        </div>
+                            <div class="card-group my-2">
+                    {% endif %}
+                {% endfor %}
+            </div>
+        <button class="btn btn-lg btn-primary col-12" type="submit">Confirm</button>
+        </div>
+    </form>
+    {% if page_obj %}
+        <table class="table table-striped">
+            <thead>
+                <th>Description</th>
+                <th>Variety</th>
+                <th>Species</th>
+                <th>Protocol</th>
+                <th class="col-1"></th>
+            </thead>
+            {% for description in page_obj %}
+                <tr>
+                    <td>{{ description.name }}</td>
+                    <td>{{ description.variety.name }}</td>
+                    <td>{{ description.variety.species }}</td>
+                    <td>{{ description.protocol }}</td>
+                    <td align="right">
+                        <a href="{% url 'describe:description_detail' description.id %}"><i class="bi bi-zoom-in" style="color: black;"></i></a>
+                        <a href="{% url 'describe:description-update' description.id %}"><i class="bi-pencil" style="color: black;"></i></a>
+                    </td>
+                </tr>
+            {% endfor %}
+        </table>
+        {% include 'frontpage/paginator.html' with page=page_obj page_get_variable='page' %}
+    {% else %}
+        <p>There are no descriptions, yet.</p>
+    {% endif %}
 {% endblock %}
