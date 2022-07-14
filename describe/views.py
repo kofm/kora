@@ -1,7 +1,6 @@
-from crispy_forms.helper import TEMPLATE_PACK
 from django.db.models.expressions import F
 from django.forms.models import model_to_dict
-from django.http.response import HttpResponse, HttpResponseRedirect
+from django.http.response import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.template.response import TemplateResponse
 from django.urls import reverse
@@ -14,61 +13,31 @@ from register.utils import paged_object_list_context
 from .models import Description, Expression, Protocol, State, Trait
 
 
-class DescriptionsList(ListView):
-    model = Description
-    paginate_by = 10
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["nav_descriptions"] = "active"
-        protocol = Protocol.objects.get(name="TP16/3")
-        traits = Trait.objects.filter(protocol=protocol).values(trait=F("pk"))
-        context["form"] = DescriptionFilterFormSet(initial=traits)
-        return context
-
-
 def description_list(request):
-    context = {}
-    print(request.POST)
-    protocol = Protocol.objects.get(name="TP16/3")
-    traits = Trait.objects.filter(protocol=protocol).values(trait=F("pk"))
-    formset = DescriptionFilterFormSet(request.POST, initial=traits)
+    """
+    Renders a list of variety descriptions. It also handles filtering by traits
+    within a specific protocol
+    """
     context = dict()
-    d = Description.objects.all().prefetch_related("expressions")
-    if formset.is_valid():
-        for form in formset:
-            if form.cleaned_data["state"]:
-                print(form.cleaned_data["state"])
-                d = d.filter(
-                    expressions__state_of_expression__in=form.cleaned_data[
-                        "state"
-                    ]
-                )
-    context["form"] = formset
-    context["objects_list"] = paged_object_list_context(request, d, paginate_by=10)
-    print(d)
-    return TemplateResponse(request, "describe/description_list.html", context)
 
-
-def description_list(request):
-    context = {}
-    protocol = Protocol.objects.get(name="TP16/3")
+    protocol = get_object_or_404(Protocol, name="TP16/3")
     traits = Trait.objects.filter(protocol=protocol).values(trait=F("pk"))
     formset = DescriptionFilterFormSet(initial=traits)
+
     queryset = Description.objects.all().prefetch_related("expressions")
+
     if request.POST:
         formset = DescriptionFilterFormSet(request.POST, initial=traits)
         if formset.is_valid():
             for form in formset:
                 if form.cleaned_data["state"]:
-                    print(form.cleaned_data["state"])
                     queryset = queryset.filter(
-                        expressions__state_of_expression__in=form.cleaned_data[
-                            "state"
-                        ]
+                        expressions__state__in=form.cleaned_data["state"]
                     )
+
     context.update(paged_object_list_context(request, queryset, paginate_by=10))
     context["formset"] = formset
+
     return TemplateResponse(request, "describe/description_list.html", context)
 
 
@@ -172,13 +141,9 @@ def description_update(request, pk):
                         )
                         print("Updated existing")
                     else:
-                        if not exist_expr.filter(
-                            state=form.cleaned_data["state"]
-                        ):
+                        if not exist_expr.filter(state=form.cleaned_data["state"]):
                             new_expression = Expression()
-                            new_expression.state = form.cleaned_data[
-                                "state"
-                            ]
+                            new_expression.state = form.cleaned_data["state"]
                             new_expression.description = description
                             new_expression.save()
                             print("Created new")
@@ -194,8 +159,8 @@ def description_update(request, pk):
             )
 
     for trait in description.available_traits:
-        if exist_expr.filter(state_of_expression__trait=trait).exists():
-            e = exist_expr.get(state_of_expression__trait=trait)
+        if exist_expr.filter(state__trait=trait).exists():
+            e = exist_expr.get(state__trait=trait)
             form = ExpressionForm(model_to_dict(e))
         else:
             form = ExpressionForm()

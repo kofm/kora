@@ -26,6 +26,7 @@
         {{ formset.management_form }}
             <div class="card-group">
                 {% for form in formset %}
+                    {{form.trait}}
                     <div class="card">
                         <div class="card-body d-flex align-items-start flex-column">
                             <h5 class="card-title">{{ form.state.label }}</h5>

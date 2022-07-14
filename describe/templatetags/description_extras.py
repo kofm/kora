@@ -7,7 +7,7 @@ register = template.Library()
 
 @register.filter
 def expr_trait(expression, trait_id):
-    return expression.filter(state_of_expression__trait_id=trait_id).first()
+    return expression.filter(state__trait_id=trait_id).first()
 
 
 @register.filter

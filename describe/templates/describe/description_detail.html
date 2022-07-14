@@ -9,7 +9,7 @@
   </ol>
 </nav>
 <p class="display-3">{{ description.variety.name }} <small class="text-muted">{{ description.name }}</small></p>
-<p class="lead">Reference protocol <a href="{% url 'describe:protocol_detail' description.protocol.id %}">{{ description.protocol.name }}</a> (<i>{{ description.protocol.specie.latin_name }}</i>)</p>
+<p class="lead">Reference protocol <a href="{% url 'describe:protocol_detail' description.protocol.id %}">{{ description.protocol.name }}</a> (<i>{{ description.protocol.plantspecies.latin_name }}</i>)</p>
 <p>
   <a class="btn btn-secondary" href="{% url 'describe:description-update' description.id %}">Update</a>
   <a class="btn btn-danger" href="{% url 'describe:description-delete' description.id %}">Delete</a>

@@ -85,7 +85,6 @@ class DescriptionFilterForm(forms.Form):
     trait = forms.IntegerField(widget=forms.HiddenInput())
     state = forms.ModelMultipleChoiceField(
         queryset=None,
-        # widget=forms.CheckboxSelectMultiple(),
         required=False
     )
 

@@ -58,7 +58,7 @@ class Description(models.Model):
         return self.protocol.traits.all()
 
     def __str__(self):
-        return str(self.variety) + " (" + self.name + ")"
+        return f"{self.variety} ({self.name} description)"
 
 
 class Trait(models.Model):
