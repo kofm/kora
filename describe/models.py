@@ -10,47 +10,6 @@ from django.utils.functional import cached_property
 from register.models import PlantSpecies, PlantVariety
 
 
-class PlantSpecies(models.Model):
-    common_name = models.CharField(max_length=100, unique=True)
-    latin_name = models.CharField(max_length=100)
-    plant_types = (
-        ("tree", "Tree"),
-        ("shrub", "Shrub"),
-        ("vegetable", "Vegetable"),
-        ("herbaceous", "Herbaceous"),
-    )
-    plant_type = models.CharField(max_length=100, choices=plant_types)
-
-    @property
-    def total_descriptions(self):
-        return self.variety.filter(description__isnull=False).count()
-
-    @property
-    def total_seedsamples(self):
-        return self.variety.filter(seedsample__isnull=False).count()
-
-    def __str__(self):
-        return self.common_name
-
-    class Meta:
-        ordering = ["common_name"]
-
-
-class PlantVariety(models.Model):
-    name = models.CharField(help_text="The name of the variety", max_length=100)
-    species = models.ForeignKey(
-        PlantSpecies, on_delete=models.PROTECT, related_name="variety"
-    )
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        ordering = ["name"]
-
-    def __str__(self):
-        return self.name
-
-
 class Protocol(models.Model):
     """
     Stores a Protocols used in descriptions. It is basically a collection
@@ -110,19 +69,23 @@ class Trait(models.Model):
     numeric_id = models.IntegerField(
         null=True,
         blank=True,
-        help_text="the numeric identifier often used in official \
-                    protocols",
+        help_text="The numeric identifier of the trait",
     )
     description = models.CharField(
         max_length=200,
-        help_text="trait description",
+        help_text="The trait's description",
     )
     protocol = models.ForeignKey(
-        Protocol, on_delete=models.PROTECT, null=True, blank=True, related_name="traits"
+        Protocol,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="traits",
+        help_text="The reference protocol of the trait",
     )
 
     def __str__(self):
-        return str(self.numeric_id) + ". " + self.description
+        return f"{self.numeric_id}. {self.description}"
 
     class Meta:
         ordering = [
@@ -142,10 +105,9 @@ class State(models.Model):
     )
     description = models.CharField(max_length=200, null=False, blank=False)
     trait = models.ForeignKey(Trait, models.CASCADE)
-    # trait = models.ManyToManyField(Trait)
 
     def __str__(self):
-        return str(self.numeric_id) + ". " + self.description
+        return f"{self.numeric_id}. {self.description}"
 
     class Meta:
         ordering = [
@@ -155,15 +117,15 @@ class State(models.Model):
 
 class Expression(models.Model):
     """
-    Stores the expression of cultivars, related to a specific Description.
-    It refers to a specific Traits and contain the actual State of
-    expression for that Trait.
+    Stores the expression of cultivars, related to a specific Description. It
+    refers to a specific State of expression (which is then related to a
+    specific Trait)
     """
 
-    state_of_expression = models.ForeignKey(State, on_delete=models.PROTECT)
+    state = models.ForeignKey(State, on_delete=models.PROTECT)
     description = models.ForeignKey(
         Description, on_delete=models.CASCADE, related_name="expressions"
     )
 
     def __str__(self):
-        return str(self.state_of_expression)
+        return self.state.__str__()

@@ -37,11 +37,11 @@ def description_list(request):
     d = Description.objects.all().prefetch_related("expressions")
     if formset.is_valid():
         for form in formset:
-            if form.cleaned_data["state_of_expression"]:
-                print(form.cleaned_data["state_of_expression"])
+            if form.cleaned_data["state"]:
+                print(form.cleaned_data["state"])
                 d = d.filter(
                     expressions__state_of_expression__in=form.cleaned_data[
-                        "state_of_expression"
+                        "state"
                     ]
                 )
     context["form"] = formset
@@ -60,11 +60,11 @@ def description_list(request):
         formset = DescriptionFilterFormSet(request.POST, initial=traits)
         if formset.is_valid():
             for form in formset:
-                if form.cleaned_data["state_of_expression"]:
-                    print(form.cleaned_data["state_of_expression"])
+                if form.cleaned_data["state"]:
+                    print(form.cleaned_data["state"])
                     queryset = queryset.filter(
                         expressions__state_of_expression__in=form.cleaned_data[
-                            "state_of_expression"
+                            "state"
                         ]
                     )
     context.update(paged_object_list_context(request, queryset, paginate_by=10))
@@ -155,29 +155,29 @@ def description_update(request, pk):
     if request.method == "POST":
         form_has_errors = False
         for expr_id, state_id in zip(
-            request.POST.getlist("id"), request.POST.getlist("state_of_expression")
+            request.POST.getlist("id"), request.POST.getlist("state")
         ):
             if state_id:
-                form = ExpressionForm({"id": expr_id, "state_of_expression": state_id})
+                form = ExpressionForm({"id": expr_id, "state": state_id})
                 if form.is_valid():
                     # __import__('pdb').set_trace()
                     # expression, create = Expression.objects.get_or_create(**form.cleaned_data, description = description)
                     if exist_expr.filter(
                         pk=form.cleaned_data["id"]
                     ).exists() and not exist_expr.filter(
-                        state_of_expression=form.cleaned_data["state_of_expression"]
+                        state=form.cleaned_data["state"]
                     ):
                         exist_expr.filter(pk=form.cleaned_data["id"]).update(
-                            state_of_expression=form.cleaned_data["state_of_expression"]
+                            state=form.cleaned_data["state"]
                         )
                         print("Updated existing")
                     else:
                         if not exist_expr.filter(
-                            state_of_expression=form.cleaned_data["state_of_expression"]
+                            state=form.cleaned_data["state"]
                         ):
                             new_expression = Expression()
-                            new_expression.state_of_expression = form.cleaned_data[
-                                "state_of_expression"
+                            new_expression.state = form.cleaned_data[
+                                "state"
                             ]
                             new_expression.description = description
                             new_expression.save()
@@ -199,7 +199,7 @@ def description_update(request, pk):
             form = ExpressionForm(model_to_dict(e))
         else:
             form = ExpressionForm()
-        form.fields["state_of_expression"].queryset = State.objects.filter(trait=trait)
+        form.fields["state"].queryset = State.objects.filter(trait=trait)
         forms.append(form)
     formset = zip(forms, description.available_traits)
     return render(

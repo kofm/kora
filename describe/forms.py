@@ -68,11 +68,11 @@ TraitFormSet = inlineformset_factory(
 
 class ExpressionForm(forms.Form):
     id = forms.IntegerField(widget=forms.HiddenInput())
-    state_of_expression = forms.ModelChoiceField(queryset=State.objects.all())
+    state = forms.ModelChoiceField(queryset=State.objects.all())
 
     def __init__(self, *args, **kwargs):
         super(ExpressionForm, self).__init__(*args, **kwargs)
-        self.fields["state_of_expression"].required = False
+        self.fields["state"].required = False
         self.fields["id"].required = False
 
 
@@ -83,7 +83,7 @@ class DescriptionFilterForm(forms.Form):
     """
 
     trait = forms.IntegerField(widget=forms.HiddenInput())
-    state_of_expression = forms.ModelMultipleChoiceField(
+    state = forms.ModelMultipleChoiceField(
         queryset=None,
         # widget=forms.CheckboxSelectMultiple(),
         required=False
@@ -92,9 +92,9 @@ class DescriptionFilterForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super(DescriptionFilterForm, self).__init__(*args, **kwargs)
         trait = Trait.objects.get(pk=self.initial["trait"])
-        self.fields["state_of_expression"].queryset = State.objects.filter(
+        self.fields["state"].queryset = State.objects.filter(
             trait=trait
         )
-        self.fields["state_of_expression"].label = str(trait.numeric_id) + ". " + trait.description 
+        self.fields["state"].label = str(trait.numeric_id) + ". " + trait.description 
 
 DescriptionFilterFormSet = formset_factory(DescriptionFilterForm, extra=0)
