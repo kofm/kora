@@ -5,9 +5,20 @@ cultivars' descriptions.
 """
 
 from django.db import models
+from django.db.models.aggregates import Count
+from django.db.models.functions import Coalesce
 from django.utils.functional import cached_property
 
 from register.models import PlantSpecies, PlantVariety
+
+
+class ProtocolManager(models.Manager):
+    def most_used(self):
+        return (
+            self.annotate(count=Coalesce(Count("descriptions"), 0))
+            .order_by("-count")
+            .first()
+        )
 
 
 class Protocol(models.Model):
@@ -25,9 +36,10 @@ class Protocol(models.Model):
     url_ref = models.URLField(
         blank=True, null=True, help_text="the URL reference to the protocol"
     )
+    objects = ProtocolManager()
 
     def __str__(self):
-        return self.name
+        return f"{self.name} ({self.plantspecies.latin_name})"
 
 
 class Description(models.Model):
@@ -43,6 +55,7 @@ class Description(models.Model):
         on_delete=models.PROTECT,
         help_text="reference to the protocol used to make the description;\
             this will define which Traits will be available",
+        related_name="descriptions",
     )
     variety = models.ForeignKey(
         PlantVariety,

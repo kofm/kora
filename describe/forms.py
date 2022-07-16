@@ -81,7 +81,6 @@ class DescriptionFilterForm(forms.Form):
     This is the single unit of the form to filter descriptions.
     It needs to be instantiated with a trait id to populate the available states of expression field.
     """
-
     trait = forms.IntegerField(widget=forms.HiddenInput())
     state = forms.ModelMultipleChoiceField(
         queryset=None,
@@ -95,5 +94,8 @@ class DescriptionFilterForm(forms.Form):
             trait=trait
         )
         self.fields["state"].label = str(trait.numeric_id) + ". " + trait.description 
+
+class ProtocolForm(forms.Form):
+    protocol = forms.ModelChoiceField(queryset=Protocol.objects.all())
 
 DescriptionFilterFormSet = formset_factory(DescriptionFilterForm, extra=0)

@@ -7,20 +7,34 @@ from django.urls import reverse
 from django.urls.base import reverse_lazy
 from django.views.generic import DetailView, ListView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
-from describe.forms import DescriptionFilterFormSet, ExpressionForm, TraitFormSet
+from describe.forms import (
+    DescriptionFilterFormSet,
+    ExpressionForm,
+    ProtocolForm,
+    TraitFormSet,
+)
 from register.utils import paged_object_list_context
 
 from .models import Description, Expression, Protocol, State, Trait
 
+def merge_dict_lists_unique(dicta, dictb, key):
+    keys = [x[key] for x in dicta]
+    return dicta + [x for x in dictb if x[key] not in keys]
 
 def description_list(request):
     """
     Renders a list of variety descriptions. It also handles filtering by traits
-    within a specific protocol
+    within a specific protocol.
+    Tasks:
+    1. Get the protocol and display the filter
+    2. Process the filter and store into session
     """
     context = dict()
 
-    protocol = get_object_or_404(Protocol, name="TP16/3")
+    if 'protocol' in request.session:
+        protocol = request.session.get("protocol")
+    else:
+        protocol = Protocol.objects.most_used()
     traits = Trait.objects.filter(protocol=protocol).values(trait=F("pk"))
     formset = DescriptionFilterFormSet(initial=traits)
 
@@ -28,15 +42,30 @@ def description_list(request):
 
     if request.POST:
         formset = DescriptionFilterFormSet(request.POST, initial=traits)
+        request.session["description_filter"] = []
         if formset.is_valid():
             for form in formset:
-                if form.cleaned_data["state"]:
-                    queryset = queryset.filter(
-                        expressions__state__in=form.cleaned_data["state"]
+                if states := form.cleaned_data["state"]:
+                    queryset = queryset.filter(expressions__state__in=states)
+                    request.session["description_filter"].append(
+                        {
+                            "trait": form.cleaned_data["trait"],
+                            "state": [state.pk for state in states],
+                        }
                     )
+    elif "description_filter" in request.session:
+        for expression in request.session["description_filter"]:
+            queryset = queryset.filter(expressions__state__in=expression["state"])
 
+        formset = DescriptionFilterFormSet(initial=merge_dict_lists_unique(
+            request.session.get("description_filter"),
+            traits,
+            "trait"
+        ))
+
+    protocol_form = ProtocolForm(initial={"protocol": protocol})
     context.update(paged_object_list_context(request, queryset, paginate_by=10))
-    context["formset"] = formset
+    context.update({"formset": formset, "protocol_form": protocol_form})
 
     return TemplateResponse(request, "describe/description_list.html", context)
 
