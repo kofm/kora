@@ -17,9 +17,11 @@ from register.utils import paged_object_list_context
 
 from .models import Description, Expression, Protocol, State, Trait
 
-def merge_dict_lists_unique(dicta, dictb, key):
-    keys = [x[key] for x in dicta]
-    return dicta + [x for x in dictb if x[key] not in keys]
+def get_first_item_by_key(list, value, key):
+    return next(filter(lambda x: x[key] == value, list))
+def merge_unique(base, addition, key):
+    addition_keys=[x[key] for x in addition]
+    return [get_first_item_by_key(addition, list_item[key], key) if list_item[key] in addition_keys else list_item for list_item in base]
 
 def description_list(request):
     """
@@ -35,6 +37,7 @@ def description_list(request):
         protocol = request.session.get("protocol")
     else:
         protocol = Protocol.objects.most_used()
+
     traits = Trait.objects.filter(protocol=protocol).values(trait=F("pk"))
     formset = DescriptionFilterFormSet(initial=traits)
 
@@ -42,7 +45,7 @@ def description_list(request):
 
     if request.POST:
         formset = DescriptionFilterFormSet(request.POST, initial=traits)
-        request.session["description_filter"] = []
+        request.session["description_filter"] = list()
         if formset.is_valid():
             for form in formset:
                 if states := form.cleaned_data["state"]:
@@ -57,9 +60,9 @@ def description_list(request):
         for expression in request.session["description_filter"]:
             queryset = queryset.filter(expressions__state__in=expression["state"])
 
-        formset = DescriptionFilterFormSet(initial=merge_dict_lists_unique(
-            request.session.get("description_filter"),
+        formset = DescriptionFilterFormSet(initial=merge_unique(
             traits,
+            request.session.get("description_filter"),
             "trait"
         ))
 
