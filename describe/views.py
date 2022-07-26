@@ -7,21 +7,32 @@ from django.urls import reverse
 from django.urls.base import reverse_lazy
 from django.views.generic import DetailView, ListView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
+from django_tables2 import RequestConfig
 from describe.forms import (
     DescriptionFilterFormSet,
     ExpressionForm,
     ProtocolForm,
     TraitFormSet,
 )
+from describe.tables import DescriptionTable
 from register.utils import paged_object_list_context
 
 from .models import Description, Expression, Protocol, State, Trait
 
+
 def get_first_item_by_key(list, value, key):
     return next(filter(lambda x: x[key] == value, list))
+
+
 def merge_unique(base, addition, key):
-    addition_keys=[x[key] for x in addition]
-    return [get_first_item_by_key(addition, list_item[key], key) if list_item[key] in addition_keys else list_item for list_item in base]
+    addition_keys = [x[key] for x in addition]
+    return [
+        get_first_item_by_key(addition, list_item[key], key)
+        if list_item[key] in addition_keys
+        else list_item
+        for list_item in base
+    ]
+
 
 def description_list(request):
     """
@@ -33,7 +44,7 @@ def description_list(request):
     """
     context = dict()
 
-    if 'protocol' in request.session:
+    if "protocol" in request.session:
         protocol = request.session.get("protocol")
     else:
         protocol = Protocol.objects.most_used()
@@ -60,15 +71,23 @@ def description_list(request):
         for expression in request.session["description_filter"]:
             queryset = queryset.filter(expressions__state__in=expression["state"])
 
-        formset = DescriptionFilterFormSet(initial=merge_unique(
-            traits,
-            request.session.get("description_filter"),
-            "trait"
-        ))
+        formset = DescriptionFilterFormSet(
+            initial=merge_unique(
+                traits, request.session.get("description_filter"), "trait"
+            )
+        )
 
     protocol_form = ProtocolForm(initial={"protocol": protocol})
-    context.update(paged_object_list_context(request, queryset, paginate_by=10))
-    context.update({"formset": formset, "protocol_form": protocol_form})
+    # context.update(paged_object_list_context(request, queryset, paginate_by=10))
+    description_table = DescriptionTable(queryset)
+    RequestConfig(request).configure(description_table)
+    context.update(
+        {
+            "formset": formset,
+            "protocol_form": protocol_form,
+            "page_obj": description_table,
+        }
+    )
 
     return TemplateResponse(request, "describe/description_list.html", context)
 

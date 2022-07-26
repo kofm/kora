@@ -62,6 +62,7 @@ TraitFormSet = inlineformset_factory(
     fields=(
         "numeric_id",
         "description",
+        "grouping",
     ),
 )
 

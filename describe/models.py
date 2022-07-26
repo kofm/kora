@@ -7,6 +7,7 @@ cultivars' descriptions.
 from django.db import models
 from django.db.models.aggregates import Count
 from django.db.models.functions import Coalesce
+from django.urls import reverse
 from django.utils.functional import cached_property
 
 from register.models import PlantSpecies, PlantVariety
@@ -37,6 +38,9 @@ class Protocol(models.Model):
         blank=True, null=True, help_text="the URL reference to the protocol"
     )
     objects = ProtocolManager()
+
+    def get_absolute_url(self):
+        return reverse("describe:protocol_detail", kwargs={"pk": self.pk})
 
     def __str__(self):
         return f"{self.name} ({self.plantspecies.latin_name})"
@@ -70,6 +74,9 @@ class Description(models.Model):
     def available_traits(self):
         return self.protocol.traits.all()
 
+    def get_absolute_url(self):
+        return reverse("describe:description_detail", kwargs={"pk": self.pk})
+
     def __str__(self):
         return f"{self.variety} ({self.name} description)"
 
@@ -96,6 +103,7 @@ class Trait(models.Model):
         related_name="traits",
         help_text="The reference protocol of the trait",
     )
+    grouping = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.numeric_id}. {self.description}"
