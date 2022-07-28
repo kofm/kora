@@ -1,7 +1,7 @@
 from django.db.models.expressions import F
 from django.forms.models import model_to_dict
 from django.http.response import HttpResponse, HttpResponseRedirect
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.urls.base import reverse_lazy
@@ -45,6 +45,13 @@ def change_protocol(request):
         response["HX-Redirect"] = reverse_lazy("describe:description-list")
     return response
 
+def description_filter_reset(request):
+    try:
+        del request.session['description_filter']
+    except KeyError:
+        pass
+    return redirect(reverse_lazy("describe:description-list"))
+
 def description_list(request):
     """
     Renders a list of variety descriptions. It also handles filtering by traits
@@ -65,7 +72,7 @@ def description_list(request):
     traits = Trait.objects.filter(protocol=protocol).values(trait=F("pk"))
     formset = DescriptionFilterFormSet(initial=traits)
 
-    queryset = Description.objects.all().prefetch_related("expressions")
+    queryset = Description.objects.filter().prefetch_related("expressions")
 
     if request.POST:
         formset = DescriptionFilterFormSet(request.POST, initial=traits)

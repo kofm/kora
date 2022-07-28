@@ -21,7 +21,11 @@
     </thead>
 	{% for trait in description.protocol.traits.all %}
 	<tr>
+    {% if trait.grouping %}
+		<td><b>{{ trait.description }}</b></td>
+    {% else %}
 		<td>{{ trait.description }}</td>
+    {% endif %}
 		{% with expr=description.expressions.all|expr_trait:trait.id %}
 		{% if not expr %}
 		<td></td>
