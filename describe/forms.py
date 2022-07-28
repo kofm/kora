@@ -2,6 +2,8 @@ from django import forms
 from django.forms import formset_factory
 from django.forms import inlineformset_factory
 from django.forms.models import BaseInlineFormSet
+from django.urls import reverse_lazy
+from django.utils.html import format_html
 
 from .models import Protocol, Trait, State
 
@@ -82,21 +84,35 @@ class DescriptionFilterForm(forms.Form):
     This is the single unit of the form to filter descriptions.
     It needs to be instantiated with a trait id to populate the available states of expression field.
     """
+
     trait = forms.IntegerField(widget=forms.HiddenInput())
-    state = forms.ModelMultipleChoiceField(
-        queryset=None,
-        required=False
-    )
+    state = forms.ModelMultipleChoiceField(queryset=None, required=False)
 
     def __init__(self, *args, **kwargs):
         super(DescriptionFilterForm, self).__init__(*args, **kwargs)
         trait = Trait.objects.get(pk=self.initial["trait"])
-        self.fields["state"].queryset = State.objects.filter(
-            trait=trait
-        )
-        self.fields["state"].label = str(trait.numeric_id) + ". " + trait.description 
+        self.fields["state"].queryset = State.objects.filter(trait=trait)
+        # self.fields["state"].label = format_html(str(trait.numeric_id) + ". " + trait.description)
+        if trait.grouping:
+            self.fields["state"].label = format_html(
+                f"<b>{trait.numeric_id}. {trait.description}</b>"
+            )
+        else:
+            self.fields["state"].label = format_html(
+                f"{trait.numeric_id}. {trait.description}"
+            )
+
 
 class ProtocolForm(forms.Form):
-    protocol = forms.ModelChoiceField(queryset=Protocol.objects.all())
+    protocol = forms.ModelChoiceField(
+        queryset=Protocol.objects.all(),
+        widget=forms.Select(
+            attrs={
+                "hx-get": reverse_lazy("describe:description-protocol"),
+                "hx-trigger": "change"
+            }
+        ),
+    )
+
 
 DescriptionFilterFormSet = formset_factory(DescriptionFilterForm, extra=0)

@@ -1,10 +1,11 @@
 from django.db.models.expressions import F
 from django.forms.models import model_to_dict
-from django.http.response import HttpResponseRedirect
+from django.http.response import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.urls.base import reverse_lazy
+from django.views.decorators.http import require_http_methods
 from django.views.generic import DetailView, ListView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 from django_tables2 import RequestConfig
@@ -34,6 +35,16 @@ def merge_unique(base, addition, key):
     ]
 
 
+@require_http_methods(['GET',])
+def change_protocol(request):
+    response = HttpResponse()
+    if "protocol" in request.GET:
+        protocol = request.GET.get("protocol")
+        request.session["protocol"] = protocol
+        request.session["description_filter"] = list()
+        response["HX-Redirect"] = reverse_lazy("describe:description-list")
+    return response
+
 def description_list(request):
     """
     Renders a list of variety descriptions. It also handles filtering by traits
@@ -44,8 +55,10 @@ def description_list(request):
     """
     context = dict()
 
-    if "protocol" in request.session:
-        protocol = request.session.get("protocol")
+    if "protocol" in request.session and request.session.get("protocol"):
+        protocol_id = request.session.get("protocol")
+        print(protocol_id)
+        protocol = Protocol.objects.get(pk=protocol_id)
     else:
         protocol = Protocol.objects.most_used()
 

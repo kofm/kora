@@ -2,6 +2,10 @@
 {% load crispy_forms_tags %}
 {% load render_table from django_tables2 %}
 {% load widget_tweaks %}
+{% load static %}
+{% block javascript %}
+<script src="{% static 'frontpage/js/htmx.js'  %}"></script>
+{% endblock %}
 {% block title %}Descriptions{% endblock %}
 
 
@@ -15,7 +19,7 @@
     </p>
     <div class="row">
         <div class="col my-3 collapse" id="collapseExample">
-            <form action="" method="post" class="my-3">
+            <form>
                 {{ protocol_form|crispy }}
             </form>
             <form method="POST">
