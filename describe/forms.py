@@ -109,7 +109,8 @@ class ProtocolForm(forms.Form):
         widget=forms.Select(
             attrs={
                 "hx-get": reverse_lazy("describe:description-protocol"),
-                "hx-trigger": "change"
+                "hx-trigger": "change",
+                "hx-target": "#description-filter"
             }
         ),
     )

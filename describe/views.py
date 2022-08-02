@@ -5,6 +5,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.urls.base import reverse_lazy
+from django.utils.html import format_html
 from django.views.decorators.http import require_http_methods
 from django.views.generic import DetailView, ListView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
@@ -37,13 +38,30 @@ def merge_unique(base, addition, key):
 
 @require_http_methods(['GET',])
 def change_protocol(request):
-    response = HttpResponse()
+    """
+    This is an htmx endpoint to feed the form for filtering description
+    according to a specific Protocol
+    """
+    # We make sure that a Protocol is provided.
     if "protocol" in request.GET:
         protocol = request.GET.get("protocol")
+        # We set the session variable with the newly selected protocol
         request.session["protocol"] = protocol
+        # We clear the current description filter
         request.session["description_filter"] = list()
-        response["HX-Redirect"] = reverse_lazy("describe:description-list")
-    return response
+        # We fetch all the available trait for the selected protocol...
+        traits = Trait.objects.filter(protocol=protocol).values(trait=F("pk"))
+        # ... and the initialize the formset
+        formset = DescriptionFilterFormSet(initial=traits)
+        # Finally we render the partial html for htmx to swap in the page
+        return render(
+            request,
+            'describe/partials/description_filter.html',
+            {
+                "formset": formset,
+                "test": format_html("<b>{}</b>", "this is a test")
+            }
+        )
 
 def description_filter_reset(request):
     try:
