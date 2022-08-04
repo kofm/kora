@@ -104,16 +104,7 @@ class DescriptionFilterForm(forms.Form):
 
 
 class ProtocolForm(forms.Form):
-    protocol = forms.ModelChoiceField(
-        queryset=Protocol.objects.all(),
-        widget=forms.Select(
-            attrs={
-                "hx-get": reverse_lazy("describe:description-protocol"),
-                "hx-trigger": "change",
-                "hx-target": "#description-filter"
-            }
-        ),
-    )
+    protocol = forms.ModelChoiceField(queryset=Protocol.objects.all())
 
 
 DescriptionFilterFormSet = formset_factory(DescriptionFilterForm, extra=0)

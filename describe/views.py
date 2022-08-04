@@ -1,3 +1,4 @@
+from django.db.models import QuerySet
 from django.db.models.expressions import F
 from django.forms.models import model_to_dict
 from django.http.response import HttpResponse, HttpResponseRedirect
@@ -6,6 +7,7 @@ from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.urls.base import reverse_lazy
 from django.utils.html import format_html
+from django.utils.safestring import mark_safe
 from django.views.decorators.http import require_http_methods
 from django.views.generic import DetailView, ListView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
@@ -36,39 +38,9 @@ def merge_unique(base, addition, key):
     ]
 
 
-@require_http_methods(['GET',])
-def change_protocol(request):
-    """
-    This is an htmx endpoint to feed the form for filtering description
-    according to a specific Protocol
-    """
-    # We make sure that a Protocol is provided.
-    if "protocol" in request.GET:
-        protocol = request.GET.get("protocol")
-        # We set the session variable with the newly selected protocol
-        request.session["protocol"] = protocol
-        # We clear the current description filter
-        request.session["description_filter"] = list()
-        # We fetch all the available trait for the selected protocol...
-        traits = Trait.objects.filter(protocol=protocol).values(trait=F("pk"))
-        # ... and the initialize the formset
-        formset = DescriptionFilterFormSet(initial=traits)
-        # Finally we render the partial html for htmx to swap in the page
-        return render(
-            request,
-            'describe/partials/description_filter.html',
-            {
-                "formset": formset,
-                "test": format_html("<b>{}</b>", "this is a test")
-            }
-        )
+def _filter_descriptions(queryset: QuerySet, states: list) -> QuerySet:
+    return queryset.filter(expressions__state__in=states)
 
-def description_filter_reset(request):
-    try:
-        del request.session['description_filter']
-    except KeyError:
-        pass
-    return redirect(reverse_lazy("describe:description-list"))
 
 def description_list(request):
     """
@@ -80,9 +52,26 @@ def description_list(request):
     """
     context = dict()
 
-    if "protocol" in request.session and request.session.get("protocol"):
-        protocol_id = request.session.get("protocol")
-        print(protocol_id)
+    if request.GET and "reset" in request.GET:
+        try:
+            del request.session["description_filter"]
+        except KeyError:
+            pass
+
+    # Here we handle the GET request for changing the protocol
+    if request.GET and "protocol" in request.GET:
+        # If the GET request contains a protocol ID we set the session variable
+        # and reset the description filter
+        protocol_id = request.GET.get("protocol")
+        request.session["protocol"] = protocol_id
+        try:
+            del request.session["description_filter"]
+        except KeyError:
+            pass
+    else:
+        protocol_id = request.session.get("protocol", None)
+
+    if protocol_id:
         protocol = Protocol.objects.get(pk=protocol_id)
     else:
         protocol = Protocol.objects.most_used()
@@ -98,7 +87,7 @@ def description_list(request):
         if formset.is_valid():
             for form in formset:
                 if states := form.cleaned_data["state"]:
-                    queryset = queryset.filter(expressions__state__in=states)
+                    queryset = _filter_descriptions(queryset, states)
                     request.session["description_filter"].append(
                         {
                             "trait": form.cleaned_data["trait"],
@@ -107,7 +96,7 @@ def description_list(request):
                     )
     elif "description_filter" in request.session:
         for expression in request.session["description_filter"]:
-            queryset = queryset.filter(expressions__state__in=expression["state"])
+            queryset = _filter_descriptions(queryset, expression["state"])
 
         formset = DescriptionFilterFormSet(
             initial=merge_unique(
@@ -116,18 +105,52 @@ def description_list(request):
         )
 
     protocol_form = ProtocolForm(initial={"protocol": protocol})
-    # context.update(paged_object_list_context(request, queryset, paginate_by=10))
     description_table = DescriptionTable(queryset)
-    RequestConfig(request).configure(description_table)
+    RequestConfig(request, paginate={"per_page": 15}).configure(description_table)
+
+    if request.htmx:
+        base_template = "describe/description_list_partial.html"
+    else:
+        base_template = "describe/description_list_base.html"
     context.update(
         {
             "formset": formset,
             "protocol_form": protocol_form,
             "page_obj": description_table,
+            "page_template": base_template,
         }
     )
 
     return TemplateResponse(request, "describe/description_list.html", context)
+
+
+def description_filter_export(request):
+    """
+    Endpoint to export the current filter and the matching
+    descriptions as text.
+    """
+    filter = request.session.get("description_filter", None)
+    text = [
+        "There is no filter set, yet.",
+    ]
+
+    if filter:
+        queryset = Description.objects.all().prefetch_related("expressions")
+        text = list()
+        text.append("# Current search:")
+        text.append("")
+        for f in filter:
+            text.append(Trait.objects.get(pk=f["trait"]).__str__())
+            text.extend([f"\t { State.objects.get(pk=s) }" for s in f["state"]])
+            queryset = _filter_descriptions(queryset, f["state"])
+        text.append("")
+        text.append("---")
+        text.append("")
+        text.append(f"# Found descriptions ({ queryset.count() }):")
+        text.append("")
+        text.extend([f"- {description}" for description in queryset])
+
+    return HttpResponse("\n".join(text), content_type="text/plain; charset=utf-8")
 
 
 class DescriptionDetail(DetailView):

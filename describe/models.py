@@ -74,6 +74,11 @@ class Description(models.Model):
     def available_traits(self):
         return self.protocol.traits.all()
 
+    def filter_by_expression(self, states: list, queryset = None):
+        if not queryset:
+            queryset = self.objects.all().prefetch_related("expressions")
+        return queryset.filter(expressions__state__in=states)
+
     def get_absolute_url(self):
         return reverse("describe:description_detail", kwargs={"pk": self.pk})
 

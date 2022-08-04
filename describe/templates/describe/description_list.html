@@ -1,42 +1,69 @@
-{% extends "frontpage/base.html" %}
+{% extends page_template %}
+
 {% load crispy_forms_tags %}
 {% load render_table from django_tables2 %}
-{% load static %}
-{% block javascript %}
-<script src="{% static 'frontpage/js/htmx.js'  %}"></script>
-{% endblock %}
-{% block title %}Descriptions{% endblock %}
+{% load widget_tweaks %}
+
+{% block main %}
+<main id="content">
+
+  <!-- Row Div -->
+  <div class="row">
+    <div class="col">
+
+      <!-- Filter Form -->
+      <h5>
+        Filter Descriptions
+        <small class="text-muted">
+          (<a href="{% url 'describe:description-list-export'  %}" class="text-decoration-none">Export</a>, <a
+            href="#"
+            class="text-decoration-none"
+            hx-get=""
+            hx-trigger="click"
+            hx-target="#content"
+            hx-vals='{"reset": "true"}'
+            >Reset</a>)
+        </small>
+      </h5>
+
+      <!-- Protocol Select Input -->
+      <form
+          hx-get=""
+          hx-target="#content"
+          hx-trigger="change"
+          >
+          {% render_field protocol_form.protocol class+="form-control" %}
+      </form>
+
+        <form
+            hx-post=""
+            hx-target="#content"
+            hx-trigger="change"
+            >
+            <!-- Formset Management Data -->
+          {{ formset.management_form }}
+
+          {% for form in formset %}
+          <div class="mt-2">
+            {{form.trait}}
+            {{ form.state.label }}
+            {% render_field form.state class+="form-control" %}
+          </div>
+          {% endfor %}
+
+        </form>
 
 
-{% block container %}
-<p class="display-1">Descriptions <button class="btn btn-lg btn-primary" href="{% url 'describe:description-create' %}">Create</button></p>
-
-<div class="mb-2">
-  <a class="text-decoration-none link-dark" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasRight" aria-controls="offcanvasRight" href="">
-    <i class="bi bi-funnel-fill"></i>
-  </a>
-  <a href="{% url 'describe:description-filter-reset'  %}" class="text-decoration-none link-dark ms-2">
-    <svg alt="Reset Filter" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-stars" viewBox="0 0 16 16">
-      <path d="M7.657 6.247c.11-.33.576-.33.686 0l.645 1.937a2.89 2.89 0 0 0 1.829 1.828l1.936.645c.33.11.33.576 0 .686l-1.937.645a2.89 2.89 0 0 0-1.828 1.829l-.645 1.936a.361.361 0 0 1-.686 0l-.645-1.937a2.89 2.89 0 0 0-1.828-1.828l-1.937-.645a.361.361 0 0 1 0-.686l1.937-.645a2.89 2.89 0 0 0 1.828-1.828l.645-1.937zM3.794 1.148a.217.217 0 0 1 .412 0l.387 1.162c.173.518.579.924 1.097 1.097l1.162.387a.217.217 0 0 1 0 .412l-1.162.387A1.734 1.734 0 0 0 4.593 5.69l-.387 1.162a.217.217 0 0 1-.412 0L3.407 5.69A1.734 1.734 0 0 0 2.31 4.593l-1.162-.387a.217.217 0 0 1 0-.412l1.162-.387A1.734 1.734 0 0 0 3.407 2.31l.387-1.162zM10.863.099a.145.145 0 0 1 .274 0l.258.774c.115.346.386.617.732.732l.774.258a.145.145 0 0 1 0 .274l-.774.258a1.156 1.156 0 0 0-.732.732l-.258.774a.145.145 0 0 1-.274 0l-.258-.774a1.156 1.156 0 0 0-.732-.732L9.1 2.137a.145.145 0 0 1 0-.274l.774-.258c.346-.115.617-.386.732-.732L10.863.1z"/>
-    </svg>
-  </a>
-</div>
-
-<form method="POST">
-  {% csrf_token %}
-  <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasRight" aria-labelledby="offcanvasRightLabel" style="width:30vw">
-    <div class="offcanvas-header">
-      <h5 class="offcanvas-title" id="offcanvasRightLabel">Filter Descriptions
-        <button class="btn btn-primary" type="submit">Confirm</button></h5>
-      <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
     </div>
-    <div class="offcanvas-body">{{ protocol_form|crispy }}
-      {% include 'describe/partials/description_filter.html' %}
+
+    <!-- Table Div -->
+    <div class="col-6"> 
+      <div class="sticky-top" style="max-height: 100vh; overflow-y: auto;">
+        {% render_table page_obj %} 
+      </div>
     </div>
   </div>
 
-</form>
 
-{% render_table page_obj %}
-
+</main>
 {% endblock %}

@@ -1,0 +1,27 @@
+<!-- prettier-ignore -->
+{% extends "frontpage/base.html" %}
+{% load static %}
+{% block javascript %}
+<script src="{% static 'frontpage/js/htmx.js'  %}"></script>
+{% endblock %}
+<!-- prettier-ignore -->
+{% block title %}Descriptions{% endblock %}
+
+<!-- prettier-ignore -->
+{% block container %}
+
+<!-- Page title -->
+<p class="display-1">
+  Descriptions
+  <button
+    class="btn btn-lg btn-primary"
+    href="{% url 'describe:description-create' %}"
+  >
+    Create
+  </button>
+</p>
+
+{% block main %}
+{% endblock %}
+
+{% endblock %}
