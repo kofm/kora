@@ -131,6 +131,7 @@ class State(models.Model):
     )
     description = models.CharField(max_length=200, null=False, blank=False)
     trait = models.ForeignKey(Trait, models.CASCADE)
+    related_states = models.ManyToManyField("self")
 
     def __str__(self):
         return f"{self.numeric_id}. {self.description}"

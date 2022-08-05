@@ -4,6 +4,8 @@ from django.forms import inlineformset_factory
 from django.forms.models import BaseInlineFormSet
 from django.urls import reverse_lazy
 from django.utils.html import format_html
+from dynamic_forms import DynamicField, DynamicFormMixin
+from numpy import obj2sctype
 
 from .models import Protocol, Trait, State
 
@@ -108,3 +110,33 @@ class ProtocolForm(forms.Form):
 
 
 DescriptionFilterFormSet = formset_factory(DescriptionFilterForm, extra=0)
+
+def _choices(form, model, depends_on):
+    value = form[depends_on].value()
+    if value:
+        return model.objects.filter(**{depends_on: value})
+    else:
+        return model.objects.none()
+
+class RelatedStateForm(DynamicFormMixin, forms.Form):
+
+    def protocol_choices(form):
+        state = form["state"].value()
+        state = State.objects.get(pk=state)
+        protocol = state.trait.protocol
+        return Protocol.objects.all().exclude(pk=protocol.pk)
+
+    state = forms.IntegerField(widget=forms.HiddenInput())
+
+    protocol = DynamicField(
+        forms.ModelChoiceField,
+        queryset=protocol_choices,
+    )
+    trait = DynamicField(
+        forms.ModelChoiceField,
+        queryset=lambda form: _choices(form, Trait, "protocol"),
+    )
+    related_state = DynamicField(
+        forms.ModelChoiceField,
+        queryset=lambda form: _choices(form, State, "trait")
+    )

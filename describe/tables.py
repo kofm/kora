@@ -1,6 +1,6 @@
 import django_tables2 as tables
 
-from describe.models import Description
+from describe.models import Description, State
 
 class DescriptionTable(tables.Table):
     variety = tables.Column(
@@ -21,3 +21,8 @@ class DescriptionTable(tables.Table):
     class Meta:
         model = Description
         fields = ("variety", "name", "protocol")
+
+class RelatedStatesTable(tables.Table):
+    class Meta:
+        model = State
+        fields = ("numeric_id", "description", "trait", "trait__protocol")

@@ -21,9 +21,11 @@ urlpatterns = [
         name="protocol-delete",
     ),
     path("protocols/<int:pk>/update", views.protocol_update, name="protocol-update"),
+    path("state/<int:pk>/update", views.state_update, name="state-update"),
     path(
         "expression/<int:pk>/update",
         views.ExpressionUpdate.as_view(),
         name="expresssion-update",
     ),
+    path("traits/", views.trait_list_htmx, name="trait-list"),
 ]

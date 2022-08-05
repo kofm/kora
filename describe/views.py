@@ -1,14 +1,12 @@
-from django.db.models import QuerySet
+from django.db.models import Q, QuerySet, expressions
 from django.db.models.expressions import F
+from django.db.models.fields import related
 from django.forms.models import model_to_dict
 from django.http.response import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.urls.base import reverse_lazy
-from django.utils.html import format_html
-from django.utils.safestring import mark_safe
-from django.views.decorators.http import require_http_methods
 from django.views.generic import DetailView, ListView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 from django_tables2 import RequestConfig
@@ -16,10 +14,10 @@ from describe.forms import (
     DescriptionFilterFormSet,
     ExpressionForm,
     ProtocolForm,
+    RelatedStateForm,
     TraitFormSet,
 )
-from describe.tables import DescriptionTable
-from register.utils import paged_object_list_context
+from describe.tables import DescriptionTable, RelatedStatesTable
 
 from .models import Description, Expression, Protocol, State, Trait
 
@@ -39,7 +37,9 @@ def merge_unique(base, addition, key):
 
 
 def _filter_descriptions(queryset: QuerySet, states: list) -> QuerySet:
-    return queryset.filter(expressions__state__in=states)
+    return queryset.filter(
+        Q(expressions__state__in=states) | Q(expressions__state__related_states__in = states)
+    )
 
 
 def description_list(request):
@@ -129,15 +129,21 @@ def description_filter_export(request):
     Endpoint to export the current filter and the matching
     descriptions as text.
     """
+    from datetime import datetime
+
     filter = request.session.get("description_filter", None)
+    protocol = request.session.get("protocol", None)
+    filename = f"description_filter_{datetime.today().strftime('%Y%m%d%H%M%S')}.txt"
     text = [
         "There is no filter set, yet.",
     ]
 
-    if filter:
+    if filter and protocol:
         queryset = Description.objects.all().prefetch_related("expressions")
         text = list()
         text.append("# Current search:")
+        text.append("")
+        text.append(f"Protocol: {Protocol.objects.get(pk=protocol)}")
         text.append("")
         for f in filter:
             text.append(Trait.objects.get(pk=f["trait"]).__str__())
@@ -150,7 +156,9 @@ def description_filter_export(request):
         text.append("")
         text.extend([f"- {description}" for description in queryset])
 
-    return HttpResponse("\n".join(text), content_type="text/plain; charset=utf-8")
+    response = HttpResponse("\n".join(text), content_type="text/plain; charset=utf-8")
+    response["Content-Disposition"] = "attachment; filename={0}".format(filename)
+    return response
 
 
 class DescriptionDetail(DetailView):
@@ -306,3 +314,31 @@ class DescriptionCreate(CreateView):
 
     def get_success_url(self):
         return reverse("describe:description-update", args=(self.object.id,))
+
+
+def state_update(request, pk):
+    context = {}
+    state = get_object_or_404(State, pk=pk)
+    context["state"] = state
+
+    if request.method == "POST":
+        relatedstate_form = RelatedStateForm(request.POST)
+        if relatedstate_form.is_valid():
+            related_state = State.objects.get(pk=relatedstate_form["related_state"].value())
+            state.related_states.add(related_state)
+            relatedstate_form = RelatedStateForm(initial={"state": state.pk})
+    else:
+        relatedstate_form = RelatedStateForm(initial={"state": state.pk})
+        context["relatedstate_form"] = relatedstate_form
+    context["relatedstates_table"] = RelatedStatesTable(state.related_states.all())
+    return TemplateResponse(request, "describe/state_form.html", context)
+
+
+def trait_list_htmx(request):
+    print(request.GET)
+    form = RelatedStateForm(request.GET)
+    if "protocol" in request.GET:
+        return HttpResponse(form["trait"])
+    else:
+        return HttpResponse(form["related_state"])
+
