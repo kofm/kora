@@ -124,7 +124,7 @@ class RelatedStateForm(DynamicFormMixin, forms.Form):
         state = form["state"].value()
         state = State.objects.get(pk=state)
         protocol = state.trait.protocol
-        return Protocol.objects.all().exclude(pk=protocol.pk)
+        return Protocol.objects.filter(plantspecies=protocol.plantspecies).exclude(pk=protocol.pk)
 
     state = forms.IntegerField(widget=forms.HiddenInput())
 

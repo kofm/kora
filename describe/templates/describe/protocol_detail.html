@@ -26,7 +26,8 @@
           <td rowspan="{{ trait.state_set.count }}" {% if trait.grouping %}class="text-decoration-underline"{% endif %}>{{ trait.description }}</td>
           {% for state in trait.state_set.all %}
           <td>{{ state.numeric_id }}</td>
-          <td><a class="text-decoration-none link-dark" href="{% url 'describe:state-update' state.pk %}">{{ state.description }}</a></td>
+          <td>{{ state.description }} </td>
+          <td><a class="text-decoration-none link-dark" href="{% url 'describe:state-update' state.pk %}"><i class="bi bi-arrow-left-right"></i></a></td>
           {% if not forloop.last %}
         </tr>
         {% endif %}

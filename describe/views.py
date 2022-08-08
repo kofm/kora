@@ -1,9 +1,7 @@
-from django.db.models import Q, QuerySet, expressions
 from django.db.models.expressions import F
-from django.db.models.fields import related
 from django.forms.models import model_to_dict
 from django.http.response import HttpResponse, HttpResponseRedirect
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import get_object_or_404, render
 from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.urls.base import reverse_lazy
@@ -18,64 +16,38 @@ from describe.forms import (
     TraitFormSet,
 )
 from describe.tables import DescriptionTable, RelatedStatesTable
+from describe.utils import _filter_descriptions, merge_unique
 
 from .models import Description, Expression, Protocol, State, Trait
 
+"""
+Descriptions
+List, Detail, Update, Create, Delete
+"""
 
-def get_first_item_by_key(list, value, key):
-    return next(filter(lambda x: x[key] == value, list))
-
-
-def merge_unique(base, addition, key):
-    addition_keys = [x[key] for x in addition]
-    return [
-        get_first_item_by_key(addition, list_item[key], key)
-        if list_item[key] in addition_keys
-        else list_item
-        for list_item in base
-    ]
-
-
-def _filter_descriptions(queryset: QuerySet, states: list) -> QuerySet:
-    return queryset.filter(
-        Q(expressions__state__in=states) | Q(expressions__state__related_states__in = states)
-    )
-
+def reset_description_filter(request):
+    try:
+        del request.session["description_filter"]
+    except KeyError:
+        pass
 
 def description_list(request):
-    """
-    Renders a list of variety descriptions. It also handles filtering by traits
-    within a specific protocol.
-    Tasks:
-    1. Get the protocol and display the filter
-    2. Process the filter and store into session
+    """List of Descriptions
+    Filter descriptions by state of expression(s) according to the selected reference protocol
     """
     context = dict()
 
     if request.GET and "reset" in request.GET:
-        try:
-            del request.session["description_filter"]
-        except KeyError:
-            pass
+        reset_description_filter(request)
 
-    # Here we handle the GET request for changing the protocol
-    if request.GET and "protocol" in request.GET:
-        # If the GET request contains a protocol ID we set the session variable
-        # and reset the description filter
-        protocol_id = request.GET.get("protocol")
-        request.session["protocol"] = protocol_id
-        try:
-            del request.session["description_filter"]
-        except KeyError:
-            pass
-    else:
-        protocol_id = request.session.get("protocol", None)
+    if protocol_set:= request.GET.get("protocol", None):
+        request.session["protocol"] = protocol_set
+        reset_description_filter(request)
 
-    if protocol_id:
-        protocol = Protocol.objects.get(pk=protocol_id)
-    else:
-        protocol = Protocol.objects.most_used()
+    # TODO: this will break if there are no Protocol in the database
+    protocol_id = request.session.get("protocol", Protocol.objects.most_used().pk)
 
+    protocol = Protocol.objects.get(pk=protocol_id)
     traits = Trait.objects.filter(protocol=protocol).values(trait=F("pk"))
     formset = DescriptionFilterFormSet(initial=traits)
 
@@ -112,6 +84,7 @@ def description_list(request):
         base_template = "describe/description_list_partial.html"
     else:
         base_template = "describe/description_list_base.html"
+
     context.update(
         {
             "formset": formset,
@@ -124,114 +97,9 @@ def description_list(request):
     return TemplateResponse(request, "describe/description_list.html", context)
 
 
-def description_filter_export(request):
-    """
-    Endpoint to export the current filter and the matching
-    descriptions as text.
-    """
-    from datetime import datetime
-
-    filter = request.session.get("description_filter", None)
-    protocol = request.session.get("protocol", None)
-    filename = f"description_filter_{datetime.today().strftime('%Y%m%d%H%M%S')}.txt"
-    text = [
-        "There is no filter set, yet.",
-    ]
-
-    if filter and protocol:
-        queryset = Description.objects.all().prefetch_related("expressions")
-        text = list()
-        text.append("# Current search:")
-        text.append("")
-        text.append(f"Protocol: {Protocol.objects.get(pk=protocol)}")
-        text.append("")
-        for f in filter:
-            text.append(Trait.objects.get(pk=f["trait"]).__str__())
-            text.extend([f"\t { State.objects.get(pk=s) }" for s in f["state"]])
-            queryset = _filter_descriptions(queryset, f["state"])
-        text.append("")
-        text.append("---")
-        text.append("")
-        text.append(f"# Found descriptions ({ queryset.count() }):")
-        text.append("")
-        text.extend([f"- {description}" for description in queryset])
-
-    response = HttpResponse("\n".join(text), content_type="text/plain; charset=utf-8")
-    response["Content-Disposition"] = "attachment; filename={0}".format(filename)
-    return response
-
-
 class DescriptionDetail(DetailView):
     model = Description
     context_object_name = "description"
-
-
-class DescriptionDeleteView(DeleteView):
-    model = Description
-    success_url = reverse_lazy("describe:description-list")
-
-
-class ProtocolsList(ListView):
-    model = Protocol
-    template_name = "describe/protocols_list.html"
-    context_object_name = "protocols"
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["nav_protocols"] = "active"
-        return context
-
-
-class ProtocolCreate(CreateView):
-    model = Protocol
-    fields = [
-        "name",
-        "specie",
-        "url_ref",
-    ]
-    template_name = "describe/protocol_form.html"
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["nav_protocols"] = "active"
-        return context
-
-    def get_success_url(self):
-        return reverse("describe:protocol-update", args=(self.object.id,))
-
-
-class ProtocolDelete(DeleteView):
-    model = Protocol
-    success_url = reverse_lazy("describe:protocols_list")
-
-
-class ProtocolDetail(DetailView):
-    model = Protocol
-    context_object_name = "protocol"
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["nav_protocols"] = "active"
-        return context
-
-
-def protocol_update(request, pk):
-    protocol = get_object_or_404(Protocol, pk=pk)
-    if request.method == "POST":
-        form = TraitFormSet(request.POST, instance=protocol)
-        # form = TraitForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return HttpResponseRedirect(
-                reverse("describe:protocol_detail", kwargs={"pk": protocol.pk})
-            )
-    else:
-        form = TraitFormSet(instance=protocol)
-    return render(
-        request,
-        "describe/protocol_manage.html",
-        {"fs": form, "protocol": protocol, "nav_protocols": "active"},
-    )
 
 
 def description_update(request, pk):
@@ -292,12 +160,6 @@ def description_update(request, pk):
     )
 
 
-class ExpressionUpdate(UpdateView):
-    model = Expression
-    fields = "__all__"
-    template_name = "describe/expression_update.html"
-
-
 class DescriptionCreate(CreateView):
     model = Description
     fields = [
@@ -316,6 +178,139 @@ class DescriptionCreate(CreateView):
         return reverse("describe:description-update", args=(self.object.id,))
 
 
+class DescriptionDeleteView(DeleteView):
+    model = Description
+    success_url = reverse_lazy("describe:description-list")
+
+
+def description_filter_export(request):
+    """
+    Endpoint to export the current filter and the matching
+    descriptions as text.
+    """
+    from datetime import datetime
+
+    filter = request.session.get("description_filter", None)
+    protocol = request.session.get("protocol", None)
+    filename = f"description_filter_{datetime.today().strftime('%Y%m%d%H%M%S')}.txt"
+    text = [
+        "There is no filter set, yet.",
+    ]
+
+    if filter and protocol:
+        queryset = Description.objects.all().prefetch_related("expressions")
+        text = list()
+        text.append("# Current search:")
+        text.append("")
+        text.append(f"Protocol: {Protocol.objects.get(pk=protocol)}")
+        text.append("")
+        for f in filter:
+            text.append(Trait.objects.get(pk=f["trait"]).__str__())
+            text.extend([f"\t { State.objects.get(pk=s) }" for s in f["state"]])
+            queryset = _filter_descriptions(queryset, f["state"])
+        text.append("")
+        text.append("---")
+        text.append("")
+        text.append(f"# Found descriptions ({ queryset.count() }):")
+        text.append("")
+        text.extend([f"- {description}" for description in queryset])
+
+    response = HttpResponse("\n".join(text), content_type="text/plain; charset=utf-8")
+    response["Content-Disposition"] = "attachment; filename={0}".format(filename)
+    return response
+
+
+"""
+Protocol
+"""
+
+
+class ProtocolsList(ListView):
+    model = Protocol
+    template_name = "describe/protocols_list.html"
+    context_object_name = "protocols"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["nav_protocols"] = "active"
+        return context
+
+
+class ProtocolDetail(DetailView):
+    model = Protocol
+    context_object_name = "protocol"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["nav_protocols"] = "active"
+        return context
+
+
+def protocol_update(request, pk):
+    protocol = get_object_or_404(Protocol, pk=pk)
+    if request.method == "POST":
+        form = TraitFormSet(request.POST, instance=protocol)
+        # form = TraitForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect(
+                reverse("describe:protocol_detail", kwargs={"pk": protocol.pk})
+            )
+    else:
+        form = TraitFormSet(instance=protocol)
+    return render(
+        request,
+        "describe/protocol_manage.html",
+        {"fs": form, "protocol": protocol, "nav_protocols": "active"},
+    )
+
+
+class ProtocolCreate(CreateView):
+    model = Protocol
+    fields = [
+        "name",
+        "plantspecies",
+        "url_ref",
+    ]
+    template_name = "describe/protocol_form.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["nav_protocols"] = "active"
+        return context
+
+    def get_success_url(self):
+        return reverse("describe:protocol-update", args=(self.object.id,))
+
+
+class ProtocolDelete(DeleteView):
+    model = Protocol
+    success_url = reverse_lazy("describe:protocols_list")
+
+
+"""
+Trait
+"""
+
+
+def trait_list_htmx(request):
+    """
+    This is accessed by HTMX requests made by RelatedStateForm to populate the
+    Trait/State select input, depending on the selected Protocol/Trait
+    """
+    if request.htmx:
+        form = RelatedStateForm(request.GET)
+        if "protocol" in request.GET:
+            return HttpResponse(form["trait"])
+        else:
+            return HttpResponse(form["related_state"])
+
+
+"""
+State
+"""
+
+
 def state_update(request, pk):
     context = {}
     state = get_object_or_404(State, pk=pk)
@@ -324,21 +319,32 @@ def state_update(request, pk):
     if request.method == "POST":
         relatedstate_form = RelatedStateForm(request.POST)
         if relatedstate_form.is_valid():
-            related_state = State.objects.get(pk=relatedstate_form["related_state"].value())
+            related_state = State.objects.get(
+                pk=relatedstate_form["related_state"].value()
+            )
             state.related_states.add(related_state)
             relatedstate_form = RelatedStateForm(initial={"state": state.pk})
     else:
         relatedstate_form = RelatedStateForm(initial={"state": state.pk})
-        context["relatedstate_form"] = relatedstate_form
+    context["relatedstate_form"] = relatedstate_form
     context["relatedstates_table"] = RelatedStatesTable(state.related_states.all())
     return TemplateResponse(request, "describe/state_form.html", context)
 
 
-def trait_list_htmx(request):
-    print(request.GET)
-    form = RelatedStateForm(request.GET)
-    if "protocol" in request.GET:
-        return HttpResponse(form["trait"])
-    else:
-        return HttpResponse(form["related_state"])
+def relatedstate_delete(request, pk):
+    state = get_object_or_404(State, pk=pk)
+    related_state = request.GET.get("related_state", None)
+    if related_state:
+        state.related_states.remove(State.objects.get(pk=related_state))
+    return HttpResponse()
 
+
+"""
+Expression
+"""
+
+
+class ExpressionUpdate(UpdateView):
+    model = Expression
+    fields = "__all__"
+    template_name = "describe/expression_update.html"

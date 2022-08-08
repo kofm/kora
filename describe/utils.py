@@ -1,0 +1,23 @@
+from django.db.models import Q, QuerySet
+
+
+def get_first_item_by_key(list, value, key):
+    return next(filter(lambda x: x[key] == value, list))
+
+
+def merge_unique(base, addition, key):
+    addition_keys = [x[key] for x in addition]
+    return [
+        get_first_item_by_key(addition, list_item[key], key)
+        if list_item[key] in addition_keys
+        else list_item
+        for list_item in base
+    ]
+
+def _filter_descriptions(queryset: QuerySet, states: list) -> QuerySet:
+    return queryset.filter(
+        Q(expressions__state__in=states)
+        | Q(expressions__state__related_states__in=states)
+    )
+
+

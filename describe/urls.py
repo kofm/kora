@@ -22,6 +22,7 @@ urlpatterns = [
     ),
     path("protocols/<int:pk>/update", views.protocol_update, name="protocol-update"),
     path("state/<int:pk>/update", views.state_update, name="state-update"),
+    path("state/<int:pk>/related_state/delete", views.relatedstate_delete, name="relatedstate-delete"),
     path(
         "expression/<int:pk>/update",
         views.ExpressionUpdate.as_view(),
