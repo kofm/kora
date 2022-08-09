@@ -1,7 +1,7 @@
 from django.db.models.expressions import F
 from django.forms.models import model_to_dict
 from django.http.response import HttpResponse, HttpResponseRedirect
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.urls.base import reverse_lazy
@@ -25,11 +25,18 @@ Descriptions
 List, Detail, Update, Create, Delete
 """
 
+
 def reset_description_filter(request):
     try:
         del request.session["description_filter"]
     except KeyError:
         pass
+
+
+def description_list_reset(request):
+    reset_description_filter(request)
+    return redirect(reverse_lazy("describe:description-list"))
+
 
 def description_list(request):
     """List of Descriptions
@@ -37,49 +44,64 @@ def description_list(request):
     """
     context = dict()
 
-    if request.GET and "reset" in request.GET:
-        reset_description_filter(request)
-
-    if protocol_set:= request.GET.get("protocol", None):
+    # Check if the protocol has changed; if yes, set the session variable and
+    # reset the filter to operate with the newly selected protocol.
+    protocol_set = request.GET.get("protocol", None)
+    if protocol_set:
         request.session["protocol"] = protocol_set
         reset_description_filter(request)
+        get = request.GET.copy()
+        del get["protocol"]
+        request.GET = get
 
-    # TODO: this will break if there are no Protocol in the database
-    protocol_id = request.session.get("protocol", Protocol.objects.most_used().pk)
+    # Check if the protocol session variable is set, otherwise set it to the
+    # most used Protocol
+    protocol_id = request.session.get("protocol", None)
+    if not protocol_id:
+        protocol_id = Protocol.objects.most_used().pk
+        request.session["protocol"] = protocol_id
 
-    protocol = Protocol.objects.get(pk=protocol_id)
+    # Get the selected/default Protocol
+    protocol = get_object_or_404(Protocol, pk=protocol_id)
+    # Instantiate the Protocol selection form
+    protocol_form = ProtocolForm(initial={"protocol": protocol})
+    # Get all the Traits associated with that Protocol
     traits = Trait.objects.filter(protocol=protocol).values(trait=F("pk"))
-    formset = DescriptionFilterFormSet(initial=traits)
 
-    queryset = Description.objects.filter().prefetch_related("expressions")
-
+    # If the Description filter has been submitted via post, validate the
+    # formset and assign the returned filter to the appropriate session
+    # variable
     if request.POST:
         formset = DescriptionFilterFormSet(request.POST, initial=traits)
-        request.session["description_filter"] = list()
         if formset.is_valid():
-            for form in formset:
-                if states := form.cleaned_data["state"]:
-                    queryset = _filter_descriptions(queryset, states)
-                    request.session["description_filter"].append(
-                        {
-                            "trait": form.cleaned_data["trait"],
-                            "state": [state.pk for state in states],
-                        }
-                    )
-    elif "description_filter" in request.session:
-        for expression in request.session["description_filter"]:
-            queryset = _filter_descriptions(queryset, expression["state"])
+            request.session["description_filter"] = formset.save()
 
+    if "description_filter" in request.session:
+        # If a Description filter session variable exists, get the matching
+        # Descriptions and instantiate the formset with the corresponding data
+        queryset = Description.objects.filter_by_expression(
+            request.session.get("description_filter")
+        )
+        # Merge unique is needed here because we need all the available traits
+        # merged with the actual filter. If we pass description_filter alone
+        # the formset will be instantiated with only the filtered traits
         formset = DescriptionFilterFormSet(
             initial=merge_unique(
                 traits, request.session.get("description_filter"), "trait"
             )
         )
+    else:
+        # Otherwise return all the available descriptions and instantiate an empty
+        # Description filter formset
+        queryset = Description.objects.filter().prefetch_related("expressions")
+        formset = DescriptionFilterFormSet(initial=traits)
 
-    protocol_form = ProtocolForm(initial={"protocol": protocol})
+    # Instantiate the Description table and corresponding pagination
     description_table = DescriptionTable(queryset)
     RequestConfig(request, paginate={"per_page": 15}).configure(description_table)
 
+    # Check if the current request is an htmx request, then render only the
+    # relevant part of the page; otherwise return the full page
     if request.htmx:
         base_template = "describe/description_list_partial.html"
     else:

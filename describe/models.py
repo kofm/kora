@@ -15,11 +15,14 @@ from register.models import PlantSpecies, PlantVariety
 
 class ProtocolManager(models.Manager):
     def most_used(self):
-        return (
-            self.annotate(count=Coalesce(Count("descriptions"), 0))
-            .order_by("-count")
-            .first()
-        )
+        if Protocol.objects.count() > 0:
+            return (
+                self.annotate(count=Coalesce(Count("descriptions"), 0))
+                .order_by("-count")
+                .first()
+            )
+        else:
+            return None
 
 
 class Protocol(models.Model):
@@ -45,6 +48,16 @@ class Protocol(models.Model):
     def __str__(self):
         return f"{self.name} ({self.plantspecies.latin_name})"
 
+class DescriptionManager(models.Manager):
+    def filter_by_expression(self, filters: list):
+        queryset = self.all().prefetch_related("expressions")
+        for filter in filters:
+            queryset = queryset.filter(
+                models.Q(expressions__state__in=filter["state"])
+                | models.Q(expressions__state__related_states__in=filter["state"])
+            )
+        return queryset
+
 
 class Description(models.Model):
     """
@@ -67,17 +80,14 @@ class Description(models.Model):
         help_text="the variety to which the description refers to",
     )
 
+    objects = DescriptionManager()
+
     class Meta:
         ordering = ["variety__name"]
 
     @cached_property
     def available_traits(self):
         return self.protocol.traits.all()
-
-    def filter_by_expression(self, states: list, queryset = None):
-        if not queryset:
-            queryset = self.objects.all().prefetch_related("expressions")
-        return queryset.filter(expressions__state__in=states)
 
     def get_absolute_url(self):
         return reverse("describe:description_detail", kwargs={"pk": self.pk})
