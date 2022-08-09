@@ -17,3 +17,4 @@ DATABASES = {
 
 STATIC_ROOT = "static/"
 # DEFAULT_EXCEPTION_REPORTER = "exceptionite.django.ExceptioniteReporter"
+SHELL_PLUS = "ipython"
