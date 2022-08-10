@@ -11,3 +11,5 @@ tmux.sh
 tags
 .env
 .DS_Store
+
+.ipython/profile_default
