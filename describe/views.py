@@ -16,7 +16,8 @@ from describe.forms import (
     TraitFormSet,
 )
 from describe.tables import DescriptionTable, RelatedStatesTable
-from describe.utils import _filter_descriptions, merge_unique
+from describe.utils import _filter_descriptions, delete_get_param, merge_unique
+from register.models import PlantVariety
 
 from .models import Description, Expression, Protocol, State, Trait
 
@@ -38,6 +39,16 @@ def description_list_reset(request):
     return redirect(reverse_lazy("describe:description-list"))
 
 
+def description_find_similar(request):
+    description_id = request.GET.get("description_id")
+    if description_id:
+        description_filter = Expression.objects.filter(
+            description__pk=description_id, state__trait__grouping=True
+        ).values("state", trait=F("state__trait"))
+        request.session["description_filter"] = list(description_filter)
+    return redirect(reverse_lazy("describe:description-list"))
+
+
 def description_list(request):
     """List of Descriptions
     Filter descriptions by state of expression(s) according to the selected reference protocol
@@ -50,9 +61,7 @@ def description_list(request):
     if protocol_set:
         request.session["protocol"] = protocol_set
         reset_description_filter(request)
-        get = request.GET.copy()
-        del get["protocol"]
-        request.GET = get
+        request.GET = delete_get_param(request, "protocol")
 
     # Check if the protocol session variable is set, otherwise set it to the
     # most used Protocol

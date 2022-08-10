@@ -19,6 +19,11 @@ class DescriptionTable(tables.Table):
         linkify=True,
         attrs={"a": {"class": "text-decoration-none link-dark"}}
     )
+    actions = tables.TemplateColumn(
+        template_name="describe/partials/description_table_actions.html",
+        verbose_name="",
+        orderable=False
+    )
     class Meta:
         model = Description
         fields = ("variety", "name", "protocol")

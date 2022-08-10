@@ -7,6 +7,7 @@ app_name = "describe"
 urlpatterns = [
     # path("", views.DescriptionsList.as_view(), name="description-list"),
     path("", views.description_list, name="description-list"),
+    path("find_similar", views.description_find_similar, name="description-list-similar"),
     path("reset", views.description_list_reset, name="description-list-reset"),
     path("export", views.description_filter_export, name="description-list-export"),
     path("create", views.DescriptionCreate.as_view(), name="description-create"),

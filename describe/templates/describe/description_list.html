@@ -5,6 +5,70 @@
 {% load widget_tweaks %}
 
 {% block main %}
+<style type="text/css">
+#spinner.htmx-request,
+#spinner.htmx-request:before,
+#spinner.htmx-request:after {
+  background: #000000;
+  -webkit-animation: load1 1s infinite ease-in-out;
+  animation: load1 1s infinite ease-in-out;
+  width: 1em;
+  height: 4em;
+}
+#spinner.htmx-request {
+  color: #000000;
+  text-indent: -9999em;
+  margin: 88px auto;
+  position: relative;
+  font-size: 11px;
+  -webkit-transform: translateZ(0);
+  -ms-transform: translateZ(0);
+  transform: translateZ(0);
+  -webkit-animation-delay: -0.16s;
+  animation-delay: -0.16s;
+}
+#spinner.htmx-request:before,
+#spinner.htmx-request:after {
+  position: absolute;
+  top: 0;
+  content: '';
+}
+#spinner.htmx-request:before {
+  left: -1.5em;
+  -webkit-animation-delay: -0.32s;
+  animation-delay: -0.32s;
+}
+#spinner.htmx-request:after {
+  left: 1.5em;
+}
+  @-webkit-keyframes load1 {
+    0%,
+    80%,
+    100% {
+      box-shadow: 0 0;
+      height: 4em;
+    }
+    40% {
+      box-shadow: 0 -2em;
+      height: 5em;
+    }
+  }
+  @keyframes load1 {
+    0%,
+    80%,
+    100% {
+      box-shadow: 0 0;
+      height: 4em;
+    }
+    40% {
+      box-shadow: 0 -2em;
+      height: 5em;
+    }
+  }
+#table.htmx-request {
+  display:none;
+}
+</style>
 <main id="content">
 
   <!-- Row Div -->
@@ -36,6 +100,7 @@
             hx-post=""
             hx-target="#content"
             hx-trigger="change"
+            hx-indicator="#spinner, #table"
             >
             <!-- Formset Management Data -->
           {{ formset.management_form }}
@@ -55,10 +120,13 @@
 
     <!-- Table Div -->
     <div class="col-6"> 
-      <div class="sticky-top" style="max-height: 100vh; overflow-y: auto;">
-        {% render_table page_obj %} 
+        <div class="sticky-top" style="max-height: 100vh; overflow-y: auto;">
+          <div id="spinner"></div>
+            <div id="table">
+              {% render_table page_obj %}
+            </div>
+        </div>
       </div>
-    </div>
   </div>
 
 

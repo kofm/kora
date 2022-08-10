@@ -20,4 +20,7 @@ def _filter_descriptions(queryset: QuerySet, states: list) -> QuerySet:
         | Q(expressions__state__related_states__in=states)
     )
 
-
+def delete_get_param(request, parameter):
+    copy = request.GET.copy()
+    del copy[parameter]
+    return copy

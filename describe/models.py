@@ -48,14 +48,29 @@ class Protocol(models.Model):
     def __str__(self):
         return f"{self.name} ({self.plantspecies.latin_name})"
 
+
 class DescriptionManager(models.Manager):
-    def filter_by_expression(self, filters: list):
-        queryset = self.all().prefetch_related("expressions")
+    def filter_by_expression(self, filters):
+        queryset = (
+            self.prefetch_related("expressions")
+            .select_related("protocol")
+            .select_related("variety")
+            .prefetch_related("expressions__state")
+            .prefetch_related("expressions__state__related_states")
+            .all()
+        )
+        # queryset = self.all()
         for filter in filters:
-            queryset = queryset.filter(
-                models.Q(expressions__state__in=filter["state"])
-                | models.Q(expressions__state__related_states__in=filter["state"])
-            )
+            if type(filter["state"]) == list:
+                queryset = queryset.filter(
+                    models.Q(expressions__state__in=filter["state"])
+                    | models.Q(expressions__state__related_states__in=filter["state"])
+                )
+            else:
+                queryset = queryset.filter(
+                    models.Q(expressions__state=filter["state"])
+                    | models.Q(expressions__state__related_states=filter["state"])
+                )
         return queryset
 
 
@@ -140,7 +155,7 @@ class State(models.Model):
         blank=True,
     )
     description = models.CharField(max_length=200, null=False, blank=False)
-    trait = models.ForeignKey(Trait, models.CASCADE)
+    trait = models.ForeignKey(Trait, models.CASCADE, related_name="states")
     related_states = models.ManyToManyField("self")
 
     def __str__(self):
