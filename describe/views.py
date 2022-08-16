@@ -49,6 +49,26 @@ def description_find_similar(request):
     return redirect(reverse_lazy("describe:description-list"))
 
 
+def description_favourite_add(request):
+    description_id = request.GET.get("description_id", None)
+    if description_id:
+        if "description_favourites" not in request.session:
+            request.session["description_favourites"] = list()
+        request.session["description_favourites"].append(description_id)
+        request.session.modified = True
+    description_favourites = Description.objects.filter(pk__in=request.session["description_favourites"])
+    return TemplateResponse(
+        request,
+        "describe/partials/description_favourites.html",
+        {"description_favourites": description_favourites},
+    )
+
+def description_favourite_clear(request):
+    if "description_favourites" in request.session:
+        del request.session["description_favourites"]
+    return HttpResponse("")
+
+
 def description_list(request):
     """List of Descriptions
     Filter descriptions by state of expression(s) according to the selected reference protocol
@@ -116,12 +136,17 @@ def description_list(request):
     else:
         base_template = "describe/description_list_base.html"
 
+    description_favourites_ids = request.session.get("description_favourites", None)
+    description_favourites = Description.objects.filter(
+        pk__in=description_favourites_ids
+    )
     context.update(
         {
             "formset": formset,
             "protocol_form": protocol_form,
             "page_obj": description_table,
             "page_template": base_template,
+            "description_favourites": description_favourites,
         }
     )
 

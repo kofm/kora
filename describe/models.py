@@ -59,7 +59,6 @@ class DescriptionManager(models.Manager):
             .prefetch_related("expressions__state__related_states")
             .all()
         )
-        # queryset = self.all()
         for filter in filters:
             if type(filter["state"]) == list:
                 queryset = queryset.filter(
