@@ -78,15 +78,13 @@ class GerminabilityForm(forms.ModelForm):
 
 class SeedSampleYearForm(forms.Form):
     year = forms.ChoiceField(
-        choices=[
-            (0, ""),
-        ]
-        + list(
-            SeedSample.objects.filter(growing_season__isnull=False)
-            .order_by("growing_season")
-            .distinct("growing_season")
-            .values_list("growing_season", "growing_season")
-        ),
+        choices=[(0, ""), ],
+        # + list(
+        #     SeedSample.objects.filter(growing_season__isnull=False)
+        #     .order_by("growing_season")
+        #     .distinct("growing_season")
+        #     .values_list("growing_season", "growing_season")
+        # ),
         widget=forms.Select(
             attrs={
                 "class": "form-select",
