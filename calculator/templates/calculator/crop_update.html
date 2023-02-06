@@ -44,7 +44,7 @@
 {% if crop %}
 <div class="row">
   <div class="col-3">
-    <form 
+    <form
        hx-post="{% url 'calculator:cropparameter-update' crop.pk %}"
        hx-target="#cropparameter-table"
        hx-swap="innerHTML">
@@ -76,13 +76,6 @@
       {% endif %}
     </form>
     {{ plantspecies|json_script:"plantspecies" }}
-    <script type="text/hyperscript">
-      def getVarieties_hs()
-        fetch {% url 'register:plantvariety-list' crop.species.pk %} then
-          put it into varietiesList
-          return varietiesList
-      end
-    </script>
     <script type="text/javascript" src="{% static 'calculator/js/crop_update_ts.js' %}"></script>
   </div>
 
