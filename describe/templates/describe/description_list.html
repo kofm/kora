@@ -71,6 +71,11 @@
 </style>
 <main id="content">
 
+<div id="favourites">
+  {% if description_favourites %}
+  {% include 'describe/partials/description_favourites.html' %}
+  {% endif %}
+</div>
   <!-- Row Div -->
   <div class="row">
     <div class="col">
@@ -93,7 +98,7 @@
           hx-target="#content"
           hx-trigger="change"
           >
-          {% render_field protocol_form.protocol class+="form-control" %}
+          {% render_field protocol_form.protocol class+="form-select" %}
       </form>
 
         <form

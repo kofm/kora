@@ -40,13 +40,50 @@ def description_list_reset(request):
 
 
 def description_find_similar(request):
-    description_id = request.GET.get("description_id")
+    """
+    This view gets a description_id as input and set the description filter
+    with the grouping characteristics of the description.
+    """
+    description_id = request.GET.get("description_id", None)
+
     if description_id:
         description_filter = Expression.objects.filter(
             description__pk=description_id, state__trait__grouping=True
-        ).values("state", trait=F("state__trait"))
-        request.session["description_filter"] = list(description_filter)
+        ).values(trait=F("state__trait"), states=F("state"))
+        # Transform the filter to ease querying with __in
+        request.session["description_filter"] = [
+            {
+                "trait": filter["trait"],
+                "state": [
+                    filter["states"],
+                ],
+            }
+            for filter in list(description_filter)
+        ]
     return redirect(reverse_lazy("describe:description-list"))
+
+
+def description_favourite_add(request):
+    description_id = request.GET.get("description_id", None)
+    if description_id:
+        if "description_favourites" not in request.session:
+            request.session["description_favourites"] = list()
+        request.session["description_favourites"].append(description_id)
+        request.session.modified = True
+    description_favourites = Description.objects.filter(
+        pk__in=request.session["description_favourites"]
+    )
+    return TemplateResponse(
+        request,
+        "describe/partials/description_favourites.html",
+        {"description_favourites": description_favourites},
+    )
+
+
+def description_favourite_clear(request):
+    if "description_favourites" in request.session:
+        del request.session["description_favourites"]
+    return HttpResponse("")
 
 
 def description_list(request):
@@ -73,7 +110,7 @@ def description_list(request):
     # Get the selected/default Protocol
     protocol = get_object_or_404(Protocol, pk=protocol_id)
     # Instantiate the Protocol selection form
-    protocol_form = ProtocolForm(initial={"protocol": protocol})
+    protocol_select_form = ProtocolForm(initial={"protocol": protocol})
     # Get all the Traits associated with that Protocol
     traits = Trait.objects.filter(protocol=protocol).values(trait=F("pk"))
 
@@ -88,6 +125,7 @@ def description_list(request):
     if "description_filter" in request.session:
         # If a Description filter session variable exists, get the matching
         # Descriptions and instantiate the formset with the corresponding data
+        print(request.session.get("description_filter"))
         queryset = Description.objects.filter_by_expression(
             request.session.get("description_filter")
         )
@@ -116,10 +154,16 @@ def description_list(request):
     else:
         base_template = "describe/description_list_base.html"
 
+    description_favourites_ids = request.session.get("description_favourites", None)
+    if description_favourites_ids:
+        description_favourites = Description.objects.filter(
+            pk__in=description_favourites_ids
+        )
+        context.update({"description_favourites": description_favourites})
     context.update(
         {
             "formset": formset,
-            "protocol_form": protocol_form,
+            "protocol_form": protocol_select_form,
             "page_obj": description_table,
             "page_template": base_template,
         }
@@ -275,6 +319,13 @@ class ProtocolDetail(DetailView):
         context = super().get_context_data(**kwargs)
         context["nav_protocols"] = "active"
         return context
+
+
+def protocol_detail(request, pk):
+    context = {}
+    protocol = get_object_or_404(Protocol, pk=pk)
+    context["protocol"] = protocol
+    return TemplateResponse(request, "describe/protocol_detail.html", context)
 
 
 def protocol_update(request, pk):

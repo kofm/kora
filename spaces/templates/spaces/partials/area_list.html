@@ -1,42 +1,45 @@
 {% for area in area_list %}
 
-<div class="col-2 border m-3 p-3 rounded-3">
+    <div class="col-2 border m-3 p-3 rounded-3">
 
 
-  <h5>
-    <a
-      class="text-decoration-none link-dark" 
-      href="{% url 'spaces:area-detail' area.pk %}"
-      >
-      {{ area.name }}
-    </a>
-  </h5>
+        <h5>
+            <a
+                class="text-decoration-none link-dark"
+                href="{% url 'spaces:area-detail' area.pk %}"
+            >
+                {{ area.name }}
+            </a>
+        </h5>
 
-    <div>
-      <small class="small text-muted">
-        <a
-          class="text-decoration-none link-secondary"
-          {% if area.crop_set.count %}
-          href="{% url 'calculator:crop-update' area.crop_set.last.pk %}"
-          {% endif %}
-          >
-          {{ area.crop_set.last|default_if_none:"&nbsp;" }}
-        </a>
-      </small>
+        <div>
+            <small class="small text-muted">
+                <a
+                    class="text-decoration-none link-secondary"
+                    {% if area.crop_set.count %}
+                        href="{% url 'calculator:crop-update' area.crop_set.last.pk %}"
+                    {% endif %}
+                >
+                    {{ area.crop_set.last|default_if_none:"&nbsp;" }}
+                </a>
+            </small>
+        </div>
+
+        <div>
+            <small class="small text-muted">{{ area.total_area|stringformat:"d m<sup>2</sup>"|safe }}</small>
+        </div>
+
+        <input type="hidden" name="area_order" value="{{ area.pk }}">
+
+
     </div>
-
-    <div>
-      <small class="small text-muted">{{ area.total_area|stringformat:"d m<sup>2</sup>"|safe }}</small>
-    </div>
-
-    <input type="hidden" name="area_order" value="{{ area.pk }}">
-
-
-</div>
 
 
 {% endfor %}
 
-<div class="col-2 border m-3 p-3 rounded-3 text-center">
-  <a class="text-decoration-none link-dark" href="{% url 'spaces:area-create' location.pk %}"><h1 class="bi bi-plus-circle mt-2"></h1></a>
+<div id="add-new-area-btn" class="col-2 border m-3 p-3 rounded-3 text-center">
+    <a class="text-decoration-none link-dark" href="{% url 'spaces:area-create' location.pk %}"><h1 class="bi bi-plus-circle mt-2"></h1></a>
 </div>
+
+<!-- vi:filetype=htmldjango
+-->

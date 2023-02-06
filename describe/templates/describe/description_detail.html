@@ -12,6 +12,7 @@
 <p class="lead">Reference protocol <a href="{% url 'describe:protocol_detail' description.protocol.id %}">{{ description.protocol.name }}</a> (<i>{{ description.protocol.plantspecies.latin_name }}</i>)</p>
 <p>
   <a class="btn btn-secondary" href="{% url 'describe:description-update' description.id %}">Update</a>
+  <a class="btn btn-secondary" href="{% url 'describe:description-find-similar' %}?description_id={{ description.pk }}">Find Similar</a>
   <a class="btn btn-danger" href="{% url 'describe:description-delete' description.id %}">Delete</a>
 </p>
 <table class="table table-striped">

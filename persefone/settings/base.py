@@ -21,6 +21,7 @@ INSTALLED_APPS = [
     "crispy_forms",
     "django_countries",
     "widget_tweaks",
+    # "debug_toolbar",
     "register.apps.RegisterConfig",
     "describe.apps.DescribeConfig",
     "frontpage.apps.FrontpageConfig",
@@ -38,6 +39,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    # "debug_toolbar.middleware.DebugToolbarMiddleware",
     "django_htmx.middleware.HtmxMiddleware",
 ]
 

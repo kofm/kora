@@ -51,27 +51,21 @@ class Protocol(models.Model):
 
 class DescriptionManager(models.Manager):
     def filter_by_expression(self, filters):
-        queryset = (
-            self.prefetch_related("expressions")
-            .select_related("protocol")
-            .select_related("variety")
-            .prefetch_related("expressions__state")
-            .prefetch_related("expressions__state__related_states")
-            .all()
-        )
-        # queryset = self.all()
+        description_ids = None
         for filter in filters:
-            if type(filter["state"]) == list:
-                queryset = queryset.filter(
-                    models.Q(expressions__state__in=filter["state"])
-                    | models.Q(expressions__state__related_states__in=filter["state"])
-                )
+            query_result = self.filter(
+                models.Q(expressions__state__id__in=filter["state"])
+                | models.Q(expressions__state__related_states__id__in=filter["state"])
+            ).values_list("pk", flat=True)
+            if description_ids == None:
+                description_ids = query_result
             else:
-                queryset = queryset.filter(
-                    models.Q(expressions__state=filter["state"])
-                    | models.Q(expressions__state__related_states=filter["state"])
-                )
-        return queryset
+                description_ids = description_ids.intersection(query_result)
+        return (
+            self.filter(pk__in=list(description_ids))
+            .select_related("variety")
+            .select_related("protocol")
+        )
 
 
 class Description(models.Model):

@@ -22,9 +22,9 @@
       <tbody>
         {% for trait in protocol.traits.all %}
         <tr>
-          <td rowspan="{{ trait.state_set.count }}">{{ trait.numeric_id }}</td>
-          <td rowspan="{{ trait.state_set.count }}" {% if trait.grouping %}class="text-decoration-underline"{% endif %}>{{ trait.description }}</td>
-          {% for state in trait.state_set.all %}
+          <td rowspan="{{ trait.states.count }}">{{ trait.numeric_id }}</td>
+          <td rowspan="{{ trait.states.count }}" {% if trait.grouping %}class="text-decoration-underline"{% endif %}>{{ trait.description }}</td>
+          {% for state in trait.states.all %}
           <td>{{ state.numeric_id }}</td>
           <td>{{ state.description }} </td>
           <td><a class="text-decoration-none link-dark" href="{% url 'describe:state-update' state.pk %}"><i class="bi bi-arrow-left-right"></i></a></td>
