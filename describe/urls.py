@@ -18,7 +18,8 @@ urlpatterns = [
     path("<int:pk>/update", views.description_update, name="description-update"),
     path("protocols/", views.ProtocolsList.as_view(), name="protocols_list"),
     path("protocols/create", views.ProtocolCreate.as_view(), name="protocol-create"),
-    path("protocols/<int:pk>/", views.ProtocolDetail.as_view(), name="protocol_detail"),
+    # path("protocols/<int:pk>/", views.ProtocolDetail.as_view(), name="protocol_detail"),
+    path("protocols/<int:pk>/", views.protocol_detail, name="protocol_detail"),
     path(
         "protocols/<int:pk>/delete",
         views.ProtocolDelete.as_view(),
