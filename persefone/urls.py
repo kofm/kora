@@ -27,5 +27,4 @@ urlpatterns = [
     path("spaces/", include("spaces.urls")),
     path("collect/", include("collect.urls")),
     path("plan/", include("calculator.urls")),
-    path('__debug__/', include('debug_toolbar.urls')),
 ]  # + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
