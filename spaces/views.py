@@ -38,25 +38,28 @@ class LocationListView(ListView):
         return context
 
     def get_crop_total_areas(self):
-        crop_areas = []
-        for crop in Crop.objects.all():
-            species = (
-                crop.species if not crop.has_variety() else crop.variety.species
+        if Crop.objects.exists():
+            crop_areas = []
+            for crop in Crop.objects.all():
+                species = (
+                    crop.species if not crop.has_variety() else crop.variety.species
+                )
+                crop_areas.append(
+                    {
+                        "y": crop.area.total_area,
+                        "x": str(species),
+                    }
+                )
+            plot_data = (
+                pd.DataFrame(crop_areas)
+                .groupby("x", as_index=False)
+                .sum()
+                .sort_values(by="y", ascending=False)
+                .to_dict(orient="records")
             )
-            crop_areas.append(
-                {
-                    "y": crop.area.total_area,
-                    "x": str(species),
-                }
-            )
-        plot_data = (
-            pd.DataFrame(crop_areas)
-            .groupby("x", as_index=False)
-            .sum()
-            .sort_values(by="y", ascending=False)
-            .to_dict(orient="records")
-        )
-        return plot_data
+            return plot_data
+        else:
+            return None
 
 
 @require_http_methods(
