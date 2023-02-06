@@ -18,3 +18,7 @@ DATABASES = {
 STATIC_ROOT = "static/"
 # DEFAULT_EXCEPTION_REPORTER = "exceptionite.django.ExceptioniteReporter"
 SHELL_PLUS = "ipython"
+
+INTERNAL_IPS = [
+    "127.0.0.1",
+]
