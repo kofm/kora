@@ -1,11 +1,19 @@
-# Installing
+Kora is a digital crop-related data management and analysis tool that follows
+UPOV/CPVO methodology for variety description as its basis. It is a
+comprehensive tools that allows you to store various data related to species of
+agricultural interests and perform calculations in relation to the
+agroecosystem.
 
-You will need `docker` and `docker-compose`.
+# Key features
 
-```bash
-git clone https://github.com/kofm/persefone
-cd persefone
-docker-compose up -d
-docker exec -i persefone-db-1 /bin/bash -c "PGPASSWORD=postgres psql --username postgres postgres" < initial_data.sql
-http://localhost:8000
-```
+- Store and manage data related to multiple crop species.
+- Describe species using morphological descriptors, following UPOV/CPVO
+  methodology.
+- Store crop measurements and biometrics, and use them to derive crop
+  parameters.
+- Manage zones and areas defined as geolocalized containers linking crops,
+  weather data (public APIs and IoT sensors), and management data.
+- Utilities to implement simple crop models leveraging the database
+
+<!-- vi:filetype=pandoc conceallevel=0
+-->
