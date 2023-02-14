@@ -11,8 +11,10 @@ from calculator.models import Crop, Management
 from calculator.utils import get_crop_params_list, get_cropmodels
 from register.models import PlantSpecies
 
-"""Register CropModels here"""
-CROP_MODELS = [
+"""
+This list should contain all the model that have to be made available
+"""
+AVAILABLE_CROP_MODELS = [
     "PhenologyCropModel",
     "CropModelExpectedYield",
     "CropModelTotalPlants",
@@ -71,7 +73,7 @@ def crop_update_view(request, pk):
         "cropparameter_table": cropparameter_table,
         "cropparameter_form": cropparameter_form,
     }
-    context.update(get_cropmodels(crop, CROP_MODELS))
+    context.update(get_cropmodels(crop, AVAILABLE_CROP_MODELS))
     return TemplateResponse(request, "calculator/crop_update.html", context)
 
 

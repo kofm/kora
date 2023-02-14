@@ -24,9 +24,7 @@ class CropModel:
             self.object.parameters.values_list("parameter__code", flat=True)
         )
         available_params = available_params + list(
-            self.object.species.parameters.values_list(
-                "parameter__code", flat=True
-            )
+            self.object.species.parameters.values_list("parameter__code", flat=True)
         )
         if self.object.has_variety():
             available_params = available_params + list(
@@ -67,9 +65,7 @@ class CropModel:
     def get_parameter(self, code):
         param = self.object.parameters.filter(parameter__code=code).last()
         if not param:
-            param = self.object.species.parameters.filter(
-                parameter__code=code
-            ).last()
+            param = self.object.species.parameters.filter(parameter__code=code).last()
         if not param and self.object.has_variety():
             param = self.object.variety.species.parameters.filter(
                 parameter__code=code
@@ -108,7 +104,9 @@ class CropModelTotalPlants(CropModel):
         "distw",
         "distb",
     ]
-    inputs_optional: List[str] = ["totplants", ]
+    inputs_optional: List[str] = [
+        "totplants",
+    ]
     context_name = "total_plants"
     model_name = "Total plants"
 
@@ -126,8 +124,8 @@ class CropModelTotalPlants(CropModel):
         context["value"] = int(result)
         return context
 
-class ModelBasePlots:
 
+class ModelBasePlots:
     def __init__(self, year: int):
         self.year = year
 
@@ -155,10 +153,10 @@ class ModelBasePlots:
                     "minWidth": 40,
                 },
             },
-            "xaxis": { "show": False},
+            "xaxis": {"show": False},
             "grid": {"row": {"colors": ["#f3f4f5", "#fff"], "opacity": 1}},
-            "theme": { "palette": "palette3" },
-            "stroke": { "width": 1 }
+            "theme": {"palette": "palette3"},
+            "stroke": {"width": 1},
         }
         return base_range_bar_plot
 
@@ -179,14 +177,10 @@ class ModelBasePlots:
                 "reversed": True,
                 "min": 0,
                 "max": 1,
-                "tickAmount": 4
+                "tickAmount": 4,
             },
             "dataLabels": {"enabled": False},
-            "grid": { "yaxis" : {
-                "lines": {
-                    "show": False
-                }
-            }}
+            "grid": {"yaxis": {"lines": {"show": False}}},
         }
         return base_area_plot
 
@@ -231,12 +225,15 @@ class PhenologyCropModel(CropModel, ModelBasePlots):
         dates_range = [self.datetime_to_epoch(date) for date in dates_range]
         return dates_range
 
+    def can_run(self):
+        return super().can_run() & self.has_weather()
+
     def output(self):
         context = super().output()
-        tbase = self.get_parameter("Tbase")
-        topt = self.get_parameter("Topt")
-        thigh = self.get_parameter("Thigh")
-        gddmat = self.get_parameter("GDDmat")
+        tbase: float = self.get_parameter("Tbase")
+        topt: float = self.get_parameter("Topt")
+        thigh: float = self.get_parameter("Thigh")
+        gddmat: float = self.get_parameter("GDDmat")
         weather_data: pd.DataFrame = self.get_weather_data()
         # Exclude days with tave outside the cardinal temperatures range (tbase - thigh)
         tr = weather_data.tave[
@@ -246,13 +243,17 @@ class PhenologyCropModel(CropModel, ModelBasePlots):
         # Calculate GDDs
         weather_data["gdd"] = weather_data.r * (topt - tbase)
         # Smooth temperature response
-        weather_data["r"] = weather_data.r.rolling(window=30, min_periods=1).mean().fillna(0)
+        weather_data["r"] = (
+            weather_data.r.rolling(window=30, min_periods=1).mean().fillna(0)
+        )
         # Define the range of usable temperatures based on a threshold
         r_range = weather_data.r > self.rmin
         # Initialize the lists containg the simulated sowing/maturity dates
         maturity_dates = []
         sowing_dates = []
-        sowing = self.object.sowing.replace(year=self.year) if self.object.sowing else None
+        sowing = (
+            self.object.sowing.replace(year=self.year) if self.object.sowing else None
+        )
         maturity = None
         # Loop over the days within the range of usable temperatures
         for date in weather_data[r_range].index:
@@ -299,10 +300,12 @@ class PhenologyCropModel(CropModel, ModelBasePlots):
                             "goals": [
                                 {
                                     "name": "Break",
-                                    "value": self.datetime_to_epoch(sowing) if sowing else 0,
-                                    "strokeColor": "#CD2F2A"
+                                    "value": self.datetime_to_epoch(sowing)
+                                    if sowing
+                                    else 0,
+                                    "strokeColor": "#CD2F2A",
                                 }
-                            ]
+                            ],
                         },
                         {
                             "x": "Maturity",
@@ -311,23 +314,26 @@ class PhenologyCropModel(CropModel, ModelBasePlots):
                             "goals": [
                                 {
                                     "name": "Break",
-                                    "value": self.datetime_to_epoch(maturity) if maturity else 0,
-                                    "strokeColor": "#CD2F2A"
+                                    "value": self.datetime_to_epoch(maturity)
+                                    if maturity
+                                    else 0,
+                                    "strokeColor": "#CD2F2A",
                                 }
-                            ]
+                            ],
                         },
                     ]
                 }
             ]
         # Otherwise the series should be empty
         else:
-            plot_pheno_dates["serie"] = [{ "data": []}]
+            plot_pheno_dates["serie"] = [{"data": []}]
 
         # Set the temperature reponse plot data serie
         plot_temp_response["series"] = [
             {
                 "data": [
-                    {"x": self.datetime_to_epoch(x), "y": round(y, 2)} for x, y in zip(weather_data.index, weather_data.r)
+                    {"x": self.datetime_to_epoch(x), "y": round(y, 2)}
+                    for x, y in zip(weather_data.index, weather_data.r)
                 ],
             }
         ]
