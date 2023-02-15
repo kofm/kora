@@ -10,6 +10,9 @@ from calculator.forms import CropModelForm, CropParameterForm, ManagementForm
 from calculator.models import Crop, Management
 from calculator.utils import get_crop_params_list, get_cropmodels
 from register.models import PlantSpecies
+from calculator.tables import CropStatisticsTable
+from django_tables2 import Column
+import pandas as pd
 
 """
 This list should contain all the model that have to be made available
@@ -142,3 +145,57 @@ class ManagementCreateView(CreateView):
         self.object.crop = crop
         self.object.save()
         return super().form_valid(form)
+
+
+def statistics_view(request):
+    # TODO: this should not be hardcoded; it should take values from
+    # AVAILABLE_CROP_MODELS and extract =only numeric models=
+    statistics_models = [
+        "CropModelExpectedYield",
+        "CropModelTotalPlants",
+    ]
+    crops = Crop.objects.all()
+    cropmodels_results = [get_cropmodels(crop, statistics_models) for crop in crops]
+    def make_column_name(model_name: str, measure_unit: str):
+        if measure_unit != '':
+            return f"{model_name} ({measure_unit})"
+        else:
+            return f"{model_name}"
+    crompodels_results_dict = [
+        {
+            make_column_name(cropmodels_result["model_name"], cropmodels_result["measure_unit"]): cropmodels_result["value"]
+            for cropmodels_result in cropmodels_result_row["cropmodels"]
+        }
+        for cropmodels_result_row in cropmodels_results
+    ]
+    crop_statistics = (
+        pd.DataFrame(
+            [
+                {
+                    **{
+                        "common_name": crop.species.common_name,
+                        "total_area": crop.area.total_area,
+                        **cropmodels_result,
+                    }
+                }
+                for crop, cropmodels_result in zip(
+                    crops, crompodels_results_dict
+                )
+            ]
+        )
+        .groupby("common_name")
+        .sum()
+        .reset_index()
+        .to_dict(orient="records")
+    )
+    extra_columns = [
+        (column_name, Column())
+        for column_name in crop_statistics[0].keys()
+        if column_name != "common_name" and column_name != "total_area"
+    ]
+    crop_statistics_table = CropStatisticsTable(
+        crop_statistics, extra_columns=extra_columns
+    )
+    context = {"crop_statistics_table": crop_statistics_table}
+
+    return TemplateResponse(request, "calculator/statistics.html", context)
