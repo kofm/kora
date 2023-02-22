@@ -11,5 +11,6 @@ tmux.sh
 tags
 .env
 .DS_Store
-
+docker-compose.yml
 .ipython/profile_default
+.kitty-session
