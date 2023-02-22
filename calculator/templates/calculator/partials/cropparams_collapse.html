@@ -1,0 +1,27 @@
+{% load crispy_forms_tags %}
+{% load django_tables2 %}
+<div class="row">
+  <div class="col-3">
+    <form 
+       hx-post="{% url 'calculator:cropparameter-update' crop.pk %}"
+       hx-target="#collapseExample"
+       hx-swap="innerHTML">
+      {{ cropparameter_form | crispy }}
+      <button class="btn btn-primary my-3">Set</button>
+    </form>
+  </div>
+  <div id="cropparameter-table" class="col">
+      <div class="row">
+        {% for param in cropparameter_table %}
+        <div class="card col-2 mx-1 my-1 text-center">
+          <h5 data-bs-toggle="tooltip" title="{{ param.parameter__name }}" class="card-header">{{ param.parameter__code }}</h5>
+          <div class="card-body">
+            {{ param.value }} {{ param.parameter__measure_unit}}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+  </div>
+</div>
+{% block oob %}
+{% endblock %}

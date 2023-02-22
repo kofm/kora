@@ -1,0 +1,27 @@
+{% extends "frontpage/base.html" %}
+{% load crispy_forms_tags %}
+{% load static %}
+
+{% block javascript %}
+<script src="{% static 'frontpage/js/htmx.js' %}" type="text/javascript"></script>
+{% endblock %}
+
+{% block title %}Are you sure?{% endblock %}
+
+{% block container %}
+
+<h5 class="display-5">Are you sure?</h5>
+
+{% block delete_message %}{% endblock %}
+
+<p>The operation cannot be undone.</p>
+
+{% block extended_delete_message %}{% endblock %}
+
+<form method="post">
+  {% csrf_token %}
+  <button name="btn-save" type="submit" class="btn btn-outline-primary mt-3">Confirm</button>
+  <a class="btn btn-outline-secondary mt-3" _="on click go back">Cancel</a>
+</form>
+
+{% endblock %}

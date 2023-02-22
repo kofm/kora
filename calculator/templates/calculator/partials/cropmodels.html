@@ -1,0 +1,32 @@
+{% load static %}
+<div id="crop-models-div" class="col" hx-swap-oob="{{ oob }}">
+  <div class="row">
+    <!-- Display available models -->
+    {% for cm in cropmodels %}
+    {% if 'plots' in cm %}
+    {{ cm.plots|json_script:"plot-data" }}
+    <div class="col-9 card mx-2 my-2">
+      <div class="card-title">
+        <h3>Phenology</h3>
+      </div>
+      <div id="synced-charts">
+        {% for plot in cm.plots %}
+        <div id="{{ plot.chart.id }}" class="card-body"></div>
+        {% endfor %}
+      </div>
+
+      <script type="text/javascript" src="{% static 'calculator/js/crop_update.js' %}"></script>
+
+    </div>
+  </div>
+  <div class="row">
+    {% else %}
+    <div class="card col-3 my-2 mx-2">
+      <div class="card-title"><p>{{ cm.model_name }}</p></div>
+      <div class="card-body d-flex"><h2 class="display-3 mt-auto">{{ cm.value }} {{ cm.measure_unit }}</h2></div>
+    </div>
+    {% endif %}
+    {% endfor %}
+  </div>
+</div>
+

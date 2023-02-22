@@ -4,7 +4,7 @@
         {% load static %}
         <link href="{% static 'frontpage/css/bootstrap.min.css' %}" rel="stylesheet">
         <script src="{% static 'frontpage/js/bootstrap.bundle.min.js' %}"></script>
-        <link href="{% static 'frontpage/bootstrap-icons.css' %}" rel="stylesheet"></script>
+        <link href="{% static 'frontpage/bootstrap-icons.css' %}" rel="stylesheet">
         <style type="text/css" media="screen">
             .falink {
                 text-decoration: none;
@@ -14,17 +14,40 @@
             a:hover.falink {
                 color: black;
             }
+
+            .red {
+              border: solid 1px black;
+              color: red;
+            }
+            .grid-square {
+              width: 100px;
+              height: 100px;
+              display: inline-block;
+              background-color: #fff;
+              border: solid 1px rgb(0,0,0,0.2);
+              padding: 10px;
+              margin: 12px;
+            }
+
         </style>
+        {% load django_htmx %}
         {% block javascript %}
         {% endblock %}
         <meta charset="UTF-8">
-        <title>Persefone - {% block title %}{% endblock %}</title>
+        <title>Kora - {% block title %}{% endblock %}</title>
     </head>
-    <body>
+
+    <body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+
         {% include 'frontpage/navbar.html' %}
         <div class="container">
+
             {% block container %}
             {% endblock %}
+
         </div>
+
+        {% django_htmx_script %}
+
     </body>
 </html>

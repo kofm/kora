@@ -1,0 +1,61 @@
+{% load frontpage_extras %}
+
+<nav aria-label="Table navigation">
+  <ul class="pagination">
+
+    {% if page.has_previous %}
+
+    <li class="page-item">
+      <a
+        href="#"
+        class="page-link"
+        hx-get="{% url 'collect:cart-detail-hx' cart_id %}?page={{ page.previous_page_number }}"
+        hx-trigger="click"
+        hx-target="#cartitem-table"
+        hx-include="#search-form"
+      >
+        <span aria-hidden="true">&laquo;</span>
+      </a>
+    </li>
+
+    {% endif %}
+    {% get_proper_elided_page_range page.paginator page.number as page_range %}
+
+    {% for p in page_range %}
+    <li class="page-item {% if p == page.number %}active{% endif %}">
+      <a
+        href="#"
+        class="page-link"
+        hx-get="{% url 'collect:cart-detail-hx' cart_id %}?page={{ p }}"
+        hx-trigger="click"
+        hx-target="#cartitem-table"
+        hx-include="#search-form"
+      >
+        {{ p }}
+      </a>
+    </li>
+    {% endfor %}
+
+    {% if page.has_next %}
+
+    <li class="page-item">
+      <a
+        href="#"
+        class="page-link"
+        hx-get="{% url 'collect:cart-detail-hx' cart_id %}?page={{ page.next_page_number }}"
+        hx-trigger="click"
+        hx-target="#cartitem-table"
+        hx-include="#search-form"
+      >
+        <span aria-hidden="true">&raquo;</span>
+      </a>
+    </li>
+
+    {% endif %}
+  </ul>
+</nav>
+<div>
+  <p>
+    Showing {{ page.object_list|length }} of {{ page.paginator.count }} results
+  </p>
+</div>

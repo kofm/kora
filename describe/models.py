@@ -5,9 +5,24 @@ cultivars' descriptions.
 """
 
 from django.db import models
+from django.db.models.aggregates import Count
+from django.db.models.functions import Coalesce
+from django.urls import reverse
 from django.utils.functional import cached_property
 
 from register.models import PlantSpecies, PlantVariety
+
+
+class ProtocolManager(models.Manager):
+    def most_used(self):
+        if Protocol.objects.count() > 0:
+            return (
+                self.annotate(count=Coalesce(Count("descriptions"), 0))
+                .order_by("-count")
+                .first()
+            )
+        else:
+            return None
 
 
 class Protocol(models.Model):
@@ -17,7 +32,7 @@ class Protocol(models.Model):
     """
 
     name = models.CharField(max_length=200, help_text="the name of the protocol")
-    specie = models.ForeignKey(
+    plantspecies = models.ForeignKey(
         PlantSpecies,
         on_delete=models.PROTECT,
         help_text="reference to the specie it is meant to use with",
@@ -25,9 +40,32 @@ class Protocol(models.Model):
     url_ref = models.URLField(
         blank=True, null=True, help_text="the URL reference to the protocol"
     )
+    objects = ProtocolManager()
+
+    def get_absolute_url(self):
+        return reverse("describe:protocol_detail", kwargs={"pk": self.pk})
 
     def __str__(self):
-        return self.name
+        return f"{self.name} ({self.plantspecies.latin_name})"
+
+
+class DescriptionManager(models.Manager):
+    def filter_by_expression(self, filters):
+        description_ids = None
+        for filter in filters:
+            query_result = self.filter(
+                models.Q(expressions__state__id__in=filter["state"])
+                | models.Q(expressions__state__related_states__id__in=filter["state"])
+            ).values_list("pk", flat=True)
+            if description_ids == None:
+                description_ids = query_result
+            else:
+                description_ids = description_ids.intersection(query_result)
+        return (
+            self.filter(pk__in=list(description_ids))
+            .select_related("variety")
+            .select_related("protocol")
+        )
 
 
 class Description(models.Model):
@@ -43,6 +81,7 @@ class Description(models.Model):
         on_delete=models.PROTECT,
         help_text="reference to the protocol used to make the description;\
             this will define which Traits will be available",
+        related_name="descriptions",
     )
     variety = models.ForeignKey(
         PlantVariety,
@@ -50,12 +89,20 @@ class Description(models.Model):
         help_text="the variety to which the description refers to",
     )
 
+    objects = DescriptionManager()
+
+    class Meta:
+        ordering = ["variety__name"]
+
     @cached_property
     def available_traits(self):
         return self.protocol.traits.all()
 
+    def get_absolute_url(self):
+        return reverse("describe:description_detail", kwargs={"pk": self.pk})
+
     def __str__(self):
-        return str(self.variety) + " (" + self.name + ")"
+        return f"{self.variety} ({self.name} description)"
 
 
 class Trait(models.Model):
@@ -66,19 +113,24 @@ class Trait(models.Model):
     numeric_id = models.IntegerField(
         null=True,
         blank=True,
-        help_text="the numeric identifier often used in official \
-                    protocols",
+        help_text="The numeric identifier of the trait",
     )
     description = models.CharField(
         max_length=200,
-        help_text="trait description",
+        help_text="The trait's description",
     )
     protocol = models.ForeignKey(
-        Protocol, on_delete=models.PROTECT, null=True, blank=True, related_name="traits"
+        Protocol,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="traits",
+        help_text="The reference protocol of the trait",
     )
+    grouping = models.BooleanField(default=False)
 
     def __str__(self):
-        return str(self.numeric_id) + ". " + self.description
+        return f"{self.numeric_id}. {self.description}"
 
     class Meta:
         ordering = [
@@ -97,10 +149,11 @@ class State(models.Model):
         blank=True,
     )
     description = models.CharField(max_length=200, null=False, blank=False)
-    trait = models.ForeignKey(Trait, models.CASCADE)
+    trait = models.ForeignKey(Trait, models.CASCADE, related_name="states")
+    related_states = models.ManyToManyField("self")
 
     def __str__(self):
-        return str(self.numeric_id) + ". " + self.description
+        return f"{self.numeric_id}. {self.description}"
 
     class Meta:
         ordering = [
@@ -110,15 +163,15 @@ class State(models.Model):
 
 class Expression(models.Model):
     """
-    Stores the expression of cultivars, related to a specific Description.
-    It refers to a specific Traits and contain the actual State of
-    expression for that Trait.
+    Stores the expression of cultivars, related to a specific Description. It
+    refers to a specific State of expression (which is then related to a
+    specific Trait)
     """
 
-    state_of_expression = models.ForeignKey(State, on_delete=models.PROTECT)
+    state = models.ForeignKey(State, on_delete=models.PROTECT)
     description = models.ForeignKey(
-        Description, on_delete=models.RESTRICT, related_name="expressions"
+        Description, on_delete=models.CASCADE, related_name="expressions"
     )
 
     def __str__(self):
-        return str(self.state_of_expression)
+        return self.state.__str__()

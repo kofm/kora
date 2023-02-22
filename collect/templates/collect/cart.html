@@ -100,7 +100,7 @@
               max={{ cartitem.sample.sampleweight_set.last.weight }}
               value={{ cartitem.weight }}
               onchange="changeWeight(this);"
-              data-url="{% url 'collect:cartitem-weight-update' cartitem.pk %}"
+              data-url="{% url 'collect:cartitem-update-hx' cartitem.pk %}"
               >
           </form></td>
         <td>
@@ -113,7 +113,7 @@
       </tr>
       {% endfor %}
     </table>
-    {% include 'frontpage/paginator.html' with page=page_obj pagevar='page' %}
+    {% include 'frontpage/paginator.html' with page=page_obj page_get_variable='page' %}
     {% else %}
     <p class="mt-5">There are no stored seed samples corresponding to your query.</p>
     {% endif %}

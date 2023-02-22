@@ -1,8 +1,14 @@
 from django import forms
+from django.forms import formset_factory
 from django.forms import inlineformset_factory
+from django.forms.formsets import BaseFormSet
 from django.forms.models import BaseInlineFormSet
+from django.urls import reverse_lazy
+from django.utils.html import format_html
+from dynamic_forms import DynamicField, DynamicFormMixin
+from numpy import obj2sctype
 
-from . import models
+from .models import Protocol, Trait, State
 
 
 class TraitForm(forms.Form):
@@ -12,8 +18,8 @@ class TraitForm(forms.Form):
 
 
 StateFormset = inlineformset_factory(
-    models.Trait,
-    models.State,
+    Trait,
+    State,
     extra=1,
     fields=(
         "numeric_id",
@@ -54,22 +60,102 @@ class BaseTraitFormSet(BaseInlineFormSet):
 
 
 TraitFormSet = inlineformset_factory(
-    models.Protocol,
-    models.Trait,
+    Protocol,
+    Trait,
     formset=BaseTraitFormSet,
     extra=1,
     fields=(
         "numeric_id",
         "description",
+        "grouping",
     ),
 )
 
 
 class ExpressionForm(forms.Form):
     id = forms.IntegerField(widget=forms.HiddenInput())
-    state_of_expression = forms.ModelChoiceField(queryset=models.State.objects.all())
+    state = forms.ModelChoiceField(queryset=State.objects.all())
 
     def __init__(self, *args, **kwargs):
         super(ExpressionForm, self).__init__(*args, **kwargs)
-        self.fields["state_of_expression"].required = False
+        self.fields["state"].required = False
         self.fields["id"].required = False
+
+
+class DescriptionFilterForm(forms.Form):
+    """
+    This is the single unit of the form to filter descriptions.
+    It needs to be instantiated with a trait id to populate the available states of expression field.
+    """
+
+    trait = forms.IntegerField(widget=forms.HiddenInput())
+    state = forms.ModelMultipleChoiceField(queryset=None, required=False)
+
+    def __init__(self, *args, **kwargs):
+        super(DescriptionFilterForm, self).__init__(*args, **kwargs)
+        trait = Trait.objects.get(pk=self.initial["trait"])
+        self.fields["state"].queryset = State.objects.filter(trait=trait)
+        # self.fields["state"].label = format_html(str(trait.numeric_id) + ". " + trait.description)
+        if trait.grouping:
+            self.fields["state"].label = format_html(
+                f"<b>{trait.numeric_id}. {trait.description}</b>"
+            )
+        else:
+            self.fields["state"].label = format_html(
+                f"{trait.numeric_id}. {trait.description}"
+            )
+
+
+class BaseDescriptionFilterFormset(BaseFormSet):
+    def save(self):
+        filter = list()
+        for form in self.forms:
+            if states := form.cleaned_data["state"]:
+                filter.append(
+                    {
+                        "trait": form.cleaned_data["trait"],
+                        "state": [state.pk for state in states],
+                    }
+                )
+        return filter
+
+
+DescriptionFilterFormSet = formset_factory(
+    DescriptionFilterForm, formset=BaseDescriptionFilterFormset, extra=0
+)
+
+
+class ProtocolForm(forms.Form):
+    protocol = forms.ModelChoiceField(queryset=Protocol.objects.all())
+
+
+def _choices(form, model, depends_on):
+    value = form[depends_on].value()
+    if value:
+        return model.objects.filter(**{depends_on: value})
+    else:
+        return model.objects.none()
+
+
+class RelatedStateForm(DynamicFormMixin, forms.Form):
+    def protocol_choices(form):
+        state = form["state"].value()
+        state = State.objects.get(pk=state)
+        protocol = state.trait.protocol
+        return Protocol.objects.filter(plantspecies=protocol.plantspecies).exclude(
+            pk=protocol.pk
+        )
+
+    state = forms.IntegerField(widget=forms.HiddenInput())
+
+    protocol = DynamicField(
+        forms.ModelChoiceField,
+        queryset=protocol_choices,
+    )
+    trait = DynamicField(
+        forms.ModelChoiceField,
+        queryset=lambda form: _choices(form, Trait, "protocol"),
+    )
+    related_state = DynamicField(
+        forms.ModelChoiceField, queryset=lambda form: _choices(form, State, "trait")
+    )

@@ -4,3 +4,11 @@ djangorestframework
 django-crispy-forms
 pandas
 numpy
+django-extensions
+django-tables2
+django-filter
+django-htmx
+django-countries
+pyuca
+django-forms-dynamic
+django-widget-tweaks

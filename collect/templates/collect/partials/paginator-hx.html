@@ -1,0 +1,41 @@
+{% load frontpage_extras %}
+<nav aria-label="Table navigation">
+  <ul class="pagination">
+
+    {% if page.has_previous %}
+
+    <li class="page-item">
+      <a class="page-link">
+        <span aria-hidden="true">&laquo;</span>
+      </a>
+    </li>
+
+    {% endif %}
+    {% get_proper_elided_page_range page.paginator page.number as page_range %}
+    {% for p in page_range %}
+    <li class="page-item {% if p == page.number %}active{% endif %}">
+      <a 
+        class="page-link" 
+        {% if p != page.paginator.ELLIPSIS %}href="?{{ page_get_variable }}={{ p }}{% endif %}
+        {% if search %}&search={{ search }}{% endif %}
+        {% if view %}&view={{ view }}{% endif %}
+        {% if year %}&year={{ year }}{% endif %}"
+        >
+        {{ p }}
+      </a>
+    </li>
+    {% endfor %}
+
+    {% if page.has_next %}
+
+    <li class="page-item">
+      <a class="page-link" href="?{{ page_get_variable }}={{ page.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if view %}&view={{ view }}{% endif %}{% if year %}&year={{ year }}{% endif %}" aria-label="Next">
+        <span aria-hidden="true">&raquo;</span>
+      </a>
+    </li>
+
+    {% endif %}
+
+  </ul>
+</nav>
+    <div><p>Showing {{ page.object_list|length }} of {{ page.paginator.count }} results</p></div>

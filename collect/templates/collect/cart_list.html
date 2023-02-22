@@ -1,0 +1,30 @@
+{% extends "frontpage/base.html" %}
+
+{% load crispy_forms_tags %}
+{% load static %}
+
+{% block title %}
+{{ user }}'s Carts
+{% endblock %}
+
+{% block container %}
+<h1 class="display-1">
+  {{ user }}'s Carts
+</h1>
+{% if object_list %}
+<table class="table">
+  <tr>
+    <th scope="col">Name</th>
+    <th scope="col">Created</th>
+    <th scope="col" class="col-2">Created</th>
+  </tr>
+  {% for cart in object_list %}
+  <tr {% if cart.active %}class="table-primary"{% endif %}>
+    <td>{{ cart.name }} {% if cart.active %}(Active){% endif %}</td>
+    <td>{{ cart.created_at }}</td>
+    <td><a class="falink" href="{% url 'collect:cart-favourite' cart.pk %}"><i class="bi bi-star{% if cart.active %}-fill{% endif %} mx-1"></i></a><i class="bi bi-x-circle-fill mx-1"></i></td>
+  </tr>
+  {% endfor %}
+</table>
+{% endif %}
+{% endblock %}

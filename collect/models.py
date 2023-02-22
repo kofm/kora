@@ -1,10 +1,11 @@
 from django.db import models
+from django.db.models.constraints import UniqueConstraint
+from django.db.models.query_utils import Q
 from django.urls import reverse
 from django.utils.timezone import now
 
 from register.models import PlantVariety
 from django.contrib.auth.models import User
-
 
 class Storage(models.Model):
     """
@@ -42,7 +43,11 @@ class StoragePosition(models.Model):
 
 
 class SeedSample(models.Model):
-    sample_id = models.PositiveIntegerField(unique=True)
+    sample_id = models.PositiveIntegerField(
+        verbose_name="ID",
+        help_text="An unique identificative number of the seed sample",
+        unique=True
+    )
     variety = models.ForeignKey(PlantVariety, on_delete=models.PROTECT)
     notes = models.CharField(
         max_length=500,
@@ -83,11 +88,13 @@ class SeedSample(models.Model):
         else:
             return False
 
+    @property
+    def duplicate_samples(self):
+        return SeedSample.objects.filter(variety=self.variety).exclude(pk=self.pk)
+
+
     def __str__(self):
-        if self.variety.names.last():
-            return self.variety.names.last().name
-        else:
-            return ""
+        return f'#{self.sample_id} - {self.variety.name} ({self.growing_season})'
 
 
 class Germinability(models.Model):
@@ -117,11 +124,19 @@ class SampleWeight(models.Model):
 
 
 class Cart(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    name = models.CharField(help_text="An identificative name for your cart", max_length=100, default="Cart")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="carts")
+    active = models.BooleanField(default=False)
     created_at = models.DateField(auto_now_add=True)
 
     def __str__(self) -> str:
         return self.user.username
+
+    class Meta:
+        constraints = [
+            UniqueConstraint(fields=['user',], condition=Q(active=True), name='unique_user_active')
+        ]
+        ordering = ["-active", "name"]
 
 
 class CartItem(models.Model):

@@ -1,0 +1,18 @@
+<div class="alert alert-light" role="alert">
+  <h4 class="alert-heading">
+    Favourited descriptions 
+  </h4>
+  <p>
+  <a 
+    href="#"
+    hx-get="{% url 'describe:description-favourites-clear'  %}"
+    hx-target="#favourites"
+    >
+    Clear
+  </a>
+  </p>
+  {% for desc in description_favourites %}
+  <a href="{% url 'describe:description_detail' desc.pk %}">{{ desc }}</a>{% if not forloop.last %}, {% endif %}
+  {% endfor %}
+</div>
+

@@ -1,11 +1,10 @@
 from django import forms
-from django.db.models import Q
 from django.forms.widgets import HiddenInput
 from django.utils.translation import gettext_lazy as _
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import HTML, Layout, Field
+from crispy_forms.layout import Layout, Submit
 
-from collect.models import Germinability, SampleWeight, SeedSample, StoragePosition
+from collect.models import Germinability, SampleWeight, SeedSample
 
 
 class TomSelectWidget(forms.Select):
@@ -59,6 +58,11 @@ class SampleWeightForm(forms.ModelForm):
         model = SampleWeight
         fields = ("weight",)
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.add_input(Submit("submit", "Submit", css_class="col-12 mt-3"))
+
 
 class GerminabilityForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
@@ -74,9 +78,21 @@ class GerminabilityForm(forms.ModelForm):
 
 class SeedSampleYearForm(forms.Form):
     year = forms.ChoiceField(
-        choices=SeedSample.objects.filter(growing_season__isnull=False)
-        .order_by("growing_season")
-        .distinct("growing_season")
-        .values_list("growing_season", "growing_season"),
-        widget=forms.Select(attrs={'class': 'form-select', 'onchange': 'this.parentElement.submit()'})
+        choices=[(0, ""), ],
+        # + list(
+        #     SeedSample.objects.filter(growing_season__isnull=False)
+        #     .order_by("growing_season")
+        #     .distinct("growing_season")
+        #     .values_list("growing_season", "growing_season")
+        # ),
+        widget=forms.Select(
+            attrs={
+                "class": "form-select",
+                "hx-get": "_hx",
+                "hx-trigger": "change",
+                "hx-target": "#seedsample-table",
+                "hx-include": "#search-form"
+                # 'onchange': 'this.parentElement.submit()'
+            }
+        ),
     )

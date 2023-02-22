@@ -1,25 +1,69 @@
 {% extends "frontpage/base.html" %}
+{% load static %}
+
+
+{% block javascript %}
+    <script src="{% static 'frontpage/js/htmx.js' %}" type="text/javascript"></script>
+    <script src="{% static 'frontpage/js/apexcharts/apexcharts.js' %}"></script>
+{% endblock %}
+
+
 {% block title %}Location: {{ location.name }}{% endblock %}
+
+
 {% block container %}
-<h1>Location: {{ location.name }}</h1>
-<table class="table table-striped">
-    <thead>
-      <th>Area</th>
-      <th>Length</th>
-      <th>Width</th>
-      <th>Total area</th>
-      <th>Temperature offset</th>
-    </thead>
-  {% for area in location.area_set.all %}
-    <tr>
-      <td><a href="#">{{ area.name }}</a></td>
-      <td>{{ area.length }}</td>
-      <td>{{ area.width }}</td>
-      <td>{{ area.total_area }}</td>
-      <td>{{ area.temp_offset }}</td>
-    </tr>
-  {% empty %}
-  <p>There are no areas in this location.</p>
-  {% endfor %}
-</table>
+
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'spaces:location-list' %}">Zones</a></li>
+            <li class="breadcrumb-item">{{ location.name }}</li>
+        </ol>
+    </nav>
+
+    <h1 class="display-1">{{ location }}</h1>
+
+    <div class="row">
+        <div class="col">
+            <form hx-post="{% url 'spaces:area-sort' %}" hx-trigger="end" hx-target="#grid-area">
+                <p class="text-small text-muted">Sort:
+                    <a class="text-decoration-none" href="{% url 'spaces:location-detail' location.pk %}">Custom</a>
+                    <a class="text-decoration-none" href="?order_by=name">Name</a>
+                    <a class="text-decoration-none" href="?order_by=crop">Crop</a>
+                    <a class="text-decoration-none" href="?order_by=area">Area</a>
+                </p>
+                <div id="grid-area" class="row">
+                    {% include 'spaces/partials/area_list.html' with area_list=areas %}
+                </div>
+            </div>
+
+            <input type="hidden" name="location" value="{{ location.pk }}">
+
+        </form>
+    </div>
+    <div class="row justify-content-center">
+        <div class="col-4">
+            <a href="{% url 'spaces:location-update' location.pk %}" class="btn btn-lg btn-secondary col-12 m-3">Update Location</a>
+        </div>
+        <div class="col-4">
+            <a href="{% url 'spaces:location-delete' location.pk %}" class="btn btn-lg btn-danger col-12 m-3">Delete Location</a>
+        </div>
+    </div>
+    </div>
+
+    <script>
+        htmx.onLoad(function(content) {
+            var sortables = content.querySelectorAll("#grid-area");
+            for (var i = 0; i < sortables.length; i++) {
+                var sortable = sortables[i];
+                new Sortable(sortable, {
+                    animation: 150,
+                    {% if sortable %}
+                        sort: true,
+                    {% else %}
+                        sort: false,
+                    {% endif %}
+                });
+            }
+        })
+    </script>
 {% endblock %}

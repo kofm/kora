@@ -3,7 +3,7 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container-fluid">
         <!-- Logo -->
-        <a class="navbar-brand" href="{% url 'front:index' %}">Core</a>
+        <a class="navbar-brand" href="{% url 'front:index' %}">Kora</a>
 
         <!-- Button to toggle navigation with small width displays -->
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
@@ -19,53 +19,53 @@
                 </li>
 
                 <li class="nav-item">
-                  <a class="nav-link" href="{% url 'register:species_list' %}">Species</a>
+                    <a class="nav-link" href="{% url 'register:plantspecies-list' %}">Plants</a>
                 </li>
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle {% nav_css_class nav_species %}" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                      Describe
+                        Describe
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
                         <li>
-                          <a class="dropdown-item" href="{% url 'describe:descriptions_list' %}">Descriptions</a>
+                            <a class="dropdown-item" href="{% url 'describe:description-list' %}">Descriptions</a>
                         </li>
                         <li>
-                          <a class="dropdown-item" href="{% url 'describe:protocols_list' %}">Protocols</a>
+                            <a class="dropdown-item" href="{% url 'describe:protocols_list' %}">Protocols</a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="{% url 'register:entity-list' %}">Breeders</a>
                         </li>
                     </ul>
                 </li>
 
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle {% nav_css_class nav_locations %}" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                      Collect
-                    </a>
-                    <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-                        <li><a class="dropdown-item" href="{% url 'collect:seedsample-list' %}">Samples</a></li>
-                        <li><a class="dropdown-item" href="{% url 'collect:storage-list' %}">Storage</a></li>
-                    </ul>
+                <li class="nav-item">
+                    <a class="nav-link {% nav_css_class nav_collect %}" aria-current="page" href="{% url 'collect:seedsample-list'  %}">Collect</a>
                 </li>
 
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle {% nav_css_class nav_plan %}" aria-current="page" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="">Plan</a>
-                    <ul class="dropdown-menu">
+                    <a class="nav-link dropdown-toggle {% nav_css_class nav_plan %}" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        Plan
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
                         <li>
-                          <a class="dropdown-item" href="{% url 'parameters:parameters-list' %}">Parameters</a>
+                            <a class="dropdown-item" href="{% url 'spaces:location-list' %}">Zones</a>
                         </li>
-                      <li>
-                        <a class="dropdown-item" href="{% url 'spaces:location-list' %}">Crops</a>
-                      </li>
+                        <li>
+                            <a class="dropdown-item" href="{% url 'calculator:crops-statistics' %}">Statistics</a>
+                        </li>
                     </ul>
                 </li>
+
 
             </ul>
-                  <span class="navbar-text">
-                    {% if user.is_authenticated %}
-                      {{ user.username }}
-                      <small><a href="{% url 'logout'  %}">Logout</a></small>
-                    {% else %}
+            <span class="navbar-text">
+                {% if user.is_authenticated %}
+                    {{ user.username }}
+                    <small><a href="{% url 'logout'  %}">Logout</a></small>
+                {% else %}
                     <a href="{% url 'login'  %}">Login</a>
-                    {% endif %}
-                  </span>
+                {% endif %}
+            </span>
         </div>
     </div>
 </nav>

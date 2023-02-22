@@ -1,71 +1,42 @@
 {% extends "frontpage/base.html" %}
-
+{% load crispy_forms_tags %}
 {% load static %}
 {% block javascript %}
 <script src="{% static 'frontpage/js/apexcharts/apexcharts.js' %}"></script>
 <script src="{% static 'frontpage/js/moment.min.js' %}"></script>
+{{ crop_total_areas|json_script:"plot-data" }}
 {% endblock %}
-{% block title %}Locations{% endblock %}
+{% block title %}Zones{% endblock %}
 
 {% block container %}
-
-<p class="display-1">Plan</p>
-<div id="chart">
-    {{ crop_totals|json_script:"plot-data" }}
-    <script type="text/javascript">
-      const value = JSON.parse(document.getElementById('plot-data').textContent);
-          var options = {
-          series: [ { data: value } ],
-          legend: {
-          show: false
-        },
-        chart: {
-          height: 350,
-          type: 'treemap'
-        },
-        title: {
-          text: 'Crops overview'
-        }
-        };
-        var chart = new ApexCharts(document.querySelector("#chart"), options);
-        chart.render();
-    </script>
-</div>
+<h1 class="display-1">Zones</h1>
 <div class="row">
+{% for location in object_list %}
 
-  <div class="col">
-    {% for location in object_list %}
-    <h1>{{ location.name }}</h1>
-    <table class="table">
-      <thead>
-        <tr>
-          <th scope="col">Area</th>
-          <th scope="col">Dimensioni</th>
-          <th scope="col">Current crop</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for area in location.area_set.all %}
-        <tr>
-          <th scope="row"><a href="{% url 'spaces:area-detail' area.pk %}">{{ area.name }} ({{ area.temp_offset }})</a></th>
-          <td>{{ area.length }}&times;{{ area.width }} ({{ area.total_area }})</td>
-            {% if area.crop_set.all %}
-            {% with crop=area.crop_set.last %}
-          <td>
-            <a href="{% url 'calculator:crop-update' crop.pk %}">{{ crop }}</a>
-          </td>
-          {% endwith %}
-          {% else %}
-          <td>&nbsp;</td>
-          {% endif %}
-          {% endfor %}
-        </tr>
-      </tbody>
-    </table>
-    {% empty %}
-    <p>There are no stored locations, yet.</p>
-    {% endfor %}
-  </div>
+<div class="col-2 border m-3 p-3 rounded-3">
+
+  <h5>
+    <a class="text-decoration-none
+       link-dark" 
+       href="{% url 'spaces:location-detail' location.pk  %}">
+      {{ location.name }}
+    </a>
+  </h5>
+
+    <div>
+      <small class="text-muted">Areas: {{ location.area_set.count }}</small>
+    </div>
 
 
+
+</div>
+{% endfor %}
+<div class="col-2 border m-3 p-3 rounded-3 text-center">
+  <a class="text-decoration-none link-dark" href="{% url 'spaces:location-create' %}"><h1 class="bi bi-plus-circle mt-2"></h1></a>
+</div>
+</div>
+<div id="treeplot">
+</div>
+<script src="{% static 'spaces/js/location_list.js' %}" type="text/javascript"></script>
+</div>
 {% endblock %}

@@ -1,0 +1,16 @@
+{% load crispy_forms_tags %}
+
+<form class="col-2">
+
+  {{ form|crispy}}
+  <button id="cpform" class="btn btn-secondary my-3"
+          hx-post=""
+          hx-target="^^form"
+          hx-swap="beforebegin">
+    Set
+  </button>
+</form>
+<div class="row">
+  <div class="col"></div>
+</div>
+<div class="row"></div>

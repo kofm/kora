@@ -1,14 +1,15 @@
 {% extends "frontpage/base.html" %}
 {% load crispy_forms_tags %}
-{% block title %}Area: {{ area.name }}{% endblock %}
+{% block title %}Area{% if area %}: {{ area.name }}{% endif %}{% endblock %}
 {% block container %}
-<h1>Area: {{ area.name }} ({{ area.location.name }})</h1>
 <nav aria-label="breadcrumb">
   <ol class="breadcrumb">
-    <li class="breadcrumb-item"><a href="{% url 'spaces:location-list' %}">Locations</a></li>
-    <li class="breadcrumb-item active" aria-current="page">{{ area.name }}</li>
+    <li class="breadcrumb-item"><a href="{% url 'spaces:location-list' %}">Zones</a></li>
+
+    <li class="breadcrumb-item active" aria-current="page">{% if area %}{{ area.name }}{% else %}New Area{% endif %}</li>
   </ol>
 </nav>
+<h1>{% if area %}Area: {{ area.name }} ({{ area.location.name }}){% else %}New Area{% endif %}</h1>
 <form method="post">
   {% csrf_token %}
   {{ form|crispy }}

@@ -1,0 +1,20 @@
+<div class="row">
+  {% for param in cropparameter_table %}
+  <div class="card col-2 mx-1 my-1 text-center">
+    <h5 _='on click
+              set #id_parameter.value to @data-id
+              set #id_value.value to @data-value
+           end'
+      data-bs-toggle="tooltip"
+      data-id="{{ param.parameter }}"
+      data-value="{{ param.value }}"
+      title="{{ param.parameter__name }}"
+      class="card-header">{{ param.parameter__code }}
+    </h5>
+    <div class="card-body">
+      {{ param.value }} {{ param.parameter__measure_unit}}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+

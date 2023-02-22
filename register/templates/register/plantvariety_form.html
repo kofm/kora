@@ -1,12 +1,46 @@
 {% extends "frontpage/base.html" %}
 {% load crispy_forms_tags %}
-{% block title %}Add new variety{% endblock %}
+{% load static %}
+
+{% block javascript %}
+  <link href="{% static 'frontpage/css/tom-select.bootstrap5.min.css' %}" rel="stylesheet">
+  <script src="{% static 'frontpage/js/tom-select.complete.min.js' %}"></script>
+{% endblock %}
+
+{% block title %}Create Variety{% endblock %}
+
 {% block container %}
-<h1>Add new {{ species.common_name|lower }} (<i>{{ species.latin_name }}</i>) variety</h1>
+
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'register:plantspecies-list' %}">Species</a></li>
+    {% if object %}
+    <li class="breadcrumb-item"><a href="{% url 'register:plantspecies-detail' object.species.pk %}">{{ object.species }}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{{ object.name }}</li>
+    {% else %}
+    <li class="breadcrumb-item"><a href="{% url 'register:plantspecies-detail' species.pk %}">{{ species }}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Create Variety</li>
+    {% endif %}
+  </ol>
+</nav>
+
+{% if object %}
+<h1>
+  {{ object }} <span class="text-muted">({{ object.species.latin_name }})</span>
+</h1>
+{% else %}
+<h1 class="display-1">Create Variety</h1>
+<p class="lead">New {{ species.common_name|lower }} (<i>{{ species.latin_name }}</i>) variety</p>
+{% endif %}
 <form method="post">
   {% csrf_token %}
-  {{ plantvarietyname_form|crispy }}
-  {{ plantvariety_form|crispy }}
-  <input class="btn btn-primary mt-3" type="submit" value="Save">
+  {{ form|crispy }}
+  {% if object %}
+  <input class="btn btn-primary mt-3" type="submit" value="Update">
+  {% else %}
+  <input class="btn btn-primary mt-3" type="submit" value="Create">
+  {% endif %}
+  <script>new TomSelect("#id_breeder")</script>
 </form>
+
 {% endblock %}

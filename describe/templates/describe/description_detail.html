@@ -4,13 +4,17 @@
 {% block container %}
 <nav aria-label="breadcrumb">
   <ol class="breadcrumb">
-    <li class="breadcrumb-item"><a href="{% url 'describe:descriptions_list' %}">Descriptions</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'describe:description-list' %}">Descriptions</a></li>
     <li class="breadcrumb-item active" aria-current="page">{{ description.variety.name }}</li>
   </ol>
 </nav>
 <p class="display-3">{{ description.variety.name }} <small class="text-muted">{{ description.name }}</small></p>
-<p class="lead">Reference protocol <a href="{% url 'describe:protocol_detail' description.protocol.id %}">{{ description.protocol.name }}</a> (<i>{{ description.protocol.specie.latin_name }}</i>)</p>
-<p><a class="btn btn-secondary" href="{% url 'describe:description-update' description.id %}">Manage</a></p>
+<p class="lead">Reference protocol <a href="{% url 'describe:protocol_detail' description.protocol.id %}">{{ description.protocol.name }}</a> (<i>{{ description.protocol.plantspecies.latin_name }}</i>)</p>
+<p>
+  <a class="btn btn-secondary" href="{% url 'describe:description-update' description.id %}">Update</a>
+  <a class="btn btn-secondary" href="{% url 'describe:description-find-similar' %}?description_id={{ description.pk }}">Find Similar</a>
+  <a class="btn btn-danger" href="{% url 'describe:description-delete' description.id %}">Delete</a>
+</p>
 <table class="table table-striped">
     <thead>
         <th>Trait</th>
@@ -18,7 +22,11 @@
     </thead>
 	{% for trait in description.protocol.traits.all %}
 	<tr>
+    {% if trait.grouping %}
+		<td><b>{{ trait.description }}</b></td>
+    {% else %}
 		<td>{{ trait.description }}</td>
+    {% endif %}
 		{% with expr=description.expressions.all|expr_trait:trait.id %}
 		{% if not expr %}
 		<td></td>

@@ -1,0 +1,13 @@
+{% load widget_tweaks %}
+<div id="description-filter">
+{{ formset.management_form }}
+{% for form in formset %}
+<div class="mt-2">
+  {{form.trait}}
+  {{ form.state.label }}
+  {{ form.state|add_class:'form-control' }}
+</div>
+{% endfor %}
+</div>
+
+{{test}}

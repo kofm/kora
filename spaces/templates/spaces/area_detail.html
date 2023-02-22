@@ -2,7 +2,7 @@
 
 
 {% block title %}
-  Area: {{ area.name }}
+  Area {{ area.name }}
 {% endblock %}
 
 
@@ -10,34 +10,37 @@
 
 <nav aria-label="breadcrumb">
   <ol class="breadcrumb">
-    <li class="breadcrumb-item"><a href="{% url 'spaces:location-list' %}">{{ area.location.name }}</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'spaces:location-list' %}">Zones</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'spaces:location-detail' area.location.pk %}">{{ area.location.name }}</a></li>
     <li class="breadcrumb-item active" aria-current="page">{{ area.name }}</li>
   </ol>
 </nav>
 
-<h1>Area: {{ area.name }} ({{ area.location.name }})</h1>
+<h1 class="display-1">{{ area.name }} <small class="text-muted">({{ area.location.name }})</small></h1>
 
-<div class="row">
+<div class="row my-3">
   <div class="col card mx-2 py-2 d-flex">
     <div class="card-title"><h2>Area info</h2></div>
-    <ul class="list-group list-group-flush mt-3">
+    <ul class="list-group list-group-flush my-3">
 
       <li class="list-group-item"><b>Name</b>: {{ area.name }}</li>
       <li class="list-group-item"><b>Length</b>: {{ area.length }} m</li>
       <li class="list-group-item"><b>Width</b>: {{ area.width }} m</li>
     </ul>
-    <a class="btn btn-outline-primary mt-auto" href="{% url 'spaces:area-update' area.pk %}">Change</a>
+    <a class="btn btn-lg btn-primary mt-auto" href="{% url 'spaces:area-update' area.pk %}">Change</a>
+    <a class="btn btn-lg btn-secondary mt-2" href="{% url 'spaces:area-duplicate' area.pk %}">Duplicate</a>
+    <a class="btn btn-lg btn-danger mt-2" href="{% url 'spaces:area-delete' area.pk %}">Delete</a>
   </div>
 
   <div class="col card mx-2 py-2 d-flex">
 
 
     <div class="card-title">
-      <h2>Current Crop</h2>
+      <h2>Crop<a class="btn btn-lg btn-primary ms-2" href="{% url 'calculator:crop-create-area' area.pk %}">New</a></h2>
     </div>
 
     {% for current_crop in area.current_crops %}
-    <ul class="list-group list-group-flush mt-3">
+    <ul class="list-group list-group-flush my-3">
 
       <li class="list-group-item"><b>{% if current_crop.has_variety %}Variety{% else %}Species{% endif %}</b>: {{ current_crop }}</li>
       {% for cropparam in current_crop.cropparameter_set.all %}
@@ -47,9 +50,9 @@
     </ul>
 
 
-    <a class="btn btn-outline-primary mt-auto" href="{% url 'calculator:crop-update' area.crop_set.last.pk %}">Change</a>
+    <a class="btn btn-lg btn-primary mt-auto" href="{% url 'calculator:crop-update' area.crop_set.last.pk %}">Change</a>
     {% empty %}
-    <p class="card-body">There are currently no crop in this area. <a href="">Add one</a></p>
+    <p class="card-body">There are currently no crop in this area.</p>
     {% endfor %}
 
 
@@ -59,7 +62,7 @@
   <div class="col card mx-2 py-2 d-flex">
 
     <div class="card-title">
-      <h2>Last Crops</h2>
+      <h2>Log</h2>
     </div>
     <table class="table">
       <thead>

@@ -1,18 +1,41 @@
 {% extends "frontpage/base.html" %}
 {% load register_extras %}
-{% block title %}Species{% endblock %}
+{% load static %}
+{% load render_table from django_tables2 %}
+{% block javascript %}
+<link rel="stylesheet" href="{% static 'flags/sprite.css' %}">
+{% endblock %}
+{% block title %}{{ variety.name }} ({{ variety.species.latin_name }}){% endblock %}
+
 {% block container %}
+
 <nav aria-label="breadcrumb">
   <ol class="breadcrumb">
-    <li class="breadcrumb-item"><a href="{% url 'register:species_list' %}">Species</a></li>
-    <li class="breadcrumb-item"><a href="{% url 'register:plantspecie_detail' variety.species.pk %}"><i>{{ variety.species.latin_name }}</i></a></li>
+    <li class="breadcrumb-item"><a href="{% url 'register:plantspecies-list' %}">Species</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'register:plantspecies-detail' variety.species.pk %}"><i>{{ variety.species.latin_name }}</i></a></li>
     <li class="breadcrumb-item active" aria-current="page">{{ variety.name }}</li>
   </ol>
 </nav>
-<p class="display-3">{{ variety.name }} <small class="text-muted">(<i>{{ variety.species.latin_name }}</i>)</small></p>
+
+
+<h1 class="display-1">
+  {{ variety.name }} <small class="text-muted">(<i>{{ variety.species.latin_name }}</i>)</small>
+  <a class="text-decoration-none link-dark" href="{% url 'register:plantvariety-update' variety.pk %}">
+    <i class="bi bi-pencil-square" style="font-size:2rem"></i>
+  </a>
+</h1>
+{% if variety.has_breeder %}
+<p class="lead">
+  <a class="text-decoration-none link-dark" href="{% url 'register:entity-detail' variety.breeder.pk %}">
+    {{ variety.breeder.name }}<i class="{{ variety.breeder.country.flag_css }} mx-3"></i>
+  </a>
+</p>
+{% endif %}
+
 <div class="row mt-5">
   <div class="col">
     <h2>Descriptions</h2>
+    {% if variety.description_set.count %}
     <table class="table">
       <thead>
         <th scope="col">#</th>
@@ -33,6 +56,9 @@
       </tr>
       {% endfor %}
     </table>
+    {% else %}
+    <p>There are no descriptions of this variety available.</p>
+    {% endif %}
   </div>
 </div>
 
@@ -40,30 +66,7 @@
   <div class="col">
     <h2>Seed Samples</h2>
     {% if variety.seedsample_set.count %}
-    <table class="table table-striped table-hover">
-      <thead>
-        <th scope="col">#</td>
-        <th scope="col">Location</td>
-        <th scope="col">Weight</td>
-        <th scope="col">Germinability</td>
-        <th scope="col">Growing season</td>
-        <th scope="col" class="col-2">Notes</td>
-        <th scope="col"></td>
-      </thead>
-      {% for seedsample in variety.seedsample_set.all %}
-      <tr>
-        <td>{{ seedsample.pk }}</td>
-        <td>{{ seedsample.position }}</td>
-        <td>{{ seedsample.sampleweight_set.last.weight }}</td>
-        <td>{{ seedsample.germinability }}</td>
-        <td>{{ seedsample.growing_season }}</td>
-        <td>{{ seedsample.notes }}</td>
-        <td  align="right" class="col-1">
-          <a href="{% url 'collect:seedsample-detail' seedsample.pk %}"><i class="bi bi-zoom-in" style="color: black;"></i></a>
-        </td>
-      </tr>
-      {% endfor %}
-    </table>
+    {% render_table seedsample_table %}
     {% else %}
     <p>There are no seed samples of this variety.</p>
     {% endif %}
@@ -97,6 +100,13 @@
 
 <div class="row mt-5">
   <div class="col">
+    <h2>Protection<a class="btn btn-lg btn-secondary ms-2" href="{% url 'register:protection-create' variety.pk %}">Create</a></h2>
+    {% render_table protection_table %}
+  </div>
+</div>
+
+<div class="row mt-5">
+  <div class="col">
     <h2>Parameters</h2>
     {% if variety.parameters.count %}
     <table>
@@ -112,8 +122,8 @@
       {% endfor %}
     </table>
     <p>
-    <a href="{% url 'register:plantvarietyparameters_list' variety.id %}">View all</a>
-    <a href="{% url 'register:add_varparamval' variety.id %}">Add</a>
+      <a href="{% url 'register:plantvarietyparameters_list' variety.id %}">View all</a>
+      <a href="{% url 'register:add_varparamval' variety.id %}">Add</a>
     </p>
     {% else %}
     <p>There are not parameters yet. <a href="{% url 'register:add_varparamval' variety.id %} ">Add one</a></p>

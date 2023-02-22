@@ -1,18 +1,26 @@
-# pyright: reportGeneralTypeIssues=false
-import importlib
-from django.shortcuts import get_object_or_404, render
+# pyright: reportGexeralTypeIssues=false
+from django.http.response import HttpResponse
+from django.shortcuts import get_object_or_404
+from django.template.response import TemplateResponse
 from django.urls.base import reverse_lazy
+from django.views.decorators.http import require_http_methods
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, DeleteView
-from calculator.forms import CropForm, ManagementForm
+from calculator.forms import CropModelForm, CropParameterForm, ManagementForm
 from calculator.models import Crop, Management
+from calculator.utils import get_crop_params_list, get_cropmodels
 from register.models import PlantSpecies
+from calculator.tables import CropStatisticsTable
+from django_tables2 import Column
+import pandas as pd
 
-"""Register CropModels here"""
-CROP_MODELS = [
-    # 'CropModelExpectedYield',
-    # 'CropModelTotalPlants',
-    "PhenologyCropModel"
+"""
+This list should contain all the model that have to be made available
+"""
+AVAILABLE_CROP_MODELS = [
+    "PhenologyCropModel",
+    "CropModelExpectedYield",
+    "CropModelTotalPlants",
 ]
 
 
@@ -22,69 +30,101 @@ class CropDetailView(DetailView):
 
 class CropDeleteView(DeleteView):
     model = Crop
-    success_url = reverse_lazy("spaces:locations_list")
+
+    def get_success_url(self):
+        return reverse_lazy("spaces:area-detail", kwargs={"pk": self.object.area.pk})
+
+
+def cropparam_table_hx(request, pk):
+    crop = get_object_or_404(Crop, pk=pk)
+    cropparameter_table = get_crop_params_list(crop)
+    return TemplateResponse(
+        request,
+        "calculator/partials/cropparameter_table.html",
+        {
+            "cropparameter_table": cropparameter_table,
+        },
+    )
+
 
 def crop_update_view(request, pk):
+
     # Get the crop
     crop = get_object_or_404(Crop, pk=pk)
 
-    if request.POST:
-        form = CropForm(request.POST)
-        if form.is_valid():
-            variety = form.cleaned_data["variety"]
-            species = form.cleaned_data["species"]
-            area = form.cleaned_data["area"]
-            sowing = form.cleaned_data["sowing"]
-            harvest = form.cleaned_data["harvest"]
-            notes = form.cleaned_data["notes"]
-            crop.area = area
-            crop.notes = notes
-            if variety:
-                crop.set_crop(variety, "plantvariety")
-            else:
-                crop.set_crop(species, "plantspecies")
-
-            if sowing:
-                crop.sowing = sowing
-            elif crop.sowing:
-                del crop.sowing
-            if harvest:
-                crop.harvest = harvest
-            elif crop.harvest:
-                del crop.harvest
-
-            crop.save()
-            crop.parameters.all().delete()
-
     # Instantiate the form
-    form = CropForm(
-        initial={
-            "area": crop.area,
-            "sowing": crop.sowing,
-            "harvest": crop.harvest,
-            "notes": crop.notes,
-        }
+    form = CropModelForm(
+        initial={"sowing": crop.sowing, "harvest": crop.harvest}, instance=crop
     )
-    if crop.has_species():
-        form.initial["species"] = crop.object_id
-    elif crop.has_variety():
-        form.initial["species"] = crop.content_object.species.id # type: ignore
-        form.initial["variety"] = crop.object_id
 
-    module = importlib.import_module("calculator.cropmodels")
-    cropmodels = []
-    for cm in CROP_MODELS:
-        class_ = getattr(module, cm)
-        m = class_(crop)  # type: ignore
-        if m.can_run():
-            cropmodels.append(m.output())
+    if request.POST:
+        form = CropModelForm(request.POST, instance=crop)
+        if form.is_valid():
+            form.save()
+            if any(x in form.changed_data for x in ["species", "variety"]):
+                crop.parameters.all().delete()
+
+    cropparameter_form = CropParameterForm(initial={"crop": crop})
+
     # JSON data to populate the species tom-select
     plantspecies = list(PlantSpecies.objects.all().values("pk", "common_name"))
-    return render(
-        request,
-        "calculator/crop_update.html",
-        {"crop": crop, "form": form, "plantspecies": plantspecies, "cropmodels": cropmodels, },
+    cropparameter_table = get_crop_params_list(crop)
+    context = {
+        "crop": crop,
+        "form": form,
+        "plantspecies": plantspecies,
+        "cropparameter_table": cropparameter_table,
+        "cropparameter_form": cropparameter_form,
+    }
+    context.update(get_cropmodels(crop, AVAILABLE_CROP_MODELS))
+    return TemplateResponse(request, "calculator/crop_update.html", context)
+
+
+@require_http_methods(
+    [
+        "POST",
+    ]
+)
+def cropparam_update_hx(request, pk):
+    context = {}
+    form = CropParameterForm(request.POST)
+    crop = get_object_or_404(Crop, pk=pk)
+    if form.is_valid():
+        form.save()
+    # context["cropparameter_table"] = CropParameterTable(get_crop_params_list(crop))
+    context["cropparameter_table"] = get_crop_params_list(crop)
+    return TemplateResponse(
+        request, "calculator/partials/cropparameter_table.html", context
     )
+
+
+def cropparam_value(request):
+    form = CropParameterForm(initial=request.GET)
+    return HttpResponse(form["value"])
+
+
+class CropCreateView(CreateView):
+    form_class = CropModelForm
+    model = Crop
+    template_name = "calculator/crop_update.html"
+
+    def get_success_url(self):
+        return reverse_lazy("calculator:crop-update", kwargs={"pk": self.object.pk})
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["plantspecies"] = list(
+            PlantSpecies.objects.all().values("pk", "common_name")
+        )
+        return context
+
+    def get_initial(self):
+        initial = super().get_initial()
+        initial = initial.copy()
+        area = self.kwargs["area_id"]
+        if area:
+            initial["area"] = area
+        return initial
 
 
 class ManagementCreateView(CreateView):
@@ -105,3 +145,57 @@ class ManagementCreateView(CreateView):
         self.object.crop = crop
         self.object.save()
         return super().form_valid(form)
+
+
+def statistics_view(request):
+    # TODO: this should not be hardcoded; it should take values from
+    # AVAILABLE_CROP_MODELS and extract =only numeric models=
+    statistics_models = [
+        "CropModelExpectedYield",
+        "CropModelTotalPlants",
+    ]
+    crops = Crop.objects.all()
+    cropmodels_results = [get_cropmodels(crop, statistics_models) for crop in crops]
+    def make_column_name(model_name: str, measure_unit: str):
+        if measure_unit != '':
+            return f"{model_name} ({measure_unit})"
+        else:
+            return f"{model_name}"
+    crompodels_results_dict = [
+        {
+            make_column_name(cropmodels_result["model_name"], cropmodels_result["measure_unit"]): cropmodels_result["value"]
+            for cropmodels_result in cropmodels_result_row["cropmodels"]
+        }
+        for cropmodels_result_row in cropmodels_results
+    ]
+    crop_statistics = (
+        pd.DataFrame(
+            [
+                {
+                    **{
+                        "common_name": crop.species.common_name,
+                        "total_area": crop.area.total_area,
+                        **cropmodels_result,
+                    }
+                }
+                for crop, cropmodels_result in zip(
+                    crops, crompodels_results_dict
+                )
+            ]
+        )
+        .groupby("common_name")
+        .sum()
+        .reset_index()
+        .to_dict(orient="records")
+    )
+    extra_columns = [
+        (column_name, Column())
+        for column_name in crop_statistics[0].keys()
+        if column_name != "common_name" and column_name != "total_area"
+    ]
+    crop_statistics_table = CropStatisticsTable(
+        crop_statistics, extra_columns=extra_columns
+    )
+    context = {"crop_statistics_table": crop_statistics_table}
+
+    return TemplateResponse(request, "calculator/statistics.html", context)

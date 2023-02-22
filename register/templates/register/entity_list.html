@@ -1,0 +1,17 @@
+{% extends "frontpage/base.html" %}
+{% load crispy_forms_tags %}
+{% load render_table from django_tables2 %}
+{% load static %}
+{% block javascript %}
+<link rel="stylesheet" href="{% static 'flags/sprite.css' %}">
+{% endblock %}
+{% block title %}
+Breeders
+{% endblock %}
+
+{% block container %}
+<h1 class="display-1">
+  Breeders <a class="btn btn-primary" href="{% url 'register:entity-create' %}">Create</a>
+</h1>
+{% render_table table %}
+{% endblock %}

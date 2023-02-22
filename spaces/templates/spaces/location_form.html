@@ -1,0 +1,27 @@
+{% extends "frontpage/base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+{% if object %}Update Location: {{ object }}{% else %}New Location{% endif %}
+{% endblock %}
+
+
+{% block container %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'spaces:location-list' %}">Zones</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{% if object %}{{ object.name }}{% else %}New{% endif %}</li>
+  </ol>
+</nav>
+
+<h1>{% if object %}Update Location{% else %}New Location{% endif %}</h1>
+<form method="post">
+  {% csrf_token %}
+  {{ form|crispy }}
+
+  <button name="btn-save" type="submit" class="btn btn-outline-primary mt-3">Save</button>
+  <a class="btn btn-outline-secondary mt-3" href="{% url 'spaces:location-list' %}">Cancel</a>
+
+</form>
+
+{% endblock %}

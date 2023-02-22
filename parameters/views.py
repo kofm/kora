@@ -89,7 +89,7 @@ class SpeciesParameterUpdate(UpdateView):
 
     def get_success_url(self):
         return reverse(
-            "register:plantspecie_detail", kwargs={"pk": self.get_object().specie.pk}
+            "register:plantspecies-detail", kwargs={"pk": self.get_object().specie.pk}
         )
 
     def get_context_data(self, **kwargs):
