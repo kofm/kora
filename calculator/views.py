@@ -5,6 +5,7 @@ from django.urls.base import reverse_lazy
 from django.views.decorators.http import require_http_methods
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, DeleteView
+from django_tables2.config import RequestConfig
 from calculator.filters import CropFilter
 from calculator.forms import CropModelForm, CropParameterForm, ManagementForm
 from calculator.models import Crop, Management
@@ -12,6 +13,7 @@ from calculator.utils import crop_statistics_calc, get_crop_params_list, get_cro
 from register.models import PlantSpecies
 from calculator.tables import CropStatisticsTable
 from django_tables2 import Column
+from django_tables2.export.export import TableExport
 
 
 """
@@ -167,6 +169,14 @@ def statistics_view(request):
     crop_statistics_table = CropStatisticsTable(
         crop_statistics, extra_columns=extra_columns
     )
+
+    RequestConfig(request).configure(crop_statistics_table)
+
+    export_format = request.GET.get("_export", None)
+    if TableExport.is_valid_format(export_format):
+        exporter = TableExport(export_format, crop_statistics_table)
+        return exporter.response("table.{}".format(export_format))
+
     context = {"crop_statistics_table": crop_statistics_table, "filter": filter}
 
     return TemplateResponse(request, "calculator/statistics.html", context)
