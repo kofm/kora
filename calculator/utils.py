@@ -5,6 +5,8 @@ from calculator.models import Crop, CropParameter
 
 from parameters.models import SpeciesParameter, VarietalParameter
 
+import pandas as pd
+
 
 def get_available_params(queryset: QuerySet) -> set:
     available_params = set([x["parameter__code"] for x in queryset])
@@ -67,3 +69,46 @@ def get_cropmodels(crop, cropmodels_list):
         if m.can_run():
             cropmodels.append(m.output())
     return {"cropmodels": cropmodels}
+
+
+def format_unit(model_name: str, measure_unit: str):
+    if measure_unit != "":
+        return f"{model_name} ({measure_unit})"
+    else:
+        return f"{model_name}"
+
+
+def crop_statistics_calc(crop_queryset: QuerySet, models):
+    if not crop_queryset or not models:
+        return crop_queryset
+    cropmodels_results = [get_cropmodels(crop, models) for crop in crop_queryset]
+    crompodels_results_dict = [
+        {
+            format_unit(
+                cropmodels_result["model_name"], cropmodels_result["measure_unit"]
+            ): cropmodels_result["value"]
+            for cropmodels_result in cropmodels_result_row["cropmodels"]
+        }
+        for cropmodels_result_row in cropmodels_results
+    ]
+    crop_statistics = (
+        pd.DataFrame(
+            [
+                {
+                    **{
+                        "common_name": crop.species.common_name,
+                        "total_area": crop.area.total_area,
+                        **cropmodels_result,
+                    }
+                }
+                for crop, cropmodels_result in zip(
+                    crop_queryset, crompodels_results_dict
+                )
+            ]
+        )
+        .groupby("common_name")
+        .sum()
+        .reset_index()
+        .to_dict(orient="records")
+    )
+    return crop_statistics

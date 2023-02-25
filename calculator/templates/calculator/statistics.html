@@ -7,6 +7,17 @@
 {% endblock %}
 
 {% block container %}
-<h1 class="display-1">Crop statistics</h1>
-{% render_table crop_statistics_table %}
+    <h1 class="display-1">Crop statistics</h1>
+    <form method="get">
+        <div class="form-group mb-3">
+            {{ filter.form|crispy }}
+            <button type="submit" class="btn btn-primary mt-3">Submit</button>
+            <a href="{% url 'calculator:crops-statistics' %}" class="btn btn-secondary mt-3">Reset</a>
+        </div>
+    </form>
+    {% if crop_statistics_table.rows|length %}
+        {% render_table crop_statistics_table %}
+    {% else %}
+        <p>There is no data, according to your filters.</p>
+    {% endif %}
 {% endblock %}

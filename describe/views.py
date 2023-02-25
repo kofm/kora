@@ -125,7 +125,6 @@ def description_list(request):
     if "description_filter" in request.session:
         # If a Description filter session variable exists, get the matching
         # Descriptions and instantiate the formset with the corresponding data
-        print(request.session.get("description_filter"))
         queryset = Description.objects.filter_by_expression(
             request.session.get("description_filter")
         )
@@ -143,7 +142,7 @@ def description_list(request):
         queryset = Description.objects.filter().prefetch_related("expressions")
         formset = DescriptionFilterFormSet(initial=traits)
 
-    # Instantiate the Description table and corresponding pagination
+    # Instantiate the Descriptions table and corresponding pagination
     description_table = DescriptionTable(queryset)
     RequestConfig(request, paginate={"per_page": 15}).configure(description_table)
 
