@@ -23,6 +23,7 @@ AVAILABLE_CROP_MODELS = [
     "PhenologyCropModel",
     "CropModelExpectedYield",
     "CropModelTotalPlants",
+    "CropModelSeedsRequired",
 ]
 
 
@@ -155,6 +156,7 @@ def statistics_view(request):
     statistics_models = [
         "CropModelExpectedYield",
         "CropModelTotalPlants",
+        "CropModelSeedsRequired",
     ]
     filter = CropFilter(request.GET, queryset=Crop.objects.all())
     crops_queryset = filter.qs

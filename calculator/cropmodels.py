@@ -63,16 +63,17 @@ class CropModel:
             return None
 
     def get_parameter(self, code):
-        param = self.object.parameters.filter(parameter__code=code).last()
-        if not param:
-            param = self.object.species.parameters.filter(parameter__code=code).last()
-        if not param and self.object.has_variety():
-            param = self.object.variety.species.parameters.filter(
-                parameter__code=code
-            ).last()
-        if not param:
-            return None
-        return param.value
+        param = self.object.parameters.filter(parameter__code=code)
+        if param.exists():
+            return param.last().value
+        if self.object.has_variety():
+            param = self.object.variety.parameters.filter(parameter__code=code)
+            if param.exists():
+                return param.last().value
+        param = self.object.species.parameters.filter(parameter__code=code)
+        if param.exists():
+            return param.last().value
+        return None
 
     def output(self):
         context = {}
@@ -121,6 +122,33 @@ class CropModelTotalPlants(CropModel):
         result = round(ncol * nrow * self.area.total_area, 0)
         if totplants:
             result = totplants
+        context["value"] = int(result)
+        return context
+
+
+class CropModelSeedsRequired(CropModel):
+    inputs = ["distw", "distb", "tsw"]
+    inputs_optional = [
+        "totplants",
+    ]
+    context_name = "seeds_number"
+    model_name = "Seeds required"
+    measure_unit = "g"
+
+    def can_run(self):
+        return super().can_run() or (
+            self.get_parameter("totplants") and self.get_parameter("tsw")
+        )
+
+    def output(self):
+        context = super().output()
+        totplants = self.get_parameter("totplants")
+        if not totplants:
+            nrow = math.floor(self.object.area.width / self.get_parameter("distb"))
+            ncol = math.floor(1 / self.get_parameter("distw"))
+            totplants = round(ncol * nrow * self.area.total_area, 0)
+        tsw = self.get_parameter("tsw")
+        result = totplants * 0.85 * tsw / 1000
         context["value"] = int(result)
         return context
 
