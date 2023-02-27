@@ -1,4 +1,6 @@
 from typing import List
+
+from numpy import sqrt
 from calculator.models import Crop
 import math
 import time
@@ -8,6 +10,7 @@ import pandas as pd
 
 
 class CropModel:
+    # TODO: AUTOMATICALLY GET PARAMETERS AND ASSIGN TO MODEL PROPERTIES
     inputs: List[str] = []
     inputs_optional: List[str] = []
     context_name = "unnamed_model"
@@ -115,14 +118,32 @@ class CropModelTotalPlants(CropModel):
         return super().can_run() & self.has_area()
 
     def output(self):
+        #         distd= squareroot ((distb) squared + (distw/2) squared)
+# Rows Number= Area width/distb
+# arrotondato all'intero per eccesso SE distd>=distb
+# arrotondato all'intero per difetto SE distd<distb
+# Plants per row=Area lenght/distw
+# arrotondato all'intero per difetto
+# Total Plants = Plants per row x Rows Number
         context = super().output()
-        totplants = self.get_parameter("totplants")
-        nrow = math.floor(self.object.area.width / self.get_parameter("distb"))
-        ncol = math.floor(1 / self.get_parameter("distw"))
-        result = round(ncol * nrow * self.area.total_area, 0)
-        if totplants:
-            result = totplants
-        context["value"] = int(result)
+        # totplants = self.get_parameter("totplants")
+        # nrow = math.floor(self.object.area.width / self.get_parameter("distb"))
+        # ncol = math.floor(1 / self.get_parameter("distw"))
+        # result = round(ncol * nrow * self.area.total_area, 0)
+        # if totplants:
+        #     result = totplants
+        # context["value"] = int(result)
+        distw: float = self.get_parameter("distw")
+        distb: float = self.get_parameter("distb")
+        distd = math.sqrt(distb**2 + (distw/2)**2)
+        rownum = self.area.width / distb
+        if distd >= distb:
+            rownum = math.ceil(rownum)
+        else:
+            rowunum = math.floor(rownum)
+        rowplants = math.floor(self.area.length / distw)
+        totplants = rowplants * rownum
+        context["value"] = f"{totplants} ({rownum} rows)"
         return context
 
 
