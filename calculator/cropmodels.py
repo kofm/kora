@@ -143,7 +143,8 @@ class CropModelTotalPlants(CropModel):
             rowunum = math.floor(rownum)
         rowplants = math.floor(self.area.length / distw)
         totplants = rowplants * rownum
-        context["value"] = f"{totplants} ({rownum} rows)"
+        # context["value"] = f"{totplants} ({rownum} rows)"
+        context["value"] = totplants
         return context
 
 
