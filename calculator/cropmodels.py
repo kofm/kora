@@ -153,7 +153,7 @@ class CropModelSeedsRequired(CropModel):
         seeds_inc = self.get_parameter("seeds_inc")
         if seeds_inc:
             result = result * seeds_inc
-        context["value"] = result
+        context["value"] = round(result, 2)
         return context
 
 
