@@ -130,6 +130,7 @@ class CropModelSeedsRequired(CropModel):
     inputs = ["distw", "distb", "tsw"]
     inputs_optional = [
         "totplants",
+        "seeds_inc"
     ]
     context_name = "seeds_number"
     model_name = "Seeds required"
@@ -149,7 +150,10 @@ class CropModelSeedsRequired(CropModel):
             totplants = round(ncol * nrow * self.area.total_area, 0)
         tsw = self.get_parameter("tsw")
         result = totplants * 0.85 * tsw / 1000
-        context["value"] = int(result)
+        seeds_inc = self.get_parameter("seeds_inc")
+        if seeds_inc:
+            result = result * seeds_inc
+        context["value"] = result
         return context
 
 
