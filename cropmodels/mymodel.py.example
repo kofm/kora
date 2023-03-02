@@ -1,0 +1,37 @@
+# Crop model template. Do not forget to register the model in the init.py file.
+# Se the `init.py.example` for help.
+from calculator.modelling import CropModel
+
+
+class MyModel(CropModel):
+
+    # Here you declare the parameters needed for running the model. On this it
+    # will depend wether the model can run or not. If one or more of the listed
+    # parameters are not available for the current crop the model will not run
+    inputs = ["my_parameter"]
+    # TODO: useful?
+    inputs_optional = []
+    # TODO: generate this from Model name
+    context_name = "my_model"
+    model_name = "My Model"
+
+    # Here you define the rules to determine if a model can run or not.
+    # Available inputs is the default. In the example, we also check that the
+    # plot has a size specified
+    def can_run(self):
+        return super().can_run() & self.has_area()
+
+    def output(self):
+        context = super().output()
+
+        # Here you can do your operations accessing crop parameters or area
+        # properties (total_area, width, length) like in the following silly
+        # example:
+        result = self.get_parameter("my_parameter") * self.area.total_area
+        # ...
+        # Remember to save the final output under the "value" key in the
+        # context dict
+        context["value"] = result
+
+        # You should return this or it won't work.
+        return context

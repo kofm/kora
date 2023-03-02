@@ -57,18 +57,17 @@ def get_crop_params_list(crop: Crop) -> list:
     return sorted(params_list, key=lambda d: d["parameter__code"])
 
 
-def get_cropmodels(crop, cropmodels_list):
-    # Loop over CROP_MODELS, run the models and store output to the cropmodels list
+def get_cropmodels(crop, cropmodels):
     import importlib
 
-    cropmodels: list = []
-    module = importlib.import_module("calculator.cropmodels")
-    for cm in cropmodels_list:
-        class_ = getattr(module, cm)
-        m = class_(crop)
-        if m.can_run():
-            cropmodels.append(m.output())
-    return {"cropmodels": cropmodels}
+    cropmodels_outputs = []
+    for module_name, cropmodel_class in cropmodels:
+        module = importlib.import_module(f"cropmodels.{module_name}")
+        class_ = getattr(module, cropmodel_class)
+        model = class_(crop)
+        if model.can_run():
+            cropmodels_outputs.append(model.output())
+    return {"cropmodels": cropmodels_outputs}
 
 
 def format_unit(model_name: str, measure_unit: str):
@@ -79,36 +78,36 @@ def format_unit(model_name: str, measure_unit: str):
 
 
 def crop_statistics_calc(crop_queryset: QuerySet, models):
-    if not crop_queryset or not models:
-        return crop_queryset
-    cropmodels_results = [get_cropmodels(crop, models) for crop in crop_queryset]
-    crompodels_results_dict = [
-        {
-            format_unit(
-                cropmodels_result["model_name"], cropmodels_result["measure_unit"]
-            ): cropmodels_result["value"]
-            for cropmodels_result in cropmodels_result_row["cropmodels"]
-        }
-        for cropmodels_result_row in cropmodels_results
-    ]
-    crop_statistics = (
-        pd.DataFrame(
-            [
-                {
-                    **{
-                        "common_name": crop.species.common_name,
-                        "total_area": crop.area.total_area,
-                        **cropmodels_result,
+    crop_statistics = pd.DataFrame()
+    if crop_queryset:
+        cropmodels_results = [get_cropmodels(crop, models) for crop in crop_queryset]
+        crompodels_results_dict = [
+            {
+                format_unit(
+                    cropmodels_result["model_name"], cropmodels_result["measure_unit"]
+                ): cropmodels_result["value"]
+                for cropmodels_result in cropmodels_result_row["cropmodels"]
+            }
+            for cropmodels_result_row in cropmodels_results
+        ]
+        crop_statistics = (
+            pd.DataFrame(
+                [
+                    {
+                        **{
+                            "common_name": crop.species.common_name,
+                            "total_area": crop.area.total_area,
+                            **cropmodels_result,
+                        }
                     }
-                }
-                for crop, cropmodels_result in zip(
-                    crop_queryset, crompodels_results_dict
-                )
-            ]
+                    for crop, cropmodels_result in zip(
+                        crop_queryset, crompodels_results_dict
+                    )
+                ]
+            )
+            .groupby("common_name")
+            .sum()
+            .reset_index()
+            .to_dict(orient="records")
         )
-        .groupby("common_name")
-        .sum()
-        .reset_index()
-        .to_dict(orient="records")
-    )
     return crop_statistics

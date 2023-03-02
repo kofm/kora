@@ -1,0 +1,10 @@
+# This list should contain all the model that have to be made available in the
+# Crop view. Copy it as `init.py` and edit accordingly
+AVAILABLE_CROP_MODELS = [ ("mymodel", "MyModel"), ]
+
+# TODO: this should not be hardcoded; it should take values from
+# AVAILABLE_CROP_MODELS. At the moment only single numeric value
+# output cropmodel are compatible.
+STATISTICS_MODELS = [
+    ("mymodel", "MyModel"),
+]

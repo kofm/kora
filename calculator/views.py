@@ -15,16 +15,11 @@ from calculator.tables import CropStatisticsTable
 from django_tables2 import Column
 from django_tables2.export.export import TableExport
 
-
-"""
-This list should contain all the model that have to be made available
-"""
-AVAILABLE_CROP_MODELS = [
-    "PhenologyCropModel",
-    "CropModelExpectedYield",
-    "CropModelTotalPlants",
-    "CropModelSeedsRequired",
-]
+try:
+    from cropmodels.init import STATISTICS_MODELS, AVAILABLE_CROP_MODELS
+except ImportError:
+    AVAILABLE_CROP_MODELS = []
+    STATISTICS_MODELS = []
 
 
 class CropDetailView(DetailView):
@@ -151,23 +146,15 @@ class ManagementCreateView(CreateView):
 
 
 def statistics_view(request):
-    # TODO: this should not be hardcoded; it should take values from
-    # AVAILABLE_CROP_MODELS and extract =only numeric models=
-    statistics_models = [
-        "CropModelExpectedYield",
-        "CropModelTotalPlants",
-        "CropModelSeedsRequired",
-    ]
     filter = CropFilter(request.GET, queryset=Crop.objects.all())
     crops_queryset = filter.qs
-    crop_statistics = crop_statistics_calc(crops_queryset, statistics_models)
+    crop_statistics = crop_statistics_calc(crops_queryset, STATISTICS_MODELS)
     extra_columns = None
-    if crop_statistics:
-        extra_columns = [
-            (column_name, Column())
-            for column_name in crop_statistics[0].keys()
-            if column_name != "common_name" and column_name != "total_area"
-        ]
+    extra_columns = [
+        (column_name, Column())
+        for column_name in crop_statistics[0].keys()
+        if column_name != "common_name" and column_name != "total_area"
+    ]
     crop_statistics_table = CropStatisticsTable(
         crop_statistics, extra_columns=extra_columns
     )
