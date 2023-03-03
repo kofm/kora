@@ -146,17 +146,18 @@ class ManagementCreateView(CreateView):
 
 
 def statistics_view(request):
-    filter = CropFilter(request.GET, queryset=Crop.objects.all())
+    crops = Crop.objects.all()
+    filter = CropFilter(request.GET, queryset=crops)
     crops_queryset = filter.qs
     crop_statistics = crop_statistics_calc(crops_queryset, STATISTICS_MODELS)
     extra_columns = None
     extra_columns = [
         (column_name, Column())
-        for column_name in crop_statistics[0].keys()
+        for column_name in crop_statistics.keys()
         if column_name != "common_name" and column_name != "total_area"
     ]
     crop_statistics_table = CropStatisticsTable(
-        crop_statistics, extra_columns=extra_columns
+        crop_statistics.to_dict(orient="records"), extra_columns=extra_columns
     )
 
     RequestConfig(request).configure(crop_statistics_table)

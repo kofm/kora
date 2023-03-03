@@ -108,6 +108,5 @@ def crop_statistics_calc(crop_queryset: QuerySet, models):
             .groupby("common_name")
             .sum()
             .reset_index()
-            .to_dict(orient="records")
         )
     return crop_statistics
