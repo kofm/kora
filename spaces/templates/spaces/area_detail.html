@@ -72,7 +72,7 @@
       </thead>
       <tbody>
         {% for crop in area.crop_set.all %}
-        <tr {% if crop.is_current %}class="table-primary"{% endif %}>
+        <tr {% if crop.is_ongoing %}class="table-primary"{% endif %}>
           <td><a href="{% url 'calculator:crop-update' crop.pk %}">{{ crop }}</a></td>
           <td>{{ crop.sowing|default_if_none:"" }}</td>
           <td>{{ crop.harvest|default_if_none:"" }}</td>

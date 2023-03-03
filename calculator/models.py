@@ -22,7 +22,6 @@ class Crop(models.Model):
     )
     species = models.ForeignKey(PlantSpecies, null=True, blank=True, on_delete=models.CASCADE)
     variety = models.ForeignKey(PlantVariety, null=True, blank=True, on_delete=models.CASCADE)
-    # TODO: delete GenericForeignKey relation
     area = models.ForeignKey(
         Area,
         on_delete=models.CASCADE,
@@ -110,7 +109,7 @@ class Crop(models.Model):
             harvest.delete()
 
     @property
-    def is_current(self):
+    def is_ongoing(self):
         if self.sowing and self.sowing < now().date():
             if not self.harvest or self.harvest > now().date():
                 return True
@@ -145,6 +144,6 @@ class CropParameter(ParameterValue):
     """
 
     crop = models.ForeignKey(Crop, on_delete=models.CASCADE, related_name="parameters")
-    
+
     class Meta:
         ordering = ['parameter__code']
