@@ -75,7 +75,7 @@ class PlantSpeciesDetail(DetailView):
     def get_related_varieties(self):
         search = self.request.GET.get("search")
         if search and search != "":
-            if len(search) < 2:
+            if len(search) < 3:
                 queryset = self.object.variety.filter(names__name__istartswith=search)
             else:
                 queryset = self.object.variety.filter(
@@ -316,7 +316,7 @@ def entity_detail(request, pk):
     context = {}
     entity = get_object_or_404(Entity, pk=pk)
     context["entity"] = entity
-    context["varieties_table"] = PlantVarietyEntityTable(entity.plantvariety_set.all()) 
+    context["varieties_table"] = PlantVarietyEntityTable(entity.plantvariety_set.all())
     return TemplateResponse(request, "register/entity_detail.html", context)
 
 
