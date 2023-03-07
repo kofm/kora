@@ -84,7 +84,7 @@
       <h5>
         Filter Descriptions
         <small class="text-muted">
-          (<a href="{% url 'describe:description-list-export'  %}" class="text-decoration-none">Export</a>, 
+          (<a href="{% url 'describe:description-list-export'  %}" class="text-decoration-none">Export</a>,
           <a
             href="{% url 'describe:description-list-reset' %}"
             class="text-decoration-none"
@@ -98,6 +98,8 @@
           hx-target="#content"
           hx-trigger="change"
           >
+          {{ description_filter_by_name.form | crispy}}
+          {% render_field protocol_form.protocol.label %}
           {% render_field protocol_form.protocol class+="form-select" %}
       </form>
 
@@ -124,7 +126,7 @@
     </div>
 
     <!-- Table Div -->
-    <div class="col-6"> 
+    <div class="col-6">
         <div class="sticky-top" style="max-height: 100vh; overflow-y: auto;">
           <div id="spinner"></div>
             <div id="table">

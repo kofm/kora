@@ -16,6 +16,7 @@ urlpatterns = [
     path("<int:pk>/delete", views.DescriptionDeleteView.as_view(), name="description-delete"),
     path("<int:pk>/", views.DescriptionDetail.as_view(), name="description_detail"),
     path("<int:pk>/update", views.description_update, name="description-update"),
+    path("compare", views.description_compare, name="description-compare"),
     path("protocols/", views.ProtocolsList.as_view(), name="protocols_list"),
     path("protocols/create", views.ProtocolCreate.as_view(), name="protocol-create"),
     # path("protocols/<int:pk>/", views.ProtocolDetail.as_view(), name="protocol_detail"),

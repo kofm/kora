@@ -1,3 +1,4 @@
+from django.db.models import Q
 from django.db.models.expressions import F
 from django.forms.models import model_to_dict
 from django.http.response import HttpResponse, HttpResponseRedirect
@@ -7,6 +8,7 @@ from django.urls import reverse
 from django.urls.base import reverse_lazy
 from django.views.generic import DetailView, ListView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
+import django_filters
 from django_tables2 import RequestConfig
 from describe.forms import (
     DescriptionFilterFormSet,
@@ -18,6 +20,7 @@ from describe.forms import (
 from describe.tables import DescriptionTable, RelatedStatesTable
 from describe.utils import _filter_descriptions, delete_get_param, merge_unique
 from register.models import PlantVariety
+from register.utils import paged_object_list_context
 
 from .models import Description, Expression, Protocol, State, Trait
 
@@ -86,6 +89,67 @@ def description_favourite_clear(request):
     return HttpResponse("")
 
 
+class DescriptionFilterByName(django_filters.FilterSet):
+    variety__names__name = django_filters.CharFilter(
+        label="Variety name", lookup_expr="unaccent__lower__trigram_similar"
+    )
+
+    class Meta:
+        model = Description
+        fields = ["variety__names__name"]
+
+
+# def description_list(request):
+#     context = {}
+#     queryset = Description.objects.all()
+#     description_filter = DescriptionFilter(request.GET, queryset=queryset)
+#     description_table = DescriptionTable(description_filter.qs)
+#     RequestConfig(request, paginate={"per_page": 15}).configure(description_table)
+#     context["description_table"] = description_table
+#     context["description_filter"] = description_filter
+#     return TemplateResponse(request, "describe/description_list.html", context)
+
+
+def description_compare(request):
+    context = {}
+    description_favourites_ids = request.session.get("description_favourites", None)
+    if description_favourites_ids:
+        descriptions = Description.objects.filter(pk__in=description_favourites_ids)
+        protocols = Protocol.objects.filter(descriptions__in=descriptions).distinct()
+
+        comparison_table = [{"protocol": protocol.name} for protocol in protocols]
+        comparison_table_header = [
+            f"{description.variety.name} - {description.name}"
+            for description in descriptions
+        ]
+
+        for index, protocol in enumerate(protocols):
+            comparison_table[index]["rows"] = []
+            for trait in protocol.traits.all():
+                row = [
+                    f"{trait.numeric_id}. {trait.description}",
+                ]
+                expression_ids = []
+                for description in descriptions:
+                    expressions = description.expressions.filter(
+                        Q(state__trait=trait) | Q(state__related_states__trait=trait)
+                    )
+                    if expressions.exists():
+                        expression = expressions.last()
+                        expression_id = expression.state.numeric_id
+                        row.append(f"{expression_id}. {expression.state.description}")
+                        expression_ids.append(expression_id)
+                    else:
+                        row.append("")
+                equal = all([id == expression_ids[0] for id in expression_ids])
+                comparison_table[index]["rows"].append({"values": row, "equal": equal})
+        context.update({"comparison_table_header": comparison_table_header})
+        context.update({"comparison_table": comparison_table})
+        return TemplateResponse(request, "describe/description_compare.html", context)
+    else:
+        return reverse("describe:description-list")
+
+
 def description_list(request):
     """List of Descriptions
     Filter descriptions by state of expression(s) according to the selected reference protocol
@@ -111,6 +175,7 @@ def description_list(request):
     protocol = get_object_or_404(Protocol, pk=protocol_id)
     # Instantiate the Protocol selection form
     protocol_select_form = ProtocolForm(initial={"protocol": protocol})
+
     # Get all the Traits associated with that Protocol
     traits = Trait.objects.filter(protocol=protocol).values(trait=F("pk"))
 
@@ -142,8 +207,9 @@ def description_list(request):
         queryset = Description.objects.filter().prefetch_related("expressions")
         formset = DescriptionFilterFormSet(initial=traits)
 
+    description_filter_by_name = DescriptionFilterByName(request.GET, queryset=queryset)
     # Instantiate the Descriptions table and corresponding pagination
-    description_table = DescriptionTable(queryset)
+    description_table = DescriptionTable(description_filter_by_name.qs)
     RequestConfig(request, paginate={"per_page": 15}).configure(description_table)
 
     # Check if the current request is an htmx request, then render only the
@@ -161,6 +227,7 @@ def description_list(request):
         context.update({"description_favourites": description_favourites})
     context.update(
         {
+            "description_filter_by_name": description_filter_by_name,
             "formset": formset,
             "protocol_form": protocol_select_form,
             "page_obj": description_table,
@@ -243,13 +310,13 @@ class DescriptionCreate(CreateView):
     ]
     template_name = "describe/description_form.html"
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["nav_descriptions"] = "active"
-        return context
+    # def get_context_data(self, **kwargs):
+    #     context = super().get_context_data(**kwargs)
+    #     context["nav_descriptions"] = "active"
+    #     return context
 
     def get_success_url(self):
-        return reverse("describe:description-update", args=(self.object.id,))
+        """return reverse("describe:description-update", args=(self.object.id,))"""
 
 
 class DescriptionDeleteView(DeleteView):

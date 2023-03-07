@@ -1,0 +1,46 @@
+{% extends "frontpage/base.html" %}
+{% load crispy_forms_tags %}
+{% load static %}
+{% block title %}
+Compare descriptions
+{% endblock %}
+
+{% block container %}
+
+<style>
+    .header{
+        position:sticky;
+        top: 0 ;
+    }
+</style>
+<!-- Navigation -->
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'describe:description-list' %}">Descriptions</a></li>
+    <li class="breadcrumb-item"><i>Compare</i></li>
+  </ol>
+</nav>
+
+<h1 class="display-1">Compare descriptions</h1>
+
+{% for protocol in comparison_table %}
+<h1>{{ protocol.protocol }}</h1>
+<table class="table">
+  <thead class="table-dark" style="position: sticky;top: 0">
+    <th class="header" scope="col"></th>
+    {% for th in comparison_table_header %}
+    <th class="header" scope="col">{{ th }}</th>
+    {% endfor %}
+  </thead>
+  <tbody>
+{% for row in protocol.rows %}
+<tr {% if not row.equal %}class="table-warning"{% endif %}>
+  {% for cell in row.values %}
+  <td>{{cell}}</td>
+  {% endfor %}
+</tr>
+{% endfor %}
+  </tbody>
+</table>
+{% endfor %}
+{% endblock %}
