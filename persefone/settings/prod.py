@@ -1,4 +1,4 @@
 from .base import *
 
-DEBUG = False
+DEBUG = True
 STATIC_ROOT = "/var/www/static/"
