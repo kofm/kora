@@ -168,20 +168,26 @@ def description_list(request):
     # most used Protocol
     protocol_id = request.session.get("protocol", None)
     if not protocol_id:
-        protocol_id = Protocol.objects.most_used().pk
-        request.session["protocol"] = protocol_id
+        most_used_protocol = Protocol.objects.most_used()
+        if most_used_protocol:
+            protocol_id = most_used_protocol.pk
+            request.session["protocol"] = protocol_id
 
-    # Get the selected/default Protocol
-    protocol = get_object_or_404(Protocol, pk=protocol_id)
-    # Instantiate the Protocol selection form
-    protocol_select_form = ProtocolForm(initial={"protocol": protocol})
+    protocol_select_form = ProtocolForm()
+    traits = Trait.objects.all()
 
-    # Get all the Traits associated with that Protocol
-    traits = Trait.objects.filter(protocol=protocol).values(trait=F("pk"))
+    if request.session and "protocol" in request.session:
+        # Get the selected/default Protocol
+        protocol = get_object_or_404(Protocol, pk=protocol_id)
+        # Instantiate the Protocol selection form
+        protocol_select_form = ProtocolForm(initial={"protocol": protocol})
 
-    # If the Description filter has been submitted via post, validate the
-    # formset and assign the returned filter to the appropriate session
-    # variable
+        # Get all the Traits associated with that Protocol
+        traits = Trait.objects.filter(protocol=protocol).values(trait=F("pk"))
+
+        # If the Description filter has been submitted via post, validate the
+        # formset and assign the returned filter to the appropriate session
+        # variable
     if request.POST:
         formset = DescriptionFilterFormSet(request.POST, initial=traits)
         if formset.is_valid():
