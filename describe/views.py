@@ -322,7 +322,7 @@ class DescriptionCreate(CreateView):
     #     return context
 
     def get_success_url(self):
-        """return reverse("describe:description-update", args=(self.object.id,))"""
+        return reverse("describe:description-update", args=(self.object.id,))
 
 
 class DescriptionDeleteView(DeleteView):
