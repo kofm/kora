@@ -1,0 +1,13 @@
+.falink {
+    text-decoration: none;
+    color: black;
+}
+
+a:hover.falink {
+    color: black;
+}
+
+.red {
+    border: solid 1px black;
+    color: red;
+}
