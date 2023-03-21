@@ -2,9 +2,12 @@ const path = require("path");
 const { merge } = require("webpack-merge");
 const FileManagerPlugin = require("filemanager-webpack-plugin");
 const commonConfig = {
+  mode: "development",
+  devtool: false,
+  output: {
+    filename: "[name].bundle.js",
+  },
   module: {
-    mode: "development",
-    devtool: false,
     rules: [
       {
         test: /\.(scss)$/,
@@ -55,7 +58,17 @@ module.exports = [
     },
     output: {
       path: path.resolve(__dirname, "frontpage", "static", "frontpage"),
-      filename: "[name].bundle.js",
+    },
+  }),
+  merge(commonConfig, {
+    name: "register",
+    entry: {
+      "plantvariety-form": {
+        import: path.resolve("assets/js/plantvariety-form.js"),
+      },
+    },
+    output: {
+      path: path.resolve(__dirname, "register", "static", "register"),
     },
   }),
   merge(commonConfig, {
@@ -67,10 +80,12 @@ module.exports = [
       "seedsample-form": {
         import: path.resolve("assets/js/seedsample-form.js"),
       },
+      cart: {
+        import: path.resolve("assets/js/cart.js")
+      }
     },
     output: {
       path: path.resolve(__dirname, "collect", "static", "collect"),
-      filename: "[name].bundle.js",
     },
   }),
 ];
