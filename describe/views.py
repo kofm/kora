@@ -404,6 +404,7 @@ def protocol_update(request, pk):
     protocol = get_object_or_404(Protocol, pk=pk)
     if request.method == "POST":
         form = TraitFormSet(request.POST, instance=protocol)
+        print(request.POST)
         # form = TraitForm(request.POST)
         if form.is_valid():
             form.save()

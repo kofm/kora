@@ -5,9 +5,8 @@
 {% load render_table from django_tables2 %}
 
 {% block javascript %}
-  <link rel="stylesheet" href="{% static 'frontpage/css/tables.css' %}">
   <link rel="stylesheet" href="{% static 'flags/sprite.css' %}">
-  <script src="{% static 'frontpage/js/htmx.js'  %}"></script>
+  <script src="{% static 'frontpage/htmx.bundle.js'  %}"></script>
 {% endblock %}
 
 {% block title %}
@@ -18,42 +17,17 @@
 <h1 class="display-1">Seed Samples <a class="btn btn-secondary" href="{% url 'collect:seedsample-create' %}">Create</a></h1>
     <div class="row">
     <div class="col">
-      <form hx-get="{% url 'collect:seedsample-list' %}" 
-            hx-target="div.table-container" 
-            hx-swap="outerHTML" 
+      <form hx-get="{% url 'collect:seedsample-list' %}"
+            hx-target="div.table-container"
+            hx-swap="outerHTML"
             class="form-inline">
           {% crispy filter.form %}
     </div>
-    {% if user.is_authenticated and cart %}
-    <div class="col-1">
-          <button class="btn btn-primary" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasRight" aria-controls="offcanvasRight">
-            <i class="bi bi-cart"></i>
-          </button>
-    </div>
-    {% endif %}
 
     </div>
 
     </form>
 
-
-    {% if user.is_authenticated and cart %}
-    <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasRight" aria-labelledby="offcanvasRightLabel">
-      <div class="offcanvas-header">
-        <h1 id="offcanvasRightLabel">List <a class="btn btn-secondary" href="{% url 'collect:cart-detail' cart.pk %}">Detail</a></h1>
-        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-      </div>
-      <div class="offcanvas-body">
-        <ul>
-          {% for cartitem in cart.cartitem_set.all %}
-          <li>
-            {{ cartitem }} {{ cartitem.weight|stringformat:"d" }} g
-          </li>
-          {% endfor %}
-        </ul>
-      </div>
-    </div>
-    {% endif %}
  {% render_table table %}
 
 {% endblock %}

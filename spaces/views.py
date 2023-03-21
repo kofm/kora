@@ -12,22 +12,6 @@ from .utils import get_max_order
 
 from spaces.models import Area, Location
 
-# def location_update(request, pk):
-#     location = get_object_or_404(Area, pk = pk)
-#     if request.POST:
-#         form = LocationForm(request.POST, instance = location)
-#         if form.is_valid():
-#             instance = form.save()
-#             return redirect(reverse_lazy('spaces:location-detail', args=[instance.pk]))
-#     else:
-#         form = LocationForm(instance = location)
-#         return TemplateResponse(
-#             request,
-#             'spaces/location_form.html',
-#             "form": form
-#
-#         )
-
 
 class LocationListView(ListView):
     model = Location
@@ -84,6 +68,7 @@ def area_sort_hx(request):
         {"area_list": area_list, "location": location},
     )
 
+
 def location_detail(request, pk):
     """
     Returns the detail view of a Location.
@@ -93,13 +78,13 @@ def location_detail(request, pk):
     to their liking
     """
     order_by = request.GET.get("order_by")
-    location = get_object_or_404(Location, pk = pk)
+    location = get_object_or_404(Location, pk=pk)
     areas = location.area_set.all()
-    sortable = True
+    sortable = "true"
     if order_by:
-        sortable = False
+        sortable = "false"
         if order_by == "area":
-                areas = areas.order_by(F('length') * F('width'))
+            areas = areas.order_by(F("length") * F("width"))
         else:
             areas = areas.order_by(order_by)
 
@@ -109,11 +94,7 @@ def location_detail(request, pk):
         "areas": areas,
         "order_by": order_by,
     }
-    return TemplateResponse(
-        request,
-        'spaces/location_detail.html',
-        context
-    )
+    return TemplateResponse(request, "spaces/location_detail.html", context)
 
 
 class LocationCreateView(CreateView):
@@ -132,29 +113,33 @@ class LocationDeleteView(DeleteView):
     model = Location
     success_url = reverse_lazy("spaces:location-list")
 
+
 class AreaDetailView(DetailView):
     model = Area
     context_object_name = "area"
+
 
 def duplicate_object(object: Model):
     object.pk = None
     object._state.adding = True
     return object
 
+
 def area_duplicate(request, pk):
-    area = get_object_or_404(Area, pk = pk)
+    area = get_object_or_404(Area, pk=pk)
     if request.POST:
         new_area = duplicate_object(area)
         new_area.name = new_area.name + " copy"
         new_area.save()
-        return redirect(reverse_lazy('spaces:area-update', args=[new_area.pk]))
+        return redirect(reverse_lazy("spaces:area-update", args=[new_area.pk]))
     return TemplateResponse(
         request,
         "spaces/area_duplicate_confirm.html",
         {
             "area": area,
-        }
+        },
     )
+
 
 class AreaUpdateView(UpdateView):
     model = Area

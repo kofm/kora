@@ -3,133 +3,133 @@
 {% load static %}
 {% load render_table from django_tables2 %}
 {% block javascript %}
-<link rel="stylesheet" href="{% static 'flags/sprite.css' %}">
+    <link rel="stylesheet" href="{% static 'flags/sprite.css' %}">
 {% endblock %}
 {% block title %}{{ variety.name }} ({{ variety.species.latin_name }}){% endblock %}
 
 {% block container %}
 
-<nav aria-label="breadcrumb">
-  <ol class="breadcrumb">
-    <li class="breadcrumb-item"><a href="{% url 'register:plantspecies-list' %}">Species</a></li>
-    <li class="breadcrumb-item"><a href="{% url 'register:plantspecies-detail' variety.species.pk %}"><i>{{ variety.species.latin_name }}</i></a></li>
-    <li class="breadcrumb-item active" aria-current="page">{{ variety.name }}</li>
-  </ol>
-</nav>
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'register:plantspecies-list' %}">Species</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'register:plantspecies-detail' variety.species.pk %}"><i>{{ variety.species.latin_name }}</i></a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ variety.name }}</li>
+        </ol>
+    </nav>
 
 
-<h1 class="display-1">
-  {{ variety.name }} <small class="text-muted">(<i>{{ variety.species.latin_name }}</i>)</small>
-  <a class="text-decoration-none link-dark" href="{% url 'register:plantvariety-update' variety.pk %}">
-    <i class="bi bi-pencil-square" style="font-size:2rem"></i>
-  </a>
-</h1>
-{% if variety.has_breeder %}
-<p class="lead">
-  <a class="text-decoration-none link-dark" href="{% url 'register:entity-detail' variety.breeder.pk %}">
-    {{ variety.breeder.name }}<i class="{{ variety.breeder.country.flag_css }} mx-3"></i>
-  </a>
-</p>
-{% endif %}
-
-<div class="row mt-5">
-  <div class="col">
-    <h2>Descriptions</h2>
-    {% if variety.description_set.count %}
-    <table class="table">
-      <thead>
-        <th scope="col">#</th>
-        <th scope="col">Description</th>
-        <th scope="col">Protocol</th>
-        <th scope="col">Characters</th>
-        <th scope="col"></th>
-      </thead>
-      {% for description in variety.description_set.all %}
-      <tr>
-        <td>{{ description.pk }}</td>
-        <td>{{ description.name }}</td>
-        <td>{{ description.protocol }}</td>
-        <td>{{ description.expressions.count }}/{{ description.available_traits.count }}</td>
-        <td class="col-1" align="right">
-          <a href="{% url 'describe:description_detail' description.id %}"><i class="bi bi-zoom-in" style="color: black;"></i></a>
-        </td>
-      </tr>
-      {% endfor %}
-    </table>
-    {% else %}
-    <p>There are no descriptions of this variety available.</p>
+    <h1 class="display-1">
+        {{ variety.name }} <small class="text-muted">(<i>{{ variety.species.latin_name }}</i>)</small>
+        <a class="text-decoration-none link-dark" href="{% url 'register:plantvariety-update' variety.pk %}">
+            <i class="bi bi-pencil-square" style="font-size:2rem"></i>
+        </a>
+    </h1>
+    {% if variety.has_breeder %}
+        <p class="lead">
+            <a class="text-decoration-none link-dark" href="{% url 'register:entity-detail' variety.breeder.pk %}">
+                {{ variety.breeder.name }}<i class="{{ variety.breeder.country.flag_css }} mx-3"></i>
+            </a>
+        </p>
     {% endif %}
-  </div>
-</div>
 
-<div class="row mt-5">
-  <div class="col">
-    <h2>Seed Samples</h2>
-    {% if variety.seedsample_set.count %}
-    {% render_table seedsample_table %}
-    {% else %}
-    <p>There are no seed samples of this variety.</p>
-    {% endif %}
-  </div>
-</div>
+    <div class="row mt-5">
+        <div class="col">
+            <h2>Descriptions</h2>
+            {% if variety.description_set.count %}
+                <table class="table">
+                    <thead>
+                        <th scope="col">#</th>
+                        <th scope="col">Description</th>
+                        <th scope="col">Protocol</th>
+                        <th scope="col">Characters</th>
+                        <th scope="col"></th>
+                    </thead>
+                    {% for description in variety.description_set.all %}
+                        <tr>
+                            <td>{{ description.pk }}</td>
+                            <td>{{ description.name }}</td>
+                            <td>{{ description.protocol }}</td>
+                            <td>{{ description.expressions.count }}/{{ description.available_traits.count }}</td>
+                            <td class="col-1" align="right">
+                                <a href="{% url 'describe:description_detail' description.id %}"><i class="bi bi-zoom-in" style="color: black;"></i></a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            {% else %}
+                <p>There are no descriptions of this variety available.</p>
+            {% endif %}
+        </div>
+    </div>
 
-<div class="row mt-5">
-  <div class="col">
-    <h2>Names history<a class="btn btn-primary ms-2" href="{% url 'register:plantvarietyname-create' variety.pk %}">Change</a></h2>
-    <table class="table">
-      <thead>
-        <th scope="col">Name</th>
-        <th scope="col">Date</th>
-        <th scope="col" class="col-1">&nbsp;</th>
-      </thead>
-      <tbody>
-        {% for name in variety.names.all %}
-        <tr>
-          <td>{{ name.name }}</td>
-          <td>{{ name.change_date }}</td>
-          <td align="right">
-            <a class="far fa-edit falink" href="{% url 'register:plantvarietyname-update' name.pk %}"><i class="bi-pencil" style="color: black;"></i></a>
-            {% if variety.names.count > 1 %}<a class="fas fa-trash-alt falink" href="{% url 'register:plantvarietyname-delete' name.pk %}"><i class="bi bi-trash" style="color: black;"></i></a>{% endif %}
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-</div>
+    <div class="row mt-5">
+        <div class="col">
+            <h2>Seed Samples</h2>
+            {% if variety.seedsample_set.count %}
+                {% render_table seedsample_table %}
+            {% else %}
+                <p>There are no seed samples of this variety.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row mt-5">
+        <div class="col">
+            <h2>Names history<a class="btn btn-primary ms-2" href="{% url 'register:plantvarietyname-create' variety.pk %}">Change</a></h2>
+            <table class="table">
+                <thead>
+                    <th scope="col">Name</th>
+                    <th scope="col">Date</th>
+                    <th scope="col" class="col-1">&nbsp;</th>
+                </thead>
+                <tbody>
+                    {% for name in variety.names.all %}
+                        <tr>
+                            <td>{{ name.name }}</td>
+                            <td>{{ name.change_date }}</td>
+                            <td align="right">
+                                <a class="far fa-edit falink" href="{% url 'register:plantvarietyname-update' name.pk %}"><i class="bi-pencil" style="color: black;"></i></a>
+                                {% if variety.names.count > 1 %}<a class="fas fa-trash-alt falink" href="{% url 'register:plantvarietyname-delete' name.pk %}"><i class="bi bi-trash" style="color: black;"></i></a>{% endif %}
+                            </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 
 
-<div class="row mt-5">
-  <div class="col">
-    <h2>Protection<a class="btn btn-lg btn-secondary ms-2" href="{% url 'register:protection-create' variety.pk %}">Create</a></h2>
-    {% render_table protection_table %}
-  </div>
-</div>
+    <div class="row mt-5">
+        <div class="col">
+            <h2>Protection<a class="btn btn-lg btn-secondary ms-2" href="{% url 'register:protection-create' variety.pk %}">Create</a></h2>
+            {% render_table protection_table %}
+        </div>
+    </div>
 
-<div class="row mt-5">
-  <div class="col">
-    <h2>Parameters</h2>
-    {% if variety.parameters.count %}
-    <table>
-      <tr>
-        <td>Parameter</td>
-        <td>Value</td>
-      </tr>
-      {% for param in variety.parameters|get_last_parameters_value %}
-      <tr>
-        <td>{{ param.parameter.code }}</td>
-        <td>{{ param.value }} {{ param.parameter.measure_unit }}</td>
-      </tr>
-      {% endfor %}
-    </table>
-    <p>
-      <a href="{% url 'register:plantvarietyparameters_list' variety.id %}">View all</a>
-      <a href="{% url 'register:add_varparamval' variety.id %}">Add</a>
-    </p>
-    {% else %}
-    <p>There are not parameters yet. <a href="{% url 'register:add_varparamval' variety.id %} ">Add one</a></p>
-{% endif %}
-  </div>
-</div>
+    <div class="row mt-5">
+        <div class="col">
+            <h2>Parameters</h2>
+            {% if variety.parameters.count %}
+                <table>
+                    <tr>
+                        <td>Parameter</td>
+                        <td>Value</td>
+                    </tr>
+                    {% for param in variety.parameters|get_last_parameters_value %}
+                        <tr>
+                            <td>{{ param.parameter.code }}</td>
+                            <td>{{ param.value }} {{ param.parameter.measure_unit }}</td>
+                        </tr>
+                    {% endfor %}
+                </table>
+                <p>
+                    <a href="{% url 'register:plantvarietyparameters_list' variety.id %}">View all</a>
+                    <a href="{% url 'register:add_varparamval' variety.id %}">Add</a>
+                </p>
+            {% else %}
+                <p>There are not parameters yet. <a href="{% url 'register:add_varparamval' variety.id %} ">Add one</a></p>
+            {% endif %}
+        </div>
+    </div>
 
 
 {% endblock %}

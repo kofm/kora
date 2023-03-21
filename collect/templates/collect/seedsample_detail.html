@@ -4,11 +4,6 @@
 {% load render_table from django_tables2 %}
 {% load static %}
 
-{% block javascript %}
-<script src="{% static 'frontpage/js/apexcharts/apexcharts.js' %}"></script>
-<script src="{% static 'frontpage/js/moment.min.js' %}"></script>
-{% endblock %}
-
 {% block title %}
   {{ sample.variety.name }}
 {% endblock %}
@@ -162,44 +157,10 @@
   {% endif %}
   {% if sample.sampleweight_set.count > 1 %}
   <div id="sampleweight-chart" class="card col mx-1">
-    <script>
-      var options = {
-              series: [{
-                      name: "Sample weight",
-                      data: [
-                              {% for sampleweight in sample.sampleweight_set.all %}
-                              ['{{ sampleweight.created_at|date:"Y-m-d" }}', {{ sampleweight.weight }}],
-                              {% endfor %}
-                            ]
-                    }],
-              chart: {
-                      height: 350,
-                      type: 'line',
-                      zoom: {
-                              enabled: false
-                            }
-                    },
-              dataLabels: {
-                      enabled: false
-                    },
-              stroke: {
-                      curve: 'straight'
-                    },
-              title: {
-                      text: 'Sample weight over time',
-                      align: 'left'
-                    },
-              xaxis: {
-                      type: 'datetime'
-                    }
-            };
-
-      var chart = new ApexCharts(document.querySelector("#sampleweight-chart"), options);
-      chart.render();
-    </script>
+    {{ sample_weights|json_script:"sample-weights" }}
+    <script src="{% static 'collect/seedsample-detail.bundle.js' %}" defer></script>
   </div>
   {% endif %}
 </div>
 
-<!-- <script src="{% static 'frontpage/js/seedsample_detail.js' %}"></script> -->
 {% endblock %}

@@ -3,7 +3,7 @@
 {% load static %}
 
 {% block javascript %}
-<script src="{% static 'frontpage/js/htmx.js' %}"></script>
+<script src="{% static 'frontpage/htmx.bundle.js' %}"></script>
 {% endblock %}
 
 {% block title %}
@@ -22,7 +22,7 @@
 <p class="display-1">{{ cart.name }}</p>
 <div id="alert-box" class="alert alert-danger" role="alert" style="display:none">
 </div>
-<script src="{% static 'frontpage/js/cart.js' %}"></script>
+<script src="{% static 'collect/cart.bundle.js' %}"></script>
 <div class="row">
   <div class="col">
     <div class="btn-group" role="group" aria-label="Toolbar">
@@ -80,7 +80,7 @@
   </div>
 </div>
 {% endif %}
-<div class="row mt-3"> 
+<div class="row mt-3">
   <div id="cartitem-table" class="col" hx-get="{% url 'collect:cart-detail-hx' cart.pk  %}" hx-target="this" hx-swap="innerHTML" hx-trigger="load">
   </div>
 </div>

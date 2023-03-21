@@ -2,11 +2,6 @@
 {% load crispy_forms_tags %}
 {% load static %}
 
-{% block javascript %}
-  <link href="{% static 'frontpage/css/tom-select.bootstrap5.min.css' %}" rel="stylesheet">
-  <script src="{% static 'frontpage/js/tom-select.complete.min.js' %}"></script>
-{% endblock %}
-
 {% block title %}Create Variety{% endblock %}
 
 {% block container %}
@@ -40,7 +35,7 @@
   {% else %}
   <input class="btn btn-primary mt-3" type="submit" value="Create">
   {% endif %}
-  <script>new TomSelect("#id_breeder")</script>
 </form>
 
+<script src="{% static 'register/plantvariety-form.bundle.js' %}"></script>
 {% endblock %}

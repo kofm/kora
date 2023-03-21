@@ -12,7 +12,6 @@ class SeedSampleTable(tables.Table):
     actions = tables.TemplateColumn(
         """
         <a class="text-decoration-none link-dark" href="{% url "register:plantvariety-detail" record.variety.pk %}"><i class="bi bi-flower1"></i></a>
-        <a class="text-decoration-none link-dark" href="{% url "collect:cartitem-add" record.pk %}"><i class="bi bi-list"></i></a>
         """,
         verbose_name="",
         orderable=False
