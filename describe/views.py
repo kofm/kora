@@ -193,7 +193,7 @@ def description_list(request):
         if formset.is_valid():
             request.session["description_filter"] = formset.save()
 
-    if "description_filter" in request.session:
+    if request.session.get("description_filter", None):
         # If a Description filter session variable exists, get the matching
         # Descriptions and instantiate the formset with the corresponding data
         queryset = Description.objects.filter_by_expression(
