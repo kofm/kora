@@ -6159,7 +6159,7 @@ module.exports = "data:image/svg+xml,%3csvg xmlns=%27http://www.w3.org/2000/svg%
 /******/ 		// undefined = chunk not loaded, null = chunk preloaded/prefetched
 /******/ 		// [resolve, reject, Promise] = chunk loading, 0 = chunk loaded
 /******/ 		var installedChunks = {
-/******/ 			"calculator/static/calculator/crop-update": 0
+/******/ 			"crop-update": 0
 /******/ 		};
 /******/ 		
 /******/ 		// no chunk on demand loading

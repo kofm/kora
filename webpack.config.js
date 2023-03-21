@@ -47,14 +47,6 @@ module.exports = [
       sortable: { import: path.resolve("assets/js/sortable.js") },
       htmx: { import: path.resolve("assets/js/htmx.js") },
       hyperscript: { import: path.resolve("assets/js/hyperscript.js") },
-      "crop-update": { import: path.resolve("assets/js/crop-update.js") },
-      "crop-models": { import: path.resolve("assets/js/crop-models.js") },
-      "location-detail": {
-        import: path.resolve("assets/js/location-detail.js"),
-      },
-      "protocol-manage": {
-        import: path.resolve("assets/js/protocol-manage.js"),
-      },
     },
     output: {
       path: path.resolve(__dirname, "frontpage", "static", "frontpage"),
@@ -65,6 +57,9 @@ module.exports = [
     entry: {
       "plantvariety-form": {
         import: path.resolve("assets/js/plantvariety-form.js"),
+      },
+      "protocol-manage": {
+        import: path.resolve("assets/js/protocol-manage.js"),
       },
     },
     output: {
@@ -86,6 +81,27 @@ module.exports = [
     },
     output: {
       path: path.resolve(__dirname, "collect", "static", "collect"),
+    },
+  }),
+  merge(commonConfig, {
+    name: "spaces",
+    entry: {
+      "location-detail": {
+        import: path.resolve("assets/js/location-detail.js"),
+      },
+    },
+    output: {
+      path: path.resolve(__dirname, "spaces", "static", "spaces"),
+    },
+  }),
+  merge(commonConfig, {
+    name: "calculator",
+    entry: {
+      "crop-update": { import: path.resolve("assets/js/crop-update.js") },
+      "crop-models": { import: path.resolve("assets/js/crop-models.js") },
+    },
+    output: {
+      path: path.resolve(__dirname, "calculator", "static", "calculator"),
     },
   }),
 ];
