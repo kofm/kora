@@ -74,7 +74,7 @@ class SeedSampleListView(SingleTableMixin, FilterView):
         return template_name
 
 
-    
+
 
 class SeedSampleDetailView(DetailView):
     model = SeedSample
@@ -83,6 +83,8 @@ class SeedSampleDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         duplicate_samples = self.object.duplicate_samples
+        context["sample_weights"] = list(self.object.sampleweight_set.values_list("created_at", "weight"))
+        print(context["sample_weights"])
         context["duplicate_samples_table"] = SeedSampleTable(duplicate_samples)
         context["seedsample_weight_form"] = SampleWeightForm()
         return context

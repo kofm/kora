@@ -95,9 +95,9 @@ def location_detail(request, pk):
     order_by = request.GET.get("order_by")
     location = get_object_or_404(Location, pk = pk)
     areas = location.area_set.all()
-    sortable = True
+    sortable = "true"
     if order_by:
-        sortable = False
+        sortable = "false"
         if order_by == "area":
                 areas = areas.order_by(F('length') * F('width'))
         else:
