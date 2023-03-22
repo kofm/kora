@@ -1,7 +1,7 @@
 from django.db.models import Q
 from django.db.models.expressions import F
 from django.forms.models import model_to_dict
-from django.http.response import HttpResponse, HttpResponseRedirect
+from django.http.response import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.response import TemplateResponse
 from django.urls import reverse
@@ -12,6 +12,7 @@ import django_filters
 from django_tables2 import RequestConfig
 from describe.forms import (
     DescriptionFilterFormSet,
+    DescriptionForm,
     ExpressionForm,
     ProtocolForm,
     RelatedStateForm,
@@ -290,7 +291,7 @@ def description_update(request, pk):
                     print("Deleted")
         if not form_has_errors:
             return HttpResponseRedirect(
-                reverse("describe:description_detail", args=(description.id,))
+                reverse("describe:description-detail", args=(description.id,))
             )
 
     for trait in description.available_traits:
@@ -303,26 +304,36 @@ def description_update(request, pk):
         forms.append(form)
     formset = zip(forms, description.available_traits)
     return render(
-        request, "describe/description_manage.html", context={"formset": formset}
+        request,
+        "describe/description_manage.html",
+        context={"description": description, "formset": formset},
     )
 
 
-class DescriptionCreate(CreateView):
-    model = Description
-    fields = [
-        "name",
-        "protocol",
-        "variety",
-    ]
-    template_name = "describe/description_form.html"
-
-    # def get_context_data(self, **kwargs):
-    #     context = super().get_context_data(**kwargs)
-    #     context["nav_descriptions"] = "active"
-    #     return context
-
-    def get_success_url(self):
-        return reverse("describe:description-update", args=(self.object.id,))
+def description_create(request):
+    context = {}
+    context["form"] = DescriptionForm()
+    sources = list(
+        Description.objects.all()
+        .order_by("name")
+        .values_list("name", flat=True)
+        .distinct("name")
+    )
+    if request.POST:
+        form = DescriptionForm(request.POST)
+        if form.is_valid():
+            instance = form.save()
+            print(instance.id)
+            return HttpResponseRedirect(
+                reverse(
+                    "describe:description-update",
+                    kwargs={
+                        "pk": instance.id,
+                    },
+                )
+            )
+    context["sources"] = [{"value": source, "text": source} for source in sources]
+    return TemplateResponse(request, "describe/description_form.html", context)
 
 
 class DescriptionDeleteView(DeleteView):
@@ -372,7 +383,14 @@ Protocol
 """
 
 
-class ProtocolsList(ListView):
+def protocol_list(request, species_id):
+    queryset = list(
+        Protocol.objects.filter(plantspecies__variety=species_id).values("pk", "name")
+    )
+    return JsonResponse(queryset, safe=False)
+
+
+class ProtocolList(ListView):
     model = Protocol
     template_name = "describe/protocols_list.html"
     context_object_name = "protocols"
@@ -404,8 +422,6 @@ def protocol_update(request, pk):
     protocol = get_object_or_404(Protocol, pk=pk)
     if request.method == "POST":
         form = TraitFormSet(request.POST, instance=protocol)
-        print(request.POST)
-        # form = TraitForm(request.POST)
         if form.is_valid():
             form.save()
             return HttpResponseRedirect(

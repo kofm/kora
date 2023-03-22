@@ -17,14 +17,12 @@
   <div class="row">
   {% for desc in description_favourites %}
 
-  <!-- <a href="{% url 'describe:description_detail' desc.pk %}">{{ desc }}</a>{% if not forloop.last %}, {% endif %} -->
-
   <div class="col-2 border m-1 p-2 rounded-3">
 
     <p>
       <a class="text-decoration-none
                 link-dark"
-         href="{% url 'describe:description_detail' desc.pk %}">
+         href="{% url 'describe:description-detail' desc.pk %}">
         {{ desc.variety.name }}
       </a>
       <small class="text-muted">{{ desc.name }}</small>

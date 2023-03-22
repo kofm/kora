@@ -51,7 +51,7 @@
                             <td>{{ description.protocol }}</td>
                             <td>{{ description.expressions.count }}/{{ description.available_traits.count }}</td>
                             <td class="col-1" align="right">
-                                <a href="{% url 'describe:description_detail' description.id %}"><i class="bi bi-zoom-in" style="color: black;"></i></a>
+                                <a href="{% url 'describe:description-detail' description.id %}"><i class="bi bi-zoom-in" style="color: black;"></i></a>
                             </td>
                         </tr>
                     {% endfor %}

@@ -1,6 +1,7 @@
 from django.urls import path
 
 from . import views
+from describe import views as describe_views
 
 app_name = "register"
 
@@ -59,6 +60,7 @@ urlpatterns = [
         name="plantvarietyname-update"
     ),
     path("species/<int:species_id>/varieties", views.plantvariety_list, name="plantvariety-list"),
+    path("species/<int:species_id>/protocols", describe_views.protocol_list, name="protocol-list"),
     path("protection/<int:pk>", views.ProtectionDetailView.as_view(), name="protection-detail"),
     path("protection/<int:pk>/update", views.protection_update, name="protection-update"),
     path("variety/<int:variety_id>/protection/create", views.protection_create, name="protection-create"),

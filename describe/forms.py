@@ -1,3 +1,4 @@
+from crispy_forms.helper import FormHelper
 from django import forms
 from django.forms import formset_factory
 from django.forms import inlineformset_factory
@@ -8,7 +9,9 @@ from django.utils.html import format_html
 from dynamic_forms import DynamicField, DynamicFormMixin
 from numpy import obj2sctype
 
-from .models import Protocol, Trait, State
+from register.models import PlantVariety
+
+from .models import Description, Protocol, Trait, State
 
 
 class TraitForm(forms.Form):
@@ -159,3 +162,23 @@ class RelatedStateForm(DynamicFormMixin, forms.Form):
     related_state = DynamicField(
         forms.ModelChoiceField, queryset=lambda form: _choices(form, State, "trait")
     )
+
+
+class DescriptionForm(forms.Form):
+    VARIETY_CHOICES = [("", "--------"),] + [
+        (variety["pk"], f"{variety['name']} ({variety['species__latin_name']})")
+        for variety in PlantVariety.objects.values("pk", "name", "species__latin_name")
+    ]
+    variety = forms.ChoiceField(
+        choices=VARIETY_CHOICES, required=True, label="Variety", label_suffix=""
+    )
+    protocol = forms.CharField(label="Protocol", label_suffix="")
+    name = forms.CharField(label="Source", label_suffix="")
+
+    def save(self):
+        data = self.cleaned_data
+        variety = PlantVariety.objects.get(pk=data["variety"])
+        protocol = Protocol.objects.get(pk=data["protocol"])
+        description = Description(variety=variety, protocol=protocol, name=data["name"])
+        description.save()
+        return description

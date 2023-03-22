@@ -67,6 +67,17 @@ module.exports = [
     },
   }),
   merge(commonConfig, {
+    name: "describe",
+    entry: {
+      "description-form": {
+        import: path.resolve("assets/js/description-form.js"),
+      },
+    },
+    output: {
+      path: path.resolve(__dirname, "describe", "static", "describe"),
+    },
+  }),
+  merge(commonConfig, {
     name: "collect",
     entry: {
       "seedsample-detail": {
@@ -76,8 +87,8 @@ module.exports = [
         import: path.resolve("assets/js/seedsample-form.js"),
       },
       cart: {
-        import: path.resolve("assets/js/cart.js")
-      }
+        import: path.resolve("assets/js/cart.js"),
+      },
     },
     output: {
       path: path.resolve(__dirname, "collect", "static", "collect"),

@@ -7,23 +7,12 @@ from crispy_forms.layout import Layout, Submit
 from collect.models import Germinability, SampleWeight, SeedSample
 
 
-class TomSelectWidget(forms.Select):
-    class Media:
-        css = {
-            "all": ("https://cdn.jsdelivr.net/npm/tom-select/dist/css/tom-select.css",)
-        }
-        js = (
-            "https://cdn.jsdelivr.net/npm/tom-select/dist/js/tom-select.complete.min.js",
-        )
-
-
 class SeedSampleForm(forms.ModelForm):
     tomvar = forms.CharField(label="Variety")
     tompos = forms.CharField(label="Position")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # self.fields['position'].queryset = StoragePosition.objects.filter(Q(seedsample__id=self.instance.pk) | Q(seedsample__isnull=True))
         self.helper = FormHelper()
         self.helper.form_tag = False
         self.helper.layout = Layout(
