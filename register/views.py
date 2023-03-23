@@ -202,12 +202,6 @@ class PlantVarietyCreate(CreateView):
     def get_success_url(self) -> str:
         return reverse_lazy("register:plantvariety-detail", args=[self.object.pk])
 
-    def form_valid(self, form):
-        response = super().form_valid(form)
-        plantvariety_name = PlantVarietyName(name=self.object.name, variety=self.object)
-        plantvariety_name.save()
-        return response
-
 
 class PlantVarietyDelete(DeleteView):
     model = PlantVariety
