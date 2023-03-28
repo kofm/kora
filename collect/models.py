@@ -122,6 +122,9 @@ class SampleWeight(models.Model):
             "created_at",
         ]
 
+class CartManager(models.Manager):
+    def active(self):
+        return self.filter(active=True).last()
 
 class Cart(models.Model):
     name = models.CharField(help_text="An identificative name for your cart", max_length=100, default="Cart")
@@ -129,14 +132,19 @@ class Cart(models.Model):
     active = models.BooleanField(default=False)
     created_at = models.DateField(auto_now_add=True)
 
+    objects = CartManager()
+
     def __str__(self) -> str:
-        return self.user.username
+        return self.name
 
     class Meta:
         constraints = [
             UniqueConstraint(fields=['user',], condition=Q(active=True), name='unique_user_active')
         ]
         ordering = ["-active", "name"]
+
+    def get_absolute_url(self):
+        return reverse('collect:cart-detail', args=[self.pk])
 
 
 class CartItem(models.Model):

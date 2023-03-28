@@ -1,3 +1,4 @@
+from django.template.response import TemplateResponse
 from django.views.decorators.http import require_http_methods
 from django_filters.views import FilterView
 import csv
@@ -17,12 +18,13 @@ from django.urls.base import reverse, reverse_lazy
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 from django.views.generic.list import ListView
-from django_tables2.views import SingleTableMixin, SingleTableView
+from django_tables2.views import RequestConfig, SingleTableMixin, SingleTableView
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from collect.filters import SeedSampleFilter
 from collect.forms import (
+    CartSelectForm,
     GerminabilityForm,
     SampleWeightForm,
     SeedSampleForm,
@@ -42,6 +44,7 @@ from collect.serializers import (
 )
 from collect.tables import SeedSampleTable
 from register.models import PlantVarietyName
+from register.utils import paged_object_list_context
 
 
 class StorageCreateView(CreateView):
@@ -55,14 +58,18 @@ class SeedSampleListView(SingleTableMixin, FilterView):
     queryset = SeedSample.objects.all()
     filterset_class = SeedSampleFilter
     table_class = SeedSampleTable
-    template_name = ''
+    template_name = ""
     paginate_by = 15
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         if self.request.user.is_authenticated:
-            cart = get_object_or_404(Cart, user=self.request.user, active=True)
-            context["cart"] = cart
+            try:
+                cart = Cart.objects.get(user=self.request.user, active=True)
+                context["cart"] = cart
+                context["cart_select_form"] = CartSelectForm(user=self.request.user)
+            except Cart.DoesNotExist:
+                pass
         return context
 
     def get_template_names(self):
@@ -74,6 +81,39 @@ class SeedSampleListView(SingleTableMixin, FilterView):
         return template_name
 
 
+def seedsample_list(request):
+
+    context = {}
+
+    filter = SeedSampleFilter(request.GET, queryset=SeedSample.objects.all())
+    seedsample_table = SeedSampleTable(filter.qs)
+    RequestConfig(request, paginate={"per_page": 15}).configure(seedsample_table)
+
+    context = {"table": seedsample_table, "filter": filter}
+    template = "collect/seedsample_list.html"
+
+    if request.user.is_authenticated:
+        context["cart_select"] = CartSelectForm(
+            user=request.user, initial={"cart": request.user.carts.active()}
+        )
+        context["cart"] = request.user.carts.active() or None
+
+    if request.htmx:
+
+        if request.GET.get("query", None):
+            template = "collect/partials/seedsample_table.html"
+
+        if request.GET.get("cart", None):
+            form = CartSelectForm(request.GET, user=request.user)
+
+            if form.is_valid():
+                cart = form.save()
+                context["cart"] = cart
+
+            context["cart_select"] = form
+            template = "collect/partials/cart_offcanvas.html"
+
+    return TemplateResponse(request, template, context)
 
 
 class SeedSampleDetailView(DetailView):
@@ -83,28 +123,32 @@ class SeedSampleDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         duplicate_samples = self.object.duplicate_samples
-        context["sample_weights"] = list(self.object.sampleweight_set.values_list("created_at", "weight"))
+        context["sample_weights"] = list(
+            self.object.sampleweight_set.values_list("created_at", "weight")
+        )
         print(context["sample_weights"])
         context["duplicate_samples_table"] = SeedSampleTable(duplicate_samples)
         context["seedsample_weight_form"] = SampleWeightForm()
         return context
 
-@require_http_methods(['POST',])
+
+@require_http_methods(
+    [
+        "POST",
+    ]
+)
 def sampleweight_create_hx(request, pk):
     seedsample = get_object_or_404(SeedSample, pk=pk)
-    form=SampleWeightForm(request.POST)
+    form = SampleWeightForm(request.POST)
     if form.is_valid():
         seedsample_weight = form.save(commit=False)
         seedsample_weight.seedsample = seedsample
         seedsample_weight.save()
-        form=SampleWeightForm()
+        form = SampleWeightForm()
     return render(
         request,
         "collect/partials/seedsample_weight_form.html",
-        {
-            'seedsample_weight_form': form,
-            'seedsample': seedsample
-        }
+        {"seedsample_weight_form": form, "seedsample": seedsample},
     )
 
 
@@ -269,8 +313,6 @@ def sample_weight(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-
-
 def sample_labels(request):
     # Create the HttpResponse object with the appropriate CSV header.
     response = HttpResponse(
@@ -300,10 +342,17 @@ def sample_labels(request):
         ids.append(x)
 
     writer = csv.writer(response)
-    # writer.writerow(["First row", "Foo", "Bar", "Baz"])
-    # writer.writerow(["Second row", "A", "B", "C", '"Testing"', "Here's a quote"])
     writer.writerow(["pos", "ids"])
     for x, y in zip(pos, ids):
         writer.writerow([x, y])
 
     return response
+
+
+def samples_export(request):
+    if request.method == "GET":
+        samples = SeedSample.objects.all()
+        serializer = SeedSampleSerializer(samples, many=True)
+        return JsonResponse(serializer.data, safe=False)
+    else:
+        return redirect("collect:seedsample-list")

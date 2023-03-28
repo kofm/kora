@@ -1,10 +1,11 @@
 from django import forms
+from django.contrib.auth.models import User
 from django.forms.widgets import HiddenInput
 from django.utils.translation import gettext_lazy as _
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Submit
 
-from collect.models import Germinability, SampleWeight, SeedSample
+from collect.models import Cart, Germinability, SampleWeight, SeedSample
 
 
 class SeedSampleForm(forms.ModelForm):
@@ -85,3 +86,17 @@ class SeedSampleYearForm(forms.Form):
             }
         ),
     )
+
+class CartSelectForm(forms.Form):
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['cart'].queryset = Cart.objects.filter(user=user)
+
+    cart = forms.ModelChoiceField(queryset=Cart.objects.none())
+
+    def save(self):
+        data = self.cleaned_data
+        cart = data["cart"]
+        cart.active = True
+        cart.save()
+        return cart

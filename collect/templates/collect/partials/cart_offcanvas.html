@@ -1,0 +1,25 @@
+<div class="offcanvas-header">
+    <h1 id="offcanvasRightLabel">
+        List
+        {% if cart %}<a class="btn btn-secondary" href="{% url 'collect:cart-detail' cart.pk %}">Detail</a>{% endif %}
+        </h1>
+        <button
+            type="button"
+            class="btn-close text-reset"
+            data-bs-dismiss="offcanvas"
+            aria-label="Close"
+        ></button>
+    </div>
+    <div class="offcanvas-body">
+        {% if cart %}
+            <ul>
+                {% for cartitem in cart.cartitem_set.all %}
+                    <li>{{ cartitem }} {{ cartitem.weight|stringformat:"d" }} g</li>
+                {% empty %}
+                    <p>There are no items in the cart.</p>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>There is no cart. Please select or <a href="{% url 'collect:cart-create'  %}">create</a> a new cart.</p>
+        {% endif %}
+    </div>

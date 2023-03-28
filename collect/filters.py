@@ -4,11 +4,12 @@ from .models import SeedSample
 
 
 class SeedSampleFilter(django_filters.FilterSet):
-    query = django_filters.CharFilter(method="universal_search", label="")
+    growing_season__lt = django_filters.NumberFilter(field_name='growing_season', lookup_expr='lt')
+    query = django_filters.CharFilter(method="universal_search", label="Variety")
 
     class Meta:
         model = SeedSample
-        fields = ["query"]
+        fields = ["query", "growing_season__lt"]
 
     def universal_search(self, queryset, name, value):
         return SeedSample.objects.filter(

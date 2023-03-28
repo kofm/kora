@@ -58,6 +58,16 @@
 
 
             </ul>
+
+            <span class="navbar-text">
+                {% if user.is_authenticated %}
+                    {{ user.username }}
+                    <small><a href="{% url 'logout'  %}">Logout</a></small>
+                {% else %}
+                    <a href="{% url 'login'  %}">Login</a>
+                {% endif %}
+            </span>
+
         </div>
     </div>
 </nav>
