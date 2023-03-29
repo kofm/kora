@@ -1,5 +1,6 @@
 from django.http import HttpResponseBadRequest
 from django.http.response import HttpResponse
+from django.urls import reverse
 from django.utils.timezone import now
 from django.shortcuts import get_object_or_404
 from django.views.decorators.http import require_POST
@@ -84,6 +85,7 @@ class SeedSampleCreateView(CreateView):
     def form_valid(self, form):
         response = super(SeedSampleCreateView, self).form_valid(form)
         weight_form = SampleWeightForm(self.request.POST)
+        print(self.request.POST)
         new_weight = weight_form.save(commit=False)
         new_weight.seedsample = self.object
         new_weight.save()
@@ -119,3 +121,8 @@ class SeedSampleCreateView(CreateView):
             .values("pk", "position_name")
         )
         return context
+
+    def get_success_url(self):
+        if "btn-another" in self.request.POST:
+            return reverse("collect:seedsample-create")
+        return super().get_success_url()
