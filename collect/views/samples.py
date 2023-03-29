@@ -1,16 +1,17 @@
 from django.http import HttpResponseBadRequest
 from django.http.response import HttpResponse
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 from django.utils.timezone import now
 from django.shortcuts import get_object_or_404
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
+from django.views.generic import UpdateView
 
-from django.views.generic.edit import CreateView
+from django.views.generic.edit import CreateView, DeleteView
 from django.template.response import TemplateResponse
 
 from django.db.models.functions import Cast, Concat
-from django.db.models import Value
+from django.db.models import Q, Value
 
 from collect.models import SeedSample, StoragePosition
 from register.models import PlantVarietyName
@@ -126,3 +127,31 @@ class SeedSampleCreateView(CreateView):
         if "btn-another" in self.request.POST:
             return reverse("collect:seedsample-create")
         return super().get_success_url()
+
+
+class SeedSampleUpdateView(UpdateView):
+    form_class = SeedSampleForm
+    model = SeedSample
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["varieties"] = list(
+            PlantVarietyName.objects.values("variety__id", "name")
+        )
+        context["positions"] = list(
+            StoragePosition.objects.filter(
+                Q(seedsample__id=self.object.pk) | Q(seedsample__isnull=True)
+            )
+            .annotate(
+                position_name=Concat("storage__name", Value("-"), "name"),
+                posn=Cast("name", output_field=IntegerField()),
+            )
+            .order_by("storage__name", "posn")
+            .values("pk", "position_name")
+        )
+        return context
+
+
+class SeedSampleDeleteView(DeleteView):
+    model = SeedSample
+    success_url = reverse_lazy("collect:seedsample-list")

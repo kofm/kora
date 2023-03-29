@@ -38,8 +38,8 @@
       </ul>
     </div>
     <div class="mt-auto">
-      <a id="sample-form-button" class="btn btn-primary mt-3 col-12" href="#">Update</a>
-      <a class="btn btn-danger mt-3 col-12" href="#">Delete</a>
+      <a id="sample-form-button" class="btn btn-primary mt-3 col-12" href="{% url 'collect:seedsample-update' seedsample.pk %}">Update</a>
+      <a class="btn btn-danger mt-3 col-12" href="{% url 'collect:seedsample-delete' seedsample.pk %}">Delete</a>
     </div>
   </div>
 
