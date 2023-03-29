@@ -1,11 +1,12 @@
 from django import forms
 from django.contrib.auth.models import User
 from django.forms.widgets import HiddenInput
+from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy as _
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Submit
 
-from collect.models import Cart, Germinability, SampleWeight, SeedSample
+from collect.models import Cart, CartItem, Germinability, SampleWeight, SeedSample
 
 
 class SeedSampleForm(forms.ModelForm):
@@ -68,7 +69,9 @@ class GerminabilityForm(forms.ModelForm):
 
 class SeedSampleYearForm(forms.Form):
     year = forms.ChoiceField(
-        choices=[(0, ""), ],
+        choices=[
+            (0, ""),
+        ],
         # + list(
         #     SeedSample.objects.filter(growing_season__isnull=False)
         #     .order_by("growing_season")
@@ -87,10 +90,11 @@ class SeedSampleYearForm(forms.Form):
         ),
     )
 
+
 class CartSelectForm(forms.Form):
     def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['cart'].queryset = Cart.objects.filter(user=user)
+        self.fields["cart"].queryset = Cart.objects.filter(user=user)
 
     cart = forms.ModelChoiceField(queryset=Cart.objects.none())
 
@@ -100,3 +104,74 @@ class CartSelectForm(forms.Form):
         cart.active = True
         cart.save()
         return cart
+
+
+class CartItemNewForm(forms.Form):
+    """
+    This form handles the addition of a sample in the active Cart.
+    The clean() method takes care of checking that the selected sample isn't
+    already in the cart. It also checks that the (optionally) requested amount
+    is available.
+    It takes a user as parameter to retrieve the active cart.
+    A valid SeedSample pk should be passed to 'seedsample' field
+    """
+
+    def __init__(self, *args, user=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.user = user
+
+    seedsample = forms.IntegerField()
+    weight = forms.FloatField(required=False)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        seedsample = get_object_or_404(SeedSample, pk=cleaned_data.get("seedsample"))
+        weight = cleaned_data.get("weight", None)
+        cart = self.user.carts.active()
+        if not cart:
+            raise forms.ValidationError(
+                "You did not select any cart to add to."
+            )
+        cartitem = CartItem.objects.filter(
+            cart=cart, sample=seedsample
+        )
+
+        if cartitem.exists():
+            raise forms.ValidationError(
+                f"{seedsample} is already in the selected Cart."
+            )
+
+        if weight and weight > seedsample.weight:
+            raise forms.ValidationError(
+                f"There is only {seedsample.weight} grams available of {seedsample}."
+            )
+
+        return cleaned_data
+
+    def save(self):
+        cleaned_data = self.cleaned_data
+        seedsample = get_object_or_404(SeedSample, pk=cleaned_data["seedsample"])
+        cartitem = CartItem(cart=self.user.carts.active(), sample=seedsample)
+        if weight := cleaned_data.get("weight", None):
+            cartitem.weight = weight
+        cartitem.save()
+        return cartitem
+
+class CartItemSetWeightForm(forms.Form):
+    cartitem = forms.IntegerField(widget=forms.HiddenInput)
+    weight = forms.FloatField(required=True)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        self.object = get_object_or_404(CartItem, pk = cleaned_data.get("cartitem"))
+        weight = cleaned_data.get("weight")
+        if weight and weight > self.object.sample.weight:
+            raise forms.ValidationError(
+                f"There is only {self.object.sample.weight} grams available of {self.object.sample}."
+            )
+        return cleaned_data
+
+    def save(self):
+        self.object.weight = self.cleaned_data.get("weight")
+        self.object.save()
+        return self.object

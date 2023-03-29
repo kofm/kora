@@ -12,7 +12,6 @@
     {% endfor %}
   </ul>
   <p>{{ message_info }}.</p>
-  {{ page_obj }}
   <form method="post">
     {% csrf_token %}
     <button name="btn-save" type="submit" class="btn btn-outline-primary mt-3">Confirm</button>

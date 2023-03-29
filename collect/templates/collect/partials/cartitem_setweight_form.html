@@ -1,0 +1,12 @@
+{% load widget_tweaks %}
+{% url 'collect:cartitem-setweight' cartitem.pk as cartitem_setweight_url %}
+
+<form hx-post={{cartitem_setweight_url}}>
+
+    {{ form.cartitem }}
+    {% with hyperscript="on blur hide me then show the previous <span/>" %}
+    <span style="display:none;">{{ cartitem.weight }}g</span>
+    {% render_field form.weight class+="form-control" script=hyperscript %}
+    {% endwith %}
+
+</form>
