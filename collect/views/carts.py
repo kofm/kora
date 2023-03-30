@@ -2,6 +2,8 @@ from django.contrib.auth.decorators import login_required
 from django.http.response import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.template.response import TemplateResponse
+from django.urls import reverse
+from django.utils.html import format_html
 from django.views.decorators.http import require_GET, require_POST, require_http_methods
 from collect.forms import CartItemNewForm, CartItemSetWeightForm
 
@@ -48,6 +50,12 @@ def cartitem_set_weight(request, pk):
         form = CartItemSetWeightForm(request.POST)
         if form.is_valid():
             cartitem = form.save()
-            return HttpResponse(f"{cartitem.weight} g")
+            return HttpResponse(
+                format_html(
+                    '<span hx-get="{}" hx-trigger="click" hx-swap="outerHTML">{} g</span>',
+                    reverse("collect:cartitem-setweight", kwargs={"pk": cartitem.pk}),
+                    cartitem.weight,
+                )
+            )
     cartitem = get_object_or_404(CartItem, pk=pk)
     return TemplateResponse(request, template, {"form": form, "cartitem": cartitem})

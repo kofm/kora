@@ -86,7 +86,6 @@ class SeedSampleCreateView(CreateView):
     def form_valid(self, form):
         response = super(SeedSampleCreateView, self).form_valid(form)
         weight_form = SampleWeightForm(self.request.POST)
-        print(self.request.POST)
         new_weight = weight_form.save(commit=False)
         new_weight.seedsample = self.object
         new_weight.save()

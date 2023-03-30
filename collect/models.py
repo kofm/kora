@@ -150,7 +150,7 @@ class Cart(models.Model):
 class CartItem(models.Model):
     sample = models.ForeignKey(SeedSample, on_delete=models.CASCADE)
     weight = models.FloatField(
-        "quantity to retrieve (g)",
+        "quantity retrieved (g)",
         default=0,
     )
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE)
