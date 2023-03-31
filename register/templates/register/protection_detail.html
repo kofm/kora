@@ -15,14 +15,14 @@
 </nav>
 
 <h1>
-  {{ protection.get_type_display }} for {{ protection.variety }} ({{ protection.variety.species }}) 
+  {{ protection.get_type_display }} for {{ protection.variety }} ({{ protection.variety.species }})
   <a class="text-decoration-none link-dark" href="{% url 'register:protection-update' protection.pk %}">
     <i class="bi bi-pencil-square" style="font-size:2rem"></i>
 </a>
 </h1>
 <ul>
-  <li>Applicant: <a href="{% url 'register:entity-detail' protection.applicant.pk %}">{{ protection.applicant }}</a></li>
-  <li>Maintainer: <a href="{% url 'register:entity-detail' protection.maintainer.pk %}">{{ protection.maintainer }}</a></li>
+  {% if protection.applicant %}<li>Applicant: <a href="{% url 'register:entity-detail' protection.applicant.pk %}">{{ protection.applicant }}</a></li>{% endif %}
+  {% if protection.maintainer %}<li>Maintainer: <a href="{% url 'register:entity-detail' protection.maintainer.pk %}">{{ protection.maintainer }}</a></li>{% endif %}
   <li>Issued on: {{ protection.date_start }}</li>
   <li>Reference ID: {{ protection.reference|default_if_none:"" }}</li>
   <li>In: {{ protection.country.name }}</li>
