@@ -173,7 +173,7 @@ class DescriptionForm(forms.Form):
 
     def save(self):
         data = self.cleaned_data
-        variety = PlantVariety.objects.get(pk=data["variety"])
+        variety = data["variety"]
         protocol = Protocol.objects.get(pk=data["protocol"])
         description = Description(variety=variety, protocol=protocol, name=data["name"])
         description.save()
