@@ -165,12 +165,8 @@ class RelatedStateForm(DynamicFormMixin, forms.Form):
 
 
 class DescriptionForm(forms.Form):
-    VARIETY_CHOICES = [("", "--------"),] + [
-        (variety["pk"], f"{variety['name']} ({variety['species__latin_name']})")
-        for variety in PlantVariety.objects.values("pk", "name", "species__latin_name")
-    ]
-    variety = forms.ChoiceField(
-        choices=VARIETY_CHOICES, required=True, label="Variety", label_suffix=""
+    variety = forms.ModelChoiceField(
+        queryset=PlantVariety.objects.all(), required=True, label="Variety", label_suffix=""
     )
     protocol = forms.CharField(label="Protocol", label_suffix="")
     name = forms.CharField(label="Source", label_suffix="")
