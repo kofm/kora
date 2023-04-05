@@ -5,17 +5,23 @@
 {% block container %}
 <h5 class="display-5">Are you sure?</h5>
 <div class="my-3">
-  <p>You are about to {{ message_action|safe }}. The cart contains the following samples and quantities:</p>
+
+  <p>You are about to retrieve all the samples in your cart "{{ cart.name }}".
+  This means that the quantities listed will be subtracted from the quantities
+  recorded within your samples list. The operation cannot be undone.</p>
+
+  <p>The cart consists of the following:</p>
+
   <ul>
-    {% for cartitem in cartitems  %}
+    {% for cartitem in cart.cartitem_set.all  %}
     <li><b>{{ cartitem.sample.variety.name }}</b> (#{{ cartitem.sample.sample_id }} - {{ cartitem.sample.position }}) {{ cartitem.sample.growing_season }} - {{ cartitem.weight }}g</li>
     {% endfor %}
   </ul>
-  <p>{{ message_info }}.</p>
+
   <form method="post">
     {% csrf_token %}
     <button name="btn-save" type="submit" class="btn btn-outline-primary mt-3">Confirm</button>
-    <a class="btn btn-outline-secondary mt-3" type="submit" href="{% url 'collect:cart-detail' user.carts.active.pk %}">Cancel</a>
+    <a class="btn btn-outline-secondary mt-3" type="submit" href="{% url 'collect:seedsample-list' %}">Cancel</a>
   </form>
 </div>
 {% endblock %}

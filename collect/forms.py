@@ -175,3 +175,11 @@ class CartItemSetWeightForm(forms.Form):
         self.object.weight = self.cleaned_data.get("weight")
         self.object.save()
         return self.object
+
+class CartForm(forms.ModelForm):
+    """
+    Form to create a new Cart
+    """
+    class Meta:
+        model = Cart
+        fields = ("name", )

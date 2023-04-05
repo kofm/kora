@@ -1,13 +1,69 @@
 from django.contrib.auth.decorators import login_required
+from django.http import HttpResponseRedirect
 from django.http.response import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.template.response import TemplateResponse
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 from django.utils.html import format_html
 from django.views.decorators.http import require_GET, require_POST, require_http_methods
-from collect.forms import CartItemNewForm, CartItemSetWeightForm
+from django.views.generic import DeleteView
+from collect.forms import CartForm, CartItemNewForm, CartItemSetWeightForm
 
-from collect.models import CartItem
+from collect.models import Cart, CartItem, SampleWeight
+
+
+@login_required
+def cart_create(request):
+    context = {}
+    form = CartForm()
+    if request.POST:
+        form = CartForm(request.POST)
+        if form.is_valid():
+            cart = Cart(name=form.cleaned_data["name"], user=request.user)
+            cart.save()
+            return HttpResponseRedirect(reverse("collect:seedsample-list"))
+    context["form"] = form
+    return TemplateResponse(request, "collect/cart_form.html", context)
+
+
+def cart_update(request, pk):
+    context = {}
+    cart = get_object_or_404(Cart, pk=pk, user=request.user)
+    form = CartForm(instance=cart)
+    if request.POST:
+        form = CartForm(request.POST)
+        if form.is_valid():
+            cart.name = form.cleaned_data["name"]
+            cart.save()
+            return HttpResponseRedirect(reverse("collect:seedsample-list"))
+    context["form"] = form
+    return TemplateResponse(request, "collect/cart_form.html", context)
+
+
+def cart_retrieve(request, pk):
+    context = {}
+    cart = get_object_or_404(Cart, pk=pk, user=request.user)
+    cartitems = cart.cartitem_set.all()
+    if not cartitems.exists():
+        return HttpResponseRedirect(reverse("collect:seedsample-list"))
+    if request.POST:
+        for cartitem in cartitems:
+            weight = cartitem.sample.weight - cartitem.weight
+            seedsample_weight = SampleWeight(seedsample=cartitem.sample, weight=weight)
+            seedsample_weight.save()
+        cart.delete()
+        return HttpResponseRedirect(reverse("collect:seedsample-list"))
+    context["cart"] = cart
+    return TemplateResponse(request, "collect/cart_confirm_retrieve.html", context)
+
+
+class CartDeleteView(DeleteView):
+    model = Cart
+    success_url = reverse_lazy("collect:seedsample-list")
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        return queryset.filter(user=self.request.user)
 
 
 @login_required
