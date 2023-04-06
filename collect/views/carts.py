@@ -20,6 +20,7 @@ def cart_create(request):
         form = CartForm(request.POST)
         if form.is_valid():
             cart = Cart(name=form.cleaned_data["name"], user=request.user)
+            cart.active = True
             cart.save()
             return HttpResponseRedirect(reverse("collect:seedsample-list"))
     context["form"] = form

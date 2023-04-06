@@ -94,6 +94,7 @@ class SeedSampleYearForm(forms.Form):
 class CartSelectForm(forms.Form):
     def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields['cart'].empty_label = None
         self.fields["cart"].queryset = Cart.objects.filter(user=user)
 
     cart = forms.ModelChoiceField(queryset=Cart.objects.none())

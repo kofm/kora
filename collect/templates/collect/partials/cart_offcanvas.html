@@ -1,10 +1,12 @@
 
 <div class="offcanvas-header">
+  {% if cart %}
     <h5 id="cartLabel">{{ cart.name }}
         <a href="{% url 'collect:cart-update' cart.pk %}" class="fs-6 link-dark text-decoration-none"><i class="bi bi-pencil-square"></i></a>
         <a href="{% url 'collect:cart-retrieve' cart.pk %}" class="fs-6 link-dark text-decoration-none"><i class="bi bi-box-arrow-down"></i></a>
         <a href="{% url 'collect:cart-delete' cart.pk %}" class="fs-6 link-dark text-decoration-none"><i class="bi bi-trash"></i></a>
     </h5>
+  {% endif %}
     <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
 </div>
 
@@ -31,6 +33,6 @@
             </tbody>
         </table>
     {% else %}
-        <p>There is no cart. Please select or create a new cart.</p>
+        <p>There is no cart. Please select or <a href="{% url 'collect:cart-create' %}">create</a> a new cart.</p>
     {% endif %}
 </div>

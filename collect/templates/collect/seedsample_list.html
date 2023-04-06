@@ -30,6 +30,11 @@
                 <div class="row">
                     <div class="col-sm-10">
                         {% render_field cart_select_form.cart class+="form-select mb-3" hx-post="cart/change" hx-target="#cart" %}
+                        <script type="text/hyperscript">
+                            on load set optionsLength to the length of <select[name="cart"]>option/>
+                            if optionsLength == 0
+                              add @disabled to <select[name="cart"]/>
+                        </script>
                     </div>
                     <div class="col-sm-2">
                         <a href="{% url 'collect:cart-create' %}" class="btn btn-outline-dark"><i class="bi bi-plus-circle"></i></a>
@@ -45,9 +50,7 @@
     </div>
 
 
-    {% if cart %}
-        <div class="offcanvas offcanvas-start" tabindex="-1" id="cart" aria-labelledby="cartLabel">
-            {% include 'collect/partials/cart_offcanvas.html' %}
-        </div>
-    {% endif %}
+    <div class="offcanvas offcanvas-start" tabindex="-1" id="cart" aria-labelledby="cartLabel">
+        {% include 'collect/partials/cart_offcanvas.html' %}
+    </div>
 {% endblock %}
