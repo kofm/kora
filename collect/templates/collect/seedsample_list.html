@@ -20,28 +20,27 @@
     <h1 class="display-1">Seed Samples <a class="btn btn-secondary" href="{% url 'collect:seedsample-create'  %}">Create</a></h1>
 
     <form hx-target="div.table-container" hx-swap="outerHTML">
-        {% render_field filter.form.query class+="form-control" hx-get="" hx-trigger="keyup changed delay:500ms" _='on focus select() me' %}
+        {% render_field filter.form.query class+="form-control" hx-get="" hx-trigger="keyup changed delay:500ms" _='on focus select() me' placeholder="Type to search..." %}
     </form>
 
     <!-- Table Row -->
     <div class="row mt-3">
         {% if user.is_authenticated %}
             <div class="col-3">
-                <div class="row">
-                    <div class="col-sm-10">
-                        {% render_field cart_select_form.cart class+="form-select mb-3" hx-post="cart/change" hx-target="#cart" %}
-                        <script type="text/hyperscript">
-                            on load set optionsLength to the length of <select[name="cart"]>option/>
-                            if optionsLength == 0
-                              add @disabled to <select[name="cart"]/>
-                        </script>
-                    </div>
-                    <div class="col-sm-2">
-                        <a href="{% url 'collect:cart-create' %}" class="btn btn-outline-dark"><i class="bi bi-plus-circle"></i></a>
-                    </div>
+              <div class="input-group d-flex flex-nowrap">
+                {% render_field cart_select_form.cart class+="form-select" hx-post="cart/change" hx-target="#cart" %}
+                <script type="text/hyperscript">
+                  on load set optionsLength to the length of <select[name="cart"]>option/>
+                                if optionsLength == 0
+                                add @disabled to <select[name="cart"]/>
+                </script>
+                <a href="{% url 'collect:cart-create' %}" class="btn btn-outline-secondary"><i class="bi bi-plus-circle"></i></a>
+                <a data-bs-toggle="offcanvas" data-bs-target="#cart" aria-controls="cart" class="btn btn-outline-secondary"><i class="bi bi-basket"></i></a>
+              </div>
+                <div class="input-group d-flex flex-nowrap mt-3">
+                    <input type="number" id="default-weight" name="default-weight" class="form-control" value="20">
+                    <span class="input-group-text" id="basic-addon2">grams</span>
                 </div>
-                <input type="number" id="default-weight" name="default-weight" class="form-control mb-3" value="20">
-                <button class="btn btn-primary" type="button" data-bs-toggle="offcanvas" data-bs-target="#cart" aria-controls="cart">Show</button>
             </div>
         {% endif %}
         <div class="col">
