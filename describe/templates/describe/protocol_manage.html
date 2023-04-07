@@ -1,65 +1,158 @@
 {% extends "frontpage/base.html" %}
-{% load crispy_forms_tags %}
+
 {% load static %}
+{% load crispy_forms_tags %}
+{% load widget_tweaks %}
+
 {% block title %}New protocol{% endblock %}
+
 {% block container %}
-<h1>Protocol {{protocol.name}}</h1>
-<h2><i>{{protocol.specie.latin_name}}</i></h2>
-<form method="post">
-    {% csrf_token %}
-    <div id="form_set">
-        {{ fs.management_form }}
-        {{ fs.non_form_errors }}
-        {% for f in fs %}
-        <div class="card mb-5">
-            <div class="card-header">
-                {{ f|crispy }}
+
+    <h1 class="display-1">{{protocol.name}}</h1>
+    <p class="lead"><i>{{protocol.plantspecies.latin_name}}</i></p>
+    <h1>Characteristics</h1>
+    <form method="post">
+
+        {% csrf_token %}
+
+
+        <div id="form_set">
+            {{ fs.management_form }}
+            {{ fs.non_form_errors }}
+            {% for f in fs %}
+                <div class="card border-secondary mb-2">
+                    <div class="card-header bg-secondary text-white">
+                        <div class="row">
+                            <div class="col-2">
+                                {{ f.numeric_id.label }}
+                                {% render_field f.numeric_id class+="form-control" %}
+                            </div>
+                            <div class="col">
+                                {{ f.description.label }}
+                                {% render_field f.description class+="form-control" %}
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-2">
+                                {% render_field f.id %}
+                                {% render_field f.protocol %}
+                                {% render_field f.grouping %}
+                                {{ f.grouping.label }}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-2">
+                                {% render_field f.DELETE %}
+                                {{ f.DELETE.label }}
+                            </div>
+                        </div>
+                    </div>
+                    {% if f.nested %}
+                        <div class="card-body states">
+                            <h5 class="card-title">Notes</h5>
+                            <div class="states-management_form">
+                                {{ f.nested.management_form }}
+                                {{ f.nested.non_form_errors }}
+                            </div>
+                            <div class="row">
+                                <div class="col-2"><span class="ms-3">N°</span></div>
+                                <div class="col"><span class="ms-3">Description</span></div>
+                            </div>
+                            <ul class="list-group list-group-flus">
+                                {% for n in f.nested %}
+                                    <li class="list-group-item state-form">
+                                        <div class="row">
+                                            <div class="col-2">
+                                                {% render_field n.id %}
+                                                {% render_field n.trait %}
+                                                {% render_field n.numeric_id class+="form-control" %}
+                                            </div>
+                                            <div class="col">
+                                                {% render_field n.description class+="form-control" %}
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col">
+                                                {% render_field n.DELETE %}
+                                                {{ n.DELETE.label }}
+                                            </div>
+                                        </div>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                            <div class="card-body">
+                                <!-- <input type="button" class="btn btn-secondary add_state" value="Add state"> -->
+                                <a class="btn btn-outline-secondary col-12 add_state"><i class="bi bi-plus-circle"></i></a>
+                            </div>
+                    {% endif %}
+                </div>
+                </div>
+            {% endfor %}
+        </div>
+
+
+        <div class="row mt-3 justify-content-center">
+            <a id="add_trait" class="btn btn-secondary col-12 pa-2"><i class="bi bi-plus-circle"></i></a>
+        </div>
+        <div class="d-grid gap-2 d-md-flex my-4">
+            <input type="submit" value="Save" class="btn btn-primary col-6"/>
+            <a href="{% url 'describe:protocol_detail' protocol.pk %}" class="btn btn-secondary col-6">Cancel</a>
+        </div>
+
+    </form>
+
+    <!-- Empty form to dynamically add new fields -->
+    <div id="empty_form" style="display:none">
+        <div class="card border-secondary mb-3">
+            <div class="card-header bg-secondary text-white">
+                <div class="row">
+                    <div class="col-2">
+                        {{ fs.empty_form.numeric_id.label }}
+                        {% render_field fs.empty_form.numeric_id class+="form-control" %}
+                    </div>
+                    <div class="col">
+                        {{ fs.empty_form.description.label }}
+                        {% render_field fs.empty_form.description class+="form-control" %}
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-2">
+                            {% render_field fs.empty_form.id %}
+                            {% render_field fs.empty_form.protocol %}
+                            {% render_field fs.empty_form.grouping %}
+                            {{ fs.empty_form.grouping.label }}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-2">
+                            {% render_field fs.empty_form.DELETE %}
+                            {{ fs.empty_form.DELETE.label }}
+                        </div>
+                    </div>
+                </div>
             </div>
-            {% if f.nested %}
             <div class="card-body states">
+                <h5 class="card-title">Notes</h5>
                 <div class="states-management_form">
-                    {{ f.nested.management_form }}
-                    {{ f.nested.non_form_errors }}
+                    {{ fs.empty_form.nested.management_form|crispy }}
                 </div>
                 <ul class="list-group list-group-flus">
-                    {% for n in f.nested %}
                     <li class="list-group-item state-form">
-                        {{ n|crispy }}
+                        <div class="row">
+                            <div class="col-2">
+                                {% render_field fs.empty_form.id %}
+                                {% render_field fs.empty_form.trait %}
+                                {% render_field fs.empty_form.numeric_id class+="form-control" %}
+                            </div>
+                            <div class="col">
+                                {% render_field fs.empty_form.description class+="form-control" %}
+                            </div>
+                        </div>
                     </li>
-                    {% endfor %}
                 </ul>
                 <div class="card-body">
                     <input type="button" class="btn btn-secondary add_state" value="Add state">
                 </div>
-                {% endif %}
             </div>
         </div>
-        {% endfor %}
-    </div>
-    <div class="mt-3">
-        <input type="submit" value="Save" class="btn btn-primary"/>
-        <input type="button" value="Add Trait" id="add_trait" class="btn btn-secondary">
-    </div>
-</form>
-<div id="empty_form" style="display:none">
-    <div class="card mb-5">
-        <div class="card-header">
-            {{ fs.empty_form|crispy }}
-        </div>
-        <div class="card-body states">
-            <div class="states-management_form">
-                {{ fs.empty_form.nested.management_form|crispy }}
-            </div>
-            <p>states</p>
-            <ul class="list-group list-group-flus">
-                <li class="list-group-item state-form">
-                    {{ fs.empty_form.nested.empty_form|crispy }}
-                </li>
-            </ul>
-            <div class="card-body">
-                <input type="button" class="btn btn-secondary add_state" value="Add state">
-            </div>
-        </div>
-    </div>
-    <script charset="utf-8" src="{% static 'register/protocol-manage.bundle.js' %}"></script>
-    {% endblock %}
+        <script charset="utf-8" src="{% static 'register/protocol-manage.bundle.js' %}"></script>
+{% endblock %}

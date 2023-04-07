@@ -15,8 +15,8 @@
         {% csrf_token %}
         <div class="mb-3">
             {% for form in formset %}
-                <div class="card">
-                    <div class="card-header">
+                <div class="card mb-2">
+                    <div class="card-header bg-secondary text-white">
                         {{ form.1 }}
                     </div>
                     <div class="card-body">

@@ -113,11 +113,11 @@ class Trait(models.Model):
     numeric_id = models.IntegerField(
         null=True,
         blank=True,
-        help_text="The numeric identifier of the trait",
+        help_text="The characteristic's numeric ID",
     )
     description = models.CharField(
         max_length=200,
-        help_text="The trait's description",
+        help_text="The characteristic's description",
     )
     protocol = models.ForeignKey(
         Protocol,
@@ -144,11 +144,16 @@ class State(models.Model):
     """
 
     numeric_id = models.IntegerField(
-        help_text="a numeric ID that can be associated with the trait",
+        help_text="the numeric ID of the Note",
         null=True,
         blank=True,
     )
-    description = models.CharField(max_length=200, null=False, blank=False)
+    description = models.CharField(
+        help_text="A descriptive text about the note",
+        max_length=200,
+        null=False,
+        blank=False
+    )
     trait = models.ForeignKey(Trait, models.CASCADE, related_name="states")
     related_states = models.ManyToManyField("self")
 

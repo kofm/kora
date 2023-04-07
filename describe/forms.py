@@ -20,9 +20,23 @@ class TraitForm(forms.Form):
     protocol_id = forms.IntegerField(widget=forms.HiddenInput)
 
 
+class StateForm(forms.ModelForm):
+    class Meta:
+        model = State
+        fields = (
+            "numeric_id",
+            "description",
+        )
+        labels = {
+            "numeric_id": "Note N°",
+            "description": "Note description",
+        }
+
+
 StateFormset = inlineformset_factory(
     Trait,
     State,
+    form=StateForm,
     extra=1,
     fields=(
         "numeric_id",
@@ -32,6 +46,12 @@ StateFormset = inlineformset_factory(
 
 
 class BaseTraitFormSet(BaseInlineFormSet):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for form in self.forms:
+            form.fields["numeric_id"].label = "Characteristic N°"
+            form.fields["description"].label = "Characteristic description"
+
     def add_fields(self, form, index):
         form.nested = StateFormset(
             instance=form.instance,
@@ -166,7 +186,10 @@ class RelatedStateForm(DynamicFormMixin, forms.Form):
 
 class DescriptionForm(forms.Form):
     variety = forms.ModelChoiceField(
-        queryset=PlantVariety.objects.all(), required=True, label="Variety", label_suffix=""
+        queryset=PlantVariety.objects.all(),
+        required=True,
+        label="Variety",
+        label_suffix="",
     )
     protocol = forms.CharField(label="Protocol", label_suffix="")
     name = forms.CharField(label="Source", label_suffix="")
