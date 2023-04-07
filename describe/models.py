@@ -121,7 +121,7 @@ class Trait(models.Model):
     )
     protocol = models.ForeignKey(
         Protocol,
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         null=True,
         blank=True,
         related_name="traits",

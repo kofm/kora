@@ -1,39 +1,48 @@
 {% extends "frontpage/base.html" %}
+
+{% load static %}
+
+
 {% block title %}Protocols{% endblock %}
 
 {% block container %}
-<h1 class="display-1">Protocols <a class="btn btn-primary" href="{% url 'describe:protocol-create' %}">Create</a>
-</h1>
 
-{% if protocols %}
-<div class="row mt-3">
-  <div class="col">
-    <table class="table">
-      <thead>
-        <tr>
-          <th>Protocol Name</th>
-          <th>Species</th>
-          <th>Characteristics</th>
-          <th>Variety descriptions</th>
-          <th class="col-1"></th>
-        </tr>
-        {% for protocol in protocols %}
-        <tr>
-          <td><a href="{% url 'describe:protocol_detail' protocol.id %}">{{ protocol.name }}</a></td>
-          <td><i>{{ protocol.plantspecies.latin_name }}</i></td>
-          <td>{{ protocol.traits.count }}</td>
-          <td>{{ protocol.descriptions.count }}</td>
-          <td align="right">
-            <a href="{% url 'describe:protocol_detail' protocol.id %}"><i class="bi bi-zoom-in" style="color: black;"></i></a>
-            <a class="far fa-edit falink" href={% url 'describe:protocol-update' protocol.id  %}><i class="bi-pencil" style="color: black;"></i></a>
-            <a class="fas fa-trash-alt falink" href={% url 'describe:protocol-delete' protocol.id  %}><i class="bi bi-trash" style="color: black;"></i></a>
-          </td>
-        </tr>
-        {% endfor %}
-      </thead>
-    </table></div>
-</div>
-{% else %}
-<p>There are no available protocols, yet.</p>
-{% endif %}
+    <h1 class="display-1">Protocols <a class="btn btn-primary" href="{% url 'describe:protocol-create' %}">Create</a>
+    </h1>
+    {% if protocols %}
+        <div class="row mt-3">
+            <div class="col">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Protocol Name</th>
+                            <th>Species</th>
+                            <th>Characteristics</th>
+                            <th>Variety descriptions</th>
+                            <th class="col-1"></th>
+                        </tr>
+                        {% for protocol in protocols %}
+                            <tr>
+                                <td><a href="{% url 'describe:protocol_detail' protocol.id %}">{{ protocol.name }}</a></td>
+                                <td><i>{{ protocol.plantspecies.latin_name }}</i></td>
+                                <td>{{ protocol.traits.count }}</td>
+                                <td>{{ protocol.descriptions.count }}</td>
+                                <td>
+                                    <a class="link-dark" href="{% url 'describe:protocol_detail' protocol.id %}"><i class="bi bi-zoom-in"></i></a>
+                                    <a class="link-dark" href={% url 'describe:protocol-update' protocol.id  %}><i class="bi-pencil"></i></a>
+                                    {% if protocol.descriptions.count == 0 %}
+                                        <a class="link-dark" href={% url 'describe:protocol-delete' protocol.id  %}><i class="bi bi-trash"></i></a>
+                                    {% else %}
+                                        <a href="#" class="link-secondary" data-bs-toggle="tooltip" data-bs-title="Can't delete. There are {{ protocol.descriptions.count }} Descriptions referencing this Protocol"><i class="bi bi-trash"></i></a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </thead>
+                </table></div>
+        </div>
+    <script type="text/javascript" src="{% static 'frontpage/popper.bundle.js' %}"></script>
+    {% else %}
+        <p>There are no available protocols, yet.</p>
+    {% endif %}
 {% endblock %}
