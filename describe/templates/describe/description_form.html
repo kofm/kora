@@ -3,21 +3,21 @@
 {% load widget_tweaks %}
 {% load static %}
 {% block javascript %}
-<script src="{% static 'frontpage/htmx.bundle.js' %}"></script>
+    <script src="{% static 'frontpage/htmx.bundle.js' %}"></script>
 {% endblock %}
 {% block title %}New description{% endblock %}
 {% block container %}
-{{ sources|json_script:"sources" }}
-{{ plantvarieties|json_script:"plantvarieties" }}
-{{ protocols|json_script:"protocols" }}
+    {{ sources|json_script:"sources" }}
+    {{ plantvarieties|json_script:"plantvarieties" }}
+    {{ protocols|json_script:"protocols" }}
     <h1>New description</h1>
     <form method="post">
         {% csrf_token %}
         <div class="mb-3">
-          {{form|crispy}}
+            {{form|crispy}}
         </div>
         <div>
-            <button class="btn btn-primary" type="submit">Create</button>
+            <button class="btn btn-sm btn-primary" type="submit">Create</button>
         </div>
     </form>
     <script src="{% static 'describe/description-form.bundle.js' %}"></script>

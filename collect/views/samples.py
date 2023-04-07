@@ -14,7 +14,7 @@ from django.db.models.functions import Cast, Concat
 from django.db.models import Q, Value
 
 from collect.models import SeedSample, StoragePosition
-from register.models import PlantVarietyName
+from register.models import PlantVariety, PlantVarietyName
 from collect.models import SeedSample
 
 from django.db.models import IntegerField
@@ -98,6 +98,10 @@ class SeedSampleCreateView(CreateView):
 
     def get_form(self):
         form = super(SeedSampleCreateView, self).get_form()
+        variety_id = self.request.GET.get("variety_id", None)
+        if variety_id:
+            variety = get_object_or_404(PlantVariety, pk=variety_id)
+            form.fields["variety"].initial = variety
         samples_id = SeedSample.objects.all().values_list("sample_id", flat=True)
         sample_id = max(samples_id) + 1 if samples_id else 1
         form.fields["sample_id"].initial = sample_id

@@ -1,5 +1,6 @@
 from django.db.models import Q
 from django.db.models.expressions import F
+from django.forms import TextInput
 from django.forms.models import model_to_dict
 from django.http.response import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -92,12 +93,16 @@ def description_favourite_clear(request):
 
 class DescriptionFilterByName(django_filters.FilterSet):
     variety__names__name = django_filters.CharFilter(
-        label="Variety name", lookup_expr="unaccent__lower__trigram_similar"
+        label="Variety name",
+        lookup_expr="unaccent__lower__trigram_similar",
+        widget=TextInput(attrs={"placeholder": "Type to search..."}),
     )
 
     class Meta:
         model = Description
-        fields = ["variety__names__name"]
+        fields = [
+            "variety__names__name",
+        ]
 
 
 # def description_list(request):
@@ -232,6 +237,7 @@ def description_list(request):
             pk__in=description_favourites_ids
         )
         context.update({"description_favourites": description_favourites})
+    print(dir(description_filter_by_name.form.fields))
     context.update(
         {
             "description_filter_by_name": description_filter_by_name,
@@ -312,18 +318,26 @@ def description_update(request, pk):
 
 def description_create(request):
     context = {}
-    context["form"] = DescriptionForm()
+    form = DescriptionForm()
+
+    protocols = Protocol.objects.all()
+    variety_id = request.GET.get("variety_id", None)
+    if variety_id:
+        variety = get_object_or_404(PlantVariety, pk=variety_id)
+        form.initial["variety"] = variety
+        protocols = protocols.filter(plantspecies=variety.species)
+
     sources = list(
         Description.objects.all()
         .order_by("name")
         .values_list("name", flat=True)
         .distinct("name")
     )
+
     if request.POST:
         form = DescriptionForm(request.POST)
         if form.is_valid():
             instance = form.save()
-            print(instance.id)
             return HttpResponseRedirect(
                 reverse(
                     "describe:description-update",
@@ -332,7 +346,11 @@ def description_create(request):
                     },
                 )
             )
+
+    context["form"] = form
     context["sources"] = [{"value": source, "text": source} for source in sources]
+    context["protocols"] = list(protocols.values("pk", "name"))
+
     return TemplateResponse(request, "describe/description_form.html", context)
 
 

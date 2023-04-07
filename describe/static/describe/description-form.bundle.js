@@ -6172,25 +6172,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var tom_select__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(tom_select__WEBPACK_IMPORTED_MODULE_1__);
 
 
-const sources = JSON.parse(
-  document.getElementById("sources").textContent
-);
-
-new (tom_select__WEBPACK_IMPORTED_MODULE_1___default())("#id_name", {
-  options: sources,
-  maxItems: 1,
-  create: true,
-  persist: false
-});
-
-new (tom_select__WEBPACK_IMPORTED_MODULE_1___default())("#id_variety", {
-  maxItems: 1,
-  create: false,
-  onChange: function (value) {
-    getProtocols(value);
-  },
-});
-
+const sources = JSON.parse(document.getElementById("sources").textContent);
+const protocols = JSON.parse(document.getElementById("protocols").textContent);
 
 var getProtocols = function (id) {
   fetch("/register/species/" + id + "/protocols")
@@ -6203,15 +6186,34 @@ var getProtocols = function (id) {
     });
 };
 
+const varietyTomSelect = new (tom_select__WEBPACK_IMPORTED_MODULE_1___default())("#id_variety", {
+  maxItems: 1,
+  create: false,
+  onChange: function (value) {
+    getProtocols(value);
+  },
+});
+
 const protocolTomSelect = new (tom_select__WEBPACK_IMPORTED_MODULE_1___default())("#id_protocol", {
-  options: [],
+  options: protocols,
   maxItems: 1,
   create: false,
   valueField: "pk",
   labelField: "name",
   searchField: ["name"],
 });
-protocolTomSelect.disable()
+
+new (tom_select__WEBPACK_IMPORTED_MODULE_1___default())("#id_name", {
+  options: sources,
+  maxItems: 1,
+  create: true,
+  persist: false,
+});
+
+if(!varietyTomSelect.getValue()) {
+  console.log("Not set")
+  protocolTomSelect.disable();
+}
 
 })();
 
