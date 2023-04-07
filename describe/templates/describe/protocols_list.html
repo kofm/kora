@@ -2,8 +2,8 @@
 {% block title %}Protocols{% endblock %}
 
 {% block container %}
-<p class="display-1">Protocols</p>
-<div class="row"><div class="col"><a class="btn btn-primary ms-2" href="{% url 'describe:protocol-create' %}">Create</a></div></div>
+<h1 class="display-1">Protocols <a class="btn btn-primary" href="{% url 'describe:protocol-create' %}">Create</a>
+</h1>
 
 {% if protocols %}
 <div class="row mt-3">
@@ -13,14 +13,16 @@
         <tr>
           <th>Protocol Name</th>
           <th>Species</th>
-          <th>Described varieties</th>
+          <th>Characteristics</th>
+          <th>Variety descriptions</th>
           <th class="col-1"></th>
         </tr>
         {% for protocol in protocols %}
         <tr>
           <td><a href="{% url 'describe:protocol_detail' protocol.id %}">{{ protocol.name }}</a></td>
-          <td><i>{{ protocol.specie.latin_name }}</i></td>
-          <td>{{ protocol.description_set.count }}</td>
+          <td><i>{{ protocol.plantspecies.latin_name }}</i></td>
+          <td>{{ protocol.traits.count }}</td>
+          <td>{{ protocol.descriptions.count }}</td>
           <td align="right">
             <a href="{% url 'describe:protocol_detail' protocol.id %}"><i class="bi bi-zoom-in" style="color: black;"></i></a>
             <a class="far fa-edit falink" href={% url 'describe:protocol-update' protocol.id  %}><i class="bi-pencil" style="color: black;"></i></a>
