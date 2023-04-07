@@ -4,11 +4,12 @@
 
     {% render_field form.id %}
 
-    {% with hyperscript="on click from elsewhere show the previous <h1/> then remove me" %}
+    {% with hyperscript="on click from elsewhere show the previous <h1/> then remove the next <small/> then remove me" %}
 
         <h1 class="display-1" hx-get="{% url 'describe:protocol-updatename' protocol.pk %}" hx-trigger="click" hx-swap="outerHTML" style="display:none;">{{ protocol.name }}</h1>
 
         {% render_field form.name class+="form-control" script=hyperscript %}
+        <small class="form-text text-muted">Press Enter to confirm</small>
 
     {% endwith %}
 
