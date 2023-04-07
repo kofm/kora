@@ -10,21 +10,25 @@
     <script src="{% static 'frontpage/hyperscript.bundle.js'  %}"></script>
 {% endblock %}
 
-{% block title %}New protocol{% endblock %}
+{% block title %}Updating {{ protocol.name }}{% endblock %}
 
 {% block container %}
 
-    <h1 class="display-1" hx-get="{% url 'describe:protocol-updatename' protocol.pk %}" hx-trigger="click" hx-swap="outerHTML">{{protocol.name}}</h1>
-    <p class="lead"><i>{{protocol.plantspecies.latin_name}}</i></p>
+    <h1 class="display-1" hx-get="{% url 'describe:protocol-updatename' protocol.pk %}" hx-trigger="click" hx-swap="outerHTML">{{ protocol.name }}</h1>
+    <p class="lead"><i>{{ protocol.plantspecies.latin_name }}</i></p>
+
     <h1>Characteristics</h1>
+
     <form method="post">
 
         {% csrf_token %}
 
 
         <div id="form_set">
+
             {{ fs.management_form }}
             {{ fs.non_form_errors }}
+
             {% for f in fs %}
                 <div class="card border-secondary mb-2">
                     <div class="card-header bg-secondary text-white">
@@ -87,7 +91,6 @@
                                 {% endfor %}
                             </ul>
                             <div class="card-body">
-                                <!-- <input type="button" class="btn btn-secondary add_state" value="Add state"> -->
                                 <a class="btn btn-outline-secondary col-12 add_state"><i class="bi bi-plus-circle"></i></a>
                             </div>
                     {% endif %}
@@ -109,7 +112,7 @@
 
     <!-- Empty form to dynamically add new fields -->
     <div id="empty_form" style="display:none">
-        <div class="card border-secondary mb-3">
+        <div class="card border-secondary mb-2">
             <div class="card-header bg-secondary text-white">
                 <div class="row">
                     <div class="col-2">
@@ -120,43 +123,53 @@
                         {{ fs.empty_form.description.label }}
                         {% render_field fs.empty_form.description class+="form-control" %}
                     </div>
-                    <div class="row mt-2">
-                        <div class="col-2">
-                            {% render_field fs.empty_form.id %}
-                            {% render_field fs.empty_form.protocol %}
-                            {% render_field fs.empty_form.grouping %}
-                            {{ fs.empty_form.grouping.label }}
-                        </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-2">
+                        {% render_field fs.empty_form.id %}
+                        {% render_field fs.empty_form.protocol %}
+                        {% render_field fs.empty_form.grouping %}
+                        {{ fs.empty_form.grouping.label }}
                     </div>
-                    <div class="row">
-                        <div class="col-2">
-                            {% render_field fs.empty_form.DELETE %}
-                            {{ fs.empty_form.DELETE.label }}
-                        </div>
+                </div>
+                <div class="row">
+                    <div class="col-2">
+                        {% render_field fs.empty_form.DELETE %}
+                        {{ fs.empty_form.DELETE.label }}
                     </div>
                 </div>
             </div>
             <div class="card-body states">
                 <h5 class="card-title">Notes</h5>
                 <div class="states-management_form">
-                    {{ fs.empty_form.nested.management_form|crispy }}
+                    {{ fs.empty_form.nested.management_form }}
+                </div>
+                <div class="row">
+                    <div class="col-2"><span class="ms-3">N°</span></div>
+                    <div class="col"><span class="ms-3">Description</span></div>
                 </div>
                 <ul class="list-group list-group-flus">
                     <li class="list-group-item state-form">
                         <div class="row">
                             <div class="col-2">
-                                {% render_field fs.empty_form.id %}
-                                {% render_field fs.empty_form.trait %}
-                                {% render_field fs.empty_form.numeric_id class+="form-control" %}
+                                {% render_field fs.empty_form.nested.empty_form.id %}
+                                {% render_field fs.empty_form.nested.empty_form.trait %}
+                                {% render_field fs.empty_form.nested.empty_form.numeric_id class+="form-control" %}
                             </div>
                             <div class="col">
-                                {% render_field fs.empty_form.description class+="form-control" %}
+                                {% render_field fs.empty_form.nested.empty_form.description class+="form-control" %}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                {% render_field fs.empty_form.nested.empty_form.DELETE %}
+                                {{ fs.empty_form.nested.empty_form.DELETE.label }}
                             </div>
                         </div>
                     </li>
                 </ul>
                 <div class="card-body">
-                    <input type="button" class="btn btn-secondary add_state" value="Add state">
+                    <a class="btn btn-outline-secondary col-12 add_state"><i class="bi bi-plus-circle"></i></a>
                 </div>
             </div>
         </div>

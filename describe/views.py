@@ -465,7 +465,11 @@ def protocol_update_name_htmx(request, pk):
         if form.is_valid():
             protocol = form.save()
             return HttpResponse(
-                format_html('<h1 class="display-1">{}</h1>', protocol.name)
+                format_html(
+                    '<h1 class="display-1" hx-get="{}" hx-trigger="click" hx-swap="outerHTML">{}</h1>',
+                    reverse("describe:protocol-updatename", kwargs={"pk": protocol.pk}),
+                    protocol.name,
+                )
             )
     return TemplateResponse(request, template, {"form": form, "protocol": protocol})
 
