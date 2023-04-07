@@ -159,6 +159,10 @@ def _choices(form, model, depends_on):
     else:
         return model.objects.none()
 
+class ProtocolNameForm(forms.ModelForm):
+    class Meta:
+        model=Protocol
+        fields=("name",)
 
 class RelatedStateForm(DynamicFormMixin, forms.Form):
     def protocol_choices(form):

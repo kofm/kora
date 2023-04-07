@@ -7,6 +7,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.urls.base import reverse_lazy
+from django.utils.html import format_html
 from django.views.generic import DetailView, ListView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 import django_filters
@@ -16,6 +17,7 @@ from describe.forms import (
     DescriptionForm,
     ExpressionForm,
     ProtocolForm,
+    ProtocolNameForm,
     RelatedStateForm,
     TraitFormSet,
 )
@@ -452,6 +454,20 @@ def protocol_update(request, pk):
         "describe/protocol_manage.html",
         {"fs": form, "protocol": protocol, "nav_protocols": "active"},
     )
+
+
+def protocol_update_name_htmx(request, pk):
+    protocol = get_object_or_404(Protocol, pk=pk)
+    template = "describe/partials/protocol_name_form.html"
+    form = ProtocolNameForm(instance=protocol)
+    if request.POST:
+        form = ProtocolNameForm(request.POST, instance=protocol)
+        if form.is_valid():
+            protocol = form.save()
+            return HttpResponse(
+                format_html('<h1 class="display-1">{}</h1>', protocol.name)
+            )
+    return TemplateResponse(request, template, {"form": form, "protocol": protocol})
 
 
 class ProtocolCreate(CreateView):

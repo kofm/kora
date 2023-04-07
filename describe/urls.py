@@ -21,6 +21,7 @@ urlpatterns = [
     path("protocols/create", views.ProtocolCreate.as_view(), name="protocol-create"),
     # path("protocols/<int:pk>/", views.ProtocolDetail.as_view(), name="protocol_detail"),
     path("protocols/<int:pk>/", views.protocol_detail, name="protocol_detail"),
+    path("protocols/<int:pk>/update_name", views.protocol_update_name_htmx, name="protocol-updatename"),
     path(
         "protocols/<int:pk>/delete",
         views.ProtocolDelete.as_view(),

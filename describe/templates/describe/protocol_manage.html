@@ -4,11 +4,17 @@
 {% load crispy_forms_tags %}
 {% load widget_tweaks %}
 
+{% block javascript %}
+    <link rel="stylesheet" href="{% static 'flags/sprite.css' %}">
+    <script src="{% static 'frontpage/htmx.bundle.js'  %}"></script>
+    <script src="{% static 'frontpage/hyperscript.bundle.js'  %}"></script>
+{% endblock %}
+
 {% block title %}New protocol{% endblock %}
 
 {% block container %}
 
-    <h1 class="display-1">{{protocol.name}}</h1>
+    <h1 class="display-1" hx-get="{% url 'describe:protocol-updatename' protocol.pk %}" hx-trigger="click" hx-swap="outerHTML">{{protocol.name}}</h1>
     <p class="lead"><i>{{protocol.plantspecies.latin_name}}</i></p>
     <h1>Characteristics</h1>
     <form method="post">

@@ -1,0 +1,15 @@
+{% load widget_tweaks %}
+
+<form hx-post="{% url 'describe:protocol-updatename' protocol.pk %}">
+
+    {% render_field form.id %}
+
+    {% with hyperscript="on click from elsewhere show the previous <h1/> then remove me" %}
+
+        <h1 class="display-1" hx-get="{% url 'describe:protocol-updatename' protocol.pk %}" hx-trigger="click" hx-swap="outerHTML" style="display:none;">{{ protocol.name }}</h1>
+
+        {% render_field form.name class+="form-control" script=hyperscript %}
+
+    {% endwith %}
+
+</form>
