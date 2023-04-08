@@ -3,74 +3,90 @@
 {% load register_extras %}
 {% block title %}{{ species.common_name }}{% endblock %}
 {% block container %}
-<nav aria-label="breadcrumb">
-  <ol class="breadcrumb">
-    <li class="breadcrumb-item"><a href="{% url 'register:plantspecies-list' %}">Species</a></li>
-    <li class="breadcrumb-item"><i>{{ species.latin_name }}</i></li>
-  </ol>
-</nav>
-<p class="display-3">{{ species.common_name }} <small class="text-muted">(<i>{{ species.latin_name }}</i>)</small></p>
-<div class="container-sm mb-5">
-  <p class="h1">Varieties<a class="btn btn-primary ms-2" href="{% url 'register:plantvariety-create' species.pk %}">Create</a></p>
-  <form method="get">
-    <div class="input-group mb-3">
-      <input name="search" type="text" class="form-control" placeholder="Search variety" aria-label="Search variety" aria-describedby="button-addon2">
-      <button class="btn btn-outline-secondary" type="button" id="button-addon2">Search</button>
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'register:plantspecies-list' %}">Species</a></li>
+            <li class="breadcrumb-item"><i>{{ species.latin_name }}</i></li>
+        </ol>
+    </nav>
+    <div class="row">
+        <div class="col-1 d-flex align-items-center justify-content-center">
+            {% if prev_record %}
+                <a class="link-secondary" href="{% url 'register:plantspecies-detail' prev_record %}">
+                    <h1 class="bi bi-arrow-left"></h1>
+                </a>
+            {% endif %}
+        </div>
+        <div class="col text-center">
+            <h1 class="display-3">{{ species.common_name }} <small class="text-muted">(<i>{{ species.latin_name }}</i>)</small></h1>
+        </div>
+        {% if next_record %}
+            <div class="col-1 d-flex align-items-center justify-content-center">
+                <a class="link-secondary" href="{% url 'register:plantspecies-detail' next_record %}"><h1 class="bi bi-arrow-right"></h1></a>
+            </div>
+        {% endif %}
     </div>
-  </form>
-  <table class="table table-striped table-hover">
-    <thead>
-      <th scope="col">Variety</td>
-      <th scope="col">Samples</td>
-      <th scope="col">Descriptions</td>
-      <th scope="col"></td>
-    </thead>
-    <tr>
-      {% for variety in varieties %}
-      <td>
-        <a href="{% url 'register:plantvariety-detail' variety.id %}">{{ variety }}</a>
-      </td>
-      <td>{{ variety.seedsample_set.count }}</td>
-      <td>{{ variety.description_set.count }}</td>
-      <td><a class="text-decoration-none link-dark" href="{% url 'register:plantvariety-update' variety.pk %}"><i class="bi bi-pencil-square"></i></a></td>
-    </tr>
-    {% endfor %}
-  </table>
-  {% include 'frontpage/paginator.html' with page=varieties page_get_variable='page' %}
-</div>
-<div class="container-sm">
-  {% if species.parameters.distinct %}
-  <h2>Parameters</h2>
-  <p><i>(Last values)</i></p>
-  <table class="table">
-    <thead>
-      <th>Code</th>
-      <th>Value</th>
-      <th>Ref.</th>
-      <th></th>
-    </thead>
-    {% for param in species.parameters|get_last_parameters_value %}
-    <tr>
-      <td>{{ param.parameter.code }}</td>
-      <td>{{ param.value }} {{ param.parameter.measure_unit }}</td>
-      <td>
-        <a href="{{ param.url_ref }}">Rif.</a>
-      </td>
-      <td>
-        <a href="{% url 'parameters:cropparam-update' param.id %}"><i class="bi-pencil" style="color: black;"></i></a>
-      </td>
-    </tr>
-    {% endfor %}
-  </table>
-  <p>
-  <a class="btn btn-outline-secondary" href="{% url 'register:plantspeciesparameters_list' species.id %}">View all</a>
-  <a class="btn btn-outline-secondary" href="{% url 'register:add_cropparamval' species.id %}">Add</a>
-  </p>
-  {% else %}
-  <p>There are no parameters for this species.
-  <a href="{% url 'register:add_cropparamval' species.id %}">Add one</a>.
-    </p>
-    {% endif %}
-    {% endblock %}
+    <div class="container-sm mb-5">
+        <p class="h1">Varieties<a class="btn btn-primary ms-2" href="{% url 'register:plantvariety-create' species.pk %}">Create</a></p>
+        <form method="get">
+            <div class="input-group mb-3">
+                <input name="search" type="text" class="form-control" placeholder="Search variety" aria-label="Search variety" aria-describedby="button-addon2">
+                <button class="btn btn-outline-secondary" type="button" id="button-addon2">Search</button>
+            </div>
+        </form>
+        <table class="table table-striped table-hover">
+            <thead>
+                <th scope="col">Variety</td>
+                <th scope="col">Samples</td>
+                <th scope="col">Descriptions</td>
+                <th scope="col"></td>
+            </thead>
+            <tr>
+                {% for variety in varieties %}
+                    <td>
+                        <a href="{% url 'register:plantvariety-detail' variety.id %}">{{ variety }}</a>
+                    </td>
+                    <td>{{ variety.seedsample_set.count }}</td>
+                    <td>{{ variety.description_set.count }}</td>
+                    <td><a class="text-decoration-none link-dark" href="{% url 'register:plantvariety-update' variety.pk %}"><i class="bi bi-pencil-square"></i></a></td>
+                    </tr>
+                {% endfor %}
+            </table>
+            {% include 'frontpage/paginator.html' with page=varieties page_get_variable='page' %}
+        </div>
+        <div class="container-sm">
+            {% if species.parameters.distinct %}
+                <h2>Parameters</h2>
+                <p><i>(Last values)</i></p>
+                <table class="table">
+                    <thead>
+                        <th>Code</th>
+                        <th>Value</th>
+                        <th>Ref.</th>
+                        <th></th>
+                    </thead>
+                    {% for param in species.parameters|get_last_parameters_value %}
+                        <tr>
+                            <td>{{ param.parameter.code }}</td>
+                            <td>{{ param.value }} {{ param.parameter.measure_unit }}</td>
+                            <td>
+                                <a href="{{ param.url_ref }}">Rif.</a>
+                            </td>
+                            <td>
+                                <a href="{% url 'parameters:cropparam-update' param.id %}"><i class="bi-pencil" style="color: black;"></i></a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </table>
+                <p>
+                    <a class="btn btn-outline-secondary" href="{% url 'register:plantspeciesparameters_list' species.id %}">View all</a>
+                    <a class="btn btn-outline-secondary" href="{% url 'register:add_cropparamval' species.id %}">Add</a>
+                </p>
+            {% else %}
+                <p>There are no parameters for this species.
+                    <a href="{% url 'register:add_cropparamval' species.id %}">Add one</a>.
+                </p>
+            {% endif %}
+{% endblock %}
 
 </div>

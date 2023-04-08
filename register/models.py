@@ -57,6 +57,9 @@ class PlantSpecies(models.Model):
     def __str__(self):
         return self.common_name
 
+    def get_absolute_url(self):
+        return reverse("register:plantspecies-detail", kwargs={"pk": self.pk})
+
     class Meta:
         ordering = ["common_name"]
 

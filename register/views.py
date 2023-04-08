@@ -20,8 +20,8 @@ from register.utils import paged_object_list_context
 from .forms import PlantSpeciesForm, PlantVarietyForm, ProtectionForm
 from .models import Entity, PlantSpecies, PlantVariety, PlantVarietyName, Protection
 
-from django.db.models import CharField, Count
-from django.db.models.functions import Lower
+from django.db.models import F, CharField, Count, Window
+from django.db.models.functions import Lag, Lead, Lower
 
 CharField.register_lookup(Lower)
 
@@ -70,6 +70,21 @@ class PlantSpeciesDetail(DetailView):
         context["varieties"] = varieties
         context["page_range"] = page_range
         context["search"] = self.request.GET.get("search")
+        prev_next_records = PlantSpecies.objects.annotate(
+            prev=Window(
+                expression=Lag("pk", default=None), order_by=F("common_name").asc()
+            ),
+            next=Window(
+                expression=Lead("pk", default=None), order_by=F("common_name").asc()
+            ),
+        ).values("pk", "prev", "next")
+        prev_next_records_ids = list(
+            filter(lambda x: x["pk"] == self.object.pk, prev_next_records)
+        )[0]
+        context.update({
+            "prev_record": prev_next_records_ids["prev"],
+            "next_record": prev_next_records_ids["next"],
+        })
         return context
 
     def get_related_varieties(self):
