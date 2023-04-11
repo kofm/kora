@@ -44,7 +44,6 @@ module.exports = [
     name: "frontpage",
     entry: {
       bootstrap: { import: path.resolve("assets/js/bootstrap.js") },
-      popper: {import: path.resolve("assets/js/popper.js")},
       sortable: { import: path.resolve("assets/js/sortable.js") },
       htmx: { import: path.resolve("assets/js/htmx.js") },
       hyperscript: { import: path.resolve("assets/js/hyperscript.js") },

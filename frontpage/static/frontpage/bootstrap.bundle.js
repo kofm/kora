@@ -9305,6 +9305,17 @@ __webpack_require__.r(__webpack_exports__);
 // Import all of Bootstrap's JS
 
 
+
+document.addEventListener("DOMContentLoaded", function () {
+  const tooltipTriggerList = document.querySelectorAll(
+    '[data-bs-toggle="tooltip"]'
+  );
+
+  const tooltipList = [...tooltipTriggerList].map(
+    (tooltipTriggerEl) => new bootstrap__WEBPACK_IMPORTED_MODULE_1__.Tooltip(tooltipTriggerEl)
+  );
+});
+
 })();
 
 /******/ })()
