@@ -48,9 +48,12 @@ StateFormset = inlineformset_factory(
 class BaseTraitFormSet(BaseInlineFormSet):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.custom_labels = {}
+        self.custom_labels["numeric_id"] = "Characteristic N°"
+        self.custom_labels["description"] = "Characteristic description"
         for form in self.forms:
-            form.fields["numeric_id"].label = "Characteristic N°"
-            form.fields["description"].label = "Characteristic description"
+            form.fields["numeric_id"].label = self.custom_labels["numeric_id"]
+            form.fields["description"].label = self.custom_labels["description"]
 
     def add_fields(self, form, index):
         form.nested = StateFormset(
@@ -69,6 +72,12 @@ class BaseTraitFormSet(BaseInlineFormSet):
                     result = result and form.nested.is_valid()
 
         return result
+
+    def empty_form(self):
+        form = super().empty_form
+        form.fields["numeric_id"].label = self.custom_labels["numeric_id"]
+        form.fields["description"].label = self.custom_labels["description"]
+        return form
 
     def save(self, commit=True):
 
@@ -159,10 +168,12 @@ def _choices(form, model, depends_on):
     else:
         return model.objects.none()
 
+
 class ProtocolNameForm(forms.ModelForm):
     class Meta:
-        model=Protocol
-        fields=("name",)
+        model = Protocol
+        fields = ("name",)
+
 
 class RelatedStateForm(DynamicFormMixin, forms.Form):
     def protocol_choices(form):
