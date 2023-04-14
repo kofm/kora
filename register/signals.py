@@ -13,8 +13,10 @@ def plantvarietyname_handler(sender, instance, **kwargs):
 @receiver(post_delete, sender=PlantVarietyName)
 def plantvarietyname_delete_handler(sender, instance, **kwargs):
     related_variety = instance.variety
-    related_variety.name = related_variety.names.last().name
-    related_variety.save()
+    other_names = related_variety.names.all()
+    if other_names.exists():
+        related_variety.name = other_names.last().name
+        related_variety.save()
 
 @receiver(post_save, sender=PlantVariety)
 def plantvariety_handler(sender, instance, created, **kwargs):
