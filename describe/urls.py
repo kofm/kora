@@ -5,13 +5,14 @@ from . import views
 app_name = "describe"
 
 urlpatterns = [
-    # path("", views.DescriptionsList.as_view(), name="description-list"),
     path("", views.description_list, name="description-list"),
     path("find_similar", views.description_find_similar, name="description-find-similar"),
     path("add_favourite", views.description_favourite_add, name="description-favourite-add"),
     path("clear_favourites", views.description_favourite_clear, name="description-favourites-clear"),
     path("reset", views.description_list_reset, name="description-list-reset"),
     path("export", views.description_filter_export, name="description-list-export"),
+    path("import", views.description_import, name="description-import"),
+    path("protocols/<int:protocol_id>/descriptions/import", views.description_import_confirm, name="description-import-confirm"),
     path("create", views.description_create, name="description-create"),
     path("<int:pk>/delete", views.DescriptionDeleteView.as_view(), name="description-delete"),
     path("<int:pk>/", views.DescriptionDetail.as_view(), name="description-detail"),
@@ -19,7 +20,6 @@ urlpatterns = [
     path("compare", views.description_compare, name="description-compare"),
     path("protocols/", views.ProtocolList.as_view(), name="protocols_list"),
     path("protocols/create", views.ProtocolCreate.as_view(), name="protocol-create"),
-    # path("protocols/<int:pk>/", views.ProtocolDetail.as_view(), name="protocol_detail"),
     path("protocols/<int:pk>/", views.protocol_detail, name="protocol_detail"),
     path("protocols/<int:pk>/update_name", views.protocol_update_name_htmx, name="protocol-updatename"),
     path(

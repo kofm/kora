@@ -1,6 +1,5 @@
 from django.db.models import Q
 from django.db.models.expressions import F
-from django.forms import TextInput
 from django.forms.models import model_to_dict
 from django.http.response import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -8,155 +7,37 @@ from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.urls.base import reverse_lazy
 from django.utils.html import format_html
+from django.views.decorators.http import require_POST
 from django.views.generic import DetailView, ListView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
-import django_filters
 from django_tables2 import RequestConfig
+
+from describe.filters import DescriptionFilterByName
 from describe.forms import (
     DescriptionFilterFormSet,
     DescriptionForm,
-    ExpressionForm,
+    DescriptionImportForm,
+    ExpressionFormSet,
+    ExpressionUpdateForm,
     ProtocolForm,
     ProtocolNameForm,
     RelatedStateForm,
     TraitFormSet,
 )
 from describe.tables import DescriptionTable, RelatedStatesTable
-from describe.utils import _filter_descriptions, delete_get_param, merge_unique
-from register.models import PlantVariety
-from register.utils import paged_object_list_context
+from describe.utils import (
+    _filter_descriptions,
+    delete_get_param,
+    merge_unique,
+)
 
+from register.models import PlantVariety
 from .models import Description, Expression, Protocol, State, Trait
 
 """
 Descriptions
 List, Detail, Update, Create, Delete
 """
-
-
-def reset_description_filter(request):
-    try:
-        del request.session["description_filter"]
-    except KeyError:
-        pass
-
-
-def description_list_reset(request):
-    reset_description_filter(request)
-    return redirect(reverse_lazy("describe:description-list"))
-
-
-def description_find_similar(request):
-    """
-    This view gets a description_id as input and set the description filter
-    with the grouping characteristics of the description.
-    """
-    description_id = request.GET.get("description_id", None)
-
-    if description_id:
-        description_filter = Expression.objects.filter(
-            description__pk=description_id, state__trait__grouping=True
-        ).values(trait=F("state__trait"), states=F("state"))
-        # Transform the filter to ease querying with __in
-        request.session["description_filter"] = [
-            {
-                "trait": filter["trait"],
-                "state": [
-                    filter["states"],
-                ],
-            }
-            for filter in list(description_filter)
-        ]
-    return redirect(reverse_lazy("describe:description-list"))
-
-
-def description_favourite_add(request):
-    description_id = request.GET.get("description_id", None)
-    if description_id:
-        if "description_favourites" not in request.session:
-            request.session["description_favourites"] = list()
-        request.session["description_favourites"].append(description_id)
-        request.session.modified = True
-    description_favourites = Description.objects.filter(
-        pk__in=request.session["description_favourites"]
-    )
-    return TemplateResponse(
-        request,
-        "describe/partials/description_favourites.html",
-        {"description_favourites": description_favourites},
-    )
-
-
-def description_favourite_clear(request):
-    if "description_favourites" in request.session:
-        del request.session["description_favourites"]
-    return HttpResponse("")
-
-
-class DescriptionFilterByName(django_filters.FilterSet):
-    variety__names__name = django_filters.CharFilter(
-        label="Variety name",
-        lookup_expr="unaccent__lower__trigram_similar",
-        widget=TextInput(attrs={"placeholder": "Type to search..."}),
-    )
-
-    class Meta:
-        model = Description
-        fields = [
-            "variety__names__name",
-        ]
-
-
-# def description_list(request):
-#     context = {}
-#     queryset = Description.objects.all()
-#     description_filter = DescriptionFilter(request.GET, queryset=queryset)
-#     description_table = DescriptionTable(description_filter.qs)
-#     RequestConfig(request, paginate={"per_page": 15}).configure(description_table)
-#     context["description_table"] = description_table
-#     context["description_filter"] = description_filter
-#     return TemplateResponse(request, "describe/description_list.html", context)
-
-
-def description_compare(request):
-    context = {}
-    description_favourites_ids = request.session.get("description_favourites", None)
-    if description_favourites_ids:
-        descriptions = Description.objects.filter(pk__in=description_favourites_ids)
-        protocols = Protocol.objects.filter(descriptions__in=descriptions).distinct()
-
-        comparison_table = [{"protocol": protocol.name} for protocol in protocols]
-        comparison_table_header = [
-            f"{description.variety.name} - {description.name}"
-            for description in descriptions
-        ]
-
-        for index, protocol in enumerate(protocols):
-            comparison_table[index]["rows"] = []
-            for trait in protocol.traits.all():
-                row = [
-                    f"{trait.numeric_id}. {trait.description}",
-                ]
-                expression_ids = []
-                for description in descriptions:
-                    expressions = description.expressions.filter(
-                        Q(state__trait=trait) | Q(state__related_states__trait=trait)
-                    )
-                    if expressions.exists():
-                        expression = expressions.last()
-                        expression_id = expression.state.numeric_id
-                        row.append(f"{expression_id}. {expression.state.description}")
-                        expression_ids.append(expression_id)
-                    else:
-                        row.append("")
-                equal = all([id == expression_ids[0] for id in expression_ids])
-                comparison_table[index]["rows"].append({"values": row, "equal": equal})
-        context.update({"comparison_table_header": comparison_table_header})
-        context.update({"comparison_table": comparison_table})
-        return TemplateResponse(request, "describe/description_compare.html", context)
-    else:
-        return reverse("describe:description-list")
-
 
 def description_list(request):
     """List of Descriptions
@@ -239,7 +120,6 @@ def description_list(request):
             pk__in=description_favourites_ids
         )
         context.update({"description_favourites": description_favourites})
-    print(dir(description_filter_by_name.form.fields))
     context.update(
         {
             "description_filter_by_name": description_filter_by_name,
@@ -251,6 +131,105 @@ def description_list(request):
     )
 
     return TemplateResponse(request, "describe/description_list.html", context)
+
+
+def reset_description_filter(request):
+    try:
+        del request.session["description_filter"]
+    except KeyError:
+        pass
+
+
+def description_list_reset(request):
+    reset_description_filter(request)
+    return redirect(reverse_lazy("describe:description-list"))
+
+
+def description_find_similar(request):
+    """
+    This view gets a description_id as input and set the description filter
+    with the grouping characteristics of the description.
+    """
+    description_id = request.GET.get("description_id", None)
+
+    if description_id:
+        description_filter = Expression.objects.filter(
+            description__pk=description_id, state__trait__grouping=True
+        ).values(trait=F("state__trait"), states=F("state"))
+        # Transform the filter to ease querying with __in
+        request.session["description_filter"] = [
+            {
+                "trait": filter["trait"],
+                "state": [
+                    filter["states"],
+                ],
+            }
+            for filter in list(description_filter)
+        ]
+    return redirect(reverse_lazy("describe:description-list"))
+
+
+def description_favourite_add(request):
+    description_id = request.GET.get("description_id", None)
+    if description_id:
+        if "description_favourites" not in request.session:
+            request.session["description_favourites"] = list()
+        request.session["description_favourites"].append(description_id)
+        request.session.modified = True
+    description_favourites = Description.objects.filter(
+        pk__in=request.session["description_favourites"]
+    )
+    return TemplateResponse(
+        request,
+        "describe/partials/description_favourites.html",
+        {"description_favourites": description_favourites},
+    )
+
+
+def description_favourite_clear(request):
+    if "description_favourites" in request.session:
+        del request.session["description_favourites"]
+    return HttpResponse("")
+
+
+def description_compare(request):
+    context = {}
+    description_favourites_ids = request.session.get("description_favourites", None)
+    if description_favourites_ids:
+        descriptions = Description.objects.filter(pk__in=description_favourites_ids)
+        protocols = Protocol.objects.filter(descriptions__in=descriptions).distinct()
+
+        comparison_table = [{"protocol": protocol.name} for protocol in protocols]
+        comparison_table_header = [
+            f"{description.variety.name} - {description.name}"
+            for description in descriptions
+        ]
+
+        for index, protocol in enumerate(protocols):
+            comparison_table[index]["rows"] = []
+            for trait in protocol.traits.all():
+                row = [
+                    f"{trait.numeric_id}. {trait.description}",
+                ]
+                expression_ids = []
+                for description in descriptions:
+                    expressions = description.expressions.filter(
+                        Q(state__trait=trait) | Q(state__related_states__trait=trait)
+                    )
+                    if expressions.exists():
+                        expression = expressions.last()
+                        expression_id = expression.state.numeric_id
+                        row.append(f"{expression_id}. {expression.state.description}")
+                        expression_ids.append(expression_id)
+                    else:
+                        row.append("")
+                equal = all([id == expression_ids[0] for id in expression_ids])
+                comparison_table[index]["rows"].append({"values": row, "equal": equal})
+        context.update({"comparison_table_header": comparison_table_header})
+        context.update({"comparison_table": comparison_table})
+        return TemplateResponse(request, "describe/description_compare.html", context)
+    else:
+        return reverse("describe:description-list")
 
 
 class DescriptionDetail(DetailView):
@@ -271,7 +250,7 @@ def description_update(request, pk):
             request.POST.getlist("id"), request.POST.getlist("state")
         ):
             if state_id:
-                form = ExpressionForm({"id": expr_id, "state": state_id})
+                form = ExpressionUpdateForm({"id": expr_id, "state": state_id})
                 if form.is_valid():
                     # __import__('pdb').set_trace()
                     # expression, create = Expression.objects.get_or_create(**form.cleaned_data, description = description)
@@ -283,20 +262,17 @@ def description_update(request, pk):
                         exist_expr.filter(pk=form.cleaned_data["id"]).update(
                             state=form.cleaned_data["state"]
                         )
-                        print("Updated existing")
                     else:
                         if not exist_expr.filter(state=form.cleaned_data["state"]):
                             new_expression = Expression()
                             new_expression.state = form.cleaned_data["state"]
                             new_expression.description = description
                             new_expression.save()
-                            print("Created new")
                 else:
                     form_has_errors = True
             else:
                 if expr_id:
                     exist_expr.filter(pk=expr_id).delete()
-                    print("Deleted")
         if not form_has_errors:
             return HttpResponseRedirect(
                 reverse("describe:description-detail", args=(description.id,))
@@ -305,9 +281,9 @@ def description_update(request, pk):
     for trait in description.available_traits:
         if exist_expr.filter(state__trait=trait).exists():
             e = exist_expr.get(state__trait=trait)
-            form = ExpressionForm(model_to_dict(e))
+            form = ExpressionUpdateForm(model_to_dict(e))
         else:
-            form = ExpressionForm()
+            form = ExpressionUpdateForm()
         form.fields["state"].queryset = State.objects.filter(trait=trait)
         forms.append(form)
     formset = zip(forms, description.available_traits)
@@ -396,6 +372,73 @@ def description_filter_export(request):
     response = HttpResponse("\n".join(text), content_type="text/plain; charset=utf-8")
     response["Content-Disposition"] = "attachment; filename={0}".format(filename)
     return response
+
+
+def description_import(request):
+    """
+    This view is responsible for receiving the CSV file and creating the
+    formset for user to review the data being imported.
+    DescriptionImportForm handles the csv file validation and returns a
+    dictionary that can be used to create the formset. It also returns a list
+    of validation error for the cases in which the supplied variety_name
+    returns multiple PlantVariety objects, and a data object containing all the
+    Trait/State objects available for the selected Protocol that are needed to
+    init the ExpressionFormSet.
+    """
+    form = DescriptionImportForm(request.POST or None, request.FILES or None)
+    if form.is_valid():
+        protocol = form.cleaned_data["protocol"]
+        # This is needed in the view to populate the TomSelect inputs
+        varieties = PlantVariety.objects.get_by_species_values_list(
+            plantspecies=protocol.plantspecies
+        )
+        formset_data, multiple_objects_returned_errors, traits_states_list = form.save()
+        formset = ExpressionFormSet(
+            formset_data,
+            form_kwargs={
+                "traits": traits_states_list,
+            },
+        )
+        for error in multiple_objects_returned_errors:
+            formset[error["form"]].add_error(
+                "variety",
+                f"There are multiple varieties named '{error['variety_name']}'. Please select one or create a new one",
+            )
+        return TemplateResponse(
+            request,
+            "describe/description_import_confirm.html",
+            {"formset": formset, "varieties": varieties, "protocol": protocol},
+        )
+    return TemplateResponse(request, "describe/description_import.html", {"form": form})
+
+
+@require_POST
+def description_import_confirm(request, protocol_id):
+
+    # Init the formset
+    protocol = get_object_or_404(Protocol, pk=protocol_id)
+    traits_states_list = protocol.traits_states_list()
+    formset = ExpressionFormSet(
+        request.POST,
+        form_kwargs={
+            "traits": traits_states_list,
+        },
+    )
+
+    if formset.is_valid():
+        for form in formset:
+            form.save()
+        return HttpResponseRedirect(reverse("describe:description-list"))
+
+    # This is needed to populate the TomSelect inputs
+    varieties = PlantVariety.objects.get_by_species_values_list(
+        plantspecies=protocol.plantspecies
+    )
+    return TemplateResponse(
+        request,
+        "describe/description_import_confirm.html",
+        {"formset": formset, "varieties": varieties, "protocol": protocol},
+    )
 
 
 """

@@ -6,7 +6,7 @@ cultivars' descriptions.
 
 from django.db import models
 from django.db.models.aggregates import Count
-from django.db.models.functions import Coalesce
+from django.db.models.functions import Coalesce, Concat
 from django.urls import reverse
 from django.utils.functional import cached_property
 
@@ -41,6 +41,38 @@ class Protocol(models.Model):
         blank=True, null=True, help_text="the URL reference to the protocol"
     )
     objects = ProtocolManager()
+
+    def traits_list(self):
+        return (
+            self.traits.all()
+            .order_by("numeric_id")
+            .values("pk", "numeric_id", "description")
+        )
+
+    def traits_states_list(self):
+
+        state_description_annotation = {
+            "state_description": Concat(
+                "numeric_id",
+                models.Value(". "),
+                "description",
+                output_field=models.CharField(),
+            )
+        }
+        traits_states_list = [
+            {
+                "pk": trait["pk"],
+                "numeric_id": trait["numeric_id"],
+                "description": trait["description"],
+                "states": list(
+                    State.objects.filter(trait=trait["pk"])
+                    .annotate(**state_description_annotation)
+                    .values("pk", "numeric_id", "state_description")
+                ),
+            }
+            for trait in self.traits_list()
+        ]
+        return traits_states_list
 
     def get_absolute_url(self):
         return reverse("describe:protocol_detail", kwargs={"pk": self.pk})
@@ -152,7 +184,7 @@ class State(models.Model):
         help_text="A descriptive text about the note",
         max_length=200,
         null=False,
-        blank=False
+        blank=False,
     )
     trait = models.ForeignKey(Trait, models.CASCADE, related_name="states")
     related_states = models.ManyToManyField("self")

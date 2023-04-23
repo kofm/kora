@@ -63,6 +63,16 @@ class PlantSpecies(models.Model):
     class Meta:
         ordering = ["common_name"]
 
+class PlantVarietyManager(models.Manager):
+    def get_by_species_values_list(self, plantspecies):
+        """
+        Returns a list of dictionaries containing the PKs and the names of the
+        varieties of a particular PlantSpecies
+        """
+        qs = self.filter(species=plantspecies).prefetch_related("breeder").values("pk", "name", "breeder__name")
+        return list(qs)
+
+
 
 class PlantVariety(models.Model):
     name = models.CharField(help_text="The name of the variety", max_length=100)
@@ -74,6 +84,7 @@ class PlantVariety(models.Model):
     breeder = models.ForeignKey(
         Entity, on_delete=models.SET_NULL, null=True, blank=True
     )
+    objects = PlantVarietyManager()
 
     class Meta:
         ordering = ["name"]
