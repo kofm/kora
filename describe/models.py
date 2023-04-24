@@ -89,7 +89,7 @@ class DescriptionManager(models.Manager):
                 models.Q(expressions__state__id__in=filter["state"])
                 | models.Q(expressions__state__related_states__id__in=filter["state"])
             ).values_list("pk", flat=True)
-            if description_ids == None:
+            if description_ids is None:
                 description_ids = query_result
             else:
                 description_ids = description_ids.intersection(query_result)
