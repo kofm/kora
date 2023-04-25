@@ -2,8 +2,6 @@
 These are the models related to storage of parameters and field measures
 """
 from django.db import models
-
-from describe.models import Trait
 from register.models import PlantSpecies, PlantVariety
 
 
@@ -14,7 +12,9 @@ class ParameterManager(models.Manager):
 
 class Parameter(models.Model):
     """
-    Stores the parameters related to the Species
+    Stores the parameters related to the Species. Parameters are inputs on which Crop
+    Models rely on. This class defines the available parameters. The actual values are
+    stored in ParameterValue objects, that reference one Parameter.
     """
 
     code = models.CharField(
@@ -51,10 +51,6 @@ class ParameterValue(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        """
-        This is an abstract class
-        """
-
         abstract = True
 
     def __str__(self):
@@ -76,4 +72,6 @@ class VarietalParameter(ParameterValue):
     Varietal parameters values
     """
 
-    variety = models.ForeignKey(PlantVariety, on_delete=models.RESTRICT, related_name='parameters')
+    variety = models.ForeignKey(
+        PlantVariety, on_delete=models.RESTRICT, related_name="parameters"
+    )
