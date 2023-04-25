@@ -77,16 +77,3 @@ class VarietalParameter(ParameterValue):
     """
 
     variety = models.ForeignKey(PlantVariety, on_delete=models.RESTRICT, related_name='parameters')
-
-
-class Measure(models.Model):
-    """
-    Stores the measures related to a variety
-    """
-
-    georeference_lat = models.FloatField()
-    georeference_lon = models.FloatField()
-    measure_unit = models.CharField(max_length=50)
-    value = models.FloatField()
-    variety = models.ForeignKey(PlantVariety, on_delete=models.RESTRICT)
-    trait = models.ForeignKey(Trait, on_delete=models.PROTECT)
