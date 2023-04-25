@@ -17,3 +17,4 @@ __pycache__
 .DS_Store
 .ipython/profile_default
 .kitty-session
+.pyenv
