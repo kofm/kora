@@ -1,47 +1,35 @@
+"""
+Description Views
+List, Detail, Update, Create, Delete
+"""
+
+from django_tables2 import RequestConfig
+
+from describe.filters import DescriptionFilterByName
+from describe.forms import (DescriptionFilterFormSet, DescriptionForm,
+                            DescriptionImportForm, ExpressionFormSet,
+                            ExpressionUpdateForm, ProtocolForm)
+from describe.models import Description, Expression, Protocol, State, Trait
+from describe.tables import DescriptionTable
+from describe.utils import _filter_descriptions, delete_get_param, merge_unique
 from django.db.models import Q
 from django.db.models.expressions import F
 from django.forms.models import model_to_dict
-from django.http.response import HttpResponse, HttpResponseRedirect, JsonResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.urls.base import reverse_lazy
-from django.utils.html import format_html
 from django.views.decorators.http import require_POST
-from django.views.generic import DetailView, ListView
-from django.views.generic.edit import CreateView, DeleteView, UpdateView
-from django_tables2 import RequestConfig
-
-from describe.filters import DescriptionFilterByName
-from describe.forms import (
-    DescriptionFilterFormSet,
-    DescriptionForm,
-    DescriptionImportForm,
-    ExpressionFormSet,
-    ExpressionUpdateForm,
-    ProtocolForm,
-    ProtocolNameForm,
-    RelatedStateForm,
-    TraitFormSet,
-)
-from describe.tables import DescriptionTable, RelatedStatesTable
-from describe.utils import (
-    _filter_descriptions,
-    delete_get_param,
-    merge_unique,
-)
-
+from django.views.generic import DetailView
+from django.views.generic.edit import DeleteView
 from register.models import PlantVariety
-from .models import Description, Expression, Protocol, State, Trait
 
-"""
-Descriptions
-List, Detail, Update, Create, Delete
-"""
 
 def description_list(request):
     """List of Descriptions
-    Filter descriptions by state of expression(s) according to the selected reference protocol
+    Filter descriptions by state of expression(s) according to the selected reference
+    protocol
     """
     context = dict()
 
@@ -252,8 +240,6 @@ def description_update(request, pk):
             if state_id:
                 form = ExpressionUpdateForm({"id": expr_id, "state": state_id})
                 if form.is_valid():
-                    # __import__('pdb').set_trace()
-                    # expression, create = Expression.objects.get_or_create(**form.cleaned_data, description = description)
                     if exist_expr.filter(
                         pk=form.cleaned_data["id"]
                     ).exists() and not exist_expr.filter(
@@ -386,6 +372,7 @@ def description_import(request):
     init the ExpressionFormSet.
     """
     form = DescriptionImportForm(request.POST or None, request.FILES or None)
+    print("Hello")
     if form.is_valid():
         protocol = form.cleaned_data["protocol"]
         # This is needed in the view to populate the TomSelect inputs
@@ -402,7 +389,8 @@ def description_import(request):
         for error in multiple_objects_returned_errors:
             formset[error["form"]].add_error(
                 "variety",
-                f"There are multiple varieties named '{error['variety_name']}'. Please select one or create a new one",
+                f"There are multiple varieties named '{error['variety_name']}'. \
+                Please select one or create a new one",
             )
         return TemplateResponse(
             request,
@@ -414,7 +402,6 @@ def description_import(request):
 
 @require_POST
 def description_import_confirm(request, protocol_id):
-
     # Init the formset
     protocol = get_object_or_404(Protocol, pk=protocol_id)
     traits_states_list = protocol.traits_states_list()
@@ -439,164 +426,3 @@ def description_import_confirm(request, protocol_id):
         "describe/description_import_confirm.html",
         {"formset": formset, "varieties": varieties, "protocol": protocol},
     )
-
-
-"""
-Protocol
-"""
-
-
-def protocol_list(request, species_id):
-    queryset = list(
-        Protocol.objects.filter(plantspecies__variety=species_id).values("pk", "name")
-    )
-    return JsonResponse(queryset, safe=False)
-
-
-class ProtocolList(ListView):
-    model = Protocol
-    template_name = "describe/protocols_list.html"
-    context_object_name = "protocols"
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["nav_protocols"] = "active"
-        return context
-
-
-class ProtocolDetail(DetailView):
-    model = Protocol
-    context_object_name = "protocol"
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["nav_protocols"] = "active"
-        return context
-
-
-def protocol_detail(request, pk):
-    context = {}
-    protocol = get_object_or_404(Protocol, pk=pk)
-    context["protocol"] = protocol
-    return TemplateResponse(request, "describe/protocol_detail.html", context)
-
-
-def protocol_update(request, pk):
-    protocol = get_object_or_404(Protocol, pk=pk)
-    if request.method == "POST":
-        form = TraitFormSet(request.POST, instance=protocol)
-        if form.is_valid():
-            form.save()
-            return HttpResponseRedirect(
-                reverse("describe:protocol_detail", kwargs={"pk": protocol.pk})
-            )
-    else:
-        form = TraitFormSet(instance=protocol)
-    return render(
-        request,
-        "describe/protocol_manage.html",
-        {"fs": form, "protocol": protocol, "nav_protocols": "active"},
-    )
-
-
-def protocol_update_name_htmx(request, pk):
-    protocol = get_object_or_404(Protocol, pk=pk)
-    template = "describe/partials/protocol_name_form.html"
-    form = ProtocolNameForm(instance=protocol)
-    if request.POST:
-        form = ProtocolNameForm(request.POST, instance=protocol)
-        if form.is_valid():
-            protocol = form.save()
-            return HttpResponse(
-                format_html(
-                    '<h1 class="display-1" hx-get="{}" hx-trigger="click" hx-swap="outerHTML">{}</h1>',
-                    reverse("describe:protocol-updatename", kwargs={"pk": protocol.pk}),
-                    protocol.name,
-                )
-            )
-    return TemplateResponse(request, template, {"form": form, "protocol": protocol})
-
-
-class ProtocolCreate(CreateView):
-    model = Protocol
-    fields = [
-        "name",
-        "plantspecies",
-        "url_ref",
-    ]
-    template_name = "describe/protocol_form.html"
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["nav_protocols"] = "active"
-        return context
-
-    def get_success_url(self):
-        return reverse("describe:protocol-update", args=(self.object.id,))
-
-
-class ProtocolDelete(DeleteView):
-    model = Protocol
-    success_url = reverse_lazy("describe:protocols_list")
-
-
-"""
-Trait
-"""
-
-
-def trait_list_htmx(request):
-    """
-    This is accessed by HTMX requests made by RelatedStateForm to populate the
-    Trait/State select input, depending on the selected Protocol/Trait
-    """
-    if request.htmx:
-        form = RelatedStateForm(request.GET)
-        if "protocol" in request.GET:
-            return HttpResponse(form["trait"])
-        else:
-            return HttpResponse(form["related_state"])
-
-
-"""
-State
-"""
-
-
-def state_update(request, pk):
-    context = {}
-    state = get_object_or_404(State, pk=pk)
-    context["state"] = state
-
-    if request.method == "POST":
-        relatedstate_form = RelatedStateForm(request.POST)
-        if relatedstate_form.is_valid():
-            related_state = State.objects.get(
-                pk=relatedstate_form["related_state"].value()
-            )
-            state.related_states.add(related_state)
-            relatedstate_form = RelatedStateForm(initial={"state": state.pk})
-    else:
-        relatedstate_form = RelatedStateForm(initial={"state": state.pk})
-    context["relatedstate_form"] = relatedstate_form
-    context["relatedstates_table"] = RelatedStatesTable(state.related_states.all())
-    return TemplateResponse(request, "describe/state_form.html", context)
-
-
-def relatedstate_delete(request, pk):
-    state = get_object_or_404(State, pk=pk)
-    related_state = request.GET.get("related_state", None)
-    if related_state:
-        state.related_states.remove(State.objects.get(pk=related_state))
-    return HttpResponse()
-
-
-"""
-Expression
-"""
-
-
-class ExpressionUpdate(UpdateView):
-    model = Expression
-    fields = "__all__"
-    template_name = "describe/expression_update.html"
