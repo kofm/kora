@@ -18,7 +18,12 @@
             {% endif %}
         </div>
         <div class="col text-center">
-            <h1 class="display-1">{{ species.common_name }} <small class="text-muted">(<i>{{ species.latin_name }}</i>)</small></h1>
+            <h1 class="display-1">
+                {{ species.common_name }} <small class="text-muted">(<i>{{ species.latin_name }}</i>)</small>
+                <a class="text-decoration-none link-dark" href="{% url 'register:plantspecies-update' species.pk %}">
+                    <i class="bi bi-pencil-square" style="font-size:2rem"></i>
+                </a>
+            </h1>
         </div>
         {% if next_record %}
             <div class="col-1 d-flex align-items-center justify-content-center">

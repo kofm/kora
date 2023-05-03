@@ -1,27 +1,25 @@
 from typing import Any, Dict
+
+from django_tables2.config import RequestConfig
+
+from collect.models import SeedSample
+from collect.tables import SeedSampleTable
 from django.core.paginator import Paginator
-from django.http.response import (
-    HttpResponseRedirect,
-    JsonResponse,
-)
+from django.db.models import CharField, Count, F, Window
+from django.db.models.functions import Lag, Lead, Lower
+from django.http.response import HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.response import TemplateResponse
 from django.urls.base import reverse, reverse_lazy
 from django.views.generic import CreateView, DetailView, ListView
 from django.views.generic.edit import DeleteView, UpdateView
-from django_tables2.config import RequestConfig
-from collect.models import SeedSample
-from collect.tables import SeedSampleTable
-
 from parameters.forms import SpeciesParameterForm, VarietalParameterForm
-from register.tables import EntityTable, PlantVarietyEntityTable, ProtectionTable
-from register.utils import paged_object_list_context
+from register.tables import (EntityTable, PlantVarietyEntityTable,
+                             ProtectionTable)
 
 from .forms import PlantSpeciesForm, PlantVarietyForm, ProtectionForm
-from .models import Entity, PlantSpecies, PlantVariety, PlantVarietyName, Protection
-
-from django.db.models import F, CharField, Count, Window
-from django.db.models.functions import Lag, Lead, Lower
+from .models import (Entity, PlantSpecies, PlantVariety, PlantVarietyName,
+                     Protection)
 
 CharField.register_lookup(Lower)
 
@@ -55,6 +53,11 @@ class PlantSpeciesCreate(CreateView):
         return context
 
 
+class PlantSpeciesUpdateView(UpdateView):
+    model = PlantSpecies
+    fields = ["common_name", "latin_name", "plant_type"]
+
+
 class PlantSpeciesDetail(DetailView):
     """This display the varieties present for the species and allow the
     user to create a new variety"""
@@ -81,10 +84,12 @@ class PlantSpeciesDetail(DetailView):
         prev_next_records_ids = list(
             filter(lambda x: x["pk"] == self.object.pk, prev_next_records)
         )[0]
-        context.update({
-            "prev_record": prev_next_records_ids["prev"],
-            "next_record": prev_next_records_ids["next"],
-        })
+        context.update(
+            {
+                "prev_record": prev_next_records_ids["prev"],
+                "next_record": prev_next_records_ids["next"],
+            }
+        )
         return context
 
     def get_related_varieties(self):
