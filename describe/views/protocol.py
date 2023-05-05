@@ -4,8 +4,7 @@ Protocol views
 
 from describe.forms import ProtocolNameForm, TraitFormSet
 from describe.models import Protocol
-from django.http.response import (HttpResponse, HttpResponseRedirect,
-                                  JsonResponse)
+from django.http.response import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.template.response import TemplateResponse
 from django.urls import reverse
@@ -13,6 +12,13 @@ from django.urls.base import reverse_lazy
 from django.utils.html import format_html
 from django.views.generic import DetailView, ListView
 from django.views.generic.edit import CreateView, DeleteView
+
+from frontpage.decorators import NavActive, nav_active
+
+
+class NavActiveDescribe(NavActive):
+    def __init__(self) -> None:
+        super().__init__("nav_describe")
 
 
 def protocol_list(request, species_id):
@@ -22,7 +28,7 @@ def protocol_list(request, species_id):
     return JsonResponse(queryset, safe=False)
 
 
-class ProtocolList(ListView):
+class ProtocolList(NavActiveDescribe, ListView):
     model = Protocol
     template_name = "describe/protocols_list.html"
     context_object_name = "protocols"
@@ -33,7 +39,7 @@ class ProtocolList(ListView):
         return context
 
 
-class ProtocolDetail(DetailView):
+class ProtocolDetail(NavActiveDescribe, DetailView):
     model = Protocol
     context_object_name = "protocol"
 
@@ -43,6 +49,7 @@ class ProtocolDetail(DetailView):
         return context
 
 
+@nav_active("nav_describe")
 def protocol_detail(request, pk):
     context = {}
     protocol = get_object_or_404(Protocol, pk=pk)
@@ -87,7 +94,7 @@ def protocol_update_name_htmx(request, pk):
     return TemplateResponse(request, template, {"form": form, "protocol": protocol})
 
 
-class ProtocolCreate(CreateView):
+class ProtocolCreate(NavActiveDescribe, CreateView):
     model = Protocol
     fields = [
         "name",

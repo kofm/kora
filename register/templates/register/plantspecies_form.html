@@ -1,9 +1,14 @@
 {% extends "frontpage/base.html" %}
 {% load crispy_forms_tags %}
-{% block title %}Create new species{% endblock %}
+
+
+{% block title %}Create Plant Species{% endblock %}
+
+
 {% block container %}
-<h1>Add new species</h1>
-</ul>
+
+<h1 class="display-1">Create Plant Species</h1>
+
 <form method="post">
     {% csrf_token %}
     <div class="mb-3">

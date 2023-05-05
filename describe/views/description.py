@@ -6,9 +6,14 @@ List, Detail, Update, Create, Delete
 from django_tables2 import RequestConfig
 
 from describe.filters import DescriptionFilterByName
-from describe.forms import (DescriptionFilterFormSet, DescriptionForm,
-                            DescriptionImportForm, ExpressionFormSet,
-                            ExpressionUpdateForm, ProtocolForm)
+from describe.forms import (
+    DescriptionFilterFormSet,
+    DescriptionForm,
+    DescriptionImportForm,
+    ExpressionFormSet,
+    ExpressionUpdateForm,
+    ProtocolForm,
+)
 from describe.models import Description, Expression, Protocol, State, Trait
 from describe.tables import DescriptionTable
 from describe.utils import _filter_descriptions, delete_get_param, merge_unique
@@ -23,9 +28,15 @@ from django.urls.base import reverse_lazy
 from django.views.decorators.http import require_POST
 from django.views.generic import DetailView
 from django.views.generic.edit import DeleteView
+from describe.views.protocol import NavActiveDescribe
+from frontpage.decorators import nav_active
 from register.models import PlantVariety
 
 
+nav_describe = nav_active("nav_describe")
+
+
+@nav_describe
 def description_list(request):
     """List of Descriptions
     Filter descriptions by state of expression(s) according to the selected reference
@@ -180,6 +191,7 @@ def description_favourite_clear(request):
     return HttpResponse("")
 
 
+@nav_describe
 def description_compare(request):
     context = {}
     description_favourites_ids = request.session.get("description_favourites", None)
@@ -220,11 +232,12 @@ def description_compare(request):
         return reverse("describe:description-list")
 
 
-class DescriptionDetail(DetailView):
+class DescriptionDetail(NavActiveDescribe, DetailView):
     model = Description
     context_object_name = "description"
 
 
+@nav_describe
 def description_update(request, pk):
     # Get the description object
     description = get_object_or_404(Description, pk=pk)
@@ -273,15 +286,17 @@ def description_update(request, pk):
         form.fields["state"].queryset = State.objects.filter(trait=trait)
         forms.append(form)
     formset = zip(forms, description.available_traits)
-    return render(
+    return TemplateResponse(
         request,
         "describe/description_manage.html",
         context={"description": description, "formset": formset},
     )
 
 
+@nav_describe
 def description_create(request):
     context = {}
+
     form = DescriptionForm()
 
     protocols = Protocol.objects.all()
@@ -318,7 +333,7 @@ def description_create(request):
     return TemplateResponse(request, "describe/description_form.html", context)
 
 
-class DescriptionDeleteView(DeleteView):
+class DescriptionDeleteView(NavActiveDescribe, DeleteView):
     model = Description
     success_url = reverse_lazy("describe:description-list")
 

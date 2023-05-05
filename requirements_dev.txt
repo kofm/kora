@@ -5,3 +5,4 @@ pandas-stubs
 black
 flake8
 pyflyby
+djhtml

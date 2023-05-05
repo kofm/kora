@@ -1,15 +1,26 @@
 {% extends "frontpage/base.html" %}
 {% load crispy_forms_tags %}
-{% block title %}New protocol{% endblock %}
+
+
+{% block title %}Create Protocol{% endblock %}
+
+
 {% block container %}
-<h1>New protocol</h1>
+
+<h1 class="display-1">Create Protocol</h1>
+
 <form method="post">
+
    {% csrf_token %}
+
    <div class="mb-3">
           {{ form|crispy }}
    </div>
+
    <div>
        <button class="btn btn-primary" type="submit">Create</button>
    </div>
+
 </form>
+
 {% endblock %}

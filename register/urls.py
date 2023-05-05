@@ -71,11 +71,6 @@ urlpatterns = [
         name="plantvarietyname-update",
     ),
     path(
-        "species/<int:species_id>/varieties",
-        views.plantvariety_list,
-        name="plantvariety-list",
-    ),
-    path(
         "species/<int:species_id>/protocols",
         describe_views.protocol_list,
         name="protocol-list",

@@ -2,15 +2,30 @@
 {% load crispy_forms_tags %}
 {% load widget_tweaks %}
 {% load static %}
+
+
 {% block javascript %}
     <script src="{% static 'frontpage/htmx.bundle.js' %}"></script>
 {% endblock %}
+
+
 {% block title %}New description{% endblock %}
+
+
 {% block container %}
     {{ sources|json_script:"sources" }}
     {{ plantvarieties|json_script:"plantvarieties" }}
     {{ protocols|json_script:"protocols" }}
-    <h1>New description</h1>
+
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'describe:description-list' %}">Descriptions</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Create</li>
+        </ol>
+    </nav>
+
+    <h1 class="display-1">Create Description</h1>
+
     <form method="post">
         {% csrf_token %}
         <div class="mb-3">

@@ -13,24 +13,26 @@ from django.template.response import TemplateResponse
 from django.urls.base import reverse, reverse_lazy
 from django.views.generic import CreateView, DetailView, ListView
 from django.views.generic.edit import DeleteView, UpdateView
+from frontpage.decorators import NavActive, nav_active
 from parameters.forms import SpeciesParameterForm, VarietalParameterForm
-from register.tables import (EntityTable, PlantVarietyEntityTable,
-                             ProtectionTable)
+from register.tables import EntityTable, PlantVarietyEntityTable, ProtectionTable
 
 from .forms import PlantSpeciesForm, PlantVarietyForm, ProtectionForm
-from .models import (Entity, PlantSpecies, PlantVariety, PlantVarietyName,
-                     Protection)
+from .models import Entity, PlantSpecies, PlantVariety, PlantVarietyName, Protection
 
 CharField.register_lookup(Lower)
 
 
-class PlantSpeciesList(ListView):
-    model = PlantSpecies
+class NavActivePlants(NavActive):
+    def __init__(self) -> None:
+        super().__init__("nav_plants")
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["nav_species"] = "active"
-        return context
+
+nav_active_plants = nav_active("nav_plants")
+
+
+class PlantSpeciesList(NavActivePlants, ListView):
+    model = PlantSpecies
 
     def get_queryset(self):
         queryset = (
@@ -41,24 +43,19 @@ class PlantSpeciesList(ListView):
         return queryset
 
 
-class PlantSpeciesCreate(CreateView):
+class PlantSpeciesCreate(NavActivePlants, CreateView):
     model = PlantSpecies
     form_class = PlantSpeciesForm
     context_object_name = "species"
     success_url = "/register/species/"
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["nav_species"] = "active"
-        return context
 
-
-class PlantSpeciesUpdateView(UpdateView):
+class PlantSpeciesUpdateView(NavActivePlants, UpdateView):
     model = PlantSpecies
     fields = ["common_name", "latin_name", "plant_type"]
 
 
-class PlantSpeciesDetail(DetailView):
+class PlantSpeciesDetail(NavActivePlants, DetailView):
     """This display the varieties present for the species and allow the
     user to create a new variety"""
 
@@ -68,7 +65,6 @@ class PlantSpeciesDetail(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["nav_species"] = "active"
         varieties, page_range = self.get_related_varieties()
         context["varieties"] = varieties
         context["page_range"] = page_range
@@ -112,7 +108,7 @@ class PlantSpeciesDetail(DetailView):
         return varieties, page_range
 
 
-class PlantSpeciesParametersList(DetailView):
+class PlantSpeciesParametersList(NavActivePlants, DetailView):
     model = PlantSpecies
     context_object_name = "species"
     template_name = "register/plantspeciesparameters_list.html"
@@ -132,7 +128,7 @@ class PlantSpeciesParametersList(DetailView):
         return parameters
 
 
-class PlantVarietyParametersList(DetailView):
+class PlantVarietyParametersList(NavActivePlants, DetailView):
     model = PlantVariety
     context_object_name = "variety"
     template_name = "register/plantvarietyparameters_list.html"
@@ -143,14 +139,14 @@ class PlantVarietyParametersList(DetailView):
         return context
 
 
-class PlantVarietyUpdateView(UpdateView):
+class PlantVarietyUpdateView(NavActivePlants, UpdateView):
     model = PlantVariety
     fields = [
         "breeder",
     ]
 
 
-class PlantVarietyDetail(DetailView):
+class PlantVarietyDetail(NavActivePlants, DetailView):
     model = PlantVariety
     context_object_name = "variety"
 
@@ -165,6 +161,7 @@ class PlantVarietyDetail(DetailView):
         return context
 
 
+@nav_active_plants
 def add_speciesparametervervalue(request, pk):
     """
     https://stackoverflow.com/questions/37303171/django-create-new-object-in-form-update-select-box-and-save-it
@@ -184,9 +181,12 @@ def add_speciesparametervervalue(request, pk):
             )
 
     context = {"form": form}
-    return render(request, "register/plantspeciesparameters_create.html", context)
+    return TemplateResponse(
+        request, "register/plantspeciesparameters_create.html", context
+    )
 
 
+@nav_active_plants
 def add_varietalparamevterervalue(request, pk):
     variety = PlantVariety.objects.get(pk=pk)
     form = VarietalParameterForm(initial={"variety": variety})
@@ -201,10 +201,12 @@ def add_varietalparamevterervalue(request, pk):
             )
 
     context = {"form": form}
-    return render(request, "register/plantspeciesparameters_create.html", context)
+    return TemplateResponse(
+        request, "register/plantspeciesparameters_create.html", context
+    )
 
 
-class PlantVarietyCreate(CreateView):
+class PlantVarietyCreate(NavActivePlants, CreateView):
     model = PlantVariety
     form_class = PlantVarietyForm
 
@@ -223,7 +225,7 @@ class PlantVarietyCreate(CreateView):
         return reverse_lazy("register:plantvariety-detail", args=[self.object.pk])
 
 
-class PlantVarietyDelete(DeleteView):
+class PlantVarietyDelete(NavActivePlants, DeleteView):
     model = PlantVariety
 
     def get_success_url(self):
@@ -232,7 +234,7 @@ class PlantVarietyDelete(DeleteView):
         )
 
 
-class PlantVarietyNameCreate(CreateView):
+class PlantVarietyNameCreate(NavActivePlants, CreateView):
     model = PlantVarietyName
     fields = [
         "name",
@@ -250,7 +252,7 @@ class PlantVarietyNameCreate(CreateView):
         return super().form_valid(form)
 
 
-class PlantVarietyNameUpdate(UpdateView):
+class PlantVarietyNameUpdate(NavActivePlants, UpdateView):
     model = PlantVarietyName
     fields = [
         "name",
@@ -263,7 +265,7 @@ class PlantVarietyNameUpdate(UpdateView):
         )
 
 
-class PlantVarietyNameDelete(DeleteView):
+class PlantVarietyNameDelete(NavActivePlants, DeleteView):
     model = PlantVarietyName
 
     def get_success_url(self):
@@ -272,6 +274,7 @@ class PlantVarietyNameDelete(DeleteView):
         )
 
 
+@nav_active_plants
 def plantvariety_list(request, species_id):
     queryset = list(
         PlantVariety.objects.filter(species_id=species_id)
@@ -282,6 +285,7 @@ def plantvariety_list(request, species_id):
     return JsonResponse(queryset, safe=False)
 
 
+@nav_active_plants
 def protection_create(request, variety_id):
     variety = get_object_or_404(PlantVariety, pk=variety_id)
     if request.POST:
@@ -302,6 +306,7 @@ def protection_create(request, variety_id):
     )
 
 
+@nav_active_plants
 def protection_update(request, pk):
     context = {}
     protection = get_object_or_404(Protection, pk=pk)
@@ -317,15 +322,16 @@ def protection_update(request, pk):
     return TemplateResponse(request, "register/protection_form.html", context)
 
 
-class ProtectionDetailView(DetailView):
+class ProtectionDetailView(NavActivePlants, DetailView):
     model = Protection
 
 
-class EntityCreateView(CreateView):
+class EntityCreateView(NavActivePlants, CreateView):
     model = Entity
     fields = "__all__"
 
 
+@nav_active_plants
 def entity_detail(request, pk):
     context = {}
     entity = get_object_or_404(Entity, pk=pk)
@@ -334,11 +340,12 @@ def entity_detail(request, pk):
     return TemplateResponse(request, "register/entity_detail.html", context)
 
 
-class EntityUpdateView(UpdateView):
+class EntityUpdateView(NavActivePlants, UpdateView):
     model = Entity
     fields = "__all__"
 
 
+@nav_active_plants
 def entity_list(request):
     context = {}
     # queryset = Entity.objects.all()
