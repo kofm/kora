@@ -1,34 +1,25 @@
-from django.http import HttpResponseBadRequest
-from django.http.response import HttpResponse
-from django.urls import reverse, reverse_lazy
-from django.utils.timezone import now
-from django.shortcuts import get_object_or_404
-from django.views.decorators.http import require_POST
-from django.contrib.auth.decorators import login_required
-from django.views.generic import UpdateView
-
-from django.views.generic.edit import CreateView, DeleteView
-from django.template.response import TemplateResponse
-
-from django.db.models.functions import Cast, Concat
-from django.db.models import Q, Value
-
-from collect.models import SeedSample, StoragePosition
-from register.models import PlantVariety, PlantVarietyName
-from collect.models import SeedSample
-
-from django.db.models import IntegerField
-from collect.forms import (
-    CartSelectForm,
-    GerminabilityForm,
-    SampleWeightForm,
-    SeedSampleForm,
-)
-
 from django_tables2 import RequestConfig
-from collect.tables import SeedSampleDuplicatesTable, SeedSampleTable
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from collect.filters import SeedSampleFilter
+from collect.forms import (CartSelectForm, GerminabilityForm, SampleWeightForm,
+                           SeedSampleForm)
+from collect.models import SeedSample, StoragePosition
+from collect.serializers import SeedSampleSerializer
+from collect.tables import SeedSampleDuplicatesTable, SeedSampleTable
+from django.contrib.auth.decorators import login_required
+from django.db.models import IntegerField, Q, Value
+from django.db.models.functions import Cast, Concat
+from django.http import HttpResponseBadRequest
+from django.shortcuts import get_object_or_404
+from django.template.response import TemplateResponse
+from django.urls import reverse, reverse_lazy
+from django.utils.timezone import now
+from django.views.decorators.http import require_POST
+from django.views.generic import UpdateView
+from django.views.generic.edit import CreateView, DeleteView
+from register.models import PlantVariety, PlantVarietyName
 
 
 def seedsample_list(request):
@@ -64,7 +55,9 @@ def cart_change_htmx(request):
     form = CartSelectForm(request.POST, user=request.user)
     if form.is_valid():
         cart = form.save()
-        return TemplateResponse(request, "collect/partials/cart_offcanvas.html", {"cart": cart})
+        return TemplateResponse(
+            request, "collect/partials/cart_offcanvas.html", {"cart": cart}
+        )
     else:
         return HttpResponseBadRequest()
 
@@ -158,3 +151,14 @@ class SeedSampleUpdateView(UpdateView):
 class SeedSampleDeleteView(DeleteView):
     model = SeedSample
     success_url = reverse_lazy("collect:seedsample-list")
+
+
+class SeedSampleListAPI(APIView):
+    """
+    List all snippets, or create a new snippet.
+    """
+
+    def get(self, request, format=None):
+        snippets = SeedSample.objects.all()
+        serializer = SeedSampleSerializer(snippets, many=True)
+        return Response(serializer.data)
