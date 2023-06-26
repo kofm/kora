@@ -1,0 +1,29 @@
+
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Python: Django",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}/manage.py",
+      "autoReload": {
+        "enable": true
+      },
+      "env": {
+        "ALLOWED_HOSTS": "localhost 0.0.0.0 web",
+        "SECRET_KEY" : "h*-rk4sm8my_gummakv(h2qh3po(7u(%wsa454y07@d-cb$#-7",
+        "DEV" : "1",
+        "DB_HOST" : "localhost",
+        "DB_PORT" : "5432",
+        "POSTGRES_PASSWORD" : "postgres",
+        "CSRF_TRUSTED_ORIGINS" : "http://localhost:8000 http://web"
+      },
+      "args": [
+        "runserver",
+        "--noreload"
+      ],
+      "django": true
+    },
+  ]
+}
