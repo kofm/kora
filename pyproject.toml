@@ -8,7 +8,7 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.10"
 django = "^4.2"
-psycopg2 = "^2.9.6"
+psycopg2-binary = "^2.9.6"
 djangorestframework = "^3.14.0"
 django-crispy-forms = "1.14"
 pandas = "^2.0.1"
