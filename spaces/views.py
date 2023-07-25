@@ -6,44 +6,11 @@ from django.urls.base import reverse_lazy
 from django.views.decorators.http import require_http_methods
 from django.views.generic import DetailView, ListView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
-from calculator.models import Crop
-import pandas as pd
-from .utils import get_max_order
-
 from spaces.models import Area, Location
 
 
 class LocationListView(ListView):
     model = Location
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["crop_total_areas"] = self.get_crop_total_areas()
-        return context
-
-    def get_crop_total_areas(self):
-        if Crop.objects.exists():
-            crop_areas = []
-            for crop in Crop.objects.all():
-                species = (
-                    crop.species if not crop.has_variety() else crop.variety.species
-                )
-                crop_areas.append(
-                    {
-                        "y": crop.area.total_area,
-                        "x": str(species),
-                    }
-                )
-            plot_data = (
-                pd.DataFrame(crop_areas)
-                .groupby("x", as_index=False)
-                .sum()
-                .sort_values(by="y", ascending=False)
-                .to_dict(orient="records")
-            )
-            return plot_data
-        else:
-            return None
 
 
 @require_http_methods(
