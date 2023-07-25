@@ -7,9 +7,16 @@ from django.views.decorators.http import require_http_methods
 from django.views.generic import DetailView, ListView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 from spaces.models import Area, Location
+from sortable_cards.views import SortableView
+
+from .utils import get_max_order
 
 
 class LocationListView(ListView):
+    queryset = Location.objects.all().order_by("order", "name")
+
+
+class SortLocation(SortableView):
     model = Location
 
 

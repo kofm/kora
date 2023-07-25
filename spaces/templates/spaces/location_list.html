@@ -1,34 +1,12 @@
 {% extends "frontpage/base.html" %}
 {% load crispy_forms_tags %}
 {% load static %}
+{% load render_cards %}
 {% block title %}Zones{% endblock %}
 
 {% block container %}
-    <h1 class="display-1">Zones</h1>
-    <div class="row">
-        {% for location in object_list %}
-
-            <div class="col-2 border m-3 p-3 rounded-3">
-
-                <h5>
-                    <a class="text-decoration-none
-                        link-dark"
-                        href="{% url 'spaces:location-detail' location.pk  %}">
-                        {{ location.name }}
-                    </a>
-                </h5>
-
-                <div>
-                    <small class="text-muted">Areas: {{ location.area_set.count }}</small>
-                </div>
-
-
-
-            </div>
-        {% endfor %}
-        <div class="col-2 border m-3 p-3 rounded-3 text-center">
-            <a class="text-decoration-none link-dark" href="{% url 'spaces:location-create' %}"><h1 class="bi bi-plus-circle mt-2"></h1></a>
-        </div>
-    </div>
-    </div>
+<h1 class="display-1">Zones</h1>
+<div class="row">
+    {% render_cards object_list "locations" "spaces:location-sort" "spaces/partials/location_card.html" %}
+</div>
 {% endblock %}

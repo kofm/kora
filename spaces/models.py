@@ -1,14 +1,24 @@
 from django.db import models
+from django.urls import reverse
 from django.utils.timezone import now
 
 
 class Location(models.Model):
     name = models.CharField(max_length=30)
+    order = models.PositiveIntegerField(default=0)
     latitude = models.FloatField(blank=True, null=True)
     longitude = models.FloatField(blank=True, null=True)
 
     def __str__(self):
         return self.name
+
+    def get_absolute_url(self):
+        return reverse(
+            "spaces:location-detail",
+            args=[
+                self.pk,
+            ],
+        )
 
 
 class Area(models.Model):
@@ -16,7 +26,9 @@ class Area(models.Model):
     location = models.ForeignKey(Location, on_delete=models.CASCADE)
     length = models.FloatField(help_text="The length of the area, in meters.")
     width = models.FloatField(help_text="The width of the area, in meters.")
-    order = models.PositiveIntegerField(help_text="The ordering of the area within its location")
+    order = models.PositiveIntegerField(
+        help_text="The ordering of the area within its location"
+    )
 
     @property
     def total_area(self):
