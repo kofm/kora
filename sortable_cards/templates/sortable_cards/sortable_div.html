@@ -1,0 +1,29 @@
+{% load static %}
+
+<form hx-post="{% url sort_url %}" hx-trigger="end" hx-swap="none">
+    {% csrf_token %}
+    <div id="{{ element_id }}" class="row">
+        {% for object in object_list %}
+          {% include card_template %}
+        {% endfor %}
+    {% if new_url %}
+      {% include 'sortable_cards/card_new.html' %}
+    {% endif %}
+    </div>
+
+</form>
+
+<script src="{% static 'sortable_cards/sortable-cards.bundle.js' %}"></script>
+
+<script type="text/javascript">
+    htmx.onLoad(function (content) {
+        var sortableCards = content.querySelectorAll("#{{ element_id }}");
+        for (var i = 0; i < sortableCards.length; i++) {
+            var card = sortableCards[i];
+            new Sortable(card, {
+                animation: 150,
+                sort: {{ is_sortable| yesno:"true,false" }}
+      });
+    }
+  });
+</script>
