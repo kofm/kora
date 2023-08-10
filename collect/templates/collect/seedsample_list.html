@@ -12,12 +12,12 @@
 {% endblock %}
 
 {% block title %}
-    Seed Samples
+    Accessions
 {% endblock %}
 
 {% block container %}
 
-    <h1 class="display-1">Seed Samples <a class="btn btn-secondary" href="{% url 'collect:seedsample-create'  %}">Create</a></h1>
+    <h1 class="display-1">Accessions <a class="btn btn-secondary" href="{% url 'collect:seedsample-create'  %}">Create</a></h1>
 
     <form hx-target="div.table-container" hx-swap="outerHTML">
         {% render_field filter.form.query class+="form-control" hx-get="" hx-trigger="keyup changed delay:500ms" _='on focus select() me' placeholder="Type to search..." %}

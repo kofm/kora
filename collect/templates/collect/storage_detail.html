@@ -1,0 +1,14 @@
+{% extends "frontpage/base.html" %}
+
+{% load static %}
+{% load django_tables2 %}
+
+{% block title %}Collect{% endblock %}
+
+{% block container %}
+
+<p class="display-1">Storage {{ object }}</p>
+
+{% render_table table %}
+
+{% endblock %}

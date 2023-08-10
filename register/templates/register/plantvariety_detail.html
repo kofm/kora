@@ -67,7 +67,7 @@
 
     <div class="row mt-5">
         <div class="col">
-            <h2>Seed Samples <a href="{% url 'collect:seedsample-create' %}?variety_id={{ variety.pk }}" class="btn btn-secondary btn-sm">Create</a></h2>
+            <h2>Accessions <a href="{% url 'collect:seedsample-create' %}?variety_id={{ variety.pk }}" class="btn btn-secondary btn-sm">Create</a></h2>
             {% if variety.seedsample_set.count %}
                 {% render_table seedsample_table %}
             {% else %}

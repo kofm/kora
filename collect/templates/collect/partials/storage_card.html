@@ -1,0 +1,15 @@
+<div class="col-2 border m-3 p-3 rounded-3">
+
+    <h5>
+      <a href="{{ object.get_absolute_url }}" class="link-dark text-decoration-none">
+        {{ object }}
+      </a>
+    </h5>
+
+    <h6 class="card-subtitle mb-2 text-muted">
+      Slots: {{ object.available_positions }}/{{ object.total_positions }}
+    </h6>
+
+    <input type="hidden" name="order" value="{{ object.pk }}">
+
+</div>

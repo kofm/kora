@@ -1,12 +1,11 @@
 from django import forms
-from django.contrib.auth.models import User
 from django.forms.widgets import HiddenInput
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy as _
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Submit
 
-from collect.models import Cart, CartItem, Germinability, SampleWeight, SeedSample
+from collect.models import Cart, CartItem, Germinability, SampleWeight, SeedSample, Storage
 
 
 class SeedSampleForm(forms.ModelForm):
@@ -183,4 +182,11 @@ class CartForm(forms.ModelForm):
     """
     class Meta:
         model = Cart
+        fields = ("name", )
+
+class StorageCreateForm(forms.ModelForm):
+    positions = forms.IntegerField(min_value=1, label="Number of available slots in this container")
+
+    class Meta:
+        model = Storage
         fields = ("name", )

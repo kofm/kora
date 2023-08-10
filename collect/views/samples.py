@@ -3,11 +3,16 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from collect.filters import SeedSampleFilter
-from collect.forms import (CartSelectForm, GerminabilityForm, SampleWeightForm,
-                           SeedSampleForm)
-from collect.models import SeedSample, StoragePosition
+from collect.forms import (
+    CartSelectForm,
+    GerminabilityForm,
+    SampleWeightForm,
+    SeedSampleForm,
+    StorageCreateForm,
+)
+from collect.models import SeedSample, Storage, StoragePosition
 from collect.serializers import SeedSampleSerializer
-from collect.tables import SeedSampleDuplicatesTable, SeedSampleTable
+from collect.tables import SeedSampleDuplicatesTable, SeedSampleInStorageTable, SeedSampleTable
 from django.contrib.auth.decorators import login_required
 from django.db.models import IntegerField, Q, Value
 from django.db.models.functions import Cast, Concat
@@ -17,9 +22,10 @@ from django.template.response import TemplateResponse
 from django.urls import reverse, reverse_lazy
 from django.utils.timezone import now
 from django.views.decorators.http import require_POST
-from django.views.generic import UpdateView
+from django.views.generic import DetailView, ListView, UpdateView
 from django.views.generic.edit import CreateView, DeleteView
 from register.models import PlantVariety, PlantVarietyName
+from sortable_cards.views import SortableView
 
 
 def seedsample_list(request):
@@ -162,3 +168,50 @@ class SeedSampleListAPI(APIView):
         snippets = SeedSample.objects.all()
         serializer = SeedSampleSerializer(snippets, many=True)
         return Response(serializer.data)
+
+
+class StorageListView(ListView):
+    """
+    View to display and sort Storage objects
+    """
+
+    queryset = Storage.objects.all().order_by("order", "pk")
+
+class StorageDetailView(DetailView):
+    model = Storage
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        storage_positions = self.object.storageposition_set.all()
+        seed_samples = SeedSample.objects.filter(position__in=storage_positions).select_related('variety')
+        table = SeedSampleInStorageTable(seed_samples)
+        RequestConfig(self.request, paginate={'per_page': 10}).configure(table)
+        context['table'] = table
+        return context
+
+class StorageSortView(SortableView):
+    """
+    Endpoint for sorting Storage objects via htmx
+    """
+
+    model = Storage
+
+
+class StorageCreateView(CreateView):
+    """
+    View to create a new Storage object
+    """
+
+    model = Storage
+    form_class = StorageCreateForm
+
+    def form_valid(self, form):
+        # Save the Storage object
+        storage = form.save()
+
+        # Create the specified number of StoragePosition objects
+        positions_count = form.cleaned_data['positions']
+        for i in range(positions_count):
+            StoragePosition.objects.create(name=f'{i + 1}', storage=storage)
+
+        return super().form_valid(form)

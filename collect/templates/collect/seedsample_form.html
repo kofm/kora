@@ -2,12 +2,12 @@
 {% load crispy_forms_tags %}
 {% load static %}
 {% block title %}
-    {% if object %}Seed sample {{ object.sample_id }}: {{ object.variety.name }}{% else %}New sample{% endif %}
+    {% if object %}Accession {{ object.sample_id }}: {{ object.variety.name }}{% else %}New accession{% endif %}
 {% endblock %}
 
 {% block container %}
 
-    <h5 class="display-5">{% if object.variety.name %}Seed Sample: <small class="text-muted">{{ object.variety.name }}{% else %}New sample{% endif %}</small></h1>
+    <h5 class="display-5">{% if object.variety.name %}Accession: <small class="text-muted">{{ object.variety.name }}{% else %}New sample{% endif %}</small></h1>
 
     {{ varieties|json_script:"varieties-data" }}
     {{ positions|json_script:"positions-data" }}

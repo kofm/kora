@@ -1,37 +1,25 @@
 {% extends "frontpage/base.html" %}
 
 {% load static %}
+{% load render_cards %}
 
-{% block title %}Calculator{% endblock %}
+{% block title %}Collect{% endblock %}
 
 {% block container %}
 
 <p class="display-1">Storage</p>
-<a class="btn btn-primary ms-2" href="{% url 'collect:storage-create' %}">Create</a>
-<!-- <form method="get"> -->
-<!--   <div class="input-group mb-3"> -->
-<!--     <input name="search" type="text" class="form-control" placeholder="Search samples" aria-label="Search samples" aria-describedby="button-addon2"> -->
-<!--     <button class="btn btn-outline-secondary" type="button" id="button-addon2">Search</button> -->
-<!--   </div> -->
-<!-- </form> -->
+
 {% if object_list %}
-<table class="table table-striped table-hover">
-  <thead>
-    <th scope="col">ID</td>
-    <th scope="col">Samples</td>
-    <th scope="col">Empty slots</td>
-    <th scope="col"></td>
-  </thead>
-  {% for storage in page_obj %}
-  <tr>
-    <td>{{ storage.name }}</td>
-    <td>{{ storage.stored_samples }}</td>
-    <td>{{ storage.available_positions }}/{{ storage.storageposition_set.count }}</td>
-  </tr>
-  {% endfor %}
-</table>
-{% include 'frontpage/paginator.html' with page=page_obj pagevar='page' %}
+
+<div class="row">
+    <div class="col">
+        {% render_cards object_list "storage" "collect:storage-sort" "collect/partials/storage_card.html" "collect:storage-create" %}
+    </div>
+</div>
+
 {% else %}
+
 <p class="mt-5">There are no stored seed samples corresponding to your query.</p>
+
 {% endif %}
 {% endblock %}

@@ -76,3 +76,22 @@ class SeedSampleDuplicatesTable(tables.Table, SeedSampleTableMixin):
             "notes",
         )
         empty_text = "There are no seed samples to be displayed."
+
+
+class SeedSampleInStorageTable(tables.Table, SeedSampleTableMixin):
+    orderable = False
+    sample_id = tables.Column(linkify=True)
+    weight = tables.Column('Weight', orderable=False)
+    germinability = tables.Column(verbose_name="Germinability")
+
+    class Meta:
+        model = SeedSample
+        fields = (
+            "sample_id",
+            "variety",
+            "weight",
+            "germinability",
+            "growing_season",
+            "notes",
+        )
+        empty_text = "There are no seed samples to be displayed."

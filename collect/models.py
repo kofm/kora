@@ -1,11 +1,11 @@
+from django.contrib.auth.models import User
 from django.db import models
 from django.db.models.constraints import UniqueConstraint
 from django.db.models.query_utils import Q
 from django.urls import reverse
 from django.utils.timezone import now
-
 from register.models import PlantVariety
-from django.contrib.auth.models import User
+
 
 class Storage(models.Model):
     """
@@ -15,6 +15,7 @@ class Storage(models.Model):
     """
 
     name = models.CharField(max_length=200, unique=True)
+    order = models.PositiveIntegerField(default=0)
 
     class Meta:
         ordering = ["name"]
@@ -23,7 +24,11 @@ class Storage(models.Model):
         return self.name
 
     def get_absolute_url(self):
-        return reverse("collect:seedsample-list")
+        return reverse("collect:storage-detail", args=(self.pk, ))
+
+    @property
+    def total_positions(self):
+        return self.storageposition_set.count()
 
     @property
     def available_positions(self):
@@ -46,7 +51,7 @@ class SeedSample(models.Model):
     sample_id = models.PositiveIntegerField(
         verbose_name="ID",
         help_text="An unique identificative number of the seed sample",
-        unique=True
+        unique=True,
     )
     variety = models.ForeignKey(PlantVariety, on_delete=models.PROTECT)
     notes = models.CharField(
@@ -92,9 +97,8 @@ class SeedSample(models.Model):
     def duplicate_samples(self):
         return SeedSample.objects.filter(variety=self.variety).exclude(pk=self.pk)
 
-
     def __str__(self):
-        return f'#{self.sample_id} - {self.variety.name} ({self.growing_season})'
+        return f"#{self.sample_id} - {self.variety.name} ({self.growing_season})"
 
 
 class Germinability(models.Model):
@@ -122,12 +126,16 @@ class SampleWeight(models.Model):
             "created_at",
         ]
 
+
 class CartManager(models.Manager):
     def active(self):
         return self.filter(active=True).last()
 
+
 class Cart(models.Model):
-    name = models.CharField(help_text="An identificative name for your cart", max_length=100, default="Cart")
+    name = models.CharField(
+        help_text="An identificative name for your cart", max_length=100, default="Cart"
+    )
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="carts")
     active = models.BooleanField(default=False)
     created_at = models.DateField(auto_now_add=True)
@@ -139,12 +147,18 @@ class Cart(models.Model):
 
     class Meta:
         constraints = [
-            UniqueConstraint(fields=['user',], condition=Q(active=True), name='unique_user_active')
+            UniqueConstraint(
+                fields=[
+                    "user",
+                ],
+                condition=Q(active=True),
+                name="unique_user_active",
+            )
         ]
         ordering = ["-active", "name"]
 
     def get_absolute_url(self):
-        return reverse('collect:cart-detail', args=[self.pk])
+        return reverse("collect:cart-detail", args=[self.pk])
 
 
 class CartItem(models.Model):

@@ -1,14 +1,25 @@
 {% extends "frontpage/base.html" %}
+
 {% load crispy_forms_tags %}
 {% load static %}
+
 {% block title %}{{ sample.variety.name }}{% endblock %}
+
 {% block container %}
+
 <h5 class="display-5">New storage</h1>
+
 <form method="post">
+
   {% csrf_token %}
+
   {{ form|crispy }}
+
   <button name="btn-save" type="submit" class="btn btn-outline-primary mt-3">Save</button>
   <button name="btn-another" type="submit" class="btn btn-outline-primary mt-3">Save & +1</button>
+
   <a class="btn btn-outline-secondary mt-3" type="submit" href="{% url 'collect:seedsample-list'  %}">Cancel</a>
+
 </form>
+
 {% endblock %}

@@ -18,3 +18,4 @@ __pycache__
 .ipython/profile_default
 .kitty-session
 .pyenv
+.envrc
