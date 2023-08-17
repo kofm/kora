@@ -20,24 +20,74 @@
 </nav>
 <!-- Navigation bar -->
 
-<h1>
-    {{ protection.get_type_display }} for {{ protection.variety }} ({{ protection.variety.species }})
-    <a class="text-decoration-none link-dark" href="{% url 'register:protection-update' protection.pk %}">
-        <i class="bi bi-pencil-square" style="font-size:2rem"></i>
-    </a>
-    <a class="text-decoration-none link-dark" href="{% url 'register:protection-create' protection.variety.pk %}?duplicate={{ protection.pk }}">
-        <i class="bi bi-file-earmark-plus" style="font-size:2rem"></i>
-    </a>
-</h1>
+<div class="card">
+    <div class="card-header">
+        <h4 class="card-title">
+            {{ protection.get_type_display }} for {{ protection.variety }} ({{ protection.variety.species }})
+            <a class="text-decoration-none link-dark" href="{% url 'register:protection-update' protection.pk %}">
+                <i class="bi bi-pencil-square" style="font-size:1rem"></i>
+            </a>
+            <a class="text-decoration-none link-dark"
+                href="{% url 'register:protection-create' protection.variety.pk %}?duplicate={{ protection.pk }}">
+                <i class="bi bi-file-earmark-plus" style="font-size:1rem"></i>
+            </a>
+        </h4>
+        {% if protection.status %}
+        <h6 class="card-subtitle mb-2 text-body-secondary">{{ protection.get_status_display }}</h6>
+        {% endif %}
+    </div>
+    <div class="card-body">
+        <div class="row mt-1">
+            <div class="col-md-6">
+                <h6>Applicant</h6>
+                <p class="card-text" id="applicant">
+                    {% if protection.applicant %}
+                    <a href="{% url 'register:entity-detail' protection.applicant.pk %}">
+                        {{ protection.applicant }}
+                    </a>
+                    {% endif %}
+                </p>
+            </div>
+            <div class="col-md-6">
+                <h6>Maintainer</h6>
+                <p class="card-text" id="maintainer">
+                    {% if protection.maintainer %}
+                    <a href="{% url 'register:entity-detail' protection.maintainer.pk %}">
+                        {{ protection.maintainer }}
+                    </a>
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <h6>Issued On</h6>
+                            <p class="card-text" id="issued-on">
+                              {{ protection.date_start }}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Ended On</h6>
+                            <p class="card-text" id="ended-on">
+                              {{ protection.date_end|default_if_none:"-" }}
+                            </p>
+                        </div>
+                    </div>
 
-<ul>
-  {% if protection.applicant %}<li>Applicant: <a href="{% url 'register:entity-detail' protection.applicant.pk %}">{{ protection.applicant }}</a></li>{% endif %}
-  {% if protection.maintainer %}<li>Maintainer: <a href="{% url 'register:entity-detail' protection.maintainer.pk %}">{{ protection.maintainer }}</a></li>{% endif %}
-  <li>Issued on: {{ protection.date_start }}</li>
-  <li>Reference ID: {{ protection.reference|default_if_none:"" }}</li>
-  <li>In: {{ protection.country.name }}</li>
-  {% if protection.date_end %}
-  <li>Ended on: {{ protection.date_end }}</li>
-  {% endif %}
-</ul>
-{% endblock %}
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <h6>Country</h6>
+                            <p class="card-text" id="country">
+                              {{ protection.country.name }} ({{ protection.country.code }})
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Reference ID</h6>
+                            <p class="card-text" id="reference-id">
+                              {{ protection.reference|default_if_none:"-" }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                </div>
+                {% endblock %}
