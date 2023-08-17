@@ -1,10 +1,15 @@
 {% extends "frontpage/base.html" %}
 {% load crispy_forms_tags %}
 {% load static %}
-{% block title %}{{ protection.type }} for {{ protection.variety }} ({{ protection.variety.species }}){% endblock %}
+{% block title %}
+
+  {{ protection.type }} for {{ protection.variety }} ({{ protection.variety.species }})
+
+{% endblock %}
 
 {% block container %}
 
+<!-- Navigation bar -->
 <nav aria-label="breadcrumb">
   <ol class="breadcrumb">
     <li class="breadcrumb-item"><a href="{% url 'register:plantspecies-list' %}">Species</a></li>
@@ -13,13 +18,18 @@
     <li class="breadcrumb-item active" aria-current="page">{{ protection.type }}</li>
   </ol>
 </nav>
+<!-- Navigation bar -->
 
 <h1>
-  {{ protection.get_type_display }} for {{ protection.variety }} ({{ protection.variety.species }})
-  <a class="text-decoration-none link-dark" href="{% url 'register:protection-update' protection.pk %}">
-    <i class="bi bi-pencil-square" style="font-size:2rem"></i>
-</a>
+    {{ protection.get_type_display }} for {{ protection.variety }} ({{ protection.variety.species }})
+    <a class="text-decoration-none link-dark" href="{% url 'register:protection-update' protection.pk %}">
+        <i class="bi bi-pencil-square" style="font-size:2rem"></i>
+    </a>
+    <a class="text-decoration-none link-dark" href="{% url 'register:protection-create' protection.variety.pk %}?duplicate={{ protection.pk }}">
+        <i class="bi bi-file-earmark-plus" style="font-size:2rem"></i>
+    </a>
 </h1>
+
 <ul>
   {% if protection.applicant %}<li>Applicant: <a href="{% url 'register:entity-detail' protection.applicant.pk %}">{{ protection.applicant }}</a></li>{% endif %}
   {% if protection.maintainer %}<li>Maintainer: <a href="{% url 'register:entity-detail' protection.maintainer.pk %}">{{ protection.maintainer }}</a></li>{% endif %}

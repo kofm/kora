@@ -11,5 +11,6 @@
   {% csrf_token %}
   {{ form|crispy }}
   <button class="btn btn-primary my-3">Confirm</button>
+<a href="{% url 'register:plantvariety-detail' variety.pk %}" class="btn btn-secondary">Cancel</a>
 </form>
 {% endblock %}

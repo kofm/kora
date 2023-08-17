@@ -13,6 +13,7 @@ from django.template.response import TemplateResponse
 from django.urls.base import reverse, reverse_lazy
 from django.views.generic import CreateView, DetailView, ListView
 from django.views.generic.edit import DeleteView, UpdateView
+from describe.views.protocol import NavActiveDescribe
 from frontpage.decorators import NavActive, nav_active
 from parameters.forms import SpeciesParameterForm, VarietalParameterForm
 from register.tables import EntityTable, PlantVarietyEntityTable, ProtectionTable
@@ -295,7 +296,22 @@ def protection_create(request, variety_id):
             instance.variety = variety
             instance.save()
             return redirect(instance.get_absolute_url())
-    form = ProtectionForm()
+    duplicate_id = request.GET.get("duplicate")
+    if duplicate_id:
+        try:
+            protection_to_duplicate = Protection.objects.get(pk=duplicate_id)
+            initial = {}
+            initial['status'] = protection_to_duplicate.status
+            initial['country'] = protection_to_duplicate.country
+            initial['applicant'] = protection_to_duplicate.applicant
+            initial['maintainer'] = protection_to_duplicate.maintainer
+            initial['date_start'] = protection_to_duplicate.date_start
+            initial['date_end'] = protection_to_duplicate.date_end
+            form = ProtectionForm(initial=initial)
+        except Protection.DoesNotExist:
+            pass
+    else:
+        form = ProtectionForm()
     return TemplateResponse(
         request,
         "register/protection_form.html",
