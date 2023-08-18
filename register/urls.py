@@ -12,7 +12,7 @@ urlpatterns = [
     ),
     path(
         "species/<int:pk>",
-        views.PlantSpeciesDetail.as_view(),
+        views.PlantSpeciesDetailView.as_view(),
         name="plantspecies-detail",
     ),
     path(

@@ -16,7 +16,8 @@ from django.views.generic.edit import DeleteView, UpdateView
 from describe.views.protocol import NavActiveDescribe
 from frontpage.decorators import NavActive, nav_active
 from parameters.forms import SpeciesParameterForm, VarietalParameterForm
-from register.tables import EntityTable, PlantVarietyEntityTable, ProtectionTable
+from register.filters import PlantVarietyFilter
+from register.tables import EntityTable, PlantVarietyEntityTable, PlantVarietyTable, ProtectionTable
 
 from .forms import PlantSpeciesForm, PlantVarietyForm, ProtectionForm
 from .models import Entity, PlantSpecies, PlantVariety, PlantVarietyName, Protection
@@ -108,6 +109,21 @@ class PlantSpeciesDetail(NavActivePlants, DetailView):
         page_range = paginator.get_elided_page_range(number=page)
         return varieties, page_range
 
+class PlantSpeciesDetailView(NavActivePlants, DetailView):
+    model = PlantSpecies
+    context_object_name = "species"
+    template_name = "register/plantspecies_detailn.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        filter = PlantVarietyFilter(self.request.GET, queryset=self.object.variety.all())
+        count = filter.qs.count()
+        table = PlantVarietyTable(filter.qs)
+        RequestConfig(self.request, paginate={"per_page": 25}).configure(table)
+        context['table'] = table
+        context['filter'] = filter
+        context['count'] = count
+        return context
 
 class PlantSpeciesParametersList(NavActivePlants, DetailView):
     model = PlantSpecies

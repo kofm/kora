@@ -1,0 +1,70 @@
+{% extends "frontpage/base.html" %}
+
+{% load render_table from django_tables2 %}
+{% load crispy_forms_tags %}
+
+{% block javascript %}
+<style>
+    .toggle-icon {
+        cursor: pointer;
+    }
+</style>
+
+{% endblock %}
+
+{% block title %}{{ species.common_name }}{% endblock %}
+
+{% block container %}
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'register:plantspecies-list' %}">Species</a></li>
+        <li class="breadcrumb-item"><i>{{ species.latin_name }}</i></li>
+    </ol>
+</nav>
+
+<h1 class="display-1">
+    {{ species.common_name }} <small class="text-muted">(<i>{{ species.latin_name }}</i>)</small>
+    <a class="text-decoration-none link-dark" href="{% url 'register:plantspecies-update' species.pk %}">
+        <i class="bi bi-pencil-square" style="font-size:2rem"></i>
+    </a>
+</h1>
+
+{% if filter %}
+Filter
+<i class="bi bi-caret-right-fill toggle-icon" data-bs-toggle="collapse" data-bs-target="#filter-form" id="icon-closed"></i>
+<i class="bi bi-caret-down-fill toggle-icon d-none" data-bs-toggle="collapse" data-bs-target="#filter-form" id="icon-open"></i>
+<div class="row mb-2">
+
+    <div class="card">
+        <form id="filter-form" method="get" class="form collapse">
+            {{ filter.form|crispy }}
+            <button type="submit" class="btn btn-primary my-3">Submit</button>
+            <a href="{% url 'register:plantspecies-detail' species.pk %}"
+                class="btn btn-outline-secondary my-3">Reset</a>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.querySelectorAll('.toggle-icon').forEach(function (icon) {
+        icon.addEventListener('click', function () {
+            var iconOpen = document.getElementById('icon-open');
+            var iconClosed = document.getElementById('icon-closed');
+
+            if (iconOpen.classList.contains('d-none')) {
+                iconOpen.classList.remove('d-none');
+                iconClosed.classList.add('d-none');
+            } else {
+                iconOpen.classList.add('d-none');
+                iconClosed.classList.remove('d-none');
+            }
+        });
+    });
+</script>
+<p>Matches: {{ count }}</p>
+{% endif %}
+
+{% render_table table %}
+
+{% endblock %}

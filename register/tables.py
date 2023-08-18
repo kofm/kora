@@ -1,8 +1,13 @@
+from django.utils.safestring import mark_safe
 import django_tables2 as tables
 from django_tables2 import columns
 from django.utils.html import format_html
+from collect.models import SeedSample
+from describe.models import Description
 
-from register.models import Entity, Protection
+from parameters.models import VarietalParameter
+
+from register.models import Entity, PlantVariety, Protection
 
 class CountryRenderer:
     def render_country(self, record):
@@ -28,3 +33,39 @@ class PlantVarietyEntityTable(tables.Table):
     class Meta:
         model = Entity
         fields = ['name', 'species', 'country']
+
+def render_icon(value):
+    if value:
+        icon = "bi-check"
+    else:
+        icon = "bi-dash"
+    return format_html('<i class="bi {}"></i>', icon)
+
+class PlantVarietyTable(tables.Table):
+    name = tables.Column(linkify=True)
+    described = tables.Column(empty_values=(), verbose_name="Described", orderable=False)
+    accessions = tables.Column(empty_values=(), verbose_name="Accessions", orderable=False)
+    enlisted = tables.Column(empty_values=(), verbose_name="CAT", orderable=False)
+    protected = tables.Column(empty_values=(), verbose_name="PBR", orderable=False)
+
+    class Meta:
+        model = PlantVariety
+        fields = ('name', 'breeder', )
+
+
+    def render_protected(self, record):
+        protected = Protection.objects.filter(variety=record, type="PBR", status="G").exists()
+        return render_icon(protected)
+
+    def render_enlisted(self, record):
+        enlisted = Protection.objects.filter(variety=record, type__in=["CAT", "NLI"], status="G").exists()
+        return render_icon(enlisted)
+
+    def render_described(self, record):
+        described = Description.objects.filter(variety=record).exists()
+        return render_icon(described)
+
+
+    def render_accessions(self, record):
+        accessions = SeedSample.objects.filter(variety=record).exists()
+        return render_icon(accessions)
