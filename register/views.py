@@ -351,7 +351,17 @@ def protection_update(request, pk):
         form = ProtectionForm(instance=protection)
         context["form"] = form
         context["protection"] = protection
+        context["variety"] = protection.variety
     return TemplateResponse(request, "register/protection_form.html", context)
+
+
+class ProtectionDeleteView(DeleteView):
+    model = Protection
+
+    def get_success_url(self):
+        return reverse_lazy(
+            "register:plantvariety-detail", args=[self.object.variety.pk]
+        )
 
 
 class ProtectionDetailView(NavActivePlants, DetailView):

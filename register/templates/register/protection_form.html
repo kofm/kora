@@ -4,9 +4,16 @@
 {% block title %}Create Protection ({{ variety }}){% endblock %}
 
 {% block container %}
+{% if protection %}
+<h1 class="display-1">
+
+  Update {{ protection.type }} Protection <small class="text-muted">({{ variety }})</small>
+</h1>
+{% else %}
 <h1 class="display-1">
   Create Protection <small class="text-muted">({{ variety }})</small>
 </h1>
+{% endif %}
 <form action="" method="POST">
   {% csrf_token %}
   {{ form|crispy }}

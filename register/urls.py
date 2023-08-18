@@ -84,6 +84,9 @@ urlpatterns = [
         "protection/<int:pk>/update", views.protection_update, name="protection-update"
     ),
     path(
+        "protection/<int:pk>/delete", views.ProtectionDeleteView.as_view(), name="protection-delete"
+    ),
+    path(
         "variety/<int:variety_id>/protection/create",
         views.protection_create,
         name="protection-create",
