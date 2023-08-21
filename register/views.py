@@ -13,14 +13,21 @@ from django.template.response import TemplateResponse
 from django.urls.base import reverse, reverse_lazy
 from django.views.generic import CreateView, DetailView, ListView
 from django.views.generic.edit import DeleteView, UpdateView
-from describe.views.protocol import NavActiveDescribe
 from frontpage.decorators import NavActive, nav_active
 from parameters.forms import SpeciesParameterForm, VarietalParameterForm
 from register.filters import PlantVarietyFilter
-from register.tables import EntityTable, PlantVarietyEntityTable, PlantVarietyTable, ProtectionTable
+from register.serializers import EntitySerializer
+from register.tables import (
+    EntityTable,
+    PlantVarietyEntityTable,
+    PlantVarietyTable,
+    ProtectionTable,
+)
+from rest_framework import viewsets
 
 from .forms import PlantSpeciesForm, PlantVarietyForm, ProtectionForm
 from .models import Entity, PlantSpecies, PlantVariety, PlantVarietyName, Protection
+
 
 CharField.register_lookup(Lower)
 
@@ -109,6 +116,7 @@ class PlantSpeciesDetail(NavActivePlants, DetailView):
         page_range = paginator.get_elided_page_range(number=page)
         return varieties, page_range
 
+
 class PlantSpeciesDetailView(NavActivePlants, DetailView):
     model = PlantSpecies
     context_object_name = "species"
@@ -116,14 +124,17 @@ class PlantSpeciesDetailView(NavActivePlants, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        filter = PlantVarietyFilter(self.request.GET, queryset=self.object.variety.all())
+        filter = PlantVarietyFilter(
+            self.request.GET, queryset=self.object.variety.all()
+        )
         count = filter.qs.count()
         table = PlantVarietyTable(filter.qs)
         RequestConfig(self.request, paginate={"per_page": 25}).configure(table)
-        context['table'] = table
-        context['filter'] = filter
-        context['count'] = count
+        context["table"] = table
+        context["filter"] = filter
+        context["count"] = count
         return context
+
 
 class PlantSpeciesParametersList(NavActivePlants, DetailView):
     model = PlantSpecies
@@ -317,12 +328,12 @@ def protection_create(request, variety_id):
         try:
             protection_to_duplicate = Protection.objects.get(pk=duplicate_id)
             initial = {}
-            initial['status'] = protection_to_duplicate.status
-            initial['country'] = protection_to_duplicate.country
-            initial['applicant'] = protection_to_duplicate.applicant
-            initial['maintainer'] = protection_to_duplicate.maintainer
-            initial['date_start'] = protection_to_duplicate.date_start
-            initial['date_end'] = protection_to_duplicate.date_end
+            initial["status"] = protection_to_duplicate.status
+            initial["country"] = protection_to_duplicate.country
+            initial["applicant"] = protection_to_duplicate.applicant
+            initial["maintainer"] = protection_to_duplicate.maintainer
+            initial["date_start"] = protection_to_duplicate.date_start
+            initial["date_end"] = protection_to_duplicate.date_end
             form = ProtectionForm(initial=initial)
         except Protection.DoesNotExist:
             pass
@@ -396,3 +407,8 @@ def entity_list(request):
     RequestConfig(request, paginate={"per_page": 25}).configure(table)
     context["table"] = table
     return TemplateResponse(request, "register/entity_list.html", context)
+
+
+class EntityViewSet(viewsets.ModelViewSet):
+    queryset = Entity.objects.all()
+    serializer_class = EntitySerializer
