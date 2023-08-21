@@ -8,7 +8,7 @@ from django.core.paginator import Paginator
 from django.db.models import CharField, Count, F, Window
 from django.db.models.functions import Lag, Lead, Lower
 from django.http.response import HttpResponseRedirect, JsonResponse
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.urls.base import reverse, reverse_lazy
 from django.views.generic import CreateView, DetailView, ListView
@@ -16,7 +16,6 @@ from django.views.generic.edit import DeleteView, UpdateView
 from frontpage.decorators import NavActive, nav_active
 from parameters.forms import SpeciesParameterForm, VarietalParameterForm
 from register.filters import PlantVarietyFilter
-from register.serializers import EntitySerializer
 from register.tables import (
     EntityTable,
     PlantVarietyEntityTable,
@@ -401,14 +400,7 @@ class EntityUpdateView(NavActivePlants, UpdateView):
 @nav_active_plants
 def entity_list(request):
     context = {}
-    # queryset = Entity.objects.all()
-    # context["object_list"] = queryset
     table = EntityTable(Entity.objects.all())
     RequestConfig(request, paginate={"per_page": 25}).configure(table)
     context["table"] = table
     return TemplateResponse(request, "register/entity_list.html", context)
-
-
-class EntityViewSet(viewsets.ModelViewSet):
-    queryset = Entity.objects.all()
-    serializer_class = EntitySerializer

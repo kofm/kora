@@ -1,6 +1,5 @@
 from describe import views as describe_views
 from django.urls import path
-from rest_framework.routers import DefaultRouter
 
 from . import views
 
@@ -104,8 +103,3 @@ urlpatterns = [
         name="plantvariety-update",
     ),
 ]
-
-router = DefaultRouter()
-router.register(r"api/entities", views.EntityViewSet)
-
-urlpatterns += router.urls

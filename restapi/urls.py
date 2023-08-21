@@ -6,8 +6,9 @@ from . import views
 app_name = "restapi"
 
 router = routers.DefaultRouter()
-router.register(r"crops", views.CropViewSet)
+router.register(r"species", views.CropViewSet)
 router.register(r"varieties", views.PlantVarietyViewSet)
+router.register(r"entities", views.EntityViewSet)
 
 urlpatterns = [
     path("", include(router.urls)),

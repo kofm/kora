@@ -1,7 +1,8 @@
 from rest_framework import serializers
 
 from parameters.models import SpeciesParameter
-from register.models import PlantSpecies, PlantVariety, PlantVarietyName
+from register.models import Entity, PlantSpecies, PlantVariety, PlantVarietyName, Protection
+
 
 class SpeciesParamSerializer(serializers.ModelSerializer):
     name = serializers.StringRelatedField(many=False, source="parameter")
@@ -9,6 +10,7 @@ class SpeciesParamSerializer(serializers.ModelSerializer):
     class Meta:
         model = SpeciesParameter
         fields = ["name", "value"]
+
 
 class PlantSpeciesSerializer(serializers.ModelSerializer):
     speciesparameter = SpeciesParamSerializer(
@@ -19,13 +21,33 @@ class PlantSpeciesSerializer(serializers.ModelSerializer):
         model = PlantSpecies
         fields = ["common_name", "latin_name", "speciesparameter"]
 
+
 class PlantVarietyNameSerializer(serializers.ModelSerializer):
     class Meta:
         model = PlantVarietyName
-        fields = ['name', ]
+        fields = [
+            "name",
+        ]
+
 
 class PlantVarietySerializer(serializers.ModelSerializer):
-    names = PlantVarietyNameSerializer(many = True, read_only=True)
+    species = serializers.StringRelatedField(many=False)
+    names = PlantVarietyNameSerializer(many=True, read_only=True)
+
     class Meta:
         model = PlantVariety
-        fields = ['id', 'name', 'names']
+        fields = ["id", "species", "name", "names"]
+
+
+class EntitySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Entity
+        fields = "__all__"
+
+
+class ProtectionSerializer(serializers.ModelSerializer):
+    species = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = Protection
+        fields = "__all__"
