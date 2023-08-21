@@ -43,14 +43,17 @@
     <div class="card-body">
         <div class="row mt-1">
             <div class="col-md-6">
-                <h6>Applicant</h6>
+                {% with applicants=protection.applicants.all %}
+                <h6>Applicant{{ applicants|pluralize }}</h6>
                 <p class="card-text" id="applicant">
-                    {% if protection.applicant %}
-                    <a href="{% url 'register:entity-detail' protection.applicant.pk %}">
-                        {{ protection.applicant }}
-                    </a>
-                    {% endif %}
+                    {% for applicant in applicants %}
+                        <a href="{% url 'register:entity-detail' applicant.pk %}">
+                            {{ applicant }}
+                        </a><br />
+                {% empty %}
+                {% endfor %}
                 </p>
+                {% endwith %}
             </div>
             <div class="col-md-6">
                 <h6>Maintainer</h6>
@@ -92,5 +95,5 @@
             </div>
         </div>
     </div>
-</div>
-{% endblock %}
+    </div>
+    {% endblock %}

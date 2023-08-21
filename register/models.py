@@ -155,12 +155,10 @@ class Protection(models.Model):
     country = CountryField()
     variety = models.ForeignKey(PlantVariety, on_delete=models.CASCADE)
     reference = models.CharField(max_length=100, blank=True, null=True)
-    applicant = models.ForeignKey(
+    applicants = models.ManyToManyField(
         Entity,
-        on_delete=models.PROTECT,
         related_name="applicants",
         blank=True,
-        null=True,
     )
     maintainer = models.ForeignKey(
         Entity,
