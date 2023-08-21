@@ -34,6 +34,9 @@ class Entity(models.Model):
     def __str__(self):
         return self.name
 
+    class Meta:
+        ordering = ("name",)
+
 
 class PlantSpecies(models.Model):
     common_name = models.CharField(max_length=100, unique=True)
