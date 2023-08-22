@@ -1,7 +1,7 @@
 from rest_framework import viewsets
 
-from register.models import Entity, PlantSpecies, PlantVariety
-from restapi.serializers import EntitySerializer, PlantSpeciesSerializer, PlantVarietySerializer
+from register.models import Entity, PlantSpecies, PlantVariety, Protection
+from restapi.serializers import EntitySerializer, PlantSpeciesSerializer, PlantVarietySerializer, ProtectionSerializer
 
 
 class CropViewSet(viewsets.ModelViewSet):
@@ -21,3 +21,7 @@ class PlantVarietyViewSet(viewsets.ModelViewSet):
 class EntityViewSet(viewsets.ModelViewSet):
     queryset = Entity.objects.all()
     serializer_class = EntitySerializer
+
+class ProtectionViewSet(viewsets.ModelViewSet):
+    queryset = Protection.objects.all()
+    serializer_class = ProtectionSerializer

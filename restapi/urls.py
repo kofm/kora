@@ -9,6 +9,7 @@ router = routers.DefaultRouter()
 router.register(r"species", views.CropViewSet)
 router.register(r"varieties", views.PlantVarietyViewSet)
 router.register(r"entities", views.EntityViewSet)
+router.register(r"protections", views.ProtectionViewSet)
 
 urlpatterns = [
     path("", include(router.urls)),
