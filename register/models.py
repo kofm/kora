@@ -11,7 +11,7 @@ class Entity(models.Model):
     COOPERATIVE = "CP"
     ENTITY_TYPE_CHOICES = [
         (INDIVIDUAL, "Individual"),
-        (PARTNERSHIP, "Parnership"),
+        (PARTNERSHIP, "Partnership"),
         (COMPANY, "Company"),
         (COOPERATIVE, "Cooperative"),
     ]
@@ -155,7 +155,7 @@ class Protection(models.Model):
     status = models.CharField(
         max_length=1, blank=True, null=True, choices=PROTECTION_STATUS_CHOICES
     )
-    country = CountryField()
+    country = CountryField(null=True)
     variety = models.ForeignKey(PlantVariety, on_delete=models.CASCADE)
     reference = models.CharField(max_length=100, blank=True, null=True)
     applicants = models.ManyToManyField(

@@ -1,5 +1,6 @@
 from django import forms
 from django.forms import widgets
+from django_countries.fields import CountryField
 
 from .models import PlantSpecies, PlantVariety, PlantVarietyName, Protection
 
@@ -23,6 +24,7 @@ class PlantVarietyNameForm(forms.ModelForm):
         fields = ['name', ]
 
 class ProtectionForm(forms.ModelForm):
+    country = CountryField(blank=True).formfield()
     class Meta:
         model = Protection
         exclude = ('variety', )

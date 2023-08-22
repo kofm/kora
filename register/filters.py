@@ -23,6 +23,24 @@ PROTECTION_STATUS_CHOICES = [
     ("R", "Refused"),
 ]
 
+def filter_name_generic(queryset, name, value):
+    lookup_icontains = "__".join([name, "unaccent__icontains"])
+    lookup_trigram = "__".join([name, "unaccent__lower__trigram_similar"])
+    if value:
+        if len(value) < 7:
+            queryset = queryset.filter(**{lookup_icontains: value})
+        else:
+            queryset = queryset.filter(**{lookup_trigram: value})
+    return queryset
+
+
+class EntityFilter(FilterSet):
+    name = CharFilter(
+        label="Name", method="filter_name", field_name="name"
+    )
+
+    def filter_name(self, queryset, name, value):
+        return filter_name_generic(queryset, name, value)
 
 class PlantVarietyFilter(FilterSet):
     name = CharFilter(
@@ -59,14 +77,7 @@ class PlantVarietyFilter(FilterSet):
         )
 
     def filter_name(self, queryset, name, value):
-        lookup_icontains = "__".join([name, "icontains"])
-        lookup_trigram = "__".join([name, "lower__trigram_similar"])
-        if value:
-            if len(value) < 3:
-                queryset = queryset.filter(**{lookup_icontains: value})
-            else:
-                queryset = queryset.filter(**{lookup_trigram: value})
-        return queryset
+        return filter_name_generic(queryset, name, value)
 
     def filter_has_records(self, queryset, name, value):
         lookup = "__".join([name, "isnull"])

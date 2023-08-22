@@ -15,7 +15,7 @@ from django.views.generic import CreateView, DetailView, ListView
 from django.views.generic.edit import DeleteView, UpdateView
 from frontpage.decorators import NavActive, nav_active
 from parameters.forms import SpeciesParameterForm, VarietalParameterForm
-from register.filters import PlantVarietyFilter
+from register.filters import EntityFilter, PlantVarietyFilter
 from register.tables import (
     EntityTable,
     PlantVarietyEntityTable,
@@ -400,7 +400,9 @@ class EntityUpdateView(NavActivePlants, UpdateView):
 @nav_active_plants
 def entity_list(request):
     context = {}
-    table = EntityTable(Entity.objects.all())
+    filter = EntityFilter(request.GET, queryset=Entity.objects.all())
+    table = EntityTable(filter.qs)
     RequestConfig(request, paginate={"per_page": 25}).configure(table)
     context["table"] = table
+    context["filter"] = filter
     return TemplateResponse(request, "register/entity_list.html", context)
