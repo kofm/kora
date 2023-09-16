@@ -20,9 +20,10 @@
 </nav>
 
 {% if object %}
-<h1>
-  {{ object }} <span class="text-muted">({{ object.species.latin_name }})</span>
+<h1 class="display-1">
+  {{ object }}
 </h1>
+<p class="lead">({{ object.species.latin_name }})</p>
 {% else %}
 <h1 class="display-1">Create Variety</h1>
 <p class="lead">New {{ species.common_name|lower }} (<i>{{ species.latin_name }}</i>) variety</p>
@@ -32,6 +33,7 @@
   {{ form|crispy }}
   {% if object %}
   <input class="btn btn-primary mt-3" type="submit" value="Update">
+  <a class="btn btn-danger mt-3" href="{% url 'register:plantvariety-delete' object.pk %}">Delete</a>
   {% else %}
   <input class="btn btn-primary mt-3" type="submit" value="Create">
   {% endif %}

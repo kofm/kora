@@ -321,6 +321,7 @@ def protection_create(request, variety_id):
             instance = form.save(commit=False)
             instance.variety = variety
             instance.save()
+            form.save_m2m()
             return redirect(instance.get_absolute_url())
     duplicate_id = request.GET.get("duplicate")
     if duplicate_id:

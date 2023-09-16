@@ -4,6 +4,7 @@
         <th>Parameter</th>
         <th>Value</th>
         <th>Reference</th>
+        <th>Notes</th>
         <th></th>
     </thead>
     {% for parameter in all_params %}
@@ -11,6 +12,7 @@
         <td>{{ parameter }}</td>
         <td>{{ parameter.value }}</td>
         <td>{{ parameter.url_ref }}</td>
+        <td>{{ parameter.note }}</td>
         <td>
             {% if param_type == 'crop' %}
             <a href="{% url 'parameters:cropparam-update' parameter.id %}"><i class="bi-pencil" style="color: black;"></i></a>

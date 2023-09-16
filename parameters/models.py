@@ -49,6 +49,9 @@ class ParameterValue(models.Model):
     parameter = models.ForeignKey(Parameter, on_delete=models.RESTRICT)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    note = models.CharField(
+        max_length=512, blank=True, help_text="Add any additional information here."
+    )
 
     class Meta:
         abstract = True

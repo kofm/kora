@@ -45,12 +45,10 @@ class PlantVarietyTable(tables.Table):
     name = tables.Column(linkify=True)
     described = tables.Column(empty_values=(), verbose_name="Described", orderable=False)
     accessions = tables.Column(empty_values=(), verbose_name="Accessions", orderable=False)
-    enlisted = tables.Column(empty_values=(), verbose_name="CAT", orderable=False)
-    protected = tables.Column(empty_values=(), verbose_name="PBR", orderable=False)
 
     class Meta:
         model = PlantVariety
-        fields = ('name', 'breeder', )
+        fields = ('name', 'breeder', 'created_at')
 
 
     def render_protected(self, record):

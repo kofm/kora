@@ -150,6 +150,7 @@ class Protection(models.Model):
         ("A", "Active Application"),
         ("W", "Withdrawn"),
         ("R", "Refused"),
+        ("S", "Surrendered"),
     ]
     type = models.CharField(max_length=3, choices=PROTECTION_TYPE_CHOICES)
     status = models.CharField(
