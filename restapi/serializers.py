@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django_countries.serializers import CountryFieldMixin
 
-from parameters.models import SpeciesParameter
+from parameters.models import SpeciesParameter, VarietalParameter
 from register.models import Entity, PlantSpecies, PlantVariety, PlantVarietyName, Protection
 
 
@@ -37,7 +37,7 @@ class PlantVarietySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PlantVariety
-        fields = ["id", "species", "name", "names"]
+        fields = ["id", "name", "species", "breeder", "names",]
 
 
 class EntitySerializer(CountryFieldMixin, serializers.ModelSerializer):
@@ -51,4 +51,14 @@ class ProtectionSerializer(CountryFieldMixin, serializers.ModelSerializer):
 
     class Meta:
         model = Protection
+        fields = "__all__"
+
+
+class VarietalParameterSerializer(serializers.ModelSerializer):
+
+    variety_name = serializers.StringRelatedField(many=False, source="variety", read_only=True)
+    parameter_code = serializers.StringRelatedField(many=False, source="parameter", read_only=True)
+
+    class Meta:
+        model = VarietalParameter
         fields = "__all__"
