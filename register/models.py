@@ -164,12 +164,8 @@ class Protection(models.Model):
         related_name="applicants",
         blank=True,
     )
-    maintainer = models.ForeignKey(
-        Entity,
-        on_delete=models.PROTECT,
-        related_name="maintainers",
-        blank=True,
-        null=True,
+    maintainers = models.ManyToManyField(
+        Entity, blank=True
     )
     date_start = models.DateField()
     date_end = models.DateField(blank=True, null=True)

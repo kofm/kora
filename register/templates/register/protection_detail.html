@@ -56,14 +56,17 @@
                 {% endwith %}
             </div>
             <div class="col-md-6">
-                <h6>Maintainer</h6>
+                {% with maintainers=protection.maintainers.all %}
+                <h6>Maintainer{{ maintainers|pluralize }}</h6>
                 <p class="card-text" id="maintainer">
-                    {% if protection.maintainer %}
-                    <a href="{% url 'register:entity-detail' protection.maintainer.pk %}">
-                        {{ protection.maintainer }}
-                    </a>
-                    {% endif %}
+                    {% for maintainer in maintainers %}
+                        <a href="{% url 'register:entity-detail' maintainer.pk %}">
+                            {{ maintainer }}
+                        </a><br />
+                {% empty %}
+                {% endfor %}
                 </p>
+                {% endwith %}
             </div>
         </div>
         <div class="row mt-4">
