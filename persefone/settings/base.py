@@ -31,7 +31,6 @@ INSTALLED_APPS = [
     "collect.apps.CollectConfig",
     "sortable_cards",
     "view_breadcrumbs",
-    "slippers",
 ]
 
 MIDDLEWARE = [

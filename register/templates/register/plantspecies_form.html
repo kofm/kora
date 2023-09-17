@@ -1,7 +1,6 @@
 {% extends "frontpage/base.html" %}
 {% load crispy_forms_tags %}
 {% load view_breadcrumbs %}
-{% load slippers %}
 
 {% block title %}Create Plant Species{% endblock %}
 
@@ -10,9 +9,7 @@
 
 {% render_breadcrumbs %}
 
-{% #page_title %}
-  Add Plant
-{% /page_title %}
+<h1 class="display-1">Add Plant</h1>
 
 
 <form method="post">
