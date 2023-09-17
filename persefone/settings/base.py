@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     "collect.apps.CollectConfig",
     "sortable_cards",
     "view_breadcrumbs",
+    "slippers",
 ]
 
 MIDDLEWARE = [
@@ -59,6 +60,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
             ],
+            "builtins": ["slippers.templatetags.slippers"],
         },
     },
 ]

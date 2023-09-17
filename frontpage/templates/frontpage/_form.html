@@ -1,0 +1,32 @@
+{% extends "frontpage/base.html" %}
+
+{% load crispy_forms_tags %}
+{% load view_breadcrumbs %}
+
+{% block title %}Add {{ object_to_create }}{% endblock %}
+
+
+{% block container %}
+
+{% render_breadcrumbs %}
+
+{% #page_title %}
+  Add {{ object_to_create }}
+{% /page_title %}
+
+
+<form method="post">
+
+    {% csrf_token %}
+
+    <div class="mb-3">
+        {{ form|crispy }}
+    </div>
+
+    <p><small>*Required</small></p>
+
+    <input class="btn btn-primary" type="submit" value="Add">
+
+</form>
+
+{% endblock %}
