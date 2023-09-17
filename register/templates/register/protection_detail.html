@@ -12,9 +12,9 @@
 <!-- Navigation bar -->
 <nav aria-label="breadcrumb">
   <ol class="breadcrumb">
-    <li class="breadcrumb-item"><a href="{% url 'register:plantspecies-list' %}">Species</a></li>
-    <li class="breadcrumb-item"><a href="{% url 'register:plantspecies-detail' protection.variety.species.pk %}"><i>{{ protection.variety.species.latin_name }}</i></a></li>
-    <li class="breadcrumb-item"><a href="{% url 'register:plantvariety-detail' protection.variety.pk %}"><i>{{ protection.variety.name }}</i></a></li>
+    <li class="breadcrumb-item"><a href="{% url 'register:plantspecies_list' %}">Species</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'register:plantspecies_detail' protection.variety.species.pk %}"><i>{{ protection.variety.species.latin_name }}</i></a></li>
+    <li class="breadcrumb-item"><a href="{% url 'register:plantvariety_detail' protection.variety.pk %}"><i>{{ protection.variety.name }}</i></a></li>
     <li class="breadcrumb-item active" aria-current="page">{{ protection.type }}</li>
   </ol>
 </nav>

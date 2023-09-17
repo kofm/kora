@@ -2,6 +2,7 @@
 {% load register_extras %}
 {% load static %}
 {% load render_table from django_tables2 %}
+{% load view_breadcrumbs %}
 {% block javascript %}
     <link rel="stylesheet" href="{% static 'flags/sprite.css' %}">
 {% endblock %}
@@ -9,14 +10,7 @@
 
 {% block container %}
 
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{% url 'register:plantspecies-list' %}">Species</a></li>
-            <li class="breadcrumb-item"><a href="{% url 'register:plantspecies-detail' variety.species.pk %}"><i>{{ variety.species.latin_name }}</i></a></li>
-            <li class="breadcrumb-item active" aria-current="page">{{ variety.name }}</li>
-        </ol>
-    </nav>
-
+    {% render_breadcrumbs %}
 
     <h1 class="display-1">
         {{ variety.name }} <small class="text-muted">(<i>{{ variety.species.latin_name }}</i>)</small>

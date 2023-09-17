@@ -6,14 +6,14 @@ from . import views
 app_name = "register"
 
 urlpatterns = [
-    path("species/", views.PlantSpeciesList.as_view(), name="plantspecies-list"),
+    path("species/", views.PlantSpeciesList.as_view(), name="plantspecies_list"),
     path(
-        "species/create", views.PlantSpeciesCreate.as_view(), name="plantspecies-create"
+        "species/create", views.PlantSpeciesCreate.as_view(), name="plantspecies_create"
     ),
     path(
         "species/<int:pk>",
         views.PlantSpeciesDetailView.as_view(),
-        name="plantspecies-detail",
+        name="plantspecies_detail",
     ),
     path(
         "species/<int:pk>/update",
@@ -33,7 +33,7 @@ urlpatterns = [
     path(
         "variety/<int:pk>",
         views.PlantVarietyDetail.as_view(),
-        name="plantvariety-detail",
+        name="plantvariety_detail",
     ),
     path(
         "species/<int:species_id>/variety/create",

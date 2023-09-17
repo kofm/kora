@@ -1,13 +1,19 @@
 {% extends "frontpage/base.html" %}
 {% load crispy_forms_tags %}
-
+{% load view_breadcrumbs %}
+{% load slippers %}
 
 {% block title %}Create Plant Species{% endblock %}
 
 
 {% block container %}
 
-<h1 class="display-1">Create Plant Species</h1>
+{% render_breadcrumbs %}
+
+{% #page_title %}
+  Add Plant
+{% /page_title %}
+
 
 <form method="post">
     {% csrf_token %}
@@ -17,5 +23,5 @@
     <p><small>*Required</small></p>
     <input class="btn btn-primary" type="submit" value="Save">
 </form>
-{% endblock %}
 
+{% endblock %}

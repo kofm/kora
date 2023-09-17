@@ -8,12 +8,12 @@
 
 <nav aria-label="breadcrumb">
   <ol class="breadcrumb">
-    <li class="breadcrumb-item"><a href="{% url 'register:plantspecies-list' %}">Species</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'register:plantspecies_list' %}">Species</a></li>
     {% if object %}
-    <li class="breadcrumb-item"><a href="{% url 'register:plantspecies-detail' object.species.pk %}">{{ object.species }}</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'register:plantspecies_detail' object.species.pk %}">{{ object.species }}</a></li>
     <li class="breadcrumb-item active" aria-current="page">{{ object.name }}</li>
     {% else %}
-    <li class="breadcrumb-item"><a href="{% url 'register:plantspecies-detail' species.pk %}">{{ species }}</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'register:plantspecies_detail' species.pk %}">{{ species }}</a></li>
     <li class="breadcrumb-item active" aria-current="page">Create Variety</li>
     {% endif %}
   </ol>

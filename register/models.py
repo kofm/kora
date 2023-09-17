@@ -61,10 +61,15 @@ class PlantSpecies(models.Model):
         return self.common_name
 
     def get_absolute_url(self):
-        return reverse("register:plantspecies-detail", kwargs={"pk": self.pk})
+        return reverse("register:plantspecies_detail", kwargs={"pk": self.pk})
+
+    def get_list_url(self):
+        return reverse("register:plantspecies_list")
 
     class Meta:
         ordering = ["common_name"]
+        verbose_name = "plant"
+        verbose_name_plural = "plants"
 
 
 class PlantVarietyManager(models.Manager):
@@ -101,11 +106,14 @@ class PlantVariety(models.Model):
 
     def get_absolute_url(self):
         return reverse(
-            "register:plantvariety-detail",
+            "register:plantvariety_detail",
             args=[
                 self.pk,
             ],
         )
+
+    def get_list_url(self):
+        return reverse("register:plantspecies_detail", args=[self.pk, ])
 
     def has_breeder(self):
         if self.breeder:
@@ -128,7 +136,7 @@ class PlantVarietyName(models.Model):
 
     def get_absolute_url(self):
         return reverse(
-            "register:plantvariety-detail",
+            "register:plantvariety_detail",
             args=[
                 self.variety.pk,
             ],

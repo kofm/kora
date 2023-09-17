@@ -31,7 +31,7 @@
     <div class="card-body">
       <ul class="list-group list-group-flush">
         <li class="list-group-item">ID: {{ seedsample.sample_id }}</li>
-        <li class="list-group-item">Variety: <a href="{% url 'register:plantvariety-detail' seedsample.variety.pk %}">{{ seedsample.variety.name }}</a></li>
+        <li class="list-group-item">Variety: <a href="{% url 'register:plantvariety_detail' seedsample.variety.pk %}">{{ seedsample.variety.name }}</a></li>
         {% if seedsample.variety.has_breeder %}<li class="list-group-item">Breeder: <a href="">{{ seedsample.variety.breeder }}</a></li>{% endif %}
         <li class="list-group-item">Growing Season: {{ seedsample.growing_season|default_if_none:"&nbsp;" }}</li>
         <li class="list-group-item">Location: {{ seedsample.position }}</li>

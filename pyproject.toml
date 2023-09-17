@@ -20,6 +20,8 @@ pandas = "^2.0.1"
 psycopg2-binary = "^2.9.6"
 python = "^3.10"
 tablib = "^3.5.0"
+django-view-breadcrumbs = "^2.4.1"
+slippers = "^0.6.2"
 
 
 [tool.poetry.group.dev.dependencies]

@@ -1,3 +1,4 @@
+from functools import cached_property
 from typing import Any, Dict
 
 from django_tables2.config import RequestConfig
@@ -5,8 +6,8 @@ from django_tables2.config import RequestConfig
 from collect.models import SeedSample
 from collect.tables import SeedSampleTable
 from django.core.paginator import Paginator
-from django.db.models import CharField, Count, F, Window
-from django.db.models.functions import Lag, Lead, Lower
+from django.db.models import CharField, Count
+from django.db.models.functions import Lower
 from django.http.response import HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
@@ -22,7 +23,7 @@ from register.tables import (
     PlantVarietyTable,
     ProtectionTable,
 )
-from rest_framework import viewsets
+from view_breadcrumbs import BaseBreadcrumbMixin, CreateBreadcrumbMixin, DetailBreadcrumbMixin, ListBreadcrumbMixin
 
 from .forms import PlantSpeciesForm, PlantVarietyForm, ProtectionForm
 from .models import Entity, PlantSpecies, PlantVariety, PlantVarietyName, Protection
@@ -32,14 +33,16 @@ CharField.register_lookup(Lower)
 
 
 class NavActivePlants(NavActive):
+    """A mixin for displaying the Plant menu item as selected."""
     def __init__(self) -> None:
         super().__init__("nav_plants")
 
 
+# A decorator for displaying the Plant menu item as selected.
 nav_active_plants = nav_active("nav_plants")
 
 
-class PlantSpeciesList(NavActivePlants, ListView):
+class PlantSpeciesList(NavActivePlants, ListBreadcrumbMixin, ListView):
     model = PlantSpecies
 
     def get_queryset(self):
@@ -51,11 +54,9 @@ class PlantSpeciesList(NavActivePlants, ListView):
         return queryset
 
 
-class PlantSpeciesCreate(NavActivePlants, CreateView):
+class PlantSpeciesCreate(NavActivePlants, CreateBreadcrumbMixin, CreateView):
     model = PlantSpecies
     form_class = PlantSpeciesForm
-    context_object_name = "species"
-    success_url = "/register/species/"
 
 
 class PlantSpeciesUpdateView(NavActivePlants, UpdateView):
@@ -63,63 +64,10 @@ class PlantSpeciesUpdateView(NavActivePlants, UpdateView):
     fields = ["common_name", "latin_name", "plant_type"]
 
 
-class PlantSpeciesDetail(NavActivePlants, DetailView):
-    """This display the varieties present for the species and allow the
-    user to create a new variety"""
-
+class PlantSpeciesDetailView(NavActivePlants, DetailBreadcrumbMixin, DetailView):
     model = PlantSpecies
+    context_object_name = "species"
     template_name = "register/plantspecies_detail.html"
-    context_object_name = "species"
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        varieties, page_range = self.get_related_varieties()
-        context["varieties"] = varieties
-        context["page_range"] = page_range
-        context["search"] = self.request.GET.get("search")
-        prev_next_records = PlantSpecies.objects.annotate(
-            prev=Window(
-                expression=Lag("pk", default=None), order_by=F("common_name").asc()
-            ),
-            next=Window(
-                expression=Lead("pk", default=None), order_by=F("common_name").asc()
-            ),
-        ).values("pk", "prev", "next")
-        prev_next_records_ids = list(
-            filter(lambda x: x["pk"] == self.object.pk, prev_next_records)
-        )[0]
-        context.update(
-            {
-                "prev_record": prev_next_records_ids["prev"],
-                "next_record": prev_next_records_ids["next"],
-            }
-        )
-        return context
-
-    def get_related_varieties(self):
-        search = self.request.GET.get("search")
-        if search and search != "":
-            if len(search) < 3:
-                queryset = self.object.variety.filter(names__name__istartswith=search)
-            else:
-                queryset = self.object.variety.filter(
-                    names__name__unaccent__lower__trigram_similar=search
-                )
-        else:
-            queryset = self.object.variety.all()
-        paginator = Paginator(queryset, 10)
-        page = self.request.GET.get("page")
-        if not page:
-            page = 1
-        varieties = paginator.get_page(page)
-        page_range = paginator.get_elided_page_range(number=page)
-        return varieties, page_range
-
-
-class PlantSpeciesDetailView(NavActivePlants, DetailView):
-    model = PlantSpecies
-    context_object_name = "species"
-    template_name = "register/plantspecies_detailn.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -173,9 +121,17 @@ class PlantVarietyUpdateView(NavActivePlants, UpdateView):
     ]
 
 
-class PlantVarietyDetail(NavActivePlants, DetailView):
+class PlantVarietyDetail(NavActivePlants, BaseBreadcrumbMixin, DetailView):
     model = PlantVariety
     context_object_name = "variety"
+
+    @cached_property
+    def crumbs(self):
+        return [
+            (str(self.object.species._meta.verbose_name_plural.capitalize()), self.object.species.get_list_url()),
+            (str(self.object.species), self.object.species.get_absolute_url()),
+            (str(self.object), self.object.get_absolute_url())
+        ]
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         context = super().get_context_data(**kwargs)
@@ -249,7 +205,7 @@ class PlantVarietyCreate(NavActivePlants, CreateView):
         return context
 
     def get_success_url(self) -> str:
-        return reverse_lazy("register:plantvariety-detail", args=[self.object.pk])
+        return reverse_lazy("register:plantvariety_detail", args=[self.object.pk])
 
 
 class PlantVarietyDelete(NavActivePlants, DeleteView):
@@ -257,7 +213,7 @@ class PlantVarietyDelete(NavActivePlants, DeleteView):
 
     def get_success_url(self):
         return reverse_lazy(
-            "register:plantspecies-detail", args=[self.object.species.pk]
+            "register:plantspecies_detail", args=[self.object.species.pk]
         )
 
 
@@ -269,7 +225,7 @@ class PlantVarietyNameCreate(NavActivePlants, CreateView):
     ]
 
     def get_success_url(self):
-        return reverse_lazy("register:plantvariety-detail", args=[self.kwargs["pk"]])
+        return reverse_lazy("register:plantvariety_detail", args=[self.kwargs["pk"]])
 
     def form_valid(self, form):
         plantvariety = PlantVariety.objects.get(pk=self.kwargs["pk"])
@@ -288,7 +244,7 @@ class PlantVarietyNameUpdate(NavActivePlants, UpdateView):
 
     def get_success_url(self):
         return reverse_lazy(
-            "register:plantvariety-detail", args=[self.object.variety.pk]
+            "register:plantvariety_detail", args=[self.object.variety.pk]
         )
 
 
@@ -297,7 +253,7 @@ class PlantVarietyNameDelete(NavActivePlants, DeleteView):
 
     def get_success_url(self):
         return reverse_lazy(
-            "register:plantvariety-detail", args=[self.object.variety.pk]
+            "register:plantvariety_detail", args=[self.object.variety.pk]
         )
 
 
@@ -371,7 +327,7 @@ class ProtectionDeleteView(DeleteView):
 
     def get_success_url(self):
         return reverse_lazy(
-            "register:plantvariety-detail", args=[self.object.variety.pk]
+            "register:plantvariety_detail", args=[self.object.variety.pk]
         )
 
 

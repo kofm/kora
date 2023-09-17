@@ -29,7 +29,9 @@ INSTALLED_APPS = [
     "spaces.apps.SpacesConfig",
     "calculator.apps.CalculatorConfig",
     "collect.apps.CollectConfig",
-    "sortable_cards"
+    "sortable_cards",
+    "view_breadcrumbs",
+    "slippers",
 ]
 
 MIDDLEWARE = [
