@@ -1,5 +1,6 @@
 from functools import cached_property
-from typing import Any, Dict
+from typing import Any, Dict, List, Tuple
+from django.http import HttpRequest, HttpResponseBase
 
 from django_tables2.config import RequestConfig
 
@@ -23,7 +24,7 @@ from register.tables import (
     PlantVarietyTable,
     ProtectionTable,
 )
-from view_breadcrumbs import BaseBreadcrumbMixin, CreateBreadcrumbMixin, DetailBreadcrumbMixin, ListBreadcrumbMixin
+from view_breadcrumbs import BaseBreadcrumbMixin, CreateBreadcrumbMixin, DetailBreadcrumbMixin, ListBreadcrumbMixin, UpdateBreadcrumbMixin
 
 from .forms import PlantSpeciesForm, PlantVarietyForm, ProtectionForm
 from .models import Entity, PlantSpecies, PlantVariety, PlantVarietyName, Protection
@@ -42,6 +43,16 @@ class NavActivePlants(NavActive):
 nav_active_plants = nav_active("nav_plants")
 
 
+def custom_variety_crumbs(species: PlantSpecies, final_crumb: Tuple[str, str]) -> List[Tuple[str, str]]:
+        """This function builds the custom breadcrumbs used in PlantVariety views.
+        Home / Plants / Species / ...
+        """
+        return [
+            (str(species._meta.verbose_name_plural.capitalize()), species.get_list_url()),
+            (str(species), species.get_absolute_url()),
+            final_crumb
+        ]
+
 class PlantSpeciesList(NavActivePlants, ListBreadcrumbMixin, ListView):
     model = PlantSpecies
 
@@ -57,9 +68,16 @@ class PlantSpeciesList(NavActivePlants, ListBreadcrumbMixin, ListView):
 class PlantSpeciesCreate(NavActivePlants, CreateBreadcrumbMixin, CreateView):
     model = PlantSpecies
     form_class = PlantSpeciesForm
+    template_name = "frontpage/_form.html"
 
 
-class PlantSpeciesUpdateView(NavActivePlants, UpdateView):
+    def get_context_data(self, **kwargs):
+        context =  super().get_context_data(**kwargs)
+        context["object_to_create"] = "Plant"
+        return context
+
+
+class PlantSpeciesUpdateView(NavActivePlants, UpdateBreadcrumbMixin, UpdateView):
     model = PlantSpecies
     fields = ["common_name", "latin_name", "plant_type"]
 
@@ -127,11 +145,7 @@ class PlantVarietyDetail(NavActivePlants, BaseBreadcrumbMixin, DetailView):
 
     @cached_property
     def crumbs(self):
-        return [
-            (str(self.object.species._meta.verbose_name_plural.capitalize()), self.object.species.get_list_url()),
-            (str(self.object.species), self.object.species.get_absolute_url()),
-            (str(self.object), self.object.get_absolute_url())
-        ]
+        return custom_variety_crumbs(self.object.species, (str(self.object), self.object.get_absolute_url()))
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         context = super().get_context_data(**kwargs)
@@ -189,23 +203,30 @@ def add_varietalparamevterervalue(request, pk):
     )
 
 
-class PlantVarietyCreate(NavActivePlants, CreateView):
+class PlantVarietyCreate(NavActivePlants, BaseBreadcrumbMixin, CreateView):
     model = PlantVariety
     form_class = PlantVarietyForm
+    template_name = "frontpage/_form.html"
+
+    def dispatch(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponseBase:
+        """We retrieve the species we're operating within"""
+        self.species = get_object_or_404(PlantSpecies, pk=self.kwargs["species_id"])
+        return super().dispatch(request, *args, **kwargs)
+
+    @cached_property
+    def crumbs(self):
+        return custom_variety_crumbs(self.species, ("Add Variety", ""))
 
     def get_initial(self):
         initial = super().get_initial()
-        initial = initial.copy()
-        initial["species"] = self.kwargs["species_id"]
+        initial["species"] = self.species
         return initial
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         context = super().get_context_data(**kwargs)
-        context["species"] = PlantSpecies.objects.get(pk=self.kwargs["species_id"])
+        context["species"] = self.species
+        context["object_to_create"] = "Variety"
         return context
-
-    def get_success_url(self) -> str:
-        return reverse_lazy("register:plantvariety_detail", args=[self.object.pk])
 
 
 class PlantVarietyDelete(NavActivePlants, DeleteView):
