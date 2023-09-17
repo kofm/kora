@@ -169,6 +169,9 @@ class Protection(models.Model):
     )
     date_start = models.DateField()
     date_end = models.DateField(blank=True, null=True)
+    note = models.CharField(
+        max_length=512, blank=True, help_text="Add any additional information here."
+    )
 
     def get_absolute_url(self):
         return reverse("register:protection-detail", kwargs={"pk": self.pk})
