@@ -4,6 +4,20 @@ from django.urls.base import reverse
 from django_countries.fields import CountryField
 
 
+class ModelIsDeletableMixin:
+    def is_deletable(self):
+        for rel in self._meta.get_fields():
+            try:
+                if not rel.on_delete.__name__ in ["PROTECT", "RESTRICT",]:
+                    continue
+                related = rel.related_model.objects.filter(**{rel.field.name: self})
+                if related.exists():
+                    return False
+            except AttributeError:
+                pass
+        return True
+
+
 class Entity(models.Model):
     INDIVIDUAL = "IN"
     PARTNERSHIP = "PA"
@@ -15,17 +29,37 @@ class Entity(models.Model):
         (COMPANY, "Company"),
         (COOPERATIVE, "Cooperative"),
     ]
-    name = models.CharField(max_length=200)
-    type = models.CharField(
-        max_length=2, choices=ENTITY_TYPE_CHOICES, blank=True, null=True
+    name = models.CharField(
+        max_length=200,
+        help_text="Name of the entity. E.g., 'John Doe', 'Doe & Partners', etc.",
     )
-    country = CountryField(blank=True, null=True)
-    contact = models.CharField(max_length=500, blank=True, null=True)
-    email = models.EmailField(blank=True, null=True)
+    type = models.CharField(
+        max_length=2,
+        choices=ENTITY_TYPE_CHOICES,
+        blank=True,
+        null=True,
+        help_text="Type of the entity. Choose from the available options.",
+    )
+    country = CountryField(
+        blank=True,
+        null=True,
+        help_text="Country where the entity is based or operates.",
+    )
+    contact = models.CharField(
+        max_length=500,
+        blank=True,
+        null=True,
+        help_text="Contact details of the entity, such as phone number or address.",
+    )
+    email = models.EmailField(
+        blank=True,
+        null=True,
+        help_text="Email address of the entity. E.g., 'john.doe@example.com'.",
+    )
 
     def get_absolute_url(self):
         return reverse(
-            "register:entity-detail",
+            "register:entity_detail",
             args=[
                 self.pk,
             ],
@@ -36,9 +70,11 @@ class Entity(models.Model):
 
     class Meta:
         ordering = ("name",)
+        verbose_name = "entity"
+        verbose_name_plural = "entities"
 
 
-class PlantSpecies(models.Model):
+class PlantSpecies(ModelIsDeletableMixin, models.Model):
     common_name = models.CharField(max_length=100, unique=True)
     latin_name = models.CharField(max_length=100)
     plant_types = (
@@ -66,6 +102,9 @@ class PlantSpecies(models.Model):
     def get_list_url(self):
         return reverse("register:plantspecies_list")
 
+    def get_delete_url(self):
+        return reverse("register:plantspecies_delete", args=[self.pk, ])
+
     class Meta:
         ordering = ["common_name"]
         verbose_name = "plant"
@@ -86,7 +125,7 @@ class PlantVarietyManager(models.Manager):
         return list(qs)
 
 
-class PlantVariety(models.Model):
+class PlantVariety(ModelIsDeletableMixin, models.Model):
     name = models.CharField(help_text="The name of the variety", max_length=100)
     species = models.ForeignKey(
         PlantSpecies, on_delete=models.PROTECT, related_name="variety"
@@ -100,6 +139,8 @@ class PlantVariety(models.Model):
 
     class Meta:
         ordering = ["name"]
+        verbose_name = "variety"
+        verbose_name_plural = "varieties"
 
     def __str__(self):
         return self.name
@@ -113,7 +154,20 @@ class PlantVariety(models.Model):
         )
 
     def get_list_url(self):
-        return reverse("register:plantspecies_detail", args=[self.pk, ])
+        return reverse(
+            "register:plantspecies_detail",
+            args=[
+                self.pk,
+            ],
+        )
+
+    def get_delete_url(self):
+        return reverse(
+            "register:plantvariety_delete",
+            args=[
+                self.pk,
+            ],
+        )
 
     def has_breeder(self):
         if self.breeder:
@@ -133,6 +187,11 @@ class PlantVarietyName(models.Model):
         ordering = [
             "-change_date",
         ]
+        verbose_name = "denomination"
+        verbose_name_plural = "denominations"
+
+    def __str__(self) -> str:
+        return self.name
 
     def get_absolute_url(self):
         return reverse(
@@ -172,9 +231,7 @@ class Protection(models.Model):
         related_name="applicants",
         blank=True,
     )
-    maintainers = models.ManyToManyField(
-        Entity, blank=True
-    )
+    maintainers = models.ManyToManyField(Entity, blank=True)
     date_start = models.DateField()
     date_end = models.DateField(blank=True, null=True)
     note = models.CharField(

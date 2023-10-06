@@ -1,38 +1,70 @@
-from django.utils.safestring import mark_safe
 import django_tables2 as tables
 from django_tables2 import columns
 from django.utils.html import format_html
 from collect.models import SeedSample
 from describe.models import Description
 
-from parameters.models import VarietalParameter
+from register.models import Entity, PlantSpecies, PlantVariety, Protection
 
-from register.models import Entity, PlantVariety, Protection
 
 class CountryRenderer:
     def render_country(self, record):
         return format_html('<i class="{}"></i>', record.country.flag_css)
 
+
 class ProtectionTable(tables.Table, CountryRenderer):
     type = tables.Column(linkify=True)
+
     class Meta:
         model = Protection
         template_name = "django_tables2/bootstrap4.html"
-        exclude = ('id', 'variety', )
+        exclude = (
+            "id",
+            "variety",
+        )
 
 
 class EntityTable(tables.Table, CountryRenderer):
     name = columns.Column(linkify=True)
+
     class Meta:
-      model = Entity
-      fields = ['name', 'country', 'email' ]
+        model = Entity
+        fields = ["name", "country", "email"]
+
+
+class PlantSpeciesTable(tables.Table):
+    common_name = tables.Column(linkify=True)
+    latin_name = tables.Column(verbose_name="Latin name")
+    num_varieties = tables.Column(verbose_name="Varieties")
+    num_accessions = tables.Column(verbose_name="Accessions")
+    num_parameters = tables.Column(verbose_name="Parameters")
+
+    class Meta:
+        model = PlantSpecies
+        fields = [
+            "common_name",
+            "latin_name",
+            "num_varieties",
+            "num_accessions",
+            "num_parameters",
+        ]
+        order_by = ["-num_varieties", "common_name"]
+
+    def render_latin_name(self, value, *args):
+        return format_html("<i>{}</i>", value)
+
 
 class PlantVarietyEntityTable(tables.Table):
     name = tables.Column(linkify=True)
-    country = tables.TemplateColumn("<i class='{{ record.protection_set.last.country.flag_css }}'></i>", verbose_name="Country")
+    country = tables.TemplateColumn(
+        "<i class='{{ record.protection_set.last.country.flag_css }}'></i>",
+        verbose_name="Country",
+    )
+
     class Meta:
         model = Entity
-        fields = ['name', 'species', 'country']
+        fields = ["name", "species", "country"]
+
 
 def render_icon(value):
     if value:
@@ -41,28 +73,35 @@ def render_icon(value):
         icon = "bi-dash"
     return format_html('<i class="bi {}"></i>', icon)
 
+
 class PlantVarietyTable(tables.Table):
     name = tables.Column(linkify=True)
-    described = tables.Column(empty_values=(), verbose_name="Described", orderable=False)
-    accessions = tables.Column(empty_values=(), verbose_name="Accessions", orderable=False)
+    described = tables.Column(
+        empty_values=(), verbose_name="Described", orderable=False
+    )
+    accessions = tables.Column(
+        empty_values=(), verbose_name="Accessions", orderable=False
+    )
 
     class Meta:
         model = PlantVariety
-        fields = ('name', 'breeder', 'created_at')
-
+        fields = ("name", "breeder", "created_at")
 
     def render_protected(self, record):
-        protected = Protection.objects.filter(variety=record, type="PBR", status="G").exists()
+        protected = Protection.objects.filter(
+            variety=record, type="PBR", status="G"
+        ).exists()
         return render_icon(protected)
 
     def render_enlisted(self, record):
-        enlisted = Protection.objects.filter(variety=record, type__in=["CAT", "NLI"], status="G").exists()
+        enlisted = Protection.objects.filter(
+            variety=record, type__in=["CAT", "NLI"], status="G"
+        ).exists()
         return render_icon(enlisted)
 
     def render_described(self, record):
         described = Description.objects.filter(variety=record).exists()
         return render_icon(described)
-
 
     def render_accessions(self, record):
         accessions = SeedSample.objects.filter(variety=record).exists()

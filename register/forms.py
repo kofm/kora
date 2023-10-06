@@ -2,20 +2,13 @@ from django import forms
 from django.forms import widgets
 from django_countries.fields import CountryField
 
-from .models import PlantSpecies, PlantVariety, PlantVarietyName, Protection
-
-
-class PlantSpeciesForm(forms.ModelForm):
-    class Meta:
-        model = PlantSpecies
-        fields = ["common_name", "latin_name", "plant_type"]
-        widgets = {"common_name": forms.TextInput(attrs={"class": "form-control"})}
+from .models import PlantVariety, PlantVarietyName, Protection
 
 
 class PlantVarietyForm(forms.ModelForm):
     class Meta:
         model = PlantVariety
-        fields = ['name', 'species', ]
+        fields = ['name', 'breeder', 'species', ]
         widgets = {"species": forms.HiddenInput()}
 
 class PlantVarietyNameForm(forms.ModelForm):

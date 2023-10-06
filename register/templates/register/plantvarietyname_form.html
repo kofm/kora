@@ -1,11 +1,7 @@
-{% extends "frontpage/base.html" %}
-{% load crispy_forms_tags %}
-{% block title %}Change name of variety{% endblock %}
-{% block container %}
-<h1>Change name</h1>
-<form method="post">
-  {% csrf_token %}
-  {{ form|crispy }}
-  <input class="btn btn-primary mt-3" type="submit" value="Save">
-</form>
+{% extends "frontpage/_form.html" %}
+
+{% block subheading %}
+  {% if not object %}
+  Current {{ object_to_create }}: {{ variety }}
+  {% endif %}
 {% endblock %}

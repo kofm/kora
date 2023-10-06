@@ -11,12 +11,12 @@ Breeders
 
 {% block container %}
 <h1 class="display-1">
-  Breeders <a class="btn btn-primary" href="{% url 'register:entity-create' %}">Create</a>
+  Breeders <a class="btn btn-primary" href="{% url 'register:entity_create' %}">Create</a>
 </h1>
 <form id="filter-form" method="get" class="form">
     {{ filter.form|crispy }}
     <button type="submit" class="btn btn-primary my-3">Submit</button>
-    <a href="{% url 'register:entity-list' %}" class="btn btn-outline-secondary my-3">Reset</a>
+    <a href="{% url 'register:entity_list' %}" class="btn btn-outline-secondary my-3">Reset</a>
 </form>
 {% render_table table %}
 {% endblock %}

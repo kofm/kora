@@ -47,7 +47,7 @@
                 <h6>Applicant{{ applicants|pluralize }}</h6>
                 <p class="card-text" id="applicant">
                     {% for applicant in applicants %}
-                        <a href="{% url 'register:entity-detail' applicant.pk %}">
+                        <a href="{% url 'register:entity_detail' applicant.pk %}">
                             {{ applicant }}
                         </a><br />
                 {% empty %}
@@ -60,7 +60,7 @@
                 <h6>Maintainer{{ maintainers|pluralize }}</h6>
                 <p class="card-text" id="maintainer">
                     {% for maintainer in maintainers %}
-                        <a href="{% url 'register:entity-detail' maintainer.pk %}">
+                        <a href="{% url 'register:entity_detail' maintainer.pk %}">
                             {{ maintainer }}
                         </a><br />
                 {% empty %}

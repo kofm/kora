@@ -3,7 +3,13 @@
 {% load crispy_forms_tags %}
 {% load view_breadcrumbs %}
 
-{% block title %}Add {{ object_to_create }}{% endblock %}
+{% block title %}
+  {% if object %}
+    Update: {{ object }}
+  {% else %}
+  Add {{ object_to_create }}
+  {% endif %}
+{% endblock %}
 
 
 {% block container %}
@@ -11,8 +17,17 @@
 {% render_breadcrumbs %}
 
 {% #page_title %}
+  {% if object %}
+    Update: {{ object }}
+  {% else %}
   Add {{ object_to_create }}
+  {% endif %}
 {% /page_title %}
+
+<p class="lead">
+{% block subheading %}
+{% endblock %}
+</p>
 
 
 <form method="post">
@@ -23,10 +38,17 @@
         {{ form|crispy }}
     </div>
 
-    <p><small>*Required</small></p>
+    <p><small><sup>*</sup>Required field</small></p>
 
     <input class="btn btn-primary" type="submit" value="Add">
 
+    {% if object.get_delete_url and object.is_deletable %}
+        <a class="btn btn-danger" href="{{ object.get_delete_url }}">Delete</a>
+    {% endif %}
+
 </form>
+
+{% block additional_content %}
+{% endblock %}
 
 {% endblock %}

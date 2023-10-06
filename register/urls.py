@@ -6,10 +6,10 @@ from . import views
 app_name = "register"
 
 urlpatterns = [
-    path("species/", views.PlantSpeciesList.as_view(), name="plantspecies_list"),
     path(
         "species/create", views.PlantSpeciesCreate.as_view(), name="plantspecies_create"
     ),
+    path("species/", views.PlantSpeciesList.as_view(), name="plantspecies_list"),
     path(
         "species/<int:pk>",
         views.PlantSpeciesDetailView.as_view(),
@@ -18,7 +18,12 @@ urlpatterns = [
     path(
         "species/<int:pk>/update",
         views.PlantSpeciesUpdateView.as_view(),
-        name="plantspecies-update",
+        name="plantspecies_update",
+    ),
+    path(
+        "species/<int:pk>/delete",
+        views.PlantSpeciesDeleteView.as_view(),
+        name="plantspecies_delete",
     ),
     path(
         "species/<int:pk>/parameters",
@@ -53,7 +58,7 @@ urlpatterns = [
     path(
         "variety/<int:pk>/delete",
         views.PlantVarietyDelete.as_view(),
-        name="plantvariety-delete",
+        name="plantvariety_delete",
     ),
     path(
         "variety/name/<int:pk>/delete",
@@ -91,11 +96,11 @@ urlpatterns = [
         views.protection_create,
         name="protection-create",
     ),
-    path("entity/create", views.EntityCreateView.as_view(), name="entity-create"),
-    path("entity/", views.entity_list, name="entity-list"),
-    path("entity/<int:pk>", views.entity_detail, name="entity-detail"),
+    path("entity/create", views.EntityCreateView.as_view(), name="entity_create"),
+    path("entity/", views.entity_list, name="entity_list"),
+    path("entity/<int:pk>", views.entity_detail, name="entity_detail"),
     path(
-        "entity/<int:pk>/update", views.EntityUpdateView.as_view(), name="entity-update"
+        "entity/<int:pk>/update", views.EntityUpdateView.as_view(), name="entity_update"
     ),
     path(
         "variety/<int:pk>/update",

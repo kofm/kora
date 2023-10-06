@@ -1,43 +1,6 @@
-{% extends "frontpage/base.html" %}
-{% load crispy_forms_tags %}
+{% extends "frontpage/_form.html" %}
 {% load static %}
 
-{% block title %}Create Variety{% endblock %}
-
-{% block container %}
-
-<nav aria-label="breadcrumb">
-  <ol class="breadcrumb">
-    <li class="breadcrumb-item"><a href="{% url 'register:plantspecies_list' %}">Species</a></li>
-    {% if object %}
-    <li class="breadcrumb-item"><a href="{% url 'register:plantspecies_detail' object.species.pk %}">{{ object.species }}</a></li>
-    <li class="breadcrumb-item active" aria-current="page">{{ object.name }}</li>
-    {% else %}
-    <li class="breadcrumb-item"><a href="{% url 'register:plantspecies_detail' species.pk %}">{{ species }}</a></li>
-    <li class="breadcrumb-item active" aria-current="page">Create Variety</li>
-    {% endif %}
-  </ol>
-</nav>
-
-{% if object %}
-<h1 class="display-1">
-  {{ object }}
-</h1>
-<p class="lead">({{ object.species.latin_name }})</p>
-{% else %}
-<h1 class="display-1">Create Variety</h1>
-<p class="lead">New {{ species.common_name|lower }} (<i>{{ species.latin_name }}</i>) variety</p>
-{% endif %}
-<form method="post">
-  {% csrf_token %}
-  {{ form|crispy }}
-  {% if object %}
-  <input class="btn btn-primary mt-3" type="submit" value="Update">
-  <a class="btn btn-danger mt-3" href="{% url 'register:plantvariety-delete' object.pk %}">Delete</a>
-  {% else %}
-  <input class="btn btn-primary mt-3" type="submit" value="Create">
-  {% endif %}
-</form>
-
+{% block additional_content %}
 <script src="{% static 'register/plantvariety-form.bundle.js' %}"></script>
 {% endblock %}

@@ -20,7 +20,7 @@
     </h1>
     {% if variety.has_breeder %}
         <p class="lead">
-            <a class="text-decoration-none link-dark" href="{% url 'register:entity-detail' variety.breeder.pk %}">
+            <a class="text-decoration-none link-dark" href="{% url 'register:entity_detail' variety.breeder.pk %}">
                 {{ variety.breeder.name }}<i class="{{ variety.breeder.country.flag_css }} mx-3"></i>
             </a>
         </p>
@@ -30,7 +30,7 @@
         <div class="col">
             <h2>
                 Descriptions
-                <a class="btn btn-sm btn-secondary" href="{% url 'describe:description-create' %}?variety_id={{ variety.pk }}" >Create</a>
+                <a class="btn btn-sm btn-secondary" href="{% url 'describe:description-create' %}?variety_id={{ variety.pk }}" >Add</a>
             </h2>
             {% if variety.description_set.count %}
                 <table class="table">
@@ -61,7 +61,7 @@
 
     <div class="row mt-5">
         <div class="col">
-            <h2>Accessions <a href="{% url 'collect:seedsample-create' %}?variety_id={{ variety.pk }}" class="btn btn-secondary btn-sm">Create</a></h2>
+            <h2>Accessions <a href="{% url 'collect:seedsample-create' %}?variety_id={{ variety.pk }}" class="btn btn-secondary btn-sm">Add</a></h2>
             {% if variety.seedsample_set.count %}
                 {% render_table seedsample_table %}
             {% else %}
@@ -72,7 +72,7 @@
 
     <div class="row mt-5">
         <div class="col">
-            <h2>Names history <a class="btn btn-secondary btn-sm" href="{% url 'register:plantvarietyname-create' variety.pk %}">Change</a></h2>
+            <h2>Denominations <a class="btn btn-secondary btn-sm" href="{% url 'register:plantvarietyname-create' variety.pk %}">Add</a></h2>
             <table class="table">
                 <thead>
                     <th scope="col">Name</th>
@@ -97,7 +97,7 @@
 
     <div class="row mt-5">
         <div class="col">
-            <h2>Protection<a class="btn btn-sm btn-secondary ms-2" href="{% url 'register:protection-create' variety.pk %}">Create</a></h2>
+            <h2>Protection<a class="btn btn-sm btn-secondary ms-2" href="{% url 'register:protection-create' variety.pk %}">Add</a></h2>
             {% render_table protection_table %}
         </div>
     </div>
