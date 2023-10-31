@@ -1,8 +1,9 @@
 from rest_framework import viewsets
 from parameters.models import VarietalParameter
+from collect.models import SeedSample
 
 from register.models import Entity, PlantSpecies, PlantVariety, Protection
-from restapi.serializers import EntitySerializer, PlantSpeciesSerializer, PlantVarietySerializer, ProtectionSerializer, VarietalParameterSerializer
+from restapi.serializers import EntitySerializer, PlantSpeciesSerializer, PlantVarietySerializer, ProtectionSerializer, SeedSampleSerializer, VarietalParameterSerializer
 
 
 class CropViewSet(viewsets.ModelViewSet):
@@ -30,3 +31,8 @@ class ProtectionViewSet(viewsets.ModelViewSet):
 class VarietalParameterViewSet(viewsets.ModelViewSet):
     queryset = VarietalParameter.objects.all()
     serializer_class = VarietalParameterSerializer
+
+
+class SeedSampleViewSet(viewsets.ModelViewSet):
+    queryset = SeedSample.objects.all()
+    serializer_class = SeedSampleSerializer

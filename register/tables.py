@@ -2,7 +2,10 @@ import django_tables2 as tables
 from django_tables2 import columns
 from django.utils.html import format_html
 from collect.models import SeedSample
+from collect.tables import SeedSampleBaseTable, SeedSampleTable
 from describe.models import Description
+from describe.tables import DescriptionTable
+from parameters.models import ParameterValue
 
 from register.models import Entity, PlantSpecies, PlantVariety, Protection
 
@@ -24,12 +27,37 @@ class ProtectionTable(tables.Table, CountryRenderer):
         )
 
 
+class PlantVarietyDescriptionTable(DescriptionTable):
+    class Meta:
+        model = Description
+        exclude = (
+            "id",
+            "variety",
+        )
+
+
+class PlantVarietyAccessionTable(SeedSampleBaseTable):
+    pass
+
+
 class EntityTable(tables.Table, CountryRenderer):
     name = columns.Column(linkify=True)
 
     class Meta:
         model = Entity
         fields = ["name", "country", "email"]
+
+
+class VarietalParameterTable(tables.Table):
+    """Table display of varietal parameters."""
+    def render_value(self, record):
+        return format_html("{} {}", record.value, record.parameter.measure_unit)
+
+    class Meta:
+        model = ParameterValue
+        page_field = "para_page"
+        template_name = "django_tables2/bootstrap4.html"
+        fields = ("parameter__name", "parameter__code", "value", "url_ref", "note")
 
 
 class PlantSpeciesTable(tables.Table):

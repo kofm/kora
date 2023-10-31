@@ -11,6 +11,7 @@ router.register(r"varieties", views.PlantVarietyViewSet)
 router.register(r"entities", views.EntityViewSet)
 router.register(r"protections", views.ProtectionViewSet)
 router.register(r"varietalparameters", views.VarietalParameterViewSet)
+router.register(r"seedsamples", views.SeedSampleViewSet)
 
 urlpatterns = [
     path("", include(router.urls)),

@@ -3,6 +3,7 @@ Description Views
 List, Detail, Update, Create, Delete
 """
 
+from django.db.models.functions import Lower
 from django_tables2 import RequestConfig
 
 from describe.filters import DescriptionFilterByName
@@ -17,11 +18,11 @@ from describe.forms import (
 from describe.models import Description, Expression, Protocol, State, Trait
 from describe.tables import DescriptionTable
 from describe.utils import _filter_descriptions, delete_get_param, merge_unique
-from django.db.models import Q
+from django.db.models import Q, CharField
 from django.db.models.expressions import F
 from django.forms.models import model_to_dict
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.urls.base import reverse_lazy
@@ -31,7 +32,7 @@ from django.views.generic.edit import DeleteView
 from describe.views.protocol import NavActiveDescribe
 from frontpage.decorators import nav_active
 from register.models import PlantVariety
-
+CharField.register_lookup(Lower)
 
 nav_describe = nav_active("nav_describe")
 

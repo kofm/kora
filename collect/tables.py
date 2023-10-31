@@ -10,7 +10,8 @@ class SeedSampleTableMixin:
 
     def render_weight(self, record):
         # record.weight == record.weight is just a smart way to check if it's NAN
-        # TODO: it shouldn't be possible to store nan in db
+        # TODO: this should be removed when we can make sure that no
+        # NaN values are stored in the db
         return int(record.weight) if record.weight == record.weight else None
 
     def render_variety(self, record):
@@ -24,30 +25,45 @@ class SeedSampleTableMixin:
             return record.variety
 
 
-class SeedSampleTable(tables.Table, SeedSampleTableMixin):
-    sample_id = tables.Column(linkify=True)
-    variety = tables.Column()
+class SeedSampleBaseTable(tables.Table, SeedSampleTableMixin):
+    sample_id = tables.Column(linkify=True, attrs={"td": {"class": "col-1"}})
     germinability = tables.Column(verbose_name="Germinability")
     weight = tables.Column(verbose_name="Weight (g)")
+    notes = tables.Column(attrs={"td": {"class": "col-3"}})
+
+    class Meta:
+        model = SeedSample
+        fields = (
+            "sample_id",
+            "position",
+            "weight",
+            "germinability",
+            "growing_season",
+            "notes",
+        )
+        empty_text = "There are no corresponding seed samples to be displayed."
+
+
+class SeedSampleTable(SeedSampleBaseTable):
+    """
+    An extension of the SeedSampleBaseTable for the Accession List. It
+    uses HTMX for dynamic content display. See the template for details.
+    It also has (HTMX) action buttons to add Accessions to the
+    selected cart.
+    """
+    variety = tables.Column(
+        attrs={
+            "td": {"class": "col-2"},
+            "a": {"class": "text-decoration-none link-dark"},
+        }
+    )
     actions = tables.TemplateColumn(
-        """
-        <a class="text-decoration-none link-dark" hx-post="{% url "collect:cartitem-add" record.pk %}" hx-target="#cart" hx-include="#default-weight" href="#" data-bs-toggle="offcanvas" data-bs-target="#cart" aria-controls="cart"><i class="bi bi-bag-plus-fill"></i></a>
-        """,
+        template_name="collect/partials/cartitem_add_table_action.html",
         verbose_name="",
         orderable=False,
     )
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.columns["sample_id"].column.attrs = {"td": {"class": "col-1"}}
-        self.columns["variety"].column.attrs = {
-            "td": {"class": "col-2"},
-            "a": {"class": "text-decoration-none link-dark"},
-        }
-        self.columns["notes"].column.attrs = {"td": {"class": "col-3"}}
-
     class Meta:
-        model = SeedSample
         fields = (
             "sample_id",
             "variety",
@@ -59,14 +75,12 @@ class SeedSampleTable(tables.Table, SeedSampleTableMixin):
             "actions",
         )
         template_name = "collect/partials/seedsample_table.html"
-        empty_text = "There are no corresponding seed samples to be displayed."
 
 
-class SeedSampleDuplicatesTable(tables.Table, SeedSampleTableMixin):
+class SeedSampleDuplicatesTable(SeedSampleBaseTable):
     orderable = False
 
-    class Meta:
-        model = SeedSample
+    class Meta(SeedSampleBaseTable.Meta):
         fields = (
             "sample_id",
             "position",
@@ -75,23 +89,17 @@ class SeedSampleDuplicatesTable(tables.Table, SeedSampleTableMixin):
             "growing_season",
             "notes",
         )
-        empty_text = "There are no seed samples to be displayed."
 
 
-class SeedSampleInStorageTable(tables.Table, SeedSampleTableMixin):
-    orderable = False
-    sample_id = tables.Column(linkify=True)
-    weight = tables.Column('Weight', orderable=False)
-    germinability = tables.Column(verbose_name="Germinability")
+class SeedSampleInStorageTable(SeedSampleBaseTable):
 
-    class Meta:
-        model = SeedSample
+    class Meta(SeedSampleBaseTable.Meta):
         fields = (
             "sample_id",
+            "position",
             "variety",
             "weight",
             "germinability",
             "growing_season",
             "notes",
         )
-        empty_text = "There are no seed samples to be displayed."

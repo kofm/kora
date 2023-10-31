@@ -1,5 +1,7 @@
 from rest_framework import serializers
 from django_countries.serializers import CountryFieldMixin
+from collect.models import SeedSample
+import math
 
 from parameters.models import SpeciesParameter, VarietalParameter
 from register.models import Entity, PlantSpecies, PlantVariety, PlantVarietyName, Protection
@@ -62,3 +64,20 @@ class VarietalParameterSerializer(serializers.ModelSerializer):
     class Meta:
         model = VarietalParameter
         fields = "__all__"
+
+
+class SeedSampleSerializer(serializers.ModelSerializer):
+    last_germinability = serializers.SerializerMethodField()
+    last_weight = serializers.SerializerMethodField()
+
+    class Meta:
+        model = SeedSample
+        fields = "__all__"  # This would already include all the fields from the model.
+
+    def get_last_germinability(self, obj):
+        germinability = obj.germinability
+        return 0.0 if germinability is None or math.isnan(germinability) else germinability
+
+    def get_last_weight(self, obj):
+        weight = obj.weight
+        return 0.0 if weight is None or math.isnan(weight) else weight

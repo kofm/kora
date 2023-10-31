@@ -3,37 +3,49 @@ import django_tables2 as tables
 
 from describe.models import Description, State
 
+
 class DescriptionTable(tables.Table):
+    def render_expressions(self, record):
+        return format_html(
+            "{}/{}", record.expressions.count(), record.available_traits.count()
+        )
+
     variety = tables.Column(
         linkify=True,
         attrs={
             "a": {"class": "text-decoration-none link-dark"},
-            "th": {"class": "text-decoration-none link-dark"}
-        }
+            "th": {"class": "text-decoration-none link-dark"},
+        },
     )
     name = tables.Column(
         linkify=True,
-        attrs={"a": {"class": "text-decoration-none link-dark"}}
+        attrs={
+            "a": {"class": "text-decoration-none link-dark fw-bold"},
+        },
     )
     protocol = tables.Column(
-        linkify=True,
-        attrs={"a": {"class": "text-decoration-none link-dark"}}
+        linkify=True, attrs={"a": {"class": "text-decoration-none link-dark"}}
     )
+    expressions = tables.Column("Expressions")
     actions = tables.TemplateColumn(
         template_name="describe/partials/description_table_actions.html",
         verbose_name="",
-        orderable=False
+        orderable=False,
+        attrs={"td": {"class": "col-1 text-end"}},
     )
+
     class Meta:
         model = Description
         fields = ("variety", "name", "protocol")
+
 
 class RelatedStatesTable(tables.Table):
     actions = tables.TemplateColumn(
         template_name="describe/partials/relatedstate_table_actions.html",
         verbose_name="",
-        orderable=False
+        orderable=False,
     )
+
     class Meta:
         model = State
         fields = ("numeric_id", "description", "trait", "trait__protocol")

@@ -120,6 +120,7 @@ def protection_create(request, variety_id):
             form.save_m2m()
             return redirect(instance.get_absolute_url())
     duplicate_id = request.GET.get("duplicate")
+    form = ProtectionForm()
     if duplicate_id:
         try:
             protection_to_duplicate = Protection.objects.get(pk=duplicate_id)
@@ -133,8 +134,6 @@ def protection_create(request, variety_id):
             form = ProtectionForm(initial=initial)
         except Protection.DoesNotExist:
             pass
-    else:
-        form = ProtectionForm()
     return TemplateResponse(
         request,
         "register/protection_form.html",

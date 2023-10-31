@@ -183,7 +183,7 @@ class StorageDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         storage_positions = self.object.storageposition_set.all()
-        seed_samples = SeedSample.objects.filter(position__in=storage_positions).select_related('variety')
+        seed_samples = SeedSample.objects.filter(position__in=storage_positions).select_related('variety').order_by("position")
         table = SeedSampleInStorageTable(seed_samples)
         RequestConfig(self.request, paginate={'per_page': 10}).configure(table)
         context['table'] = table

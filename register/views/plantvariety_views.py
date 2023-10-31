@@ -2,6 +2,7 @@ from functools import cached_property
 from typing import Any, Dict
 from django.http import HttpRequest, HttpResponseBase
 from django.shortcuts import get_object_or_404
+from django_tables2 import RequestConfig
 
 
 from collect.models import SeedSample
@@ -9,7 +10,14 @@ from collect.tables import SeedSampleTable
 from django.urls.base import reverse_lazy
 from django.views.generic import DetailView
 from django.views.generic.edit import DeleteView, UpdateView
-from register.tables import ProtectionTable
+from describe.models import Description
+from parameters.models import VarietalParameter
+from register.tables import (
+    PlantVarietyAccessionTable,
+    ProtectionTable,
+    PlantVarietyDescriptionTable,
+    VarietalParameterTable,
+)
 from view_breadcrumbs import BaseBreadcrumbMixin
 
 from register.forms import PlantVarietyForm
@@ -59,12 +67,23 @@ class PlantVarietyDetail(NavActivePlants, BaseBreadcrumbMixin, DetailView):
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         context = super().get_context_data(**kwargs)
-        context["seedsample_table"] = SeedSampleTable(
-            SeedSample.objects.filter(variety=self.object.pk)
-        )
-        context["protection_table"] = ProtectionTable(
-            Protection.objects.filter(variety=self.object.pk)
-        )
+
+        # The tables to display
+        table_data = {
+            "description_table": {"table": PlantVarietyDescriptionTable, "model": Description},
+            "seedsample_table": {"table": PlantVarietyAccessionTable, "model": SeedSample},
+            "protection_table": {"table": ProtectionTable, "model": Protection},
+            "parameters_table": {"table": VarietalParameterTable, "model": VarietalParameter},
+        }
+
+        # Display the tables
+        for key, value in table_data.items():
+            table = value["table"](
+                value["model"].objects.filter(variety=self.object.pk)
+            )
+            RequestConfig(self.request, paginate={"per_page": 5}).configure(table)
+            context[key] = table
+
         return context
 
 
