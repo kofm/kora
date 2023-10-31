@@ -6,7 +6,6 @@ from django_tables2 import RequestConfig
 
 
 from collect.models import SeedSample
-from collect.tables import SeedSampleTable
 from django.urls.base import reverse_lazy
 from django.views.generic import DetailView
 from django.views.generic.edit import DeleteView, UpdateView
@@ -81,7 +80,7 @@ class PlantVarietyDetail(NavActivePlants, BaseBreadcrumbMixin, DetailView):
             table = value["table"](
                 value["model"].objects.filter(variety=self.object.pk)
             )
-            RequestConfig(self.request, paginate={"per_page": 5}).configure(table)
+            RequestConfig(self.request, paginate={"per_page": 10}).configure(table)
             context[key] = table
 
         return context

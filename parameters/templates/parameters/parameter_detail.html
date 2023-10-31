@@ -1,51 +1,24 @@
+<!--  -*- engine: django -*-  -->
+
 {% extends "frontpage/base.html" %}
+
+{% load render_table from django_tables2 %}
+
 {% block title %}{{ parameter.code }}{% endblock %}
+
 {% block container %}
+
 <h1>{{ parameter.name }}</h1>
+
 <p>{{ parameter.description }}</p>
+
 {% if parameter.measure_unit != 'unitless' %}
 <p>It is measured in {{ parameter.measure_unit }}.</p>
 {% endif %}
+
 <h2>Crop parameters</h2>
-{% if cropparams %}
-<table class="table table-striped">
-    <thead>
-        <th>Specie</th>
-        <th>Value</th>
-        <th>Reference</th>
-    </thead>
-    {% for cropparam in cropparams %}
-    <tr>
-        <td>{{ cropparam.specie.common_name }}</td>
-        <td>{{ cropparam.value }}</td>
-        <td>{{ cropparam.url_ref }}</td>
-    </tr>
-    {% endfor %}
-</table>
-{% include 'frontpage/paginator.html' with page=cropparams pagevar='pagecp' %}
-{% else %}
-    <p>There are no values for this parameter.</p>
-{% endif %}
+{% render_table species_parameters_table %}
+
 <h2>Varietal parameters</h2>
-{% if varparams %}
-<table class="table table-striped">
-    <thead>
-        <th>Variety</th>
-        <th>Specie</th>
-        <th>Value</th>
-        <th>Reference</th>
-    </thead>
-    {% for varparam in varparams %}
-    <tr>
-        <td>{{ varparam.variety.name }}</td>
-        <td>{{ varparam.variety.species.common_name }}</td>
-        <td>{{ varparam.value }}</td>
-        <td>{{ varparam.url_ref }}</td>
-    </tr>
-    {% endfor %}
-</table>
-{% include 'frontpage/paginator.html' with page=varparams pagevar='pagevp' %}
-{% else %}
-    <p>There are no values for this parameter.</p>
-{% endif %}
+{% render_table varietal_parameters_table %}
 {% endblock %}

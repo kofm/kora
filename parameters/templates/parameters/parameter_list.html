@@ -1,29 +1,14 @@
+<!--  -*- engine: django -*-  -->
 {% extends "frontpage/base.html" %}
+
+{% load render_table from django_tables2 %}
+
 {% block title %}Parameters{% endblock %}
+
 {% block container %}
-<p class="display-1">Parameters</p>
-<a class="btn btn-primary ms-2" href="{% url 'parameters:parameter-create' %}">Create</a>
-<table class="table table-striped table-hover">
-    <thead>
-        <th scope="col">Code</td>
-        <th scope="col">Name</td>
-        <th scope="col" style="width: 40%">Description</td>
-        <th scope="col">Measure unit</td>
-        <th class="col-1" scope="col"></td>
-    </thead>
-    {% for parameter in object_list %}
-    <tr>
-        <td>{{ parameter.code }}</td>
-        <td>{{ parameter.name }}</td>
-        <td>{{ parameter.description }}</td>
-        <td>{{ parameter.measure_unit }}</td>
-        <td align="right">
-            <a href="{% url 'parameters:parameter-detail' parameter.id %}"><i class="bi bi-zoom-in" style="color: black;"></i></a>
-            <a class="far fa-edit falink" href={% url 'parameters:parameter-update' parameter.id  %}><i class="bi-pencil" style="color: black;"></i></a>
-            <a class="fas fa-trash-alt falink" href={% url 'parameters:parameter-delete' parameter.id  %}><i class="bi bi-trash" style="color: black;"></i></a>
-        </td>
-    </tr>
-    {% endfor %}
-</table>
-{% include 'frontpage/paginator.html' with page=page_obj pagevar='page' %}
+
+<p class="display-1">Parameters <a class="btn btn-secondary ms-2" href="{% url 'parameters:parameter-create' %}">Add</a></p>
+
+{% render_table parameters_table %}
+
 {% endblock %}

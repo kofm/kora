@@ -2,6 +2,7 @@
 These are the models related to storage of parameters and field measures
 """
 from django.db import models
+from django.urls import reverse
 from register.models import PlantSpecies, PlantVariety
 
 
@@ -30,6 +31,14 @@ class Parameter(models.Model):
 
     def __str__(self):
         return self.code
+
+    def get_absolute_url(self):
+        return reverse(
+            "parameters:parameter-detail",
+            args=[
+                self.pk,
+            ],
+        )
 
     def natural_key(self):
         return (self.code,)

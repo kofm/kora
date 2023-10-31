@@ -5,8 +5,11 @@ from django.urls import reverse_lazy
 from django.urls.base import reverse
 from django.views.generic import CreateView, DeleteView, ListView, UpdateView
 from django.views.generic.detail import DetailView
+from django_tables2 import RequestConfig
 
-from .models import SpeciesParameter, Parameter
+from parameters.tables import ParameterTable, SpeciesParameterTable, VarietalParameterTable
+
+from .models import SpeciesParameter, Parameter, VarietalParameter
 
 class ParametersList(ListView):
     model = Parameter
@@ -14,8 +17,12 @@ class ParametersList(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        parameters_table = ParameterTable(Parameter.objects.all())
+        RequestConfig(self.request, paginate={"per_page": 10}).configure(parameters_table)
+        context["parameters_table"] = parameters_table
         context["nav_parameters"] = "active"
         return context
+
 
 class ParameterCreate(CreateView):
     model = Parameter
@@ -59,10 +66,21 @@ class ParameterDetail(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["nav_parameters"] = "active"
-        cropparams = self.get_related_cropparams()
-        context["cropparams"] = cropparams
-        varparams = self.get_related_varparams()
-        context["varparams"] = varparams
+
+        # The tables to display
+        table_data = {
+            "species_parameters_table": {"table": SpeciesParameterTable, "model": SpeciesParameter},
+            "varietal_parameters_table": {"table": VarietalParameterTable, "model": VarietalParameter},
+        }
+
+        # Display the tables
+        for key, value in table_data.items():
+            table = value["table"](
+                value["model"].objects.filter(parameter=self.object.pk)
+            )
+            RequestConfig(self.request, paginate={"per_page": 10}).configure(table)
+            context[key] = table
+
         return context
 
     def get_related_cropparams(self):
