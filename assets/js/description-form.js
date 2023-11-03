@@ -4,7 +4,7 @@ const sources = JSON.parse(document.getElementById("sources").textContent);
 const protocols = JSON.parse(document.getElementById("protocols").textContent);
 
 var getProtocols = function (id) {
-  fetch("/register/species/" + id + "/protocols")
+  fetch("/species/" + id + "/protocols")
     .then((response) => response.json())
     .then((data) => {
       protocolTomSelect.clear();

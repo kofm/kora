@@ -22,6 +22,10 @@ class NavActiveDescribe(NavActive):
 
 
 def protocol_list(request, species_id):
+    """Endpoint for the list of protocols by species.
+    This is the endpoint used to fetch the protocols list for the
+    tom-select input in protocol_form.html
+    """
     queryset = list(
         Protocol.objects.filter(plantspecies__variety=species_id).values("pk", "name")
     )
