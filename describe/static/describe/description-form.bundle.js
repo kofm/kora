@@ -6173,47 +6173,47 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const sources = JSON.parse(document.getElementById("sources").textContent);
-const protocols = JSON.parse(document.getElementById("protocols").textContent);
 
 var getProtocols = function (id) {
-  fetch("/species/" + id + "/protocols")
+    if (!id) {
+	protocolTomSelect.disable();
+	return;
+    }
+    fetch(url + "&variety=" + id)
     .then((response) => response.json())
     .then((data) => {
-      protocolTomSelect.clear();
-      protocolTomSelect.clearOptions();
-      protocolTomSelect.addOptions(data);
-      protocolTomSelect.enable();
+        protocolTomSelect.clear();
+        protocolTomSelect.clearOptions();
+        protocolTomSelect.addOptions(data);
+        protocolTomSelect.enable();
     });
 };
 
 const varietyTomSelect = new (tom_select__WEBPACK_IMPORTED_MODULE_1___default())("#id_variety", {
-  maxItems: 1,
-  create: false,
-  onChange: function (value) {
-    getProtocols(value);
-  },
+    maxItems: 1,
+    create: false,
+    onChange: function (value) {
+	getProtocols(value);
+    },
 });
 
 const protocolTomSelect = new (tom_select__WEBPACK_IMPORTED_MODULE_1___default())("#id_protocol", {
-  options: protocols,
-  maxItems: 1,
-  create: false,
-  valueField: "pk",
-  labelField: "name",
-  searchField: ["name"],
+    maxItems: 1,
+    create: false,
+    valueField: "pk",
+    labelField: "name",
+    searchField: ["name"],
+    onInitialize: function() {
+	this.disable();
+    }
 });
 
 new (tom_select__WEBPACK_IMPORTED_MODULE_1___default())("#id_name", {
-  options: sources,
-  maxItems: 1,
-  create: true,
-  persist: false,
+    options: sources,
+    maxItems: 1,
+    create: true,
+    persist: false,
 });
-
-if(!varietyTomSelect.getValue()) {
-  console.log("Not set")
-  protocolTomSelect.disable();
-}
 
 })();
 

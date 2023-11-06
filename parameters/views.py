@@ -7,6 +7,7 @@ from django.views.generic import CreateView, DeleteView, ListView, UpdateView
 from django.views.generic.detail import DetailView
 from django_tables2 import RequestConfig
 
+
 from parameters.tables import ParameterTable, SpeciesParameterTable, VarietalParameterTable
 
 from .models import SpeciesParameter, Parameter, VarietalParameter

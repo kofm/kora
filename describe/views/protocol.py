@@ -1,10 +1,7 @@
-"""
-Protocol views
-"""
+"""Protocol views."""
 
-from describe.forms import ProtocolNameForm, TraitFormSet
-from describe.models import Protocol
-from django.http.response import HttpResponse, HttpResponseRedirect, JsonResponse
+from typing import ClassVar
+from django.http.response import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.template.response import TemplateResponse
 from django.urls import reverse
@@ -13,23 +10,10 @@ from django.utils.html import format_html
 from django.views.generic import DetailView, ListView
 from django.views.generic.edit import CreateView, DeleteView
 
-from frontpage.decorators import NavActive, nav_active
-
-
-class NavActiveDescribe(NavActive):
-    def __init__(self) -> None:
-        super().__init__("nav_describe")
-
-
-def protocol_list(request, species_id):
-    """Endpoint for the list of protocols by species.
-    This is the endpoint used to fetch the protocols list for the
-    tom-select input in protocol_form.html
-    """
-    queryset = list(
-        Protocol.objects.filter(plantspecies__variety=species_id).values("pk", "name")
-    )
-    return JsonResponse(queryset, safe=False)
+from describe.forms import ProtocolNameForm, TraitFormSet
+from describe.models import Protocol
+from describe.views.base import NavActiveDescribe
+from frontpage.decorators import nav_active
 
 
 class ProtocolList(NavActiveDescribe, ListView):
@@ -67,9 +51,7 @@ def protocol_update(request, pk):
         form = TraitFormSet(request.POST, instance=protocol)
         if form.is_valid():
             form.save()
-            return HttpResponseRedirect(
-                reverse("describe:protocol_detail", kwargs={"pk": protocol.pk})
-            )
+            return HttpResponseRedirect(reverse("describe:protocol_detail", kwargs={"pk": protocol.pk}))
     else:
         form = TraitFormSet(instance=protocol)
     return render(
@@ -80,6 +62,7 @@ def protocol_update(request, pk):
 
 
 def protocol_update_name_htmx(request, pk):
+    """HTMX view to update the name of a Protocol."""
     protocol = get_object_or_404(Protocol, pk=pk)
     template = "describe/partials/protocol_name_form.html"
     form = ProtocolNameForm(instance=protocol)
@@ -99,8 +82,10 @@ def protocol_update_name_htmx(request, pk):
 
 
 class ProtocolCreate(NavActiveDescribe, CreateView):
+    """View to create a new Protocol."""
+
     model = Protocol
-    fields = [
+    fields: ClassVar = [
         "name",
         "plantspecies",
         "url_ref",

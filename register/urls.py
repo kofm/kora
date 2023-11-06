@@ -76,11 +76,6 @@ urlpatterns = [
         name="plantvarietyname-update",
     ),
     path(
-        "species/<int:species_id>/protocols",
-        describe_views.protocol_list,
-        name="protocol-list",
-    ),
-    path(
         "protection/<int:pk>",
         views.ProtectionDetailView.as_view(),
         name="protection-detail",

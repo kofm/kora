@@ -1,3 +1,4 @@
+<!--  -*- engine: django -*-  -->
 {% extends "frontpage/base.html" %}
 {% load crispy_forms_tags %}
 {% load widget_tweaks %}
@@ -6,6 +7,11 @@
 
 {% block javascript %}
     <script src="{% static 'frontpage/htmx.bundle.js' %}"></script>
+
+    <script type="text/javascript">
+     let url = "{% url 'restapi:protocols-list' %}?format=json";
+     // now you can use "url" variable in your script
+    </script>
 {% endblock %}
 
 
@@ -15,7 +21,6 @@
 {% block container %}
     {{ sources|json_script:"sources" }}
     {{ plantvarieties|json_script:"plantvarieties" }}
-    {{ protocols|json_script:"protocols" }}
 
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">

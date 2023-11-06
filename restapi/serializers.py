@@ -2,6 +2,7 @@ from rest_framework import serializers
 from django_countries.serializers import CountryFieldMixin
 from collect.models import SeedSample
 import math
+from describe.models import Protocol
 
 from parameters.models import SpeciesParameter, VarietalParameter
 from register.models import Entity, PlantSpecies, PlantVariety, PlantVarietyName, Protection
@@ -81,3 +82,9 @@ class SeedSampleSerializer(serializers.ModelSerializer):
     def get_last_weight(self, obj):
         weight = obj.weight
         return 0.0 if weight is None or math.isnan(weight) else weight
+
+class ProtocolSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Protocol
+        fields = ("pk", "name")

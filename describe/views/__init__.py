@@ -8,7 +8,7 @@ from .description import (DescriptionDeleteView, DescriptionDetail,
                           description_update)
 from .expression import ExpressionUpdate
 from .protocol import (ProtocolCreate, ProtocolDelete, ProtocolList,
-                       protocol_detail, protocol_list, protocol_update,
+                       protocol_detail, protocol_update,
                        protocol_update_name_htmx)
 from .state import state_update, relatedstate_delete
 from .trait import trait_list_htmx
@@ -30,7 +30,6 @@ __all__ = [
     "ExpressionUpdate",
     "ProtocolList",
     "protocol_detail",
-    "protocol_list",
     "protocol_update",
     "protocol_update_name_htmx",
     "ProtocolCreate",
