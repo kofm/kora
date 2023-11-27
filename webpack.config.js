@@ -75,6 +75,9 @@ module.exports = [
       "description-import-confirm": {
         import: path.resolve("assets/js/description-import-confirm.js"),
       },
+	"protection-form": {
+	    import: path.resolve("assets/js/protection-form.js")
+	}
     },
     output: {
       path: path.resolve(__dirname, "describe", "static", "describe"),
