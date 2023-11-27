@@ -128,7 +128,7 @@ def protection_create(request, variety_id):
             initial["status"] = protection_to_duplicate.status
             initial["country"] = protection_to_duplicate.country
             initial["applicants"] = protection_to_duplicate.applicants.all()
-            initial["maintainer"] = protection_to_duplicate.maintainer
+            initial["maintainers"] = protection_to_duplicate.maintainers.all()
             initial["date_start"] = protection_to_duplicate.date_start
             initial["date_end"] = protection_to_duplicate.date_end
             form = ProtectionForm(initial=initial)
