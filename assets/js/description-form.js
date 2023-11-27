@@ -35,7 +35,7 @@ const protocolTomSelect = new TomSelect("#id_protocol", {
     labelField: "name",
     searchField: ["name"],
     onInitialize: function() {
-	this.disable();
+	getProtocols(varietyTomSelect.getValue());
     }
 });
 

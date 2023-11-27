@@ -6170,6 +6170,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _scss_tom_select_scss__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../scss/tom-select.scss */ "./assets/scss/tom-select.scss");
 /* harmony import */ var tom_select__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! tom-select */ "./node_modules/tom-select/dist/js/tom-select.complete.js");
 /* harmony import */ var tom_select__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(tom_select__WEBPACK_IMPORTED_MODULE_1__);
+// JS logic to populate the tom-select inputs in Description forms
+// Mind that the protocol restapi endpoint is stored in a `url`
+// variable assigned in the description_form.html template
 
 
 const sources = JSON.parse(document.getElementById("sources").textContent);
@@ -6204,7 +6207,7 @@ const protocolTomSelect = new (tom_select__WEBPACK_IMPORTED_MODULE_1___default()
     labelField: "name",
     searchField: ["name"],
     onInitialize: function() {
-	this.disable();
+	getProtocols(varietyTomSelect.getValue());
     }
 });
 
