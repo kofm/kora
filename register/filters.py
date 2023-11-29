@@ -5,10 +5,11 @@ from django_filters import (
     CharFilter,
     Filter,
     FilterSet,
+    ModelMultipleChoiceFilter,
 )
 from django import forms
 
-from register.models import PlantVariety
+from register.models import PlantSpecies, PlantVariety
 
 PBR = "PBR"
 NLI = "NLI"
@@ -73,7 +74,6 @@ class ProtectionFilter(Filter):
     field_class = ProtectionFilterWidget
 
     def filter(self, qs, values):
-        print(values)
         if values:
             filters = {k: v for k, v in values.items() if v != ""}
             return qs.filter(**filters).distinct()
@@ -81,20 +81,15 @@ class ProtectionFilter(Filter):
 
 
 class PlantVarietyFilter(FilterSet):
-    name = CharFilter(
-        label="Denomination", method="filter_name", field_name="names__name"
-    )
-    breeder = CharFilter(
-        label="Breeder", method="filter_name", field_name="breeder__name"
-    )
+    name = CharFilter(label="Denomination", method="filter_name", field_name="names__name")
+    breeder = CharFilter(label="Breeder", method="filter_name", field_name="breeder__name")
+    species = ModelMultipleChoiceFilter(label="Species", queryset=PlantSpecies.objects.all())
     has_descriptions = BooleanFilter(
         label="Described",
         field_name="description",
         method="filter_has_records",
     )
-    has_accessions = BooleanFilter(
-        label="Accession", field_name="seedsample", method="filter_has_records"
-    )
+    has_accessions = BooleanFilter(label="Accession", field_name="seedsample", method="filter_has_records")
     protection = ProtectionFilter(label="Protection")
 
     class Meta:

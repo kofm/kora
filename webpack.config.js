@@ -46,7 +46,8 @@ module.exports = [
       bootstrap: { import: path.resolve("assets/js/bootstrap.js") },
       sortable: { import: path.resolve("assets/js/sortable.js") },
       htmx: { import: path.resolve("assets/js/htmx.js") },
-      hyperscript: { import: path.resolve("assets/js/hyperscript.js") },
+	hyperscript: { import: path.resolve("assets/js/hyperscript.js") },
+	tomselect: {import: path.resolve("assets/js/tomselect.js")},
     },
     output: {
       path: path.resolve(__dirname, "frontpage", "static", "frontpage"),

@@ -102,4 +102,5 @@ urlpatterns = [
         views.PlantVarietyUpdateView.as_view(),
         name="plantvariety-update",
     ),
+    path("varieties", views.plantvariety_list, name="plantvariety-list")
 ]

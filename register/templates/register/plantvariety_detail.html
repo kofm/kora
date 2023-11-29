@@ -18,9 +18,9 @@
     {% render_breadcrumbs %}
 
     <h1 class="display-1">
-        {{ variety.name }} <small class="text-muted">(<i>{{ variety.species.latin_name }}</i>)</small>
+        {{ variety.name }} <small class="text-muted"><i>{{ variety.species.common_name }}</i></small>
         <a class="text-decoration-none link-dark" href="{% url 'register:plantvariety-update' variety.pk %}">
-            <i class="bi bi-pencil-square" style="font-size:2rem"></i>
+            <i class="bi bi-pencil" style="font-size:2rem"></i>
         </a>
     </h1>
 
@@ -34,9 +34,9 @@
 
     <div class="row mt-5">
         <div class="col">
-            <h2>
+            <h2 id="descriptions">
                 Descriptions
-                <a class="btn btn-sm btn-secondary" href="{% url 'describe:description-create' %}?variety_id={{ variety.pk }}" >Add</a>
+                <a class="btn btn-sm btn-secondary" href="{% url 'describe:description-create' %}?variety_id={{ variety.pk }}" >Create</a>
             </h2>
             {% if variety.description_set.count %}
                 <table class="table">
@@ -60,25 +60,25 @@
                     {% endfor %}
                 </table>
             {% else %}
-                <p>There are no descriptions of this variety available.</p>
+                <p class="text-muted">There are no descriptions of this variety available.</p>
             {% endif %}
         </div>
     </div>
 
     <div class="row mt-5">
         <div class="col">
-            <h2>Accessions <a href="{% url 'collect:seedsample-create' %}?variety_id={{ variety.pk }}" class="btn btn-secondary btn-sm">Add</a></h2>
+            <h2 id="accessions">Accessions <a href="{% url 'collect:seedsample-create' %}?variety_id={{ variety.pk }}" class="btn btn-secondary btn-sm">Create</a></h2>
             {% if variety.seedsample_set.count %}
                 {% render_table seedsample_table %}
             {% else %}
-                <p>There are no seed samples of this variety.</p>
+                <p class="text-muted">There are no seed samples of this variety.</p>
             {% endif %}
         </div>
     </div>
 
     <div class="row mt-5">
         <div class="col">
-            <h2>Denominations <a class="btn btn-secondary btn-sm" href="{% url 'register:plantvarietyname-create' variety.pk %}">Add</a></h2>
+            <h2 id="names">Names <a class="btn btn-secondary btn-sm" href="{% url 'register:plantvarietyname-create' variety.pk %}">Create</a></h2>
             <table class="table">
                 <thead>
                     <th scope="col">Name</th>
@@ -103,14 +103,14 @@
 
     <div class="row mt-5">
         <div class="col">
-            <h2>Protections<a class="btn btn-sm btn-secondary ms-2" href="{% url 'register:protection-create' variety.pk %}">Add</a></h2>
+            <h2 id="protections">Protections<a class="btn btn-sm btn-secondary ms-2" href="{% url 'register:protection-create' variety.pk %}">Create</a></h2>
             {% render_table protection_table %}
         </div>
     </div>
 
     <div class="row mt-5">
         <div class="col">
-            <h2>Parameters <a class="btn btn-secondary btn-sm" href="{% url 'register:add_varparamval' variety.id %}">Add</a></h2>
+            <h2 id="parameters">Parameters <a class="btn btn-secondary btn-sm" href="{% url 'register:add_varparamval' variety.id %}">Create</a></h2>
 	    {% render_table parameters_table %}
 	</div>
     </div>

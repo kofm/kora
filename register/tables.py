@@ -50,6 +50,7 @@ class EntityTable(tables.Table, CountryRenderer):
 
 class VarietalParameterTable(tables.Table):
     """Table display of varietal parameters."""
+
     def render_value(self, record):
         return format_html("{} {}", record.value, record.parameter.measure_unit)
 
@@ -104,27 +105,22 @@ def render_icon(value):
 
 class PlantVarietyTable(tables.Table):
     name = tables.Column(linkify=True)
-    described = tables.Column(
-        empty_values=(), verbose_name="Described", orderable=False
-    )
-    accessions = tables.Column(
-        empty_values=(), verbose_name="Accessions", orderable=False
-    )
+    described = tables.Column(empty_values=(), verbose_name="Described", orderable=False)
+    accessions = tables.Column(empty_values=(), verbose_name="Accessions", orderable=False)
 
     class Meta:
         model = PlantVariety
-        fields = ("name", "breeder", "created_at")
+        fields = (
+            "name",
+            "breeder",
+        )
 
     def render_protected(self, record):
-        protected = Protection.objects.filter(
-            variety=record, type="PBR", status="G"
-        ).exists()
+        protected = Protection.objects.filter(variety=record, type="PBR", status="G").exists()
         return render_icon(protected)
 
     def render_enlisted(self, record):
-        enlisted = Protection.objects.filter(
-            variety=record, type__in=["CAT", "NLI"], status="G"
-        ).exists()
+        enlisted = Protection.objects.filter(variety=record, type__in=["CAT", "NLI"], status="G").exists()
         return render_icon(enlisted)
 
     def render_described(self, record):

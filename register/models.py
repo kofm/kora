@@ -8,7 +8,10 @@ class ModelIsDeletableMixin:
     def is_deletable(self):
         for rel in self._meta.get_fields():
             try:
-                if not rel.on_delete.__name__ in ["PROTECT", "RESTRICT",]:
+                if not rel.on_delete.__name__ in [
+                    "PROTECT",
+                    "RESTRICT",
+                ]:
                     continue
                 related = rel.related_model.objects.filter(**{rel.field.name: self})
                 if related.exists():
@@ -103,7 +106,12 @@ class PlantSpecies(ModelIsDeletableMixin, models.Model):
         return reverse("register:plantspecies_list")
 
     def get_delete_url(self):
-        return reverse("register:plantspecies_delete", args=[self.pk, ])
+        return reverse(
+            "register:plantspecies_delete",
+            args=[
+                self.pk,
+            ],
+        )
 
     class Meta:
         ordering = ["common_name"]
@@ -117,24 +125,16 @@ class PlantVarietyManager(models.Manager):
         Returns a list of dictionaries containing the PKs and the names of the
         varieties of a particular PlantSpecies
         """
-        qs = (
-            self.filter(species=plantspecies)
-            .prefetch_related("breeder")
-            .values("pk", "name", "breeder__name")
-        )
+        qs = self.filter(species=plantspecies).prefetch_related("breeder").values("pk", "name", "breeder__name")
         return list(qs)
 
 
 class PlantVariety(ModelIsDeletableMixin, models.Model):
     name = models.CharField(help_text="The name of the variety", max_length=100)
-    species = models.ForeignKey(
-        PlantSpecies, on_delete=models.PROTECT, related_name="variety"
-    )
+    species = models.ForeignKey(PlantSpecies, on_delete=models.PROTECT, related_name="variety")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    breeder = models.ForeignKey(
-        Entity, on_delete=models.SET_NULL, null=True, blank=True
-    )
+    breeder = models.ForeignKey(Entity, on_delete=models.SET_NULL, null=True, blank=True)
     objects = PlantVarietyManager()
 
     class Meta:
@@ -169,6 +169,9 @@ class PlantVariety(ModelIsDeletableMixin, models.Model):
             ],
         )
 
+    def other_names(self):
+        return self.names.exclude(name=self.name)
+
     def has_breeder(self):
         if self.breeder:
             return True
@@ -178,9 +181,7 @@ class PlantVariety(ModelIsDeletableMixin, models.Model):
 
 class PlantVarietyName(models.Model):
     name = models.CharField(max_length=200)
-    variety = models.ForeignKey(
-        PlantVariety, on_delete=models.CASCADE, related_name="names"
-    )
+    variety = models.ForeignKey(PlantVariety, on_delete=models.CASCADE, related_name="names")
     change_date = models.DateField(blank=True, null=True, default=date.today)
 
     class Meta:
@@ -220,9 +221,7 @@ class Protection(models.Model):
         ("S", "Surrendered"),
     ]
     type = models.CharField(max_length=3, choices=PROTECTION_TYPE_CHOICES)
-    status = models.CharField(
-        max_length=1, blank=True, null=True, choices=PROTECTION_STATUS_CHOICES
-    )
+    status = models.CharField(max_length=1, blank=True, null=True, choices=PROTECTION_STATUS_CHOICES)
     country = CountryField(null=True)
     variety = models.ForeignKey(PlantVariety, on_delete=models.CASCADE)
     reference = models.CharField(max_length=100, blank=True, null=True)
@@ -234,9 +233,7 @@ class Protection(models.Model):
     maintainers = models.ManyToManyField(Entity, blank=True)
     date_start = models.DateField()
     date_end = models.DateField(blank=True, null=True)
-    note = models.CharField(
-        max_length=512, blank=True, help_text="Add any additional information here."
-    )
+    note = models.CharField(max_length=512, blank=True, help_text="Add any additional information here.")
 
     def get_absolute_url(self):
         return reverse("register:protection-detail", kwargs={"pk": self.pk})

@@ -42,7 +42,7 @@ class PlantSpeciesDetailView(NavActivePlants, DetailBreadcrumbMixin, DetailView)
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         filter = PlantVarietyFilter(
-            self.request.GET, queryset=self.object.variety.all()
+            self.request.GET, queryset=self.object.variety.all().order_by("-created_at")
         )
         count = filter.qs.count()
         table = PlantVarietyTable(filter.qs)
