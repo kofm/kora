@@ -1,0 +1,5 @@
+{% extends "frontpage/confirm_delete.html" %}
+
+{% block delete_message %}
+    You are about to delete a value for parameter <b>{{ param.parameter.name }}</b> relative to the variety <b>{{ param.variety }}</b>.<br /> The value is: <b>{{ param.value }} {{ param.parameter.measure_unit }}</b>
+{% endblock %}

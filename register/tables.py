@@ -51,14 +51,21 @@ class EntityTable(tables.Table, CountryRenderer):
 class VarietalParameterTable(tables.Table):
     """Table display of varietal parameters."""
 
-    def render_value(self, record):
-        return format_html("{} {}", record.value, record.parameter.measure_unit)
+    actions = tables.TemplateColumn(
+        template_name="parameters/partials/varietalparameter_table_actions.html",
+        verbose_name="",
+        orderable=False,
+        attrs={"td": {"class": "text-end"}},
+    )
 
     class Meta:
         model = ParameterValue
         page_field = "para_page"
         template_name = "django_tables2/bootstrap4.html"
         fields = ("parameter__name", "parameter__code", "value", "url_ref", "note")
+
+    def render_value(self, record):
+        return format_html("{} {}", record.value, record.parameter.measure_unit)
 
 
 class PlantSpeciesTable(tables.Table):

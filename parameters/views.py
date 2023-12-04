@@ -1,16 +1,20 @@
 from django import forms
 from django.core.paginator import Paginator
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, redirect, render
+from django.template.response import TemplateResponse
 from django.urls import reverse_lazy
 from django.urls.base import reverse
 from django.views.generic import CreateView, DeleteView, ListView, UpdateView
 from django.views.generic.detail import DetailView
 from django_tables2 import RequestConfig
+from parameters.forms import VarietalParameterForm
 
 
 from parameters.tables import ParameterTable, SpeciesParameterTable, VarietalParameterTable
+from register.models import PlantVariety
 
 from .models import SpeciesParameter, Parameter, VarietalParameter
+
 
 class ParametersList(ListView):
     model = Parameter
@@ -40,6 +44,7 @@ class ParameterCreate(CreateView):
         context["nav_parameters"] = "active"
         return context
 
+
 class ParameterUpdate(UpdateView):
     model = Parameter
     fields = "__all__"
@@ -56,9 +61,11 @@ class ParameterUpdate(UpdateView):
         context["nav_parameters"] = "active"
         return context
 
+
 class ParameterDelete(DeleteView):
     model = Parameter
     success_url = reverse_lazy("parameters:parameters-list")
+
 
 class ParameterDetail(DetailView):
     model = Parameter
@@ -76,9 +83,7 @@ class ParameterDetail(DetailView):
 
         # Display the tables
         for key, value in table_data.items():
-            table = value["table"](
-                value["model"].objects.filter(parameter=self.object.pk)
-            )
+            table = value["table"](value["model"].objects.filter(parameter=self.object.pk))
             RequestConfig(self.request, paginate={"per_page": 10}).configure(table)
             context[key] = table
 
@@ -98,6 +103,7 @@ class ParameterDetail(DetailView):
         varparams = paginator.get_page(page)
         return varparams
 
+
 class SpeciesParameterUpdate(UpdateView):
     model = SpeciesParameter
     fields = [
@@ -107,11 +113,42 @@ class SpeciesParameterUpdate(UpdateView):
     template_name = "parameters/cropparam_update.html"
 
     def get_success_url(self):
-        return reverse(
-            "register:plantspecies_detail", kwargs={"pk": self.get_object().specie.pk}
-        )
+        return reverse("register:plantspecies_detail", kwargs={"pk": self.get_object().specie.pk})
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["nav_species"] = "active"
         return context
+
+
+def varietalparameter_update(request, pk):
+    param = get_object_or_404(VarietalParameter, pk=pk)
+    form = VarietalParameterForm(instance=param)
+    if request.POST:
+        form = VarietalParameterForm(request.POST, instance=param)
+        if form.is_valid():
+            form.save()
+            return redirect(
+                reverse_lazy(
+                    "register:plantvariety_detail",
+                    args=[
+                        param.variety.pk,
+                    ],
+                )
+            )
+    return TemplateResponse(request, "register/plantspeciesparameters_create.html", {"form": form})
+
+
+def varietalparameter_delete(request, pk):
+    param = get_object_or_404(VarietalParameter, pk=pk)
+    if request.POST:
+        param.delete()
+        return redirect(
+            reverse_lazy(
+                "register:plantvariety_detail",
+                args=[
+                    param.variety.pk,
+                ],
+            )
+        )
+    return TemplateResponse(request, "parameters/varietalparameter_confirm_delete.html", {"param": param})

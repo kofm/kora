@@ -10,6 +10,8 @@ urlpatterns = [
     path("<int:pk>", views.ParameterDetail.as_view(), name="parameter-detail"),
     path("<int:pk>/update", views.ParameterUpdate.as_view(), name="parameter-update"),
     path("<int:pk>/delete", views.ParameterDelete.as_view(), name="parameter-delete"),
+    path("varietalparameter/<int:pk>/update", views.varietalparameter_update, name="varietalparameter-update"),
+    path("varietalparameter/<int:pk>/delete", views.varietalparameter_delete, name="varietalparameter-delete"),
     path(
         "cropparam/<int:pk>/update",
         views.SpeciesParameterUpdate.as_view(),
