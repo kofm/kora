@@ -69,7 +69,6 @@ class VarietalParameterTable(tables.Table):
 
 
 class PlantSpeciesTable(tables.Table):
-    common_name = tables.Column(linkify=True)
     latin_name = tables.Column(verbose_name="Latin name")
     num_varieties = tables.Column(verbose_name="Varieties")
     num_accessions = tables.Column(verbose_name="Accessions")
