@@ -247,6 +247,21 @@ files = [
 ]
 
 [[package]]
+name = "crispy-bootstrap4"
+version = "2023.1"
+description = "Bootstrap4 template pack for django-crispy-forms"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "crispy-bootstrap4-2023.1.tar.gz", hash = "sha256:d60e93eb6d82886c009eb174f2a4c78fdac602a1efadf0305471c84815bd973a"},
+    {file = "crispy_bootstrap4-2023.1-py3-none-any.whl", hash = "sha256:1a88e74f8d36d2dedeb40a66f246994f3ce5cd855017785d0291e741d3e7d7c2"},
+]
+
+[package.dependencies]
+django = ">=4.2"
+django-crispy-forms = ">=2.0"
+
+[[package]]
 name = "debugpy"
 version = "1.8.0"
 description = "An implementation of the Debug Adapter Protocol for Python"
@@ -327,14 +342,17 @@ test = ["djangorestframework", "graphene-django", "pytest", "pytest-cov", "pytes
 
 [[package]]
 name = "django-crispy-forms"
-version = "1.14.0"
+version = "2.1"
 description = "Best way to have Django DRY forms"
 optional = false
-python-versions = ">=3.7"
+python-versions = ">=3.8"
 files = [
-    {file = "django-crispy-forms-1.14.0.tar.gz", hash = "sha256:35887b8851a931374dd697207a8f56c57a9c5cb9dbf0b9fa54314da5666cea5b"},
-    {file = "django_crispy_forms-1.14.0-py3-none-any.whl", hash = "sha256:bc4d2037f6de602d39c0bc452ac3029d1f5d65e88458872cc4dbc01c3a400604"},
+    {file = "django-crispy-forms-2.1.tar.gz", hash = "sha256:4d7ec431933ad4d4b5c5a6de4a584d24613c347db9ac168723c9aaf63af4bb96"},
+    {file = "django_crispy_forms-2.1-py3-none-any.whl", hash = "sha256:d592044771412ae1bd539cc377203aa61d4eebe77fcbc07fbc8f12d3746d4f6b"},
 ]
+
+[package.dependencies]
+django = ">=4.2"
 
 [[package]]
 name = "django-extensions"
@@ -463,14 +481,17 @@ tablib = ["tablib"]
 
 [[package]]
 name = "django-types"
-version = "0.17.0"
+version = "0.19.1"
 description = "Type stubs for Django"
 optional = false
 python-versions = ">=3.7,<4.0"
 files = [
-    {file = "django-types-0.17.0.tar.gz", hash = "sha256:c1c42ab78876c57c728342d5ab060725ab371fc8dc83bb85bae0be06846aad70"},
-    {file = "django_types-0.17.0-py3-none-any.whl", hash = "sha256:43d4931159524c1a08b25c1b9a4db2512b7c1234b64b1d4db4aff78881d6afd0"},
+    {file = "django_types-0.19.1-py3-none-any.whl", hash = "sha256:b3f529de17f6374d41ca67232aa01330c531bbbaa3ac4097896f31ac33c96c30"},
+    {file = "django_types-0.19.1.tar.gz", hash = "sha256:5ae7988612cf6fbc357b018bbc3b3a878b65e04275cc46e0d35d66a708daff12"},
 ]
+
+[package.dependencies]
+types-psycopg2 = ">=2.9.21.13"
 
 [[package]]
 name = "django-view-breadcrumbs"
@@ -1453,6 +1474,17 @@ doc = ["sphinx-autodoc-typehints (>=1.2.0)", "sphinx-rtd-theme"]
 test = ["mypy", "pytest", "typing-extensions"]
 
 [[package]]
+name = "types-psycopg2"
+version = "2.9.21.19"
+description = "Typing stubs for psycopg2"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "types-psycopg2-2.9.21.19.tar.gz", hash = "sha256:ec3aae522dde9c41141597bc41123b4c955fb4093b1fc7ec6ee607795a0a088f"},
+    {file = "types_psycopg2-2.9.21.19-py3-none-any.whl", hash = "sha256:8a4871df20c29e516622be8d66b91814c3262ff94112ff9e2f72a043d8fdf03c"},
+]
+
+[[package]]
 name = "types-pytz"
 version = "2023.3.1.1"
 description = "Typing stubs for pytz"
@@ -1551,4 +1583,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "9c9ef6ac3f121e5919c3a15bf88de81c561497ebf5ad28828ea72c8304fcee93"
+content-hash = "22e8e4855e41b1514feedf7efd04f307716e7cd76ccc773ec19204c353bfcc91"

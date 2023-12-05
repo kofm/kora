@@ -19,6 +19,7 @@ INSTALLED_APPS = [
     "django_htmx",
     "rest_framework",
     "crispy_forms",
+    "crispy_bootstrap4",
     "django_countries",
     "widget_tweaks",
     # "debug_toolbar",
@@ -112,6 +113,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = "static/"
 
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap4"
 CRISPY_TEMPLATE_PACK = "bootstrap4"
 
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
