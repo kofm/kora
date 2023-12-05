@@ -6,7 +6,7 @@ authors = ["Gabriele Mongiano <gabriele.mongiano@crea.gov.it>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-django = "^4.2"
+django = ">4.2"
 django-countries = "^7.5.1"
 django-crispy-forms = "1.14"
 django-filter = "^23.2"
