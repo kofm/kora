@@ -35,7 +35,6 @@ class PlantVarietyNameSerializer(serializers.ModelSerializer):
 
 
 class PlantVarietySerializer(serializers.ModelSerializer):
-    species = serializers.StringRelatedField(many=False)
     names = PlantVarietyNameSerializer(many=True, read_only=True)
 
     class Meta:
