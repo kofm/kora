@@ -10,8 +10,9 @@ urlpatterns = [
     path("<int:pk>", views.seedsample_detail, name="seedsample-detail"),
     path("new", views.SeedSampleCreateView.as_view(), name="seedsample-create"),
     path("storage", views.StorageListView.as_view(), name="storage-list"),
-    path("storage/create", views.StorageCreateView.as_view(), name="storage-create"),
-    path("storage/<int:pk>", views.StorageDetailView.as_view(), name="storage-detail"),
+    path("storage/create", views.storage_create, name="storage-create"),
+    path("storage/<int:pk>", views.storage_detail, name="storage-detail"),
+    path("storage/<int:pk>/delete", views.storage_delete, name="storage-delete"),
     path("storage/sort", views.StorageSortView.as_view(), name="storage-sort"),
     path("cart/change", views.cart_change_htmx, name="cart-change"),
     path(

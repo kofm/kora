@@ -7,8 +7,23 @@
 
 {% block container %}
 
-<p class="display-1">Storage {{ object }}</p>
+    <h1 class="display-1">
+	Storage {{ storage }}
+	{% if sample_count == 0 %}
+	<a
+	    class="text-decoration-none link-dark"
+	    href="{% url 'collect:storage-delete' storage.pk %}">
+	{% else %}
+	<a
+	    class="text-decoration-none link-dark text-muted"
+	    data-bs-toggle="tooltip"
+	    data-bs-title="Can't delete. Storage not empty."
+	    >
+	{% endif %}
+	    <i class="bi bi-trash" style="font-size:2rem"></i>
+	</a>
+    </h1>
 
-{% render_table table %}
+    {% render_table table %}
 
 {% endblock %}

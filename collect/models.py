@@ -41,7 +41,7 @@ class Storage(models.Model):
 
 class StoragePosition(models.Model):
     name = models.CharField(max_length=200)
-    storage = models.ForeignKey(Storage, on_delete=models.PROTECT)
+    storage = models.ForeignKey(Storage, on_delete=models.CASCADE)
 
     def __str__(self) -> str:
         return self.storage.name + "-" + self.name

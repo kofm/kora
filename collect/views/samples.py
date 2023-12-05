@@ -17,7 +17,7 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import IntegerField, Q, Value
 from django.db.models.functions import Cast, Concat
 from django.http import HttpResponseBadRequest
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.urls import reverse, reverse_lazy
 from django.utils.timezone import now
@@ -61,9 +61,7 @@ def cart_change_htmx(request):
     form = CartSelectForm(request.POST, user=request.user)
     if form.is_valid():
         cart = form.save()
-        return TemplateResponse(
-            request, "collect/partials/cart_offcanvas.html", {"cart": cart}
-        )
+        return TemplateResponse(request, "collect/partials/cart_offcanvas.html", {"cart": cart})
     else:
         return HttpResponseBadRequest()
 
@@ -72,9 +70,7 @@ def seedsample_detail(request, pk):
     context = {}
     seedsample = get_object_or_404(SeedSample, pk=pk)
     context["seedsample"] = seedsample
-    context["seedsample_duplicates_table"] = SeedSampleDuplicatesTable(
-        seedsample.duplicate_samples
-    )
+    context["seedsample_duplicates_table"] = SeedSampleDuplicatesTable(seedsample.duplicate_samples)
     return TemplateResponse(request, "collect/seedsample_detail.html", context)
 
 
@@ -111,9 +107,7 @@ class SeedSampleCreateView(CreateView):
         context = super().get_context_data(**kwargs)
         context["weight_form"] = SampleWeightForm()
         context["germinability_form"] = GerminabilityForm(initial={"after_days": 7})
-        context["varieties"] = list(
-            PlantVarietyName.objects.values("variety__id", "name")
-        )
+        context["varieties"] = list(PlantVarietyName.objects.values("variety__id", "name"))
         context["positions"] = list(
             StoragePosition.objects.filter(seedsample__isnull=True)
             .annotate(
@@ -137,13 +131,9 @@ class SeedSampleUpdateView(UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["varieties"] = list(
-            PlantVarietyName.objects.values("variety__id", "name")
-        )
+        context["varieties"] = list(PlantVarietyName.objects.values("variety__id", "name"))
         context["positions"] = list(
-            StoragePosition.objects.filter(
-                Q(seedsample__id=self.object.pk) | Q(seedsample__isnull=True)
-            )
+            StoragePosition.objects.filter(Q(seedsample__id=self.object.pk) | Q(seedsample__isnull=True))
             .annotate(
                 position_name=Concat("storage__name", Value("-"), "name"),
                 posn=Cast("name", output_field=IntegerField()),
@@ -177,17 +167,32 @@ class StorageListView(ListView):
 
     queryset = Storage.objects.all().order_by("order", "pk")
 
+
 class StorageDetailView(DetailView):
     model = Storage
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         storage_positions = self.object.storageposition_set.all()
-        seed_samples = SeedSample.objects.filter(position__in=storage_positions).select_related('variety').order_by("position")
+        seed_samples = (
+            SeedSample.objects.filter(position__in=storage_positions).select_related("variety").order_by("position")
+        )
         table = SeedSampleInStorageTable(seed_samples)
-        RequestConfig(self.request, paginate={'per_page': 10}).configure(table)
-        context['table'] = table
+        RequestConfig(self.request, paginate={"per_page": 10}).configure(table)
+        context["table"] = table
         return context
+
+
+def storage_detail(request, pk):
+    storage = get_object_or_404(Storage, pk=pk)
+    storage_positions = storage.storageposition_set.all()
+    seed_samples = (
+        SeedSample.objects.filter(position__in=storage_positions).select_related("variety").order_by("position")
+    )
+    table = SeedSampleInStorageTable(seed_samples)
+    RequestConfig(request, paginate={"per_page": 10}).configure(table)
+    return TemplateResponse(request, "collect/storage_detail.html", {"storage": storage, "table": table, "sample_count": seed_samples.count()})
+
 
 class StorageSortView(SortableView):
     """
@@ -197,21 +202,44 @@ class StorageSortView(SortableView):
     model = Storage
 
 
-class StorageCreateView(CreateView):
+def storage_create(request):
     """
     View to create a new Storage object
     """
 
-    model = Storage
-    form_class = StorageCreateForm
+    form = StorageCreateForm()
 
-    def form_valid(self, form):
-        # Save the Storage object
-        storage = form.save()
+    if request.POST:
+        form = StorageCreateForm(request.POST)
+        if form.is_valid():
+            storage = form.save()
+            positions_count = form.cleaned_data["positions"]
+            for i in range(positions_count):
+                StoragePosition.objects.create(name=f"{i + 1}", storage=storage)
+            if "btn-another" in request.POST:
+                return redirect(reverse("collect:storage-create"))
+            else:
+                return redirect(
+                    reverse(
+                        "collect:storage-detail",
+                        args=[
+                            storage.pk,
+                        ],
+                    )
+                )
 
-        # Create the specified number of StoragePosition objects
-        positions_count = form.cleaned_data['positions']
-        for i in range(positions_count):
-            StoragePosition.objects.create(name=f'{i + 1}', storage=storage)
+    return TemplateResponse(request, "collect/storage_form.html", {"form": form})
 
-        return super().form_valid(form)
+
+def storage_delete(request, pk):
+    storage = get_object_or_404(Storage, pk=pk)
+
+    if storage.stored_samples:
+        return redirect(reverse_lazy("collect:storage-list"))
+
+    if request.POST:
+        storage.delete()
+        return redirect(reverse_lazy("collect:storage-list"))
+
+    return TemplateResponse(request, "collect/storage_confirm_delete.html", {"storage": storage})
+        
