@@ -8,7 +8,7 @@ from register.models import Entity, PlantSpecies, PlantVariety, Protection
 from restapi.serializers import EntitySerializer, PlantSpeciesSerializer, PlantVarietySerializer, ProtectionSerializer, ProtocolSerializer, SeedSampleSerializer, VarietalParameterSerializer
 
 
-class CropViewSet(viewsets.ModelViewSet):
+class PlantSpeciesViewSet(viewsets.ModelViewSet):
     """
     API endpoint to view/edit a Crop
     """
@@ -20,7 +20,13 @@ class CropViewSet(viewsets.ModelViewSet):
 class PlantVarietyViewSet(viewsets.ModelViewSet):
     queryset = PlantVariety.objects.all()
     serializer_class = PlantVarietySerializer
-
+    
+    def get_queryset(self):
+        species = self.request.query_params.get('species', None)
+        queryset = PlantVariety.objects.all()
+        if species is not None:
+            queryset = queryset.filter(species=species)
+        return queryset
 
 class EntityViewSet(viewsets.ModelViewSet):
     queryset = Entity.objects.all()

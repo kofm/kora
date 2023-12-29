@@ -73,9 +73,8 @@ def location_detail(request, pk):
 
 class LocationCreateView(CreateView):
     model = Location
-    fields = "__all__"
+    fields = ["name", "latitude", "longitude"]
     success_url = reverse_lazy("spaces:location-list")
-
 
 class LocationUpdateView(UpdateView):
     model = Location
