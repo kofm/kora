@@ -6175,14 +6175,20 @@ __webpack_require__.r(__webpack_exports__);
 // variable assigned in the description_form.html template
 
 
-const sources = JSON.parse(document.getElementById("sources").textContent);
 
-var getProtocols = function (id) {
+
+const sources = JSON.parse(document.getElementById("sources").textContent);
+let protocolTomSelect;
+
+const getProtocols = (id) => {
+    if (!protocolTomSelect) {
+	return;
+    }
     if (!id) {
 	protocolTomSelect.disable();
 	return;
     }
-    fetch(url + "&variety=" + id)
+    fetch(`${url}&variety=${id}`)
     .then((response) => response.json())
     .then((data) => {
         protocolTomSelect.clear();
@@ -6195,20 +6201,16 @@ var getProtocols = function (id) {
 const varietyTomSelect = new (tom_select__WEBPACK_IMPORTED_MODULE_1___default())("#id_variety", {
     maxItems: 1,
     create: false,
-    onChange: function (value) {
-	getProtocols(value);
-    },
+    onChange: getProtocols,
 });
 
-const protocolTomSelect = new (tom_select__WEBPACK_IMPORTED_MODULE_1___default())("#id_protocol", {
+protocolTomSelect = new (tom_select__WEBPACK_IMPORTED_MODULE_1___default())("#id_protocol", {
     maxItems: 1,
     create: false,
     valueField: "pk",
     labelField: "name",
     searchField: ["name"],
-    onInitialize: function() {
-	getProtocols(varietyTomSelect.getValue());
-    }
+    onInitialize: () => getProtocols(varietyTomSelect.getValue()),
 });
 
 new (tom_select__WEBPACK_IMPORTED_MODULE_1___default())("#id_name", {

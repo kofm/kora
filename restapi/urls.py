@@ -6,7 +6,7 @@ from . import views
 app_name = "restapi"
 
 router = routers.DefaultRouter()
-router.register(r"species", views.CropViewSet)
+router.register(r"species", views.PlantSpeciesViewSet)
 router.register(r"varieties", views.PlantVarietyViewSet)
 router.register(r"entities", views.EntityViewSet)
 router.register(r"protections", views.ProtectionViewSet)
