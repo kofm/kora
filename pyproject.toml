@@ -26,7 +26,6 @@ tablib = "*"
 
 
 [tool.poetry.group.dev.dependencies]
-black = "*"
 debugpy = "*"
 django-extensions = "*"
 django-filter-stubs = "*"
@@ -38,6 +37,8 @@ pandas-stubs = "*"
 pyflyby = "*"
 pyflakes = "*"
 autoimport = "*"
+pyright = "^1.1.344"
+ruff = "*"
 
 
 [build-system]
