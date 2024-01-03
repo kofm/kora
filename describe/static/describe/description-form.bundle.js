@@ -6177,48 +6177,59 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-const sources = JSON.parse(document.getElementById("sources").textContent);
-let protocolTomSelect;
+const sources = JSON.parse(document.getElementById('sources').textContent)
 
-const getProtocols = (id) => {
-    if (!protocolTomSelect) {
-	return;
-    }
-    if (!id) {
-	protocolTomSelect.disable();
-	return;
-    }
-    fetch(`${url}&variety=${id}`)
-    .then((response) => response.json())
-    .then((data) => {
-        protocolTomSelect.clear();
-        protocolTomSelect.clearOptions();
-        protocolTomSelect.addOptions(data);
-        protocolTomSelect.enable();
-    });
-};
+const varietyTomSelect = new (tom_select__WEBPACK_IMPORTED_MODULE_1___default())('#id_variety', {
+	maxItems: 1,
+	create: false,
+})
 
-const varietyTomSelect = new (tom_select__WEBPACK_IMPORTED_MODULE_1___default())("#id_variety", {
-    maxItems: 1,
-    create: false,
-    onChange: getProtocols,
-});
+const protocolTomSelect = new (tom_select__WEBPACK_IMPORTED_MODULE_1___default())('#id_protocol', {
+	maxItems: 1,
+	create: false,
+	valueField: 'pk',
+	labelField: 'name',
+	searchField: ['name'],
+})
 
-protocolTomSelect = new (tom_select__WEBPACK_IMPORTED_MODULE_1___default())("#id_protocol", {
-    maxItems: 1,
-    create: false,
-    valueField: "pk",
-    labelField: "name",
-    searchField: ["name"],
-    onInitialize: () => getProtocols(varietyTomSelect.getValue()),
-});
+new (tom_select__WEBPACK_IMPORTED_MODULE_1___default())('#id_name', {
+	options: sources,
+	maxItems: 1,
+	create: true,
+	persist: false,
+})
 
-new (tom_select__WEBPACK_IMPORTED_MODULE_1___default())("#id_name", {
-    options: sources,
-    maxItems: 1,
-    create: true,
-    persist: false,
-});
+function getProtocols(id) {
+	if (!id) {
+		protocolTomSelect.disable()
+		return
+	}
+
+	let protocol = protocolTomSelect.getValue()
+
+	fetch(`${url}&variety=${id}`)
+		.then((response) => response.json())
+		.then((data) => {
+			protocolTomSelect.clear()
+			protocolTomSelect.clearOptions()
+			protocolTomSelect.addOptions(data)
+			protocolTomSelect.enable()
+			if (protocol) {
+				console.log(protocol)
+				protocolTomSelect.setValue(protocol)
+			}
+		})
+}
+
+varietyTomSelect.on('change', getProtocols)
+
+let variety = varietyTomSelect.getValue()
+
+if (variety) {
+	getProtocols(variety)
+} else {
+	protocolTomSelect.disable()
+}
 
 })();
 

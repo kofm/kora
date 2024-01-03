@@ -26,6 +26,7 @@ urlpatterns = [
     path("export", views.description_filter_export, name="description-list-export"),
     path("<int:pk>/", views.DescriptionDetail.as_view(), name="description-detail"),
     path("<int:pk>/update", views.description_update, name="description-update"),
+    path("<int:pk>/update_meta", views.description_update_metadata, name="description-update-metadata"),
     path("create", views.description_create, name="description-create"),
     path(
         "<int:pk>/delete",

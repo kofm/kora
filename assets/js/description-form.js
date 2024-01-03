@@ -2,51 +2,58 @@
 // Mind that the protocol restapi endpoint is stored in a `url`
 // variable assigned in the description_form.html template
 
-import "../scss/tom-select.scss";
-import TomSelect from "tom-select";
+import '../scss/tom-select.scss'
+import TomSelect from 'tom-select'
 
-const sources = JSON.parse(document.getElementById("sources").textContent);
-let protocolTomSelect;
+const sources = JSON.parse(document.getElementById('sources').textContent)
 
-const getProtocols = (id) => {
+const varietyTomSelect = new TomSelect('#id_variety', {
+	maxItems: 1,
+	create: false,
+})
 
-    if (!protocolTomSelect) {
-	return;
-    }
+const protocolTomSelect = new TomSelect('#id_protocol', {
+	maxItems: 1,
+	create: false,
+	valueField: 'pk',
+	labelField: 'name',
+	searchField: ['name'],
+})
 
-    if (!id) {
-	protocolTomSelect.disable();
-	return;
-    }
+new TomSelect('#id_name', {
+	options: sources,
+	maxItems: 1,
+	create: true,
+	persist: false,
+})
 
-    fetch(`${url}&variety=${id}`)
-    .then((response) => response.json())
-    .then((data) => {
-        protocolTomSelect.clear();
-        protocolTomSelect.clearOptions();
-        protocolTomSelect.addOptions(data);
-        protocolTomSelect.enable();
-    });
-};
+function getProtocols(id) {
+	if (!id) {
+		protocolTomSelect.disable()
+		return
+	}
 
-const varietyTomSelect = new TomSelect("#id_variety", {
-    maxItems: 1,
-    create: false,
-    onChange: getProtocols,
-});
+	let protocol = protocolTomSelect.getValue()
 
-protocolTomSelect = new TomSelect("#id_protocol", {
-    maxItems: 1,
-    create: false,
-    valueField: "pk",
-    labelField: "name",
-    searchField: ["name"],
-    onInitialize: () => getProtocols(varietyTomSelect.getValue()),
-});
+	fetch(`${url}&variety=${id}`)
+		.then((response) => response.json())
+		.then((data) => {
+			protocolTomSelect.clear()
+			protocolTomSelect.clearOptions()
+			protocolTomSelect.addOptions(data)
+			protocolTomSelect.enable()
+			if (protocol) {
+				protocolTomSelect.setValue(protocol)
+			}
+		})
+}
 
-new TomSelect("#id_name", {
-    options: sources,
-    maxItems: 1,
-    create: true,
-    persist: false,
-});
+varietyTomSelect.on('change', getProtocols)
+
+let variety = varietyTomSelect.getValue()
+
+if (variety) {
+	getProtocols(variety)
+} else {
+	protocolTomSelect.disable()
+}

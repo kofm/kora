@@ -1,4 +1,3 @@
-<!--  -*- engine: django -*-  -->
 {% extends "frontpage/base.html" %}
 {% load crispy_forms_tags %}
 {% load widget_tweaks %}
@@ -10,26 +9,31 @@
 
     <script type="text/javascript">
      let url = "{% url 'restapi:protocols-list' %}?format=json";
-     // now you can use "url" variable in your script
     </script>
 {% endblock %}
 
 
-{% block title %}New description{% endblock %}
+{% block title %}{{ updating|yesno:"Update,Create" }} description{% endblock %}
 
 
 {% block container %}
     {{ sources|json_script:"sources" }}
     {{ plantvarieties|json_script:"plantvarieties" }}
+    {% url 'describe:description-detail' description.id as description_update_url %}
 
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{% url 'describe:description-list' %}">Descriptions</a></li>
+	    {% if description %}
+		<li class="breadcrumb-item"><a href="description_update_url">{{ description }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Update</li>
+	    {% else %}
             <li class="breadcrumb-item active" aria-current="page">Create</li>
+	    {% endif %}
         </ol>
     </nav>
 
-    <h1 class="display-1">Create Description</h1>
+    <h1 class="display-1">{{ updating|yesno:"Update,Create" }} Description</h1>
 
     <form method="post">
         {% csrf_token %}
@@ -37,7 +41,10 @@
             {{form|crispy}}
         </div>
         <div>
-            <button class="btn btn-primary" type="submit">Create</button>
+            <button class="btn btn-primary" type="submit">{{ updating|yesno:"Update,Create" }}</button>
+	    {% if description %}
+		<a class="btn btn-secondary" href="description_update_url">Cancel</a>
+	    {% endif %}
         </div>
     </form>
     <script src="{% static 'describe/description-form.bundle.js' %}"></script>

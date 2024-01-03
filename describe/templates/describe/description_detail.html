@@ -1,14 +1,17 @@
 {% extends "frontpage/base.html" %}
 {% load description_extras %}
+{% load frontpage_extras %}
 {% block title %}Description: {{ description.variety.name }}{% endblock %}
 {% block container %}
+
+    {% url 'describe:description-update-metadata' description.id as description_update_metadata_url %}
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{% url 'describe:description-list' %}">Descriptions</a></li>
             <li class="breadcrumb-item active" aria-current="page">{{ description.variety.name }}</li>
         </ol>
     </nav>
-    <p class="display-3">{{ description.variety.name }} <small class="text-muted">{{ description.name }}</small></p>
+    <p class="display-3">{{ description.variety.name }} <small class="text-muted">{{ description.name }}</small> {% render_edit_icon description_update_metadata_url %}</p>
     <p class="lead">Reference protocol <a href="{% url 'describe:protocol_detail' description.protocol.id %}">{{ description.protocol.name }}</a> (<i>{{ description.protocol.plantspecies.latin_name }}</i>)</p>
     <p>
         <a class="btn btn-secondary" href="{% url 'describe:description-update' description.id %}">Update</a>

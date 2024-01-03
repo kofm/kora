@@ -5,7 +5,7 @@ from .description import (DescriptionDeleteView, DescriptionDetail,
                           description_filter_export, description_find_similar,
                           description_import, description_import_confirm,
                           description_list, description_list_reset,
-                          description_update)
+                          description_update, description_update_metadata)
 from .expression import ExpressionUpdate
 from .protocol import (ProtocolCreate, ProtocolDelete, ProtocolList,
                        protocol_detail, protocol_update,
@@ -27,6 +27,7 @@ __all__ = [
     "description_import",
     "description_import_confirm",
     "description_update",
+    "description_update_metadata",
     "ExpressionUpdate",
     "ProtocolList",
     "protocol_detail",

@@ -32,6 +32,7 @@ from django.views.generic.edit import DeleteView
 from describe.views.protocol import NavActiveDescribe
 from frontpage.decorators import nav_active
 from register.models import PlantVariety
+
 CharField.register_lookup(Lower)
 
 nav_describe = nav_active("nav_describe")
@@ -85,16 +86,12 @@ def description_list(request):
     if request.session.get("description_filter", None):
         # If a Description filter session variable exists, get the matching
         # Descriptions and instantiate the formset with the corresponding data
-        queryset = Description.objects.filter_by_expression(
-            request.session.get("description_filter")
-        )
+        queryset = Description.objects.filter_by_expression(request.session.get("description_filter"))
         # Merge unique is needed here because we need all the available traits
         # merged with the actual filter. If we pass description_filter alone
         # the formset will be instantiated with only the filtered traits
         formset = DescriptionFilterFormSet(
-            initial=merge_unique(
-                traits, request.session.get("description_filter"), "trait"
-            )
+            initial=merge_unique(traits, request.session.get("description_filter"), "trait")
         )
     else:
         # Otherwise return all the available descriptions and instantiate an empty
@@ -116,9 +113,7 @@ def description_list(request):
 
     description_favourites_ids = request.session.get("description_favourites", None)
     if description_favourites_ids:
-        description_favourites = Description.objects.filter(
-            pk__in=description_favourites_ids
-        )
+        description_favourites = Description.objects.filter(pk__in=description_favourites_ids)
         context.update({"description_favourites": description_favourites})
     context.update(
         {
@@ -176,9 +171,7 @@ def description_favourite_add(request):
             request.session["description_favourites"] = list()
         request.session["description_favourites"].append(description_id)
         request.session.modified = True
-    description_favourites = Description.objects.filter(
-        pk__in=request.session["description_favourites"]
-    )
+    description_favourites = Description.objects.filter(pk__in=request.session["description_favourites"])
     return TemplateResponse(
         request,
         "describe/partials/description_favourites.html",
@@ -201,10 +194,7 @@ def description_compare(request):
         protocols = Protocol.objects.filter(descriptions__in=descriptions).distinct()
 
         comparison_table = [{"protocol": protocol.name} for protocol in protocols]
-        comparison_table_header = [
-            f"{description.variety.name} - {description.name}"
-            for description in descriptions
-        ]
+        comparison_table_header = [f"{description.variety.name} - {description.name}" for description in descriptions]
 
         for index, protocol in enumerate(protocols):
             comparison_table[index]["rows"] = []
@@ -248,20 +238,14 @@ def description_update(request, pk):
     forms = []
     if request.method == "POST":
         form_has_errors = False
-        for expr_id, state_id in zip(
-            request.POST.getlist("id"), request.POST.getlist("state")
-        ):
+        for expr_id, state_id in zip(request.POST.getlist("id"), request.POST.getlist("state")):
             if state_id:
                 form = ExpressionUpdateForm({"id": expr_id, "state": state_id})
                 if form.is_valid():
-                    if exist_expr.filter(
-                        pk=form.cleaned_data["id"]
-                    ).exists() and not exist_expr.filter(
+                    if exist_expr.filter(pk=form.cleaned_data["id"]).exists() and not exist_expr.filter(
                         state=form.cleaned_data["state"]
                     ):
-                        exist_expr.filter(pk=form.cleaned_data["id"]).update(
-                            state=form.cleaned_data["state"]
-                        )
+                        exist_expr.filter(pk=form.cleaned_data["id"]).update(state=form.cleaned_data["state"])
                     else:
                         if not exist_expr.filter(state=form.cleaned_data["state"]):
                             new_expression = Expression()
@@ -274,9 +258,7 @@ def description_update(request, pk):
                 if expr_id:
                     exist_expr.filter(pk=expr_id).delete()
         if not form_has_errors:
-            return HttpResponseRedirect(
-                reverse("describe:description-detail", args=(description.id,))
-            )
+            return HttpResponseRedirect(reverse("describe:description-detail", args=(description.id,)))
 
     for trait in description.available_traits:
         if exist_expr.filter(state__trait=trait).exists():
@@ -295,6 +277,27 @@ def description_update(request, pk):
 
 
 @nav_describe
+def description_update_metadata(request, pk):
+    description = get_object_or_404(Description, pk=pk)
+    form = DescriptionForm(
+        initial={"variety": description.variety, "protocol": description.protocol.pk, "name": description.name}
+    )
+    protocols = Protocol.objects.filter(plantspecies=description.variety.species)
+    sources = Description.get_existing_sources()
+    return TemplateResponse(
+        request,
+        "describe/description_form.html",
+        {
+            "form": form,
+            "protocols": list(protocols.values("pk", "name")),
+            "sources": [{"value": source, "text": source} for source in sources],
+            "description": description,
+            "updating": True,
+        },
+    )
+
+
+@nav_describe
 def description_create(request):
     context = {}
 
@@ -307,12 +310,7 @@ def description_create(request):
         form.initial["variety"] = variety
         protocols = protocols.filter(plantspecies=variety.species)
 
-    sources = list(
-        Description.objects.all()
-        .order_by("name")
-        .values_list("name", flat=True)
-        .distinct("name")
-    )
+    sources = Description.get_existing_sources()
 
     if request.POST:
         form = DescriptionForm(request.POST)
@@ -392,9 +390,7 @@ def description_import(request):
     if form.is_valid():
         protocol = form.cleaned_data["protocol"]
         # This is needed in the view to populate the TomSelect inputs
-        varieties = PlantVariety.objects.get_by_species_values_list(
-            plantspecies=protocol.plantspecies
-        )
+        varieties = PlantVariety.objects.get_by_species_values_list(plantspecies=protocol.plantspecies)
         formset_data, multiple_objects_returned_errors, traits_states_list = form.save()
         formset = ExpressionFormSet(
             formset_data,
@@ -434,9 +430,7 @@ def description_import_confirm(request, protocol_id):
         return HttpResponseRedirect(reverse("describe:description-list"))
 
     # This is needed to populate the TomSelect inputs
-    varieties = PlantVariety.objects.get_by_species_values_list(
-        plantspecies=protocol.plantspecies
-    )
+    varieties = PlantVariety.objects.get_by_species_values_list(plantspecies=protocol.plantspecies)
     return TemplateResponse(
         request,
         "describe/description_import_confirm.html",

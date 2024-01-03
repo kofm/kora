@@ -16,11 +16,7 @@ from register.models import PlantSpecies, PlantVariety
 class ProtocolManager(models.Manager):
     def most_used(self):
         if Protocol.objects.count() > 0:
-            return (
-                self.annotate(count=Coalesce(Count("descriptions"), 0))
-                .order_by("-count")
-                .first()
-            )
+            return self.annotate(count=Coalesce(Count("descriptions"), 0)).order_by("-count").first()
         else:
             return None
 
@@ -37,20 +33,13 @@ class Protocol(models.Model):
         on_delete=models.PROTECT,
         help_text="reference to the specie it is meant to use with",
     )
-    url_ref = models.URLField(
-        blank=True, null=True, help_text="the URL reference to the protocol"
-    )
+    url_ref = models.URLField(blank=True, null=True, help_text="the URL reference to the protocol")
     objects = ProtocolManager()
 
     def traits_list(self):
-        return (
-            self.traits.all()
-            .order_by("numeric_id")
-            .values("pk", "numeric_id", "description")
-        )
+        return self.traits.all().order_by("numeric_id").values("pk", "numeric_id", "description")
 
     def traits_states_list(self):
-
         state_description_annotation = {
             "state_description": Concat(
                 "numeric_id",
@@ -93,11 +82,7 @@ class DescriptionManager(models.Manager):
                 description_ids = query_result
             else:
                 description_ids = description_ids.intersection(query_result)
-        return (
-            self.filter(pk__in=list(description_ids))
-            .select_related("variety")
-            .select_related("protocol")
-        )
+        return self.filter(pk__in=list(description_ids)).select_related("variety").select_related("protocol")
 
 
 class Description(models.Model):
@@ -105,9 +90,7 @@ class Description(models.Model):
     Stores the Descriptions. A description is a collection of Expresions
     """
 
-    name = models.CharField(
-        max_length=200, help_text="the name/identifier of the description"
-    )
+    name = models.CharField(max_length=200, help_text="the name/identifier of the description")
     protocol = models.ForeignKey(
         Protocol,
         on_delete=models.PROTECT,
@@ -125,6 +108,11 @@ class Description(models.Model):
 
     class Meta:
         ordering = ["variety__name"]
+
+    @classmethod
+    def get_existing_sources(cls):
+        qs = cls.objects.all().order_by("name").values_list("name", flat=True).distinct("name")
+        return list(qs)
 
     @cached_property
     def available_traits(self):
@@ -206,9 +194,7 @@ class Expression(models.Model):
     """
 
     state = models.ForeignKey(State, on_delete=models.PROTECT)
-    description = models.ForeignKey(
-        Description, on_delete=models.CASCADE, related_name="expressions"
-    )
+    description = models.ForeignKey(Description, on_delete=models.CASCADE, related_name="expressions")
 
     def __str__(self):
         return self.state.__str__()
