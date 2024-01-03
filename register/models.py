@@ -154,12 +154,7 @@ class PlantVariety(ModelIsDeletableMixin, models.Model):
         )
 
     def get_list_url(self):
-        return reverse(
-            "register:plantspecies_detail",
-            args=[
-                self.pk,
-            ],
-        )
+        return reverse("register:plantvariety-list")
 
     def get_delete_url(self):
         return reverse(
