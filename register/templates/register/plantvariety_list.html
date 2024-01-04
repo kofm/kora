@@ -17,6 +17,13 @@
 {% endblock %}
 
 {% block container %}
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+	    <li class="breadcrumb-item"><a href="{% url "front:index" %}">Kora</a></li>
+	    <li class="breadcrumb-item active" aria-current="page">Varieties</li>
+        </ol>
+    </nav>
+
     <h1 class="display-1">Varieties</h1>
 
     <div class="row">

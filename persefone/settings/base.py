@@ -124,3 +124,5 @@ LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
 DJANGO_TABLES2_TEMPLATE = "django_tables2/bootstrap4.html"
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 10240 # higher than the count of fields
+
+BREADCRUMBS_HOME_LABEL = "Kora"

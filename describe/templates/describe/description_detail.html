@@ -7,8 +7,11 @@
     {% url 'describe:description-update-metadata' description.id as description_update_metadata_url %}
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
+	    <li class="breadcrumb-item"><a href="{% url "front:index" %}">Kora</a></li>
+	    <li class="breadcrumb-item"><a href="{% url 'register:plantvariety-list' %}">Varieties</a></li>
+	    <li class="breadcrumb-item"><a href="{% url 'register:plantvariety_detail' description.variety.pk %}">{{ description.variety }}</a></li>
             <li class="breadcrumb-item"><a href="{% url 'describe:description-list' %}">Descriptions</a></li>
-            <li class="breadcrumb-item active" aria-current="page">{{ description.variety.name }}</li>
+            <li class="breadcrumb-item active" aria-current="page">{{ description.name }}</li>
         </ol>
     </nav>
     <p class="display-3">{{ description.variety.name }} <small class="text-muted">{{ description.name }}</small> {% render_edit_icon description_update_metadata_url %}</p>

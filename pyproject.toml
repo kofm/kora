@@ -6,7 +6,6 @@ authors = ["Gabriele Mongiano <gabriele.mongiano@crea.gov.it>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-django = "*"
 django-countries = "*"
 django-crispy-forms = "*"
 crispy-bootstrap4 = "*"
@@ -23,6 +22,7 @@ psycopg2-binary = "*"
 python = "^3.10"
 slippers = "*"
 tablib = "*"
+django = "4.2"
 
 
 [tool.poetry.group.dev.dependencies]

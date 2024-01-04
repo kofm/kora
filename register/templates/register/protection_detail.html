@@ -1,6 +1,7 @@
 {% extends "frontpage/base.html" %}
 {% load crispy_forms_tags %}
 {% load static %}
+{% load view_breadcrumbs %}
 {% block title %}
 
   {{ protection.type }} for {{ protection.variety }} ({{ protection.variety.species }})
@@ -9,15 +10,8 @@
 
 {% block container %}
 
-<!-- Navigation bar -->
-<nav aria-label="breadcrumb">
-  <ol class="breadcrumb">
-    <li class="breadcrumb-item"><a href="{% url 'register:plantspecies_list' %}">Species</a></li>
-    <li class="breadcrumb-item"><a href="{% url 'register:plantspecies_detail' protection.variety.species.pk %}"><i>{{ protection.variety.species.latin_name }}</i></a></li>
-    <li class="breadcrumb-item"><a href="{% url 'register:plantvariety_detail' protection.variety.pk %}"><i>{{ protection.variety.name }}</i></a></li>
-    <li class="breadcrumb-item active" aria-current="page">{{ protection.type }}</li>
-  </ol>
-</nav>
+{% render_breadcrumbs %}
+
 <!-- Navigation bar -->
 
 <div class="card">

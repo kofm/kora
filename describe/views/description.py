@@ -278,18 +278,25 @@ def description_update(request, pk):
 
 @nav_describe
 def description_update_metadata(request, pk):
+
     description = get_object_or_404(Description, pk=pk)
-    form = DescriptionForm(
-        initial={"variety": description.variety, "protocol": description.protocol.pk, "name": description.name}
-    )
-    protocols = Protocol.objects.filter(plantspecies=description.variety.species)
+    form = DescriptionForm(request.POST or None, instance=description)
+
+    if form.is_valid():
+        description = form.save()
+        return HttpResponseRedirect(
+            reverse(
+                "describe:description-detail",
+                args=(description.pk,),
+            )
+        )
+
     sources = Description.get_existing_sources()
     return TemplateResponse(
         request,
         "describe/description_form.html",
         {
             "form": form,
-            "protocols": list(protocols.values("pk", "name")),
             "sources": [{"value": source, "text": source} for source in sources],
             "description": description,
             "updating": True,
@@ -301,33 +308,25 @@ def description_update_metadata(request, pk):
 def description_create(request):
     context = {}
 
-    form = DescriptionForm()
+    form = DescriptionForm(request.POST or None)
+    if form.is_valid():
+        description = form.save()
+        return HttpResponseRedirect(
+            reverse(
+                "describe:description-detail",
+                args=(description.pk,),
+            )
+        )
 
-    protocols = Protocol.objects.all()
     variety_id = request.GET.get("variety_id", None)
     if variety_id:
         variety = get_object_or_404(PlantVariety, pk=variety_id)
         form.initial["variety"] = variety
-        protocols = protocols.filter(plantspecies=variety.species)
 
     sources = Description.get_existing_sources()
 
-    if request.POST:
-        form = DescriptionForm(request.POST)
-        if form.is_valid():
-            instance = form.save()
-            return HttpResponseRedirect(
-                reverse(
-                    "describe:description-update",
-                    kwargs={
-                        "pk": instance.id,
-                    },
-                )
-            )
-
     context["form"] = form
     context["sources"] = [{"value": source, "text": source} for source in sources]
-    context["protocols"] = list(protocols.values("pk", "name"))
 
     return TemplateResponse(request, "describe/description_form.html", context)
 

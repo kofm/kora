@@ -6,7 +6,6 @@
 
 {% block javascript %}
     <script src="{% static 'frontpage/htmx.bundle.js' %}"></script>
-
     <script type="text/javascript">
      let url = "{% url 'restapi:protocols-list' %}?format=json";
     </script>
@@ -23,12 +22,17 @@
 
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{% url 'describe:description-list' %}">Descriptions</a></li>
+	    <li class="breadcrumb-item"><a href="{% url "front:index" %}">Kora</a></li>
+	    {% if description.variety %}
+		<li class="breadcrumb-item"><a href="{% url 'register:plantvariety-list' %}">Varieties</a></li>
+		<li class="breadcrumb-item"><a href="{% url 'register:plantvariety_detail' description.variety.pk %}">{{ description.variety }}</a></li>
+	    {% endif %}
+		<li class="breadcrumb-item"><a href="{% url 'register:plantvariety-list' %}">Descriptions</a></li>
 	    {% if description %}
-		<li class="breadcrumb-item"><a href="description_update_url">{{ description }}</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Update</li>
+		<li class="breadcrumb-item"><a href="{{ description_update_url }}">{{ description.name }}</a></li>
+		<li class="breadcrumb-item active" aria-current="page">Update</li>
 	    {% else %}
-            <li class="breadcrumb-item active" aria-current="page">Create</li>
+		<li class="breadcrumb-item active" aria-current="page">Create</li>
 	    {% endif %}
         </ol>
     </nav>
@@ -43,7 +47,7 @@
         <div>
             <button class="btn btn-primary" type="submit">{{ updating|yesno:"Update,Create" }}</button>
 	    {% if description %}
-		<a class="btn btn-secondary" href="description_update_url">Cancel</a>
+		<a class="btn btn-secondary" href="{{ description_update_url }}">Cancel</a>
 	    {% endif %}
         </div>
     </form>

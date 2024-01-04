@@ -1,3 +1,4 @@
+from functools import cached_property
 from django_tables2.config import RequestConfig
 
 from django.core.paginator import Paginator
@@ -7,6 +8,7 @@ from django.template.response import TemplateResponse
 from django.urls.base import reverse, reverse_lazy
 from django.views.generic import DetailView
 from django.views.generic.edit import DeleteView, UpdateView
+from describe.views.base import custom_variety_crumbs
 from parameters.forms import SpeciesParameterForm, VarietalParameterForm
 from register.filters import EntityFilter
 from register.tables import (
@@ -14,6 +16,7 @@ from register.tables import (
     PlantVarietyEntityTable,
 )
 from view_breadcrumbs import (
+    BaseBreadcrumbMixin,
     CreateBreadcrumbMixin,
     UpdateBreadcrumbMixin,
 )
@@ -170,8 +173,16 @@ class ProtectionDeleteView(DeleteView):
         )
 
 
-class ProtectionDetailView(NavActivePlants, DetailView):
+class ProtectionDetailView(NavActivePlants, BaseBreadcrumbMixin, DetailView):
     model = Protection
+
+    @cached_property
+    def crumbs(self):
+        return custom_variety_crumbs(
+            self.object.variety,
+            (str(self.object), "")
+            # (f"Update {self.model._meta.verbose_name.capitalize()}", ""),
+        )
 
 
 class EntityCreateView(CreateBreadcrumbMixin, PlantCreateMixin):

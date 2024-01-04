@@ -60,7 +60,7 @@ class PlantVarietyDetail(NavActivePlants, BaseBreadcrumbMixin, DetailView):
 
     @cached_property
     def crumbs(self):
-        return custom_variety_crumbs(self.object.species, (str(self.object), self.object.get_absolute_url()))
+        return custom_variety_crumbs(self.object)
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         context = super().get_context_data(**kwargs)
@@ -91,8 +91,7 @@ class PlantVarietyUpdateView(NavActivePlants, BaseBreadcrumbMixin, UpdateView):
     @cached_property
     def crumbs(self):
         return custom_variety_crumbs(
-            self.object.species,
-            (self.object, self.object.get_absolute_url()),
+            self.object,
             (f"Update: {self.object}", self.object.get_absolute_url()),
         )
 
@@ -114,8 +113,7 @@ class PlantVarietyNameCreate(BaseBreadcrumbMixin, PlantCreateMixin):
     @cached_property
     def crumbs(self):
         return custom_variety_crumbs(
-            self.variety.species,
-            (str(self.variety), self.variety.get_absolute_url()),
+            self.variety,
             (f"Add {self.model._meta.verbose_name.capitalize()}", ""),
         )
 
@@ -148,8 +146,7 @@ class PlantVarietyNameUpdate(NavActivePlants, BaseBreadcrumbMixin, UpdateView):
     @cached_property
     def crumbs(self):
         return custom_variety_crumbs(
-            self.object.variety.species,
-            (str(self.object.variety), self.object.variety.get_absolute_url()),
+            self.object.variety,
             (f"Update {self.model._meta.verbose_name.capitalize()}", ""),
         )
 

@@ -1,5 +1,5 @@
 from django.views.generic import CreateView
-from register.models import PlantSpecies
+from register.models import PlantVariety
 from frontpage.decorators import NavActive, nav_active
 from typing import List
 from typing import Tuple
@@ -16,13 +16,13 @@ class NavActivePlants(NavActive):
 nav_active_plants = nav_active("nav_plants")
 
 
-def custom_variety_crumbs(species: PlantSpecies, *args) -> List[Tuple[str, str]]:
+def custom_variety_crumbs(variety: PlantVariety, *args) -> List[Tuple[str, str]]:
     """This function builds the custom breadcrumbs used in PlantVariety views.
     Home / Plants / Species / ...
     """
     return [
-        (str(species._meta.verbose_name_plural.capitalize()), species.get_list_url()),
-        (str(species), species.get_absolute_url()),
+        (str(variety._meta.verbose_name_plural.capitalize()), variety.get_list_url()),
+        (str(variety), variety.get_absolute_url()),
         *args,
     ]
 
