@@ -19,7 +19,7 @@ from register.tables import (
     PlantVarietyDescriptionTable,
     VarietalParameterTable,
 )
-from view_breadcrumbs import BaseBreadcrumbMixin
+from view_breadcrumbs import BaseBreadcrumbMixin, CreateBreadcrumbMixin
 
 from register.forms import PlantVarietyForm
 from register.models import PlantSpecies, PlantVariety, PlantVarietyName, Protection
@@ -30,28 +30,28 @@ from register.views.base_views import (
 from register.views.plantspecies_views import PlantCreateMixin
 
 
-class PlantVarietyCreate(BaseBreadcrumbMixin, PlantCreateMixin):
+class PlantVarietyCreate(PlantCreateMixin):
     model = PlantVariety
     form_class = PlantVarietyForm
 
-    def dispatch(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponseBase:
-        """We retrieve the species we're operating within"""
-        self.species = get_object_or_404(PlantSpecies, pk=self.kwargs["species_id"])
-        return super().dispatch(request, *args, **kwargs)
+    # def dispatch(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponseBase:
+    #     """We retrieve the species we're operating within"""
+    #     self.species = get_object_or_404(PlantSpecies, pk=self.kwargs["species_id"])
+    #     return super().dispatch(request, *args, **kwargs)
 
-    @cached_property
-    def crumbs(self):
-        return custom_variety_crumbs(self.species, ("Add Variety", ""))
+    # @cached_property
+    # def crumbs(self):
+    #     return []
 
-    def get_initial(self):
-        initial = super().get_initial()
-        initial["species"] = self.species
-        return initial
+    # def get_initial(self):
+    #     initial = super().get_initial()
+    #     initial["species"] = self.species
+    #     return initial
 
-    def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
-        context = super().get_context_data(**kwargs)
-        context["species"] = self.species
-        return context
+    # def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
+    #     context = super().get_context_data(**kwargs)
+    #     # context["species"] = self.species
+    #     return context
 
 
 class PlantVarietyDetail(NavActivePlants, BaseBreadcrumbMixin, DetailView):

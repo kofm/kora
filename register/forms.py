@@ -8,8 +8,7 @@ from .models import PlantVariety, PlantVarietyName, Protection
 class PlantVarietyForm(forms.ModelForm):
     class Meta:
         model = PlantVariety
-        fields = ['name', 'breeder', 'species', ]
-        widgets = {"species": forms.HiddenInput()}
+        fields = ['name', 'species', 'breeder', ]
 
 class PlantVarietyNameForm(forms.ModelForm):
     class Meta:

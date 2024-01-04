@@ -41,7 +41,7 @@ urlpatterns = [
         name="plantvariety_detail",
     ),
     path(
-        "species/<int:species_id>/variety/create",
+        "variety/create",
         views.PlantVarietyCreate.as_view(),
         name="plantvariety-create",
     ),

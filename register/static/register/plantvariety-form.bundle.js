@@ -6173,6 +6173,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+new (tom_select__WEBPACK_IMPORTED_MODULE_1___default())("#id_species");
 new (tom_select__WEBPACK_IMPORTED_MODULE_1___default())("#id_breeder");
 
 })();

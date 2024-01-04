@@ -20,7 +20,7 @@
   {% if object %}
     Update: {{ object }}
   {% else %}
-  Add {{ object_to_create }}
+  Create {{ object_to_create }}
   {% endif %}
 {% /page_title %}
 
@@ -40,7 +40,7 @@
 
     <p><small><sup>*</sup>Required field</small></p>
 
-    <input class="btn btn-primary" type="submit" value="Add">
+    <input class="btn btn-primary" type="submit" value="Create">
 
     {% if object.get_delete_url and object.is_deletable %}
         <a class="btn btn-danger" href="{{ object.get_delete_url }}">Delete</a>
