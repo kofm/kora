@@ -23,9 +23,9 @@
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
 	    <li class="breadcrumb-item"><a href="{% url "front:index" %}">Kora</a></li>
-	    {% if description.variety %}
+	    {% if variety %}
 		<li class="breadcrumb-item"><a href="{% url 'register:plantvariety-list' %}">Varieties</a></li>
-		<li class="breadcrumb-item"><a href="{% url 'register:plantvariety_detail' description.variety.pk %}">{{ description.variety }}</a></li>
+		<li class="breadcrumb-item"><a href="{% url 'register:plantvariety_detail' variety.pk %}">{{ variety }}</a></li>
 	    {% endif %}
 		<li class="breadcrumb-item"><a href="{% url 'register:plantvariety-list' %}">Descriptions</a></li>
 	    {% if description %}

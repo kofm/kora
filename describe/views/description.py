@@ -299,6 +299,7 @@ def description_update_metadata(request, pk):
             "form": form,
             "sources": [{"value": source, "text": source} for source in sources],
             "description": description,
+            "variety": description.variety,
             "updating": True,
         },
     )
@@ -322,6 +323,7 @@ def description_create(request):
     if variety_id:
         variety = get_object_or_404(PlantVariety, pk=variety_id)
         form.initial["variety"] = variety
+        context["variety"] = variety
 
     sources = Description.get_existing_sources()
 
