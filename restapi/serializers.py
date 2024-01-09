@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django_countries.serializers import CountryFieldMixin
-from collect.models import SeedSample
+from collect.models import SeedSample, StoragePosition
 import math
 from describe.models import Protocol
 
@@ -17,9 +17,7 @@ class SpeciesParamSerializer(serializers.ModelSerializer):
 
 
 class PlantSpeciesSerializer(serializers.ModelSerializer):
-    speciesparameter = SpeciesParamSerializer(
-        many=True, read_only=True, source="parameters"
-    )
+    speciesparameter = SpeciesParamSerializer(many=True, read_only=True, source="parameters")
 
     class Meta:
         model = PlantSpecies
@@ -39,7 +37,13 @@ class PlantVarietySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PlantVariety
-        fields = ["id", "name", "species", "breeder", "names",]
+        fields = [
+            "id",
+            "name",
+            "species",
+            "breeder",
+            "names",
+        ]
 
 
 class EntitySerializer(CountryFieldMixin, serializers.ModelSerializer):
@@ -57,7 +61,6 @@ class ProtectionSerializer(CountryFieldMixin, serializers.ModelSerializer):
 
 
 class VarietalParameterSerializer(serializers.ModelSerializer):
-
     variety_name = serializers.StringRelatedField(many=False, source="variety", read_only=True)
     parameter_code = serializers.StringRelatedField(many=False, source="parameter", read_only=True)
 
@@ -82,8 +85,19 @@ class SeedSampleSerializer(serializers.ModelSerializer):
         weight = obj.weight
         return 0.0 if weight is None or math.isnan(weight) else weight
 
-class ProtocolSerializer(serializers.ModelSerializer):
 
+class StoragePositionSerializer(serializers.ModelSerializer):
+    storage_verbose_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = StoragePosition
+        fields = "__all__"  # This would already include all the fields from the model.
+
+    def get_storage_verbose_name(self, obj):
+        return str(obj)
+
+
+class ProtocolSerializer(serializers.ModelSerializer):
     class Meta:
         model = Protocol
         fields = ("pk", "name")
