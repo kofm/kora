@@ -1,9 +1,13 @@
 {% load frontpage_extras %}
+{% load static %}
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container-fluid">
         <!-- Logo -->
-        <a class="navbar-brand" href="{% url 'front:index' %}">Kora</a>
+      <a class="navbar-brand" href="{% url 'front:index' %}">
+	<img alt="Logo" src="{% static 'frontpage/kora-logo.png' %}" width="40" height="40" class="d-inline-block align-text-middle"/>
+	Kora
+      </a>
 
         <!-- Button to toggle navigation with small width displays -->
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
