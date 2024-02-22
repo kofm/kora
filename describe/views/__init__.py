@@ -1,16 +1,27 @@
-from .description import (DescriptionDeleteView, DescriptionDetail,
-                          description_compare, description_create,
-                          description_favourite_add,
-                          description_favourite_clear,
-                          description_filter_export, description_find_similar,
-                          description_import, description_import_confirm,
-                          description_list, description_list_reset,
-                          description_update, description_update_metadata)
-from .expression import ExpressionUpdate
-from .protocol import (ProtocolCreate, ProtocolDelete, ProtocolList,
-                       protocol_detail, protocol_update,
-                       protocol_update_name_htmx)
-from .state import state_update, relatedstate_delete
+from . import expression
+from .description import (
+    DescriptionDeleteView,
+    DescriptionDetail,
+    description_compare,
+    description_create,
+    description_favourite_add,
+    description_favourite_clear,
+    description_filter_export,
+    description_find_similar,
+    description_list,
+    description_list_reset,
+    description_update,
+    description_update_metadata,
+)
+from .protocol import (
+    ProtocolCreate,
+    ProtocolDelete,
+    ProtocolList,
+    protocol_detail,
+    protocol_update,
+    protocol_update_name_htmx,
+)
+from .state import relatedstate_delete, state_update
 from .trait import trait_list_htmx
 
 __all__ = [
@@ -24,11 +35,9 @@ __all__ = [
     "description_favourite_clear",
     "description_compare",
     "description_filter_export",
-    "description_import",
-    "description_import_confirm",
+    "description_update",
     "description_update",
     "description_update_metadata",
-    "ExpressionUpdate",
     "ProtocolList",
     "protocol_detail",
     "protocol_update",

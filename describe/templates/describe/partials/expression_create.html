@@ -1,0 +1,10 @@
+<form
+    hx-post="{% url 'describe:expression-create' %}"
+    hx-trigger="change"
+    hx-swap="outerHTML"
+    hx-vals='{"trait": "{{ trait }}"}'
+>
+
+{% include "describe/partials/expression_form.html" %}
+
+</form>

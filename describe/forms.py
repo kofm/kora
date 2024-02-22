@@ -1,22 +1,13 @@
-import csv
-import os
-import io
-import re
-from tempfile import NamedTemporaryFile
-from django import forms
-from django.core.exceptions import MultipleObjectsReturned
-from django.db import IntegrityError, transaction
-from django.forms import formset_factory
-from django.forms import inlineformset_factory
-from django.forms.formsets import BaseFormSet
-from django.forms.models import BaseInlineFormSet
-from django.shortcuts import get_object_or_404
-from django.utils.html import format_html
 from dynamic_forms import DynamicField, DynamicFormMixin
 
+from django import forms
+from django.forms import formset_factory, inlineformset_factory
+from django.forms.formsets import BaseFormSet
+from django.forms.models import BaseInlineFormSet
+from django.utils.html import format_html
 from register.models import PlantVariety
 
-from .models import Description, Expression, Protocol, Trait, State
+from .models import Description, Expression, Protocol, State, Trait
 
 
 class TraitForm(forms.Form):
@@ -109,13 +100,9 @@ TraitFormSet = inlineformset_factory(
 
 
 class ExpressionUpdateForm(forms.Form):
-    id = forms.IntegerField(widget=forms.HiddenInput())
-    state = forms.ModelChoiceField(queryset=State.objects.all())
-
-    def __init__(self, *args, **kwargs):
-        super(ExpressionUpdateForm, self).__init__(*args, **kwargs)
-        self.fields["state"].required = False
-        self.fields["id"].required = False
+    id = forms.IntegerField(widget=forms.HiddenInput(), required=False)
+    state = forms.ModelChoiceField(queryset=State.objects.all(), required=False)
+    note = forms.CharField(required=False)
 
 
 class DescriptionFilterForm(forms.Form):
@@ -213,178 +200,22 @@ class DescriptionForm(forms.ModelForm):
         fields = ["variety", "protocol", "name"]
 
     def save(self, commit=True):
-        # data = self.cleaned_data
-        # variety = data["variety"]
-        # protocol = Protocol.objects.get(pk=data["protocol"])
-        # description = Description(variety=variety, protocol=protocol, name=data["name"])
-        # description.save()
         instance = super().save(commit=False)
         if commit:
-            # instance.protocol = Protocol.objects.get(pk=self.cleaned_data["protocol"])
             instance.save()
         return instance
 
 
-class DescriptionImportForm(forms.Form):
-    protocol = forms.ModelChoiceField(queryset=Protocol.objects.all())
-    csv_file = forms.FileField(label="CSV file", widget=forms.FileInput(attrs={"accept": "text/csv"}))
+class ExpressionForm(forms.ModelForm):
+    state = forms.ModelChoiceField(queryset=State.objects.none(), blank=False)
 
-    def clean_csv_file(self):
-        csv_file = self.cleaned_data["csv_file"]
-        if csv_file.content_type != "text/csv":
-            raise forms.ValidationError("File must be in CSV format.")
+    class Meta:
+        model = Expression
+        fields = ("description", "state", "note")
+        widgets = {"description": forms.HiddenInput()}
 
-        protocol = self.cleaned_data["protocol"]
-        if not protocol:
-            raise forms.ValidationError("You should provide a valid protocol")
-        traits_list = protocol.traits_list()
-
-        chunk = next(csv_file.chunks())
-        bytes_io = io.BytesIO(chunk)
-        reader = csv.reader(io.TextIOWrapper(bytes_io, encoding="utf-8"))
-        header_row = next(reader)
-        required_columns = ["variety_name", "description_name"] + [
-            f'nchar{trait["numeric_id"]}' for trait in traits_list
-        ]
-        for column in required_columns:
-            if column not in header_row:
-                raise forms.ValidationError(f"The file should contain a column named '{column}'")
-        if len(list(reader)) > 50:
-            raise forms.ValidationError("The maximum number of descriptions to be imported per upload is 50.")
-
-        # Write the uploaded file to temp file
-        data_file = NamedTemporaryFile()
-        with data_file as destination:
-            for chunk in csv_file.chunks():
-                destination.write(chunk)
-            data_file.seek(os.SEEK_SET, os.SEEK_END)
-
-            with open(data_file.name) as csv_file:
-                csv_rows = list(csv.DictReader(csv_file))
-
-        return csv_rows
-
-    def save(self):
-        """
-        This form is responsible for getting the uploaded CSV file and create a
-        dictionary to be used with ExpressionFormSet.
-        """
-        csv_rows = self.cleaned_data["csv_file"]
-        protocol = self.cleaned_data["protocol"]
-        traits_states_list = protocol.traits_states_list()
-        multiple_objects_returned = list()
-
-        # Init formset data
-        expression_formset_data = {
-            "form-TOTAL_FORMS": len(csv_rows),
-            "form-INITIAL_FORMS": 0,
-        }
-
-        for nrow, row in enumerate(csv_rows):
-            form_id = f"form-{nrow}"
-
-            try:
-                variety = PlantVariety.objects.get(name=row["variety_name"], species=protocol.plantspecies)
-                expression_formset_data.update({f"{form_id}-variety_id": variety.pk})
-                expression_formset_data.update({f"{form_id}-variety": variety.name})
-
-            except PlantVariety.DoesNotExist:
-                expression_formset_data.update({f"{form_id}-variety": row["variety_name"]})
-
-            except MultipleObjectsReturned:
-                multiple_objects_returned.append({"form": nrow, "variety_name": row["variety_name"]})
-
-            expression_formset_data.update({f"{form_id}-description_name": row["description_name"]})
-            expression_formset_data.update({f"{form_id}-protocol": protocol.pk})
-
-            for trait in traits_states_list:
-                key = f"{form_id}-expression-trait-{trait['pk']}"
-                col_name = f"nchar{trait['numeric_id']}"
-                value = row[col_name]
-                expression_formset_data.update({key: value})
-
-        return expression_formset_data, multiple_objects_returned, traits_states_list
-
-
-class ExpressionForm(forms.Form):
-    variety = forms.CharField(widget=forms.TextInput(attrs={"class": "ts"}))
-    variety_id = forms.IntegerField(required=False, widget=forms.HiddenInput())
-    protocol = forms.IntegerField(widget=forms.HiddenInput)
-    description_name = forms.CharField(widget=forms.TextInput(attrs={"class": "form-control"}))
-
-    def __init__(self, *args, traits, **kwargs):
-        self.traits = traits
-        super(ExpressionForm, self).__init__(*args, **kwargs)
-
-    def clean_variety(self):
-        variety = self.cleaned_data["variety"]
-        if variety == "":
-            raise forms.ValidationError("Variety name can't be empty")
-        return variety
-
-    def clean_description_name(self):
-        description_name = self.cleaned_data["description_name"]
-        variety_id = self.cleaned_data["variety_id"]
-        if variety_id:
-            protocol = self.cleaned_data["protocol"]
-            if Description.objects.filter(name=description_name, protocol=protocol, variety__pk=variety_id).exists():
-                raise forms.ValidationError(f"A description named {description_name} already exists for this variety.")
-        return description_name
-
-    def save(self):
-        form_data = self.cleaned_data
-        protocol = get_object_or_404(Protocol, pk=form_data["protocol"])
-        expression_data = {key: form_data[key] for key in filter(lambda k: k.startswith("expression-trait"), form_data)}
-        try:
-            with transaction.atomic():
-                description_kwargs = {
-                    "name": form_data["description_name"],
-                    "protocol": protocol,
-                }
-                # This prevents fetching the PlantVariety record if it isn't
-                # being created If there is no "variety_id" in the form, then
-                # the PlantVariety should be created
-                if form_data["variety_id"]:
-                    description_kwargs.update({"variety_id": form_data["variety_id"]})
-                else:
-                    variety = PlantVariety.objects.create(name=form_data["variety"], species=protocol.plantspecies)
-                    description_kwargs.update({"variety": variety})
-
-                # Create the description
-                description = Description.objects.create(**description_kwargs)
-
-                expressions_kwargs = list()
-                for key, val in expression_data.items():
-                    if val:
-                        trait_id = int(re.search(r"\d+", key).group())
-                        state_id = [
-                            state["pk"]
-                            for item in self.traits
-                            if item["pk"] == trait_id
-                            for state in item["states"]
-                            if state["numeric_id"] == int(val)
-                        ]
-                        expressions_kwargs.append({"description": description, "state_id": state_id[0]})
-                Expression.objects.bulk_create(
-                    [Expression(**expression_kwargs) for expression_kwargs in expressions_kwargs]
-                )
-        except IntegrityError:
-            pass
-
-
-class BaseExpressionFormset(forms.BaseFormSet):
-    def add_fields(self, form, index):
-        super().add_fields(form, index)
-        for trait in form.traits:
-            form_name = f"expression-trait-{trait['pk']}"
-            empty_choice = [("", "-")]
-            choices = [(state["numeric_id"], state["state_description"]) for state in trait["states"]]
-            form.fields[form_name] = forms.ChoiceField(
-                choices=empty_choice + choices,
-                required=False,
-                widget=forms.Select(attrs={"class": "form-select"}),
-            )
-            form.fields[form_name].label = f"{trait['numeric_id']}. {trait['description']}"
-
-
-ExpressionFormSet = forms.formset_factory(ExpressionForm, formset=BaseExpressionFormset)
+    def __init__(self, *args, trait=None, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.auto_id = False
+        if trait:
+            self.fields["state"].queryset = State.objects.filter(trait=trait)

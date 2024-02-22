@@ -1,0 +1,44 @@
+.form-scrollspy {
+    height: calc(100vh - 200px);
+    overflow-y: scroll;
+    overflow-x: hidden;
+}
+
+.navbar-example {
+    position: sticky;
+    overflow-y: auto;
+    height: calc(100vh - 200px);
+    top: 50px;  /* Adjust based on your top navbar's height */
+}
+
+.simple-list-example-scrollspy .active
+{
+    background-color: rgba(var(--bs-link-color-rgb), 0.15);
+}
+
+.submit-btn {
+    position: fixed;
+    bottom: 20px;
+    right: calc((100% - 100vw) / 2);
+    z-index: 2;
+}
+
+@media (min-width: 576px) {
+    .submit-btn { right: calc((100% - 540px) / 2); }
+}
+
+@media (min-width: 768px) {
+    .submit-btn { right: calc((100% - 720px) / 2); }
+}
+
+@media (min-width: 992px) {
+    .submit-btn { right: calc((100% - 960px) / 2); }
+}
+
+@media (min-width: 1200px) {
+    .submit-btn { right: calc((100% - 1140px) / 2); }
+}
+
+@media (min-width: 1400px) {
+    .submit-btn { right: calc((100% - 1450px) / 2); }
+}

@@ -14,15 +14,11 @@ def get_available_params(queryset: QuerySet) -> set:
 
 
 def get_params(queryset: QuerySet, params_list: list) -> list:
-    queryset = queryset.filter(parameter__code__in=params_list).distinct(
-        "parameter__code"
-    )
+    queryset = queryset.filter(parameter__code__in=params_list).distinct("parameter__code")
     return list(queryset)
 
 
-def get_all_params(
-    Model: Union[CropParameter, VarietalParameter, SpeciesParameter], **kwargs
-) -> QuerySet:
+def get_all_params(Model: Union[CropParameter, VarietalParameter, SpeciesParameter], **kwargs) -> QuerySet:
     return Model.objects.filter(**kwargs).values(
         "parameter",
         "parameter__code",
@@ -50,9 +46,7 @@ def get_crop_params_list(crop: Crop) -> list:
         params_list += get_params(varparams, found_varparams)
     if crop.has_species():
         speciesparams = get_all_params(SpeciesParameter, specie=crop.species)
-        found_speciesparams = (
-            get_available_params(speciesparams) - found_cropparams - found_varparams
-        )
+        found_speciesparams = get_available_params(speciesparams) - found_cropparams - found_varparams
         params_list += get_params(speciesparams, found_speciesparams)
     return sorted(params_list, key=lambda d: d["parameter__code"])
 
@@ -83,9 +77,9 @@ def crop_statistics_calc(crop_queryset: QuerySet, models):
         cropmodels_results = [get_cropmodels(crop, models) for crop in crop_queryset]
         crompodels_results_dict = [
             {
-                format_unit(
-                    cropmodels_result["model_name"], cropmodels_result["measure_unit"]
-                ): cropmodels_result["value"]
+                format_unit(cropmodels_result["model_name"], cropmodels_result["measure_unit"]): cropmodels_result[
+                    "value"
+                ]
                 for cropmodels_result in cropmodels_result_row["cropmodels"]
             }
             for cropmodels_result_row in cropmodels_results
@@ -100,9 +94,7 @@ def crop_statistics_calc(crop_queryset: QuerySet, models):
                             **cropmodels_result,
                         }
                     }
-                    for crop, cropmodels_result in zip(
-                        crop_queryset, crompodels_results_dict
-                    )
+                    for crop, cropmodels_result in zip(crop_queryset, crompodels_results_dict)
                 ]
             )
             .groupby("common_name")

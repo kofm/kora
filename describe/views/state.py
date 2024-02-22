@@ -2,7 +2,6 @@
 State views
 """
 
-import re
 from describe.forms import RelatedStateForm
 from describe.models import State
 from describe.tables import RelatedStatesTable
@@ -19,9 +18,7 @@ def state_update(request, pk):
     if request.method == "POST":
         relatedstate_form = RelatedStateForm(request.POST)
         if relatedstate_form.is_valid():
-            related_state = State.objects.get(
-                pk=relatedstate_form["related_state"].value()
-            )
+            related_state = State.objects.get(pk=relatedstate_form["related_state"].value())
             state.related_states.add(related_state)
             relatedstate_form = RelatedStateForm(initial={"state": state.pk})
     else:

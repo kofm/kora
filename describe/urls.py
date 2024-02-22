@@ -9,9 +9,7 @@ urlpatterns = [
     # - Description List
     path("", views.description_list, name="description-list"),
     path("reset", views.description_list_reset, name="description-list-reset"),
-    path(
-        "find_similar", views.description_find_similar, name="description-find-similar"
-    ),
+    path("find_similar", views.description_find_similar, name="description-find-similar"),
     path(
         "add_favourite",
         views.description_favourite_add,
@@ -32,13 +30,6 @@ urlpatterns = [
         "<int:pk>/delete",
         views.DescriptionDeleteView.as_view(),
         name="description-delete",
-    ),
-    # - Description import
-    path("import", views.description_import, name="description-import"),
-    path(
-        "protocols/<int:protocol_id>/descriptions/import",
-        views.description_import_confirm,
-        name="description-import-confirm",
     ),
     # Protocol
     path("protocols/", views.ProtocolList.as_view(), name="protocols_list"),
@@ -64,9 +55,12 @@ urlpatterns = [
         views.relatedstate_delete,
         name="relatedstate-delete",
     ),
+    path("expression/<int:pk>/update", views.expression.expression_update, name="expression-update"),
     path(
-        "expression/<int:pk>/update",
-        views.ExpressionUpdate.as_view(),
-        name="expresssion-update",
+        "<int:pk>/trait/<int:trait>/expression/form",
+        views.expression.expression_form,
+        name="description-expression-form",
     ),
+    path("expression/<int:pk>/delete", views.expression.expression_delete, name="expression-delete"),
+    path("expression/create", views.expression.expression_create, name="expression-create"),
 ]

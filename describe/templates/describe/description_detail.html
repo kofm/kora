@@ -23,24 +23,38 @@
     </p>
 
 
-    <table class="table table-striped">
+    <table class="table">
 
         <thead>
             <th>#</th>
             <th>Trait</th>
             <th>Expression</th>
+            <th>Notes</th>
         </thead>
 
         {% for trait in description.protocol.traits.all %}
-            <tr {% if trait.grouping %}style="font-weight:bold;"{% endif %}>
-                <td>{{ trait.numeric_id }}</td>
-                <td>{{ trait.description }}</td>
-                {% with expr=description.expressions.all|expr_trait:trait.id %}
-                    <td>{{ expr|default_if_none:"" }}</td>
-                {% endwith %}
-            </tr>
+	    {% with expressions=description.expressions.all|filter_expression_by_trait:trait.id %}
+		<tr {% if trait.grouping %}class="fw-bold"{% endif %}>
+                    <td rowspan="{{ expressions.count|default:1 }}">
+			{{ trait.numeric_id }}
+		    </td>
+                    <td rowspan="{{ expressions.count|default:1 }}">
+			{{ trait.description }}
+		    </td>
+		    {% for expression in expressions %}
+			<td>{{ expression }}</td>
+			<td>{{ expression.note }}</td>
+			{% if not forloop.last %}
+		</tr>
+		<tr {% if trait.grouping %}class="fw-bold"{% endif %}>
+			{% endif %}
+		    {% empty %}
+			<td></td>
+			<td></td>
+		    {% endfor %}
+		</tr>
+	    {% endwith %}
         {% endfor %}
-
 
     </table>
 

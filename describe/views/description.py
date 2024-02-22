@@ -3,39 +3,37 @@ Description Views
 List, Detail, Update, Create, Delete
 """
 
-from django.db.models.functions import Lower
 from django_tables2 import RequestConfig
 
 from describe.filters import DescriptionFilterByName
 from describe.forms import (
     DescriptionFilterFormSet,
     DescriptionForm,
-    DescriptionImportForm,
-    ExpressionFormSet,
-    ExpressionUpdateForm,
+    ExpressionForm,
     ProtocolForm,
 )
 from describe.models import Description, Expression, Protocol, State, Trait
 from describe.tables import DescriptionTable
 from describe.utils import _filter_descriptions, delete_get_param, merge_unique
-from django.db.models import Q, CharField
+from describe.views.protocol import NavActiveDescribe
+from django.db.models import CharField, Q
 from django.db.models.expressions import F
-from django.forms.models import model_to_dict
+from django.db.models.functions import Lower
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.urls.base import reverse_lazy
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_http_methods
 from django.views.generic import DetailView
 from django.views.generic.edit import DeleteView
-from describe.views.protocol import NavActiveDescribe
 from frontpage.decorators import nav_active
 from register.models import PlantVariety
 
 CharField.register_lookup(Lower)
 
 nav_describe = nav_active("nav_describe")
+EXPRESSION_FORM_TEMPLATE = "describe/partials/expression_form.html"
 
 
 @nav_describe
@@ -229,56 +227,7 @@ class DescriptionDetail(NavActiveDescribe, DetailView):
 
 
 @nav_describe
-def description_update(request, pk):
-    # Get the description object
-    description = get_object_or_404(Description, pk=pk)
-    # Collect all the existing expressions
-    exist_expr = description.expressions.all()
-    # This is the forms list
-    forms = []
-    if request.method == "POST":
-        form_has_errors = False
-        for expr_id, state_id in zip(request.POST.getlist("id"), request.POST.getlist("state")):
-            if state_id:
-                form = ExpressionUpdateForm({"id": expr_id, "state": state_id})
-                if form.is_valid():
-                    if exist_expr.filter(pk=form.cleaned_data["id"]).exists() and not exist_expr.filter(
-                        state=form.cleaned_data["state"]
-                    ):
-                        exist_expr.filter(pk=form.cleaned_data["id"]).update(state=form.cleaned_data["state"])
-                    else:
-                        if not exist_expr.filter(state=form.cleaned_data["state"]):
-                            new_expression = Expression()
-                            new_expression.state = form.cleaned_data["state"]
-                            new_expression.description = description
-                            new_expression.save()
-                else:
-                    form_has_errors = True
-            else:
-                if expr_id:
-                    exist_expr.filter(pk=expr_id).delete()
-        if not form_has_errors:
-            return HttpResponseRedirect(reverse("describe:description-detail", args=(description.id,)))
-
-    for trait in description.available_traits:
-        if exist_expr.filter(state__trait=trait).exists():
-            e = exist_expr.get(state__trait=trait)
-            form = ExpressionUpdateForm(model_to_dict(e))
-        else:
-            form = ExpressionUpdateForm()
-        form.fields["state"].queryset = State.objects.filter(trait=trait)
-        forms.append(form)
-    formset = zip(forms, description.available_traits)
-    return TemplateResponse(
-        request,
-        "describe/description_manage.html",
-        context={"description": description, "formset": formset},
-    )
-
-
-@nav_describe
 def description_update_metadata(request, pk):
-
     description = get_object_or_404(Description, pk=pk)
     form = DescriptionForm(request.POST or None, instance=description)
 
@@ -375,65 +324,21 @@ def description_filter_export(request):
     return response
 
 
-def description_import(request):
-    """
-    This view is responsible for receiving the CSV file and creating the
-    formset for user to review the data being imported.
-    DescriptionImportForm handles the csv file validation and returns a
-    dictionary that can be used to create the formset. It also returns a list
-    of validation error for the cases in which the supplied variety_name
-    returns multiple PlantVariety objects, and a data object containing all the
-    Trait/State objects available for the selected Protocol that are needed to
-    init the ExpressionFormSet.
-    """
-    form = DescriptionImportForm(request.POST or None, request.FILES or None)
-    print("Hello")
-    if form.is_valid():
-        protocol = form.cleaned_data["protocol"]
-        # This is needed in the view to populate the TomSelect inputs
-        varieties = PlantVariety.objects.get_by_species_values_list(plantspecies=protocol.plantspecies)
-        formset_data, multiple_objects_returned_errors, traits_states_list = form.save()
-        formset = ExpressionFormSet(
-            formset_data,
-            form_kwargs={
-                "traits": traits_states_list,
-            },
-        )
-        for error in multiple_objects_returned_errors:
-            formset[error["form"]].add_error(
-                "variety",
-                f"There are multiple varieties named '{error['variety_name']}'. \
-                Please select one or create a new one",
-            )
-        return TemplateResponse(
-            request,
-            "describe/description_import_confirm.html",
-            {"formset": formset, "varieties": varieties, "protocol": protocol},
-        )
-    return TemplateResponse(request, "describe/description_import.html", {"form": form})
-
-
-@require_POST
-def description_import_confirm(request, protocol_id):
-    # Init the formset
-    protocol = get_object_or_404(Protocol, pk=protocol_id)
-    traits_states_list = protocol.traits_states_list()
-    formset = ExpressionFormSet(
-        request.POST,
-        form_kwargs={
-            "traits": traits_states_list,
-        },
-    )
-
-    if formset.is_valid():
-        for form in formset:
-            form.save()
-        return HttpResponseRedirect(reverse("describe:description-list"))
-
-    # This is needed to populate the TomSelect inputs
-    varieties = PlantVariety.objects.get_by_species_values_list(plantspecies=protocol.plantspecies)
+@require_http_methods(["GET"])
+def description_update(request, pk):
+    description = get_object_or_404(Description, pk=pk)
+    traits = description.available_traits
+    formset = list()
+    for trait in traits:
+        expressions = description.expressions.filter(state__trait=trait)
+        forms = list()
+        if expressions.exists():
+            for expression in expressions:
+                form = ExpressionForm(instance=expression, trait=trait)
+                forms.append(form)
+        formset.append({"trait": trait, "forms": forms})
     return TemplateResponse(
         request,
-        "describe/description_import_confirm.html",
-        {"formset": formset, "varieties": varieties, "protocol": protocol},
+        "describe/description_update.html",
+        {"description": description, "formset": formset},
     )

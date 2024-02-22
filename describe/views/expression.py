@@ -1,14 +1,47 @@
-"""
-Expression Views
-"""
+""" Expression Views. """
+
+from describe.forms import ExpressionForm
+from describe.models import Description, Expression
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
+from django.template.response import TemplateResponse
+from django.views.decorators.http import require_http_methods
 
 
-from django.views.generic import UpdateView
+@require_http_methods(["GET"])
+def expression_form(request, pk, trait):
+    """Return a Description ExpressionForm for a specific Trait.
 
-from describe.models import Expression
+    Used by the `description_update` view via htmx to add an empty field for a specific trait."""
+    description = get_object_or_404(Description, pk=pk)
+    form = ExpressionForm(initial={"description": description.pk}, trait=trait)
+    return TemplateResponse(request, "describe/partials/expression_create.html", {"form": form, "trait": trait})
 
 
-class ExpressionUpdate(UpdateView):
-    model = Expression
-    fields = "__all__"
-    template_name = "describe/expression_update.html"
+@require_http_methods(["POST"])
+def expression_update(request, pk):
+    expression = get_object_or_404(Expression, pk=pk)
+    form = ExpressionForm(request.POST, instance=expression, trait=expression.state.trait)
+    context = {"form": form}
+    if form.is_valid():
+        form.save()
+    return TemplateResponse(request, "describe/partials/expression_update.html", context)
+
+
+@require_http_methods(["POST"])
+def expression_create(request):
+    trait = request.POST.get("trait")
+    form = ExpressionForm(request.POST, trait=trait)
+    if form.is_valid():
+        expression = form.save()
+        return TemplateResponse(
+            request, "describe/partials/expression_update.html", {"form": form, "expression": expression}
+        )
+    return TemplateResponse(request, "describe/partials/expression_create.html", {"form": form, "trait": trait})
+
+
+@require_http_methods(["POST"])
+def expression_delete(request, pk):
+    expression = get_object_or_404(Expression, pk=pk)
+    expression.delete()
+    return HttpResponse()

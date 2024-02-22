@@ -1,7 +1,7 @@
-"""Models to create cultivars' descriptions
+"""Models to create varieties descriptions.
 
-These are the models related to the describe app, responsible of creating
-cultivars' descriptions.
+These are the models related to the describe app, used for creating
+varieties descriptions.
 """
 
 from django.db import models
@@ -87,7 +87,9 @@ class DescriptionManager(models.Manager):
 
 class Description(models.Model):
     """
-    Stores the Descriptions. A description is a collection of Expresions
+    Stores the Descriptions.
+
+    A description is a collection of Expresions
     """
 
     name = models.CharField(max_length=200, help_text="the name/identifier of the description")
@@ -107,12 +109,12 @@ class Description(models.Model):
     objects = DescriptionManager()
 
     class Meta:
-        ordering = ["variety__name"]
+        ordering = ("variety__name",)
 
     @classmethod
     def get_existing_sources(cls):
-        qs = cls.objects.all().order_by("name").values_list("name", flat=True).distinct("name")
-        return list(qs)
+        queryset = cls.objects.all().order_by("name").values_list("name", flat=True).distinct("name")
+        return list(queryset)
 
     @cached_property
     def available_traits(self):
@@ -126,8 +128,9 @@ class Description(models.Model):
 
 
 class Trait(models.Model):
-    """
-    Stores the Traits. Each traits can have multiple States of expression
+    """Store the Traits.
+
+    Traits can have multiple states of expression.
     """
 
     numeric_id = models.IntegerField(
@@ -149,19 +152,18 @@ class Trait(models.Model):
     )
     grouping = models.BooleanField(default=False)
 
-    def __str__(self):
-        return f"{self.numeric_id}. {self.description}"
-
     class Meta:
-        ordering = [
-            "numeric_id",
-        ]
+        """Trait model Meta class."""
+
+        ordering = ("numeric_id",)
+
+    def __str__(self):
+        """Return string representation of a Trait as `ID. DESCRIPTION`."""
+        return f"{self.numeric_id}. {self.description}"
 
 
 class State(models.Model):
-    """
-    Stores the different States of expression related to a Trait.
-    """
+    """Store the possible states of expression related to a Trait."""
 
     numeric_id = models.IntegerField(
         help_text="the numeric ID of the Note",
@@ -177,24 +179,34 @@ class State(models.Model):
     trait = models.ForeignKey(Trait, models.CASCADE, related_name="states")
     related_states = models.ManyToManyField("self")
 
-    def __str__(self):
-        return f"{self.numeric_id}. {self.description}"
-
     class Meta:
-        ordering = [
-            "numeric_id",
-        ]
+        """State model Meta class."""
+
+        ordering = ("numeric_id",)
+
+    def __str__(self):
+        """Return the string representation of a state as `ID. DESCRIPTION`."""
+        return f"{self.numeric_id}. {self.description}"
 
 
 class Expression(models.Model):
-    """
-    Stores the expression of cultivars, related to a specific Description. It
-    refers to a specific State of expression (which is then related to a
-    specific Trait)
+    """Store the variety state of expression related to a specific trait within a Description.
+
+    It refers to a specific State of expression (which is, in turn, related to a
+    specific Trait).
     """
 
     state = models.ForeignKey(State, on_delete=models.PROTECT)
     description = models.ForeignKey(Description, on_delete=models.CASCADE, related_name="expressions")
+    note = models.CharField(max_length=512, blank=True, help_text="Add any additional information here.")
 
     def __str__(self):
+        """Return the string representation of the Expression instance."""
         return self.state.__str__()
+
+    def trait(self):
+        """Return the trait related to the Expression' State."""
+        return self.state.trait
+
+    class Meta:
+        ordering = ["state__numeric_id"]
