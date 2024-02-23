@@ -9,7 +9,6 @@ from django.db.models.aggregates import Count
 from django.db.models.functions import Coalesce, Concat
 from django.urls import reverse
 from django.utils.functional import cached_property
-
 from register.models import PlantSpecies, PlantVariety
 
 
@@ -86,24 +85,23 @@ class DescriptionManager(models.Manager):
 
 
 class Description(models.Model):
-    """
-    Stores the Descriptions.
+    """Stores the Descriptions.
 
     A description is a collection of Expresions
     """
 
-    name = models.CharField(max_length=200, help_text="the name/identifier of the description")
+    name = models.CharField(max_length=200, help_text="The identifier of the description")
     protocol = models.ForeignKey(
         Protocol,
         on_delete=models.PROTECT,
-        help_text="reference to the protocol used to make the description;\
+        help_text="Reference protocol used to make the description;\
             this will define which Traits will be available",
         related_name="descriptions",
     )
     variety = models.ForeignKey(
         PlantVariety,
         on_delete=models.RESTRICT,
-        help_text="the variety to which the description refers to",
+        help_text="The variety to which the description refers to",
     )
 
     objects = DescriptionManager()
@@ -112,9 +110,9 @@ class Description(models.Model):
         ordering = ("variety__name",)
 
     @classmethod
-    def get_existing_sources(cls):
+    def names(cls):
         queryset = cls.objects.all().order_by("name").values_list("name", flat=True).distinct("name")
-        return list(queryset)
+        return [(name, name) for name in queryset]
 
     @cached_property
     def available_traits(self):

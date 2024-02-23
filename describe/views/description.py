@@ -4,18 +4,6 @@ List, Detail, Update, Create, Delete
 """
 
 from django_tables2 import RequestConfig
-
-from describe.filters import DescriptionFilterByName
-from describe.forms import (
-    DescriptionFilterFormSet,
-    DescriptionForm,
-    ExpressionForm,
-    ProtocolForm,
-)
-from describe.models import Description, Expression, Protocol, State, Trait
-from describe.tables import DescriptionTable
-from describe.utils import _filter_descriptions, delete_get_param, merge_unique
-from describe.views.protocol import NavActiveDescribe
 from django.db.models import CharField, Q
 from django.db.models.expressions import F
 from django.db.models.functions import Lower
@@ -27,13 +15,25 @@ from django.urls.base import reverse_lazy
 from django.views.decorators.http import require_http_methods
 from django.views.generic import DetailView
 from django.views.generic.edit import DeleteView
+
+from describe.filters import DescriptionFilterByName
+from describe.forms import (
+    DescriptionFilterFormSet,
+    DescriptionForm,
+    DescriptionUpdateForm,
+    ExpressionForm,
+    ProtocolForm,
+)
+from describe.models import Description, Expression, Protocol, State, Trait
+from describe.tables import DescriptionTable
+from describe.utils import _filter_descriptions, delete_get_param, merge_unique
+from describe.views.protocol import NavActiveDescribe
 from frontpage.decorators import nav_active
 from register.models import PlantVariety
 
 CharField.register_lookup(Lower)
 
 nav_describe = nav_active("nav_describe")
-EXPRESSION_FORM_TEMPLATE = "describe/partials/expression_form.html"
 
 
 @nav_describe
@@ -133,6 +133,44 @@ def reset_description_filter(request):
         pass
 
 
+def description_filter_export(request):
+    """
+    Endpoint to export the current filter and the matching
+    descriptions as text.
+    """
+    from datetime import datetime
+
+    filter = request.session.get("description_filter", None)
+    protocol = request.session.get("protocol", None)
+    filename = f"description_filter_{datetime.today().strftime('%Y%m%d%H%M%S')}.txt"
+    text = [
+        "There is no filter set, yet.",
+    ]
+
+    if filter and protocol:
+        queryset = Description.objects.all().prefetch_related("expressions")
+        text = list()
+        text.append("# Current search:")
+        text.append("")
+        text.append(f"Protocol: {Protocol.objects.get(pk=protocol)}")
+        text.append("")
+        for f in filter:
+            text.append(Trait.objects.get(pk=f["trait"]).__str__())
+            text.extend([f"\t { State.objects.get(pk=s) }" for s in f["state"]])
+            queryset = _filter_descriptions(queryset, f["state"])
+        text.append("")
+        text.append("---")
+        text.append("")
+        text.append(f"# Found descriptions ({ queryset.count() }):")
+        text.append("")
+        text.extend([f"- {description}" for description in queryset])
+
+    response = HttpResponse("\n".join(text), content_type="text/plain; charset=utf-8")
+    response["Content-Disposition"] = "attachment; filename={0}".format(filename)
+    return response
+
+
+@require_http_methods(["GET"])
 def description_list_reset(request):
     reset_description_filter(request)
     return redirect(reverse_lazy("describe:description-list"))
@@ -227,30 +265,18 @@ class DescriptionDetail(NavActiveDescribe, DetailView):
 
 
 @nav_describe
-def description_update_metadata(request, pk):
+def description_update(request, pk):
     description = get_object_or_404(Description, pk=pk)
-    form = DescriptionForm(request.POST or None, instance=description)
+    form = DescriptionUpdateForm(request.POST or None, instance=description)
 
     if form.is_valid():
         description = form.save()
-        return HttpResponseRedirect(
-            reverse(
-                "describe:description-detail",
-                args=(description.pk,),
-            )
-        )
+        return HttpResponseRedirect(description.get_absolute_url())
 
-    sources = Description.get_existing_sources()
     return TemplateResponse(
         request,
-        "describe/description_form.html",
-        {
-            "form": form,
-            "sources": [{"value": source, "text": source} for source in sources],
-            "description": description,
-            "variety": description.variety,
-            "updating": True,
-        },
+        "describe/description_update_form.html",
+        {"form": form, "description": description},
     )
 
 
@@ -261,23 +287,14 @@ def description_create(request):
     form = DescriptionForm(request.POST or None)
     if form.is_valid():
         description = form.save()
-        return HttpResponseRedirect(
-            reverse(
-                "describe:description-detail",
-                args=(description.pk,),
-            )
-        )
+        return HttpResponseRedirect(description.get_absolute_url())
 
     variety_id = request.GET.get("variety_id", None)
     if variety_id:
         variety = get_object_or_404(PlantVariety, pk=variety_id)
         form.initial["variety"] = variety
         context["variety"] = variety
-
-    sources = Description.get_existing_sources()
-
     context["form"] = form
-    context["sources"] = [{"value": source, "text": source} for source in sources]
 
     return TemplateResponse(request, "describe/description_form.html", context)
 
@@ -287,45 +304,7 @@ class DescriptionDeleteView(NavActiveDescribe, DeleteView):
     success_url = reverse_lazy("describe:description-list")
 
 
-def description_filter_export(request):
-    """
-    Endpoint to export the current filter and the matching
-    descriptions as text.
-    """
-    from datetime import datetime
-
-    filter = request.session.get("description_filter", None)
-    protocol = request.session.get("protocol", None)
-    filename = f"description_filter_{datetime.today().strftime('%Y%m%d%H%M%S')}.txt"
-    text = [
-        "There is no filter set, yet.",
-    ]
-
-    if filter and protocol:
-        queryset = Description.objects.all().prefetch_related("expressions")
-        text = list()
-        text.append("# Current search:")
-        text.append("")
-        text.append(f"Protocol: {Protocol.objects.get(pk=protocol)}")
-        text.append("")
-        for f in filter:
-            text.append(Trait.objects.get(pk=f["trait"]).__str__())
-            text.extend([f"\t { State.objects.get(pk=s) }" for s in f["state"]])
-            queryset = _filter_descriptions(queryset, f["state"])
-        text.append("")
-        text.append("---")
-        text.append("")
-        text.append(f"# Found descriptions ({ queryset.count() }):")
-        text.append("")
-        text.extend([f"- {description}" for description in queryset])
-
-    response = HttpResponse("\n".join(text), content_type="text/plain; charset=utf-8")
-    response["Content-Disposition"] = "attachment; filename={0}".format(filename)
-    return response
-
-
-@require_http_methods(["GET"])
-def description_update(request, pk):
+def description_update_expressions(request, pk):
     description = get_object_or_404(Description, pk=pk)
     traits = description.available_traits
     formset = list()

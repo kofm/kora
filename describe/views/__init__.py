@@ -10,8 +10,8 @@ from .description import (
     description_find_similar,
     description_list,
     description_list_reset,
+    description_update_expressions,
     description_update,
-    description_update_metadata,
 )
 from .protocol import (
     ProtocolCreate,
@@ -35,9 +35,9 @@ __all__ = [
     "description_favourite_clear",
     "description_compare",
     "description_filter_export",
+    "description_update_expressions",
+    "description_update_expressions",
     "description_update",
-    "description_update",
-    "description_update_metadata",
     "ProtocolList",
     "protocol_detail",
     "protocol_update",

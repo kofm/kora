@@ -1,0 +1,37 @@
+{% extends "frontpage/base.html" %}
+{% load crispy_forms_tags %}
+{% load static %}
+
+{% block javascript %}
+    <script src="{% static 'frontpage/htmx.bundle.js' %}"></script>
+    <script type="text/javascript">
+     let url = "{% url 'restapi:protocols-list' %}?format=json";
+    </script>
+{% endblock %}
+
+{% block title %}Update: {{ description }}{% endblock %}
+
+{% block container %}
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+	    <li class="breadcrumb-item"><a href="{% url "front:index" %}">Kora</a></li>
+	    <li class="breadcrumb-item"><a href="{% url 'register:plantvariety-list' %}">Varieties</a></li>
+	    <li class="breadcrumb-item"><a href="{% url 'register:plantvariety_detail' description.variety.pk %}">{{ description.variety }}</a></li>
+	    <li class="breadcrumb-item"><a href="{% url 'register:plantvariety-list' %}">Descriptions</a></li>
+	    <li class="breadcrumb-item"><a href="{% url 'describe:description-detail' description.pk %}">{{ description.name }}</a></li>
+	    <li class="breadcrumb-item active" aria-current="page">Update</li>
+        </ol>
+    </nav>
+
+    <h1 class="display-1">Update: {{ description.variety }} <small class="text-muted">{{ description.name }}</small></h1>
+
+    <form method="post" class="my-5">
+	{% csrf_token %}
+        <div class="mb-3">
+            {{ form|crispy }}
+        </div>
+	<button class="btn btn-primary" type="submit">Submit</button>
+	<a class="btn btn-secondary" href="{% url 'describe:description-detail' description.pk %}">Cancel</a>
+    </form>
+    <script src="{% static 'describe/description-form.bundle.js' %}"></script>
+{% endblock %}

@@ -12,13 +12,10 @@
 {% endblock %}
 
 
-{% block title %}{{ updating|yesno:"Update,Create" }} description{% endblock %}
+{% block title %}Create description{% endblock %}
 
 
 {% block container %}
-    {{ sources|json_script:"sources" }}
-    {{ plantvarieties|json_script:"plantvarieties" }}
-    {% url 'describe:description-detail' description.id as description_update_url %}
 
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">

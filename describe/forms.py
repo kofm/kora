@@ -5,7 +5,6 @@ from django.forms import formset_factory, inlineformset_factory
 from django.forms.formsets import BaseFormSet
 from django.forms.models import BaseInlineFormSet
 from django.utils.html import format_html
-from register.models import PlantVariety
 
 from .models import Description, Expression, Protocol, State, Trait
 
@@ -91,11 +90,7 @@ TraitFormSet = inlineformset_factory(
     Trait,
     formset=BaseTraitFormSet,
     extra=1,
-    fields=(
-        "numeric_id",
-        "description",
-        "grouping",
-    ),
+    fields=("numeric_id", "description", "grouping"),
 )
 
 
@@ -181,29 +176,17 @@ class RelatedStateForm(DynamicFormMixin, forms.Form):
 
 
 class DescriptionForm(forms.ModelForm):
-    variety = forms.ModelChoiceField(
-        queryset=PlantVariety.objects.all(),
-        required=True,
-        label="Variety",
-        label_suffix="",
-    )
-    protocol = forms.ModelChoiceField(
-        queryset=Protocol.objects.all(),
-        required=True,
-        label="Protocol",
-        label_suffix="",
-    )
-    name = forms.CharField(label="Source")
+    name = forms.ChoiceField(choices=Description.names(), help_text="The identifying name of the description")
 
     class Meta:
         model = Description
-        fields = ["variety", "protocol", "name"]
+        fields = ("variety", "protocol", "name")
 
-    def save(self, commit=True):
-        instance = super().save(commit=False)
-        if commit:
-            instance.save()
-        return instance
+
+class DescriptionUpdateForm(DescriptionForm):
+    class Meta:
+        model = Description
+        fields = ("variety", "name")
 
 
 class ExpressionForm(forms.ModelForm):

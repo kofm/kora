@@ -1,12 +1,9 @@
 from django.urls import path
-
 from . import views
 
 app_name = "describe"
 
 urlpatterns = [
-    # Description
-    # - Description List
     path("", views.description_list, name="description-list"),
     path("reset", views.description_list_reset, name="description-list-reset"),
     path("find_similar", views.description_find_similar, name="description-find-similar"),
@@ -23,8 +20,8 @@ urlpatterns = [
     path("compare", views.description_compare, name="description-compare"),
     path("export", views.description_filter_export, name="description-list-export"),
     path("<int:pk>/", views.DescriptionDetail.as_view(), name="description-detail"),
-    path("<int:pk>/update", views.description_update, name="description-update"),
-    path("<int:pk>/update_meta", views.description_update_metadata, name="description-update-metadata"),
+    path("<int:pk>/update", views.description_update_expressions, name="description-update"),
+    path("<int:pk>/update_meta", views.description_update, name="description-update-metadata"),
     path("create", views.description_create, name="description-create"),
     path(
         "<int:pk>/delete",
