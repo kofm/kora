@@ -2,11 +2,13 @@
 {% load widget_tweaks %}
 {% load static %}
 {% load django_tables2 %}
+
 {% block javascript %}
 <script src="{% static 'frontpage/htmx.bundle.js'  %}"></script>
 {% endblock %}
+
 {% block title %}
-{{ state }}
+Relate states to {{ state.trait.description }}: {{ state.description }}
 {% endblock %}
 
 {% block container %}
@@ -20,7 +22,7 @@
     <h2>
       Related traits
     </h2>
-    {% render_table relatedstates_table %}
+    {% render_table table %}
   </div>
   <div class="col">
     <h2>
@@ -30,16 +32,16 @@
       {% url 'describe:trait-list' as trait_list_url %}
       {% csrf_token %}
 
-      {{ relatedstate_form.state }}
+      {{ form.state }}
 
-      {{ relatedstate_form.protocol.label_tag }}
-      {% render_field relatedstate_form.protocol class+="form-select" autocomplete="off" hx-get=trait_list_url hx-target="#id_trait" hx-include="[name=state]"%}
+      {{ form.protocol.label_tag }}
+      {% render_field form.protocol class+="form-select" autocomplete="off" hx-get=trait_list_url hx-target="#id_trait" hx-include="[name=state]"%}
 
-      {{ relatedstate_form.trait.label_tag }}
-      {% render_field relatedstate_form.trait class+="form-select" autocomplete="off" hx-get=trait_list_url hx-target="#id_related_state" hx-include="[name=state], [name=trait]"%}
+      {{ form.trait.label_tag }}
+      {% render_field form.trait class+="form-select" autocomplete="off" hx-get=trait_list_url hx-target="#id_related_state" hx-include="[name=state], [name=trait]"%}
 
-      {{ relatedstate_form.related_state.label_tag }}
-      {% render_field relatedstate_form.related_state class+="form-select" autocomplete="off" %}
+      {{ form.related_state.label_tag }}
+      {% render_field form.related_state class+="form-select" autocomplete="off" %}
       <button class="btn btn-primary mt-3" type="submit">Relate</button>
     </form>
   </div>

@@ -28,7 +28,6 @@ urlpatterns = [
         views.DescriptionDeleteView.as_view(),
         name="description-delete",
     ),
-    # Protocol
     path("protocols/", views.ProtocolList.as_view(), name="protocols_list"),
     path("protocols/<int:pk>/", views.protocol_detail, name="protocol_detail"),
     path("protocols/<int:pk>/update", views.protocol_update, name="protocol-update"),
@@ -44,7 +43,7 @@ urlpatterns = [
         name="protocol-delete",
     ),
     # Trait
-    path("traits/", views.trait_list_htmx, name="trait-list"),
+    path("traits/", views.related_state_form, name="trait-list"),
     # State
     path("state/<int:pk>/update", views.state_update, name="state-update"),
     path(

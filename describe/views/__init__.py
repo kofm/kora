@@ -22,7 +22,7 @@ from .protocol import (
     protocol_update_name_htmx,
 )
 from .state import relatedstate_delete, state_update
-from .trait import trait_list_htmx
+from .trait import related_state_form
 
 __all__ = [
     "DescriptionDeleteView",
@@ -46,5 +46,5 @@ __all__ = [
     "ProtocolDelete",
     "state_update",
     "relatedstate_delete",
-    "trait_list_htmx",
+    "related_state_form",
 ]

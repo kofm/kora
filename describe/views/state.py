@@ -11,21 +11,17 @@ from django.template.response import TemplateResponse
 
 
 def state_update(request, pk):
-    context = {}
     state = get_object_or_404(State, pk=pk)
-    context["state"] = state
+    form = RelatedStateForm(initial={"state": state.pk})
 
     if request.method == "POST":
-        relatedstate_form = RelatedStateForm(request.POST)
-        if relatedstate_form.is_valid():
-            related_state = State.objects.get(pk=relatedstate_form["related_state"].value())
+        form = RelatedStateForm(request.POST)
+        if form.is_valid():
+            related_state = State.objects.get(pk=form["related_state"].value())
             state.related_states.add(related_state)
-            relatedstate_form = RelatedStateForm(initial={"state": state.pk})
-    else:
-        relatedstate_form = RelatedStateForm(initial={"state": state.pk})
-    context["relatedstate_form"] = relatedstate_form
-    context["relatedstates_table"] = RelatedStatesTable(state.related_states.all())
-    return TemplateResponse(request, "describe/state_form.html", context)
+
+    table = RelatedStatesTable(state.related_states.all())
+    return TemplateResponse(request, "describe/state_form.html", {"state": state, "table": table, "form": form})
 
 
 def relatedstate_delete(request, pk):

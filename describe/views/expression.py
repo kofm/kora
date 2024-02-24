@@ -5,10 +5,10 @@ from describe.models import Description, Expression
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.template.response import TemplateResponse
-from django.views.decorators.http import require_http_methods
+from django.views.decorators.http import require_GET, require_POST
 
 
-@require_http_methods(["GET"])
+@require_GET
 def expression_form(request, pk, trait):
     """Return a Description ExpressionForm for a specific Trait.
 
@@ -18,7 +18,7 @@ def expression_form(request, pk, trait):
     return TemplateResponse(request, "describe/partials/expression_create.html", {"form": form, "trait": trait})
 
 
-@require_http_methods(["POST"])
+@require_POST
 def expression_update(request, pk):
     expression = get_object_or_404(Expression, pk=pk)
     form = ExpressionForm(request.POST, instance=expression, trait=expression.state.trait)
@@ -28,7 +28,7 @@ def expression_update(request, pk):
     return TemplateResponse(request, "describe/partials/expression_update.html", context)
 
 
-@require_http_methods(["POST"])
+@require_POST
 def expression_create(request):
     trait = request.POST.get("trait")
     form = ExpressionForm(request.POST, trait=trait)
@@ -40,7 +40,7 @@ def expression_create(request):
     return TemplateResponse(request, "describe/partials/expression_create.html", {"form": form, "trait": trait})
 
 
-@require_http_methods(["POST"])
+@require_POST
 def expression_delete(request, pk):
     expression = get_object_or_404(Expression, pk=pk)
     expression.delete()

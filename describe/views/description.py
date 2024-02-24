@@ -10,11 +10,9 @@ from django.db.models.functions import Lower
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
-from django.urls import reverse
-from django.urls.base import reverse_lazy
-from django.views.decorators.http import require_http_methods
-from django.views.generic import DetailView
-from django.views.generic.edit import DeleteView
+from django.urls import reverse, reverse_lazy
+from django.views.decorators.http import require_GET
+from django.views.generic import DetailView, DeleteView
 
 from describe.filters import DescriptionFilterByName
 from describe.forms import (
@@ -170,7 +168,7 @@ def description_filter_export(request):
     return response
 
 
-@require_http_methods(["GET"])
+@require_GET
 def description_list_reset(request):
     reset_description_filter(request)
     return redirect(reverse_lazy("describe:description-list"))
