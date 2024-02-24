@@ -19,3 +19,5 @@ __pycache__
 .kitty-session
 .pyenv
 .envrc
+/.dir-locals.el
+/wipe-db.sql
