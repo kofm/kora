@@ -4,13 +4,8 @@
 {% block title %}Plants{% endblock %}
 {% block container %}
 {% render_breadcrumbs %}
-<p class="display-1">Plants</p>
-
-<div class="row">
-  <div class="col">
-    <a class="btn btn-primary ms-2" href="{% url 'register:plantspecies_create' %}">Create</a>
-  </div>
-</div>
+<p class="display-1">Plant species <a class="btn btn-secondary ms-2" href="{% url 'register:plantspecies_create' %}">Create</a>
+</p>
 
 <div class="row">
   <div class="col">

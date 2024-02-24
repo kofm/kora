@@ -84,21 +84,26 @@
             <span class="navbar-text">
                 {% if user.is_authenticated %}
                     {{ user.username }}
-                    <small><a href="{% url 'logout'  %}">Logout</a></small>
+                    <a href="{% url 'logout' %}"><i class="bi bi-door-closed-fill"></i></a>
                 {% else %}
-                    <a href="{% url 'login'  %}">Login</a>
+                    <a class="text-decoration-none" href="{% url 'login'  %}">
+			Login <i class="bi bi-door-open-fill"></i>
+		    </a>
                 {% endif %}
             </span>
-
+	    <span class="nav-item py-2 py-lg-1 col-12 col-lg-auto">
+		<div class="vr d-none d-lg-flex h-100 mx-lg-2 text-white"></div>
+		<hr class="d-lg-none my-2 text-white-50">
+            </span>
 	    <span class="navbar-text">
-		<div class="form-check form-switch ms-5">
+		<div class="form-check form-switch">
 		    <input class="form-check-input" type="checkbox"
 			   role="switch" id="darkModeSwitch"
 			   hx-get="{% url 'front:darkmode-toggle' %}"
-			   {{ request.session.is_dark|yesno:"checked," }}
+			   {{ request.session.is_light|yesno:"checked," }}
 			   onclick="document.documentElement.setAttribute('data-bs-theme', document.documentElement.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark')"
 		    >
-		    <label class="form-check-label" for="darkModeSwitch"><i class="bi bi-moon-stars-fill"></i><i class="bi bi-sun-fill"></i></label>
+		    <label class="form-check-label" for="darkModeSwitch"><i class="bi bi-sun-fill"></i></label>
 		</div>
 	    </span>
 

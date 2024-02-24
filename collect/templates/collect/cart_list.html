@@ -22,7 +22,7 @@
   <tr {% if cart.active %}class="table-primary"{% endif %}>
     <td>{{ cart.name }} {% if cart.active %}(Active){% endif %}</td>
     <td>{{ cart.created_at }}</td>
-    <td><a class="falink" href="{% url 'collect:cart-favourite' cart.pk %}"><i class="bi bi-star{% if cart.active %}-fill{% endif %} mx-1"></i></a><i class="bi bi-x-circle-fill mx-1"></i></td>
+    <td><a class="link-body-emphasis" href="{% url 'collect:cart-favourite' cart.pk %}"><i class="bi bi-star{% if cart.active %}-fill{% endif %} mx-1"></i></a><i class="bi bi-x-circle-fill mx-1"></i></td>
   </tr>
   {% endfor %}
 </table>

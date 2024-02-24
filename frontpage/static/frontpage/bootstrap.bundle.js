@@ -7448,7 +7448,7 @@ __webpack_require__.r(__webpack_exports__);
 
 var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_1___default()((_node_modules_css_loader_dist_runtime_noSourceMaps_js__WEBPACK_IMPORTED_MODULE_0___default()));
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, ".falink {\n    text-decoration: none;\n    color: black;\n}\n\na:hover.falink {\n    color: black;\n}\n\n.red {\n    border: solid 1px black;\n    color: red;\n}\n\n/* TOM SELECT */\n.ts-dropdown, .ts-control, .ts-control input {\n  color: var(--bs-body-color);\n}\n.ts-wrapper.plugin-remove_button .item .remove {\n  color: $red;\n}\n.plugin-clear_button .clear-button {\n  color: $red;\n  right: 60px;\n}\n.ts-dropdown {\n  z-index: 1060;\n}\n", ""]);
+___CSS_LOADER_EXPORT___.push([module.id, "", ""]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 

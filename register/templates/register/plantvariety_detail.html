@@ -77,7 +77,9 @@
 
     <div class="row mt-5">
         <div class="col">
-            <h2 id="names">Names <a class="btn btn-secondary btn-sm" href="{% url 'register:plantvarietyname-create' variety.pk %}">Create</a></h2>
+            <h2 id="names">
+		Names <a class="btn btn-secondary btn-sm" href="{% url 'register:plantvarietyname-create' variety.pk %}">Create</a>
+	    </h2>
             <table class="table">
                 <thead>
                     <th scope="col">Name</th>
@@ -90,8 +92,14 @@
                             <td>{{ name.name }}</td>
                             <td>{{ name.change_date }}</td>
                             <td align="right">
-                                <a class="far fa-edit falink" href="{% url 'register:plantvarietyname-update' name.pk %}"><i class="bi-pencil link-body-emphasis"></i></a>
-                                {% if variety.names.count > 1 %}<a class="fas fa-trash-alt falink" href="{% url 'register:plantvarietyname-delete' name.pk %}"><i class="bi bi-trash" style="color: black;"></i></a>{% endif %}
+                                <a class="link-body-emphasis" href="{% url 'register:plantvarietyname-update' name.pk %}">
+				    <i class="bi-pencil link-body-emphasis"></i>
+				</a>
+                                {% if variety.names.count > 1 %}
+				    <a class="link-body-emphasis" href="{% url 'register:plantvarietyname-delete' name.pk %}">
+					<i class="bi bi-trash"></i>
+				    </a>
+				{% endif %}
                         </tr>
                     {% endfor %}
                 </tbody>

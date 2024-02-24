@@ -14,22 +14,22 @@ class SeedSampleTableMixin:
         # NaN values are stored in the db
         return int(record.weight) if record.weight == record.weight else None
 
-    def render_variety(self, record):
-        if record.variety.breeder:
-            return format_html(
-                "{} <i class='{}'></i>",
-                record.variety.name,
-                record.variety.breeder.country.flag_css,
-            )
-        else:
-            return record.variety
+    # def render_variety(self, record):
+    #     if record.variety.breeder:
+    #         return format_html(
+    #             "{} <i class='{}'></i>",
+    #             record.variety.name,
+    #             record.variety.breeder.country.flag_css,
+    #         )
+    #     else:
+    #         return record.variety
 
 
 class SeedSampleBaseTable(tables.Table, SeedSampleTableMixin):
     sample_id = tables.Column(linkify=True, attrs={"td": {"class": "col-1"}})
     germinability = tables.Column(verbose_name="Germinability")
     weight = tables.Column(verbose_name="Weight (g)")
-    notes = tables.Column(attrs={"td": {"class": "col-3"}})
+    notes = tables.TemplateColumn(template_name="collect/partials/seedsample_table_notes.html")
 
     class Meta:
         model = SeedSample
@@ -51,6 +51,7 @@ class SeedSampleTable(SeedSampleBaseTable):
     It also has (HTMX) action buttons to add Accessions to the
     selected cart.
     """
+
     variety = tables.Column(
         attrs={
             "td": {"class": "col-2"},
@@ -64,9 +65,11 @@ class SeedSampleTable(SeedSampleBaseTable):
     )
 
     class Meta:
+        model = SeedSample
         fields = (
             "sample_id",
             "variety",
+            "variety__species",
             "position",
             "weight",
             "germinability",
@@ -92,7 +95,6 @@ class SeedSampleDuplicatesTable(SeedSampleBaseTable):
 
 
 class SeedSampleInStorageTable(SeedSampleBaseTable):
-
     class Meta(SeedSampleBaseTable.Meta):
         fields = (
             "sample_id",

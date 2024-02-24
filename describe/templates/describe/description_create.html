@@ -42,7 +42,7 @@
             {{form|crispy}}
         </div>
         <div>
-            <button class="btn btn-primary" type="submit">{{ updating|yesno:"Update,Create" }}</button>
+            <button class="btn btn-secondary" type="submit">{{ updating|yesno:"Update,Create" }}</button>
 	    {% if description %}
 		<a class="btn btn-secondary" href="{{ description_update_url }}">Cancel</a>
 	    {% endif %}

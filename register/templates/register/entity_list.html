@@ -11,7 +11,7 @@ Breeders
 
 {% block container %}
 <h1 class="display-1">
-  Breeders <a class="btn btn-primary" href="{% url 'register:entity_create' %}">Create</a>
+  Breeders <a class="btn btn-secondary" href="{% url 'register:entity_create' %}">Create</a>
 </h1>
 <form id="filter-form" method="get" class="form">
     {{ filter.form|crispy }}

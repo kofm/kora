@@ -9,6 +9,6 @@ def index(request):
 
 
 def darkmode_toggle(request):
-    is_dark = request.session.get("is_dark", False)
-    request.session["is_dark"] = not is_dark
+    is_light = request.session.get("is_light", False)
+    request.session["is_light"] = not is_light
     return HttpResponse()
