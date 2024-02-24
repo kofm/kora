@@ -13,18 +13,18 @@ class DescriptionTable(tables.Table):
     variety = tables.Column(
         linkify=True,
         attrs={
-            "a": {"class": "text-decoration-none link-dark"},
-            "th": {"class": "text-decoration-none link-dark"},
+            "a": {"class": "text-decoration-none link-body-emphasis"},
+            "th": {"class": "text-decoration-none link-body-emphasis"},
         },
     )
     name = tables.Column(
         linkify=True,
         attrs={
-            "a": {"class": "text-decoration-none link-dark fw-bold"},
+            "a": {"class": "text-decoration-none link-body-emphasis fw-bold"},
         },
     )
     protocol = tables.Column(
-        linkify=True, attrs={"a": {"class": "text-decoration-none link-dark"}}
+        linkify=True, attrs={"a": {"class": "text-decoration-none link-body-emphasis"}}
     )
     expressions = tables.Column("Expressions")
     actions = tables.TemplateColumn(

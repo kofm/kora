@@ -1,5 +1,5 @@
 <a 
-  class="text-decoration-none link-dark" 
+  class="text-decoration-none link-body-emphasis" 
   hx-get="{% url "describe:relatedstate-delete" state.pk %}"
   hx-vals='{"state": "{{state.pk}}", "related_state": "{{record.pk}}" }'
   hx-target="closest tr"

@@ -2,9 +2,9 @@
 <div class="offcanvas-header">
   {% if cart %}
     <h5 id="cartLabel">{{ cart.name }}
-        <a href="{% url 'collect:cart-update' cart.pk %}" class="fs-6 link-dark text-decoration-none"><i class="bi bi-pencil-square"></i></a>
-        <a href="{% url 'collect:cart-retrieve' cart.pk %}" class="fs-6 link-dark text-decoration-none"><i class="bi bi-box-arrow-down"></i></a>
-        <a href="{% url 'collect:cart-delete' cart.pk %}" class="fs-6 link-dark text-decoration-none"><i class="bi bi-trash"></i></a>
+        <a href="{% url 'collect:cart-update' cart.pk %}" class="fs-6 link-body-emphasis text-decoration-none"><i class="bi bi-pencil-square"></i></a>
+        <a href="{% url 'collect:cart-retrieve' cart.pk %}" class="fs-6 link-body-emphasis text-decoration-none"><i class="bi bi-box-arrow-down"></i></a>
+        <a href="{% url 'collect:cart-delete' cart.pk %}" class="fs-6 link-body-emphasis text-decoration-none"><i class="bi bi-trash"></i></a>
     </h5>
   {% endif %}
     <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
@@ -25,7 +25,7 @@
                         <td>{{ cartitem }}</td>
                         <td>{{ cartitem.sample.position }}</td>
                         <td class="col-3" align="right"><span hx-get="{% url 'collect:cartitem-setweight' cartitem.pk %}" hx-trigger="click" hx-swap="outerHTML">{{ cartitem.weight }} g</span></td>
-                        <td class="col-1"><a href="#" hx-get="{% url 'collect:cartitem-delete' cartitem.pk %}" hx-target="#cart" class="link-dark"><i class="bi bi-x-lg"></i></a></td>
+                        <td class="col-1"><a href="#" hx-get="{% url 'collect:cartitem-delete' cartitem.pk %}" hx-target="#cart" class="link-body-emphasis"><i class="bi bi-x-lg"></i></a></td>
                     </tr>
                 {% empty %}
                     <p>There are no items in the cart.</p>

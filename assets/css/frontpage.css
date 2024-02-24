@@ -11,3 +11,18 @@ a:hover.falink {
     border: solid 1px black;
     color: red;
 }
+
+/* TOM SELECT */
+.ts-dropdown, .ts-control, .ts-control input {
+  color: var(--bs-body-color);
+}
+.ts-wrapper.plugin-remove_button .item .remove {
+  color: $red;
+}
+.plugin-clear_button .clear-button {
+  color: $red;
+  right: 60px;
+}
+.ts-dropdown {
+  z-index: 1060;
+}

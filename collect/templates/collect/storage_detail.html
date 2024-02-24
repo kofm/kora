@@ -11,11 +11,11 @@
 	Storage {{ storage }}
 	{% if sample_count == 0 %}
 	<a
-	    class="text-decoration-none link-dark"
+	    class="text-decoration-none link-body-emphasis"
 	    href="{% url 'collect:storage-delete' storage.pk %}">
 	{% else %}
 	<a
-	    class="text-decoration-none link-dark text-muted"
+	    class="text-decoration-none link-body-emphasis text-muted"
 	    data-bs-toggle="tooltip"
 	    data-bs-title="Can't delete. Storage not empty."
 	    >

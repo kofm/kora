@@ -1,13 +1,24 @@
+{% load static %}
+{% load django_htmx %}
+
 <!DOCTYPE html>
-<html lang="en"  data-bs-theme="dark">
+<html lang="en"  data-bs-theme="{{ request.session.is_dark|yesno:"dark,light" }}">
     <head>
-        {% load static %}
-        <script src="{% static 'frontpage/bootstrap.bundle.js' %}"></script>
-        {% load django_htmx %}
-        {% block javascript %}
-        {% endblock %}
-        <meta charset="UTF-8">
-        <title>Kora - {% block title %}{% endblock %}</title>
+	<script src="{% static 'frontpage/bootstrap.bundle.js' %}"></script>
+	<script src="{% static 'frontpage/htmx.bundle.js' %}" type="text/javascript"></script>
+	<script src="{% static 'frontpage/hyperscript.bundle.js' %}" type="text/javascript"></script>
+	<script>
+	 function toggleTheme() {
+	     const currentTheme = document.documentElement.getAttribute('data-bs-theme');
+	     const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+	     document.documentElement.setAttribute('data-bs-theme', newTheme);
+	 }
+	</script>
+
+	{% block javascript %}
+	{% endblock %}
+	<meta charset="UTF-8">
+	<title>Kora - {% block title %}{% endblock %}</title>
     </head>
 
     <body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>

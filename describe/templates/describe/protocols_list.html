@@ -28,10 +28,10 @@
                                 <td>{{ protocol.traits.count }}</td>
                                 <td>{{ protocol.descriptions.count }}</td>
                                 <td>
-                                    <a class="link-dark" href="{% url 'describe:protocol_detail' protocol.id %}"><i class="bi bi-zoom-in"></i></a>
-                                    <a class="link-dark" href={% url 'describe:protocol-update' protocol.id  %}><i class="bi-pencil"></i></a>
+                                    <a class="link-body-emphasis" href="{% url 'describe:protocol_detail' protocol.id %}"><i class="bi bi-zoom-in"></i></a>
+                                    <a class="link-body-emphasis" href={% url 'describe:protocol-update' protocol.id  %}><i class="bi-pencil"></i></a>
                                     {% if protocol.descriptions.count == 0 %}
-                                        <a class="link-dark" href={% url 'describe:protocol-delete' protocol.id  %}><i class="bi bi-trash"></i></a>
+                                        <a class="link-body-emphasis" href={% url 'describe:protocol-delete' protocol.id  %}><i class="bi bi-trash"></i></a>
                                     {% else %}
                                         <a href="#" class="link-secondary" data-bs-toggle="tooltip" data-bs-title="Can't delete. There are {{ protocol.descriptions.count }} Descriptions referencing this Protocol"><i class="bi bi-trash"></i></a>
                                     {% endif %}

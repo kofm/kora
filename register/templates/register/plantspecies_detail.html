@@ -22,7 +22,7 @@
 <!-- Title -->
 <h1 class="display-1">
     {{ species.common_name }} <small class="text-muted">(<i>{{ species.latin_name }}</i>)</small>
-    <a class="text-decoration-none link-dark" href="{% url 'register:plantspecies_update' species.pk %}">
+    <a class="text-decoration-none link-body-emphasis" href="{% url 'register:plantspecies_update' species.pk %}">
         <i class="bi bi-pencil-square" style="font-size:2rem"></i>
     </a>
 </h1>

@@ -4,4 +4,7 @@ from . import views
 
 app_name = "front"
 
-urlpatterns = [path("", views.index, name="index")]
+urlpatterns = [
+    path("", views.index, name="index"),
+    path("darkmode/toggle", views.darkmode_toggle, name="darkmode-toggle"),
+]

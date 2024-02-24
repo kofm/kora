@@ -273,7 +273,7 @@ def description_update(request, pk):
 
     return TemplateResponse(
         request,
-        "describe/description_update_form.html",
+        "describe/description_update.html",
         {"form": form, "description": description},
     )
 
@@ -294,7 +294,7 @@ def description_create(request):
         context["variety"] = variety
     context["form"] = form
 
-    return TemplateResponse(request, "describe/description_form.html", context)
+    return TemplateResponse(request, "describe/description_create.html", context)
 
 
 class DescriptionDeleteView(NavActiveDescribe, DeleteView):
@@ -316,6 +316,6 @@ def description_update_expressions(request, pk):
         formset.append({"trait": trait, "forms": forms})
     return TemplateResponse(
         request,
-        "describe/description_update.html",
+        "describe/description_update_expressions.html",
         {"description": description, "formset": formset},
     )

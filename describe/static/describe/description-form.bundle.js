@@ -6212,7 +6212,7 @@ if(protocol) {
 	    .then((response) => response.json())
 	    .then((data) => {
 		protocolTomSelect.clear();
-		protocolTomSelect.clearOptions();
+		
 		protocolTomSelect.addOptions(data);
 		protocolTomSelect.enable();
 		if (protocol) {

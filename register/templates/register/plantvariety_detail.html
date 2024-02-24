@@ -18,14 +18,14 @@
 
     <h1 class="display-1">
         {{ variety.name }} <small class="text-muted"><i>{{ variety.species.common_name }}</i></small>
-        <a class="text-decoration-none link-dark" href="{% url 'register:plantvariety-update' variety.pk %}">
+        <a class="text-decoration-none link-body-emphasis" href="{% url 'register:plantvariety-update' variety.pk %}">
             <i class="bi bi-pencil" style="font-size:2rem"></i>
         </a>
     </h1>
 
     {% if variety.has_breeder %}
         <p class="lead">
-            <a class="text-decoration-none link-dark" href="{% url 'register:entity_detail' variety.breeder.pk %}">
+            <a class="text-decoration-none link-body-emphasis" href="{% url 'register:entity_detail' variety.breeder.pk %}">
                 {{ variety.breeder.name }}<i class="{{ variety.breeder.country.flag_css }} mx-3"></i>
             </a>
         </p>
@@ -53,7 +53,7 @@
                             <td>{{ description.protocol }}</td>
                             <td>{{ description.expressions.count }}/{{ description.available_traits.count }}</td>
                             <td class="col-1" align="right">
-                                <a href="{% url 'describe:description-detail' description.id %}"><i class="bi bi-zoom-in" style="color: black;"></i></a>
+                                <a href="{% url 'describe:description-detail' description.id %}"><i class="bi bi-zoom-in link-body-emphasis"></i></a>
                             </td>
                         </tr>
                     {% endfor %}
@@ -90,7 +90,7 @@
                             <td>{{ name.name }}</td>
                             <td>{{ name.change_date }}</td>
                             <td align="right">
-                                <a class="far fa-edit falink" href="{% url 'register:plantvarietyname-update' name.pk %}"><i class="bi-pencil" style="color: black;"></i></a>
+                                <a class="far fa-edit falink" href="{% url 'register:plantvarietyname-update' name.pk %}"><i class="bi-pencil link-body-emphasis"></i></a>
                                 {% if variety.names.count > 1 %}<a class="fas fa-trash-alt falink" href="{% url 'register:plantvarietyname-delete' name.pk %}"><i class="bi bi-trash" style="color: black;"></i></a>{% endif %}
                         </tr>
                     {% endfor %}

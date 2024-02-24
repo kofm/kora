@@ -54,7 +54,7 @@ class SeedSampleTable(SeedSampleBaseTable):
     variety = tables.Column(
         attrs={
             "td": {"class": "col-2"},
-            "a": {"class": "text-decoration-none link-dark"},
+            "a": {"class": "text-decoration-none link-body-emphasis"},
         }
     )
     actions = tables.TemplateColumn(
