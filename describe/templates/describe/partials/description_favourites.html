@@ -1,36 +1,39 @@
 <div class="alert alert-light" role="alert">
-  <h4 class="alert-heading">
-    Favourited descriptions
-  </h4>
-  <p>
-  {% if description_favourites|length > 1 %}
-  <a href="{% url 'describe:description-compare' %}">Compare</a>
-  {% endif %}
-  <a
-    href="#"
-    hx-get="{% url 'describe:description-favourites-clear'  %}"
-    hx-target="#favourites"
-    >
-    Clear
-  </a>
-  </p>
-  <div class="row">
-  {% for desc in description_favourites %}
+    <h5 class="alert-heading">
+	Selected
+    </h5>
+    
+    <div class="row">
+	{% for desc in description_favourites %}
 
-  <div class="col-2 border m-1 p-2 rounded-3">
+	    <div class="col-1 border m-1 p-2 rounded-3">
 
-    <p>
-      <a class="text-decoration-none
-                link-body-emphasis"
-         href="{% url 'describe:description-detail' desc.pk %}">
-        {{ desc.variety.name }}
-      </a>
-      <small class="text-muted">{{ desc.name }}</small>
-    <p>
+		<p>
+		    <a class="text-decoration-none
+			      link-body-emphasis"
+		       href="{% url 'describe:description-detail' desc.pk %}">
+			{{ desc.variety.name }}
+		    </a>
+		    <small class="text-muted">{{ desc.name }}</small>
+		    <p>
 
 
-  </div>
+	    </div>
 
-  {% endfor %}
-  </div>
+	{% endfor %}
+    </div>
+<small>
+	{% if description_favourites|length > 1 %}
+	    <a class="text-decoration-none" href="{% url 'describe:description-compare' %}">Compare</a>
+	    |
+	{% endif %}
+	<a
+	    class="text-decoration-none"
+	    href="#"
+	    hx-get="{% url 'describe:description-favourites-clear'  %}"
+	    hx-target="#favourites"
+	>
+	    Clear
+	</a>
+    </small>
 </div>

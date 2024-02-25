@@ -6,9 +6,7 @@ from describe.models import Description, State
 
 class DescriptionTable(tables.Table):
     def render_expressions(self, record):
-        return format_html(
-            "{}/{}", record.expressions.count(), record.available_traits.count()
-        )
+        return format_html("{}/{}", record.expressions.count(), record.available_traits.count())
 
     variety = tables.Column(
         linkify=True,
@@ -23,9 +21,7 @@ class DescriptionTable(tables.Table):
             "a": {"class": "text-decoration-none link-body-emphasis fw-bold"},
         },
     )
-    protocol = tables.Column(
-        linkify=True, attrs={"a": {"class": "text-decoration-none link-body-emphasis"}}
-    )
+    protocol = tables.Column(linkify=True, attrs={"a": {"class": "text-decoration-none link-body-emphasis"}})
     expressions = tables.Column("Expressions")
     actions = tables.TemplateColumn(
         template_name="describe/partials/description_table_actions.html",

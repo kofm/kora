@@ -96,6 +96,7 @@ def description_list(request):
         formset = DescriptionFilterFormSet(initial=traits)
 
     description_filter_by_name = DescriptionFilterByName(request.GET, queryset=queryset)
+    bookmarks = Description.objects.bookmarks(request)
     # Instantiate the Descriptions table and corresponding pagination
     description_table = DescriptionTable(description_filter_by_name.qs)
     RequestConfig(request, paginate={"per_page": 15}).configure(description_table)
@@ -107,10 +108,6 @@ def description_list(request):
     else:
         base_template = "describe/description_list_base.html"
 
-    description_favourites_ids = request.session.get("description_favourites", None)
-    if description_favourites_ids:
-        description_favourites = Description.objects.filter(pk__in=description_favourites_ids)
-        context.update({"description_favourites": description_favourites})
     context.update(
         {
             "description_filter_by_name": description_filter_by_name,
@@ -118,6 +115,7 @@ def description_list(request):
             "protocol_form": protocol_select_form,
             "page_obj": description_table,
             "page_template": base_template,
+            "description_favourites": bookmarks,
         }
     )
 

@@ -83,6 +83,12 @@ class DescriptionManager(models.Manager):
                 description_ids = description_ids.intersection(query_result)
         return self.filter(pk__in=list(description_ids)).select_related("variety").select_related("protocol")
 
+    def bookmarks(self, request):
+        ids = request.session.get("description_favourites", None)
+        if ids:
+            return self.filter(pk__in=ids)
+        return None
+
 
 class Description(models.Model):
     """Stores the Descriptions.

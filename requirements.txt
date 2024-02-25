@@ -14,4 +14,3 @@ pyuca
 django-forms-dynamic
 django-widget-tweaks
 django-view-breadcrumbs
-slippers

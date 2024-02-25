@@ -4,7 +4,6 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 TEMPLATE_DIR = os.path.join(BASE_DIR, "templates")
 
-# Application definition
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -22,7 +21,6 @@ INSTALLED_APPS = [
     "crispy_bootstrap4",
     "django_countries",
     "widget_tweaks",
-    # "debug_toolbar",
     "register.apps.RegisterConfig",
     "describe.apps.DescribeConfig",
     "frontpage.apps.FrontpageConfig",
@@ -32,7 +30,6 @@ INSTALLED_APPS = [
     "collect.apps.CollectConfig",
     "sortable_cards",
     "view_breadcrumbs",
-    "slippers",
 ]
 
 MIDDLEWARE = [
@@ -43,7 +40,6 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    # "debug_toolbar.middleware.DebugToolbarMiddleware",
     "django_htmx.middleware.HtmxMiddleware",
 ]
 
@@ -61,7 +57,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
             ],
-            "builtins": ["slippers.templatetags.slippers"],
+            "builtins": [],
         },
     },
 ]
@@ -88,7 +84,9 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-# Database
+# Database configuration. This defaults make sense for use via
+# `kora-docker` (https://github.com/kofm/kora-docker). Host, port, and
+# password have to be set in the running environment.
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
@@ -100,6 +98,10 @@ DATABASES = {
     },
 }
 
+DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
+
+# These have to be set in the environment file. With `docker-compose`
+# this is easily achieved with an .env file.
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS").split(" ")
 CSRF_TRUSTED_ORIGINS = os.getenv("CSRF_TRUSTED_ORIGINS").split(" ")
 
@@ -110,19 +112,13 @@ USE_I18N = True
 USE_L10N = True
 USE_TZ = True
 
-# Static files (CSS, JavaScript, Images)
 STATIC_URL = "static/"
 
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap4"
 CRISPY_TEMPLATE_PACK = "bootstrap4"
-
-DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
-
-DATE_FORMAT = ["Y-m-d"]
+DJANGO_TABLES2_TEMPLATE = "django_tables2/bootstrap4.html"
 
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
-DJANGO_TABLES2_TEMPLATE = "django_tables2/bootstrap4.html"
-DATA_UPLOAD_MAX_NUMBER_FIELDS = 10240 # higher than the count of fields
 
 BREADCRUMBS_HOME_LABEL = "Kora"
