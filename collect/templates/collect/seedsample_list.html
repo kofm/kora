@@ -8,8 +8,6 @@
 
 {% block javascript %}
     <link rel="stylesheet" href="{% static 'flags/sprite.css' %}">
-    
-    
 {% endblock %}
 
 {% block title %}
@@ -20,37 +18,60 @@
 
     <h1 class="display-1">Accessions <a class="btn btn-secondary" href="{% url 'collect:seedsample-create'  %}">Create</a></h1>
 
-    <form hx-target="div.table-container" hx-swap="outerHTML">
-        {% render_field filter.form.query class+="form-control" hx-get="" hx-trigger="keyup changed delay:500ms" _='on focus select() me' placeholder="Type to search..." %}
-    </form>
+    <div class="row">
+	<div class="col-8">
+	    <form hx-target="div.table-container" hx-swap="outerHTML">
+		<div class="form-floating">
+		    {% render_field filter.form.query class+="form-control" hx-get="" id="search" hx-trigger="keyup changed delay:500ms" _='on focus select() me' placeholder="Type to search..." %}
+		    <label for="search" class="form-label">Type to search</label>
+		</div>
+	    </form>
+	</div>
 
-    <!-- Table Row -->
+	{% if user.is_authenticated %}
+	    <div class="col">
+		<div class="form-floating">
+		    <input type="number" id="default-weight" name="default-weight" class="form-control" value="20">
+		    <label for="default-weight" class="form-label">Default sample (grams)</label>
+		</div>
+	    </div>
+	    <div class="col">
+		<div class="form-floating">
+		    {% render_field cart_select_form.cart class+="form-select" hx-post="cart/change" hx-target="#cart" %}
+
+		    <script type="text/hyperscript">
+		     on load set optionsLength to the length of <select[name="cart"]>option/>
+		     if optionsLength == 0
+		     add @disabled to <select[name="cart"]/>
+		    </script>
+
+		    <label for="id_cart" class="form-label">Select cart</label>
+		</div>
+	    </div>
+
+	{% endif %}
+    </div>
+
+    <p class="text-end mt-2">
+	<a href="{% url 'collect:cart-create' %}" class="link-body-emphasis text-decoration-none">
+	    Create
+	</a> |
+
+
+	<a href="#" data-bs-toggle="offcanvas" data-bs-target="#cart" aria-controls="cart" class="link-body-emphasis text-decoration-none">
+	    Show
+	</a>
+    </p>
+
+
     <div class="row mt-3">
-        {% if user.is_authenticated %}
-            <div class="col-3">
-              <div class="input-group d-flex flex-nowrap">
-                {% render_field cart_select_form.cart class+="form-select" hx-post="cart/change" hx-target="#cart" %}
-                <script type="text/hyperscript">
-                  on load set optionsLength to the length of <select[name="cart"]>option/>
-                                if optionsLength == 0
-                                add @disabled to <select[name="cart"]/>
-                </script>
-                <a href="{% url 'collect:cart-create' %}" class="btn btn-outline-secondary"><i class="bi bi-plus-circle"></i></a>
-                <a data-bs-toggle="offcanvas" data-bs-target="#cart" aria-controls="cart" class="btn btn-outline-secondary"><i class="bi bi-basket"></i></a>
-              </div>
-                <div class="input-group d-flex flex-nowrap mt-3">
-                    <input type="number" id="default-weight" name="default-weight" class="form-control" value="20">
-                    <span class="input-group-text" id="basic-addon2">grams</span>
-                </div>
-            </div>
-        {% endif %}
-        <div class="col">
-            {% render_table table %}
-        </div>
+	<div class="col">
+	    {% render_table table %}
+	</div>
     </div>
 
 
-    <div class="offcanvas offcanvas-start" tabindex="-1" id="cart" aria-labelledby="cartLabel">
-        {% include 'collect/partials/cart_offcanvas.html' %}
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="cart" aria-labelledby="cartLabel">
+	{% include 'collect/partials/cart_offcanvas.html' %}
     </div>
 {% endblock %}
