@@ -14,41 +14,41 @@
 
 {% block container %}
 
-{% render_breadcrumbs %}
+    {% render_breadcrumbs %}
 
-{% #page_title %}
-  {% if object %}
-    Update: {{ object }}
-  {% else %}
-  Create {{ object_to_create }}
-  {% endif %}
-{% /page_title %}
+    <h1 class="display-1">
+	{% if object %}
+	    Update: {{ object }}
+	{% else %}
+	    Create {{ object_to_create }}
+	{% endif %}
+    </h1>
 
-<p class="lead">
-{% block subheading %}
-{% endblock %}
-</p>
+    <p class="lead">
+	{% block subheading %}
+	{% endblock %}
+    </p>
 
 
-<form method="post">
+    <form method="post">
 
-    {% csrf_token %}
+	{% csrf_token %}
 
-    <div class="mb-3">
-        {{ form|crispy }}
-    </div>
+	<div class="mb-3">
+            {{ form|crispy }}
+	</div>
 
-    <p><small><sup>*</sup>Required field</small></p>
+	<p><small><sup>*</sup>Required field</small></p>
 
-    <input class="btn btn-secondary" type="submit" value="Create">
+	<input class="btn btn-secondary" type="submit" value="Create">
 
-    {% if object.get_delete_url and object.is_deletable %}
-        <a class="btn btn-danger" href="{{ object.get_delete_url }}">Delete</a>
-    {% endif %}
+	{% if object.get_delete_url and object.is_deletable %}
+            <a class="btn btn-danger" href="{{ object.get_delete_url }}">Delete</a>
+	{% endif %}
 
-</form>
+    </form>
 
-{% block additional_content %}
-{% endblock %}
+    {% block additional_content %}
+    {% endblock %}
 
 {% endblock %}
