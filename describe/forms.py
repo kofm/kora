@@ -176,7 +176,11 @@ class RelatedStateForm(DynamicFormMixin, forms.Form):
 
 
 class DescriptionForm(forms.ModelForm):
-    name = forms.ChoiceField(choices=Description.names(), help_text="The identifying name of the description")
+    name = forms.ChoiceField(help_text="The identifying name of the description")
+
+    def __init__(self, *args, **kwargs):
+        super(DescriptionForm, self).__init__(*args, **kwargs)
+        self.fields["name"].choices = Description.names()
 
     class Meta:
         model = Description
