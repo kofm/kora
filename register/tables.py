@@ -2,7 +2,7 @@ import django_tables2 as tables
 from django_tables2 import columns
 from django.utils.html import format_html
 from collect.models import SeedSample
-from collect.tables import SeedSampleBaseTable, SeedSampleTable
+from collect.tables import SeedSampleBaseTable
 from describe.models import Description
 from describe.tables import DescriptionTable
 from parameters.models import ParameterValue
@@ -69,6 +69,7 @@ class VarietalParameterTable(tables.Table):
 
 
 class PlantSpeciesTable(tables.Table):
+    common_name = tables.Column(linkify=True)
     latin_name = tables.Column(verbose_name="Latin name")
     num_varieties = tables.Column(verbose_name="Varieties")
     num_accessions = tables.Column(verbose_name="Accessions")

@@ -1,7 +1,7 @@
 from django.db.models import Count
 from django.urls import reverse_lazy
-from django.views.generic import CreateView, DeleteView, DetailView, ListView, UpdateView
-from django_tables2 import RequestConfig, SingleTableMixin, SingleTableView
+from django.views.generic import DeleteView, DetailView, UpdateView
+from django_tables2 import RequestConfig, SingleTableView
 
 from view_breadcrumbs import (
     CreateBreadcrumbMixin,
@@ -12,8 +12,7 @@ from view_breadcrumbs import (
 )
 
 from register.views.base_views import NavActivePlants, PlantCreateMixin
-from register.models import PlantSpecies
-from register.filters import PlantVarietyFilter
+from register.models import PlantSpecies, PlantVariety
 from register.tables import PlantSpeciesTable, PlantVarietyTable
 
 
@@ -29,7 +28,9 @@ class PlantSpeciesList(NavActivePlants, ListBreadcrumbMixin, SingleTableView):
 
     def get_queryset(self):
         queryset = PlantSpecies.objects.all().annotate(
-            num_varieties=Count("variety"), num_accessions=Count("variety__seedsample"), num_parameters=Count("parameters")
+            num_varieties=Count("variety"),
+            num_accessions=Count("variety__seedsample"),
+            num_parameters=Count("parameters"),
         )
         return queryset
 
@@ -41,15 +42,10 @@ class PlantSpeciesDetailView(NavActivePlants, DetailBreadcrumbMixin, DetailView)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        filter = PlantVarietyFilter(
-            self.request.GET, queryset=self.object.variety.all().order_by("-created_at")
-        )
-        count = filter.qs.count()
-        table = PlantVarietyTable(filter.qs)
-        RequestConfig(self.request, paginate={"per_page": 25}).configure(table)
+        queryset = PlantVariety.objects.filter(species=self.object.pk)
+        table = PlantVarietyTable(queryset)
+        RequestConfig(self.request, paginate={"per_page": 15}).configure(table)
         context["table"] = table
-        context["filter"] = filter
-        context["count"] = count
         return context
 
 

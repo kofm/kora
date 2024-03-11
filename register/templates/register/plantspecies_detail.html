@@ -26,7 +26,6 @@
         <i class="bi bi-pencil-square" style="font-size:2rem"></i>
     </a>
 </h1>
-<p><a class="btn btn-secondary ms-2" href="{% url 'register:plantvariety-create' species.pk %}">Create</a></p>
 
 {% if filter %}
 <div class="row mb-2">
@@ -48,8 +47,6 @@
     {% endif %}
 
     <div class="col">
-
-    <p>Matches: {{ count }}</p>
         {% render_table table %}
     </div>
 </div>
