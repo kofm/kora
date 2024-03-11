@@ -191,7 +191,11 @@ def storage_detail(request, pk):
     )
     table = SeedSampleInStorageTable(seed_samples)
     RequestConfig(request, paginate={"per_page": 10}).configure(table)
-    return TemplateResponse(request, "collect/storage_detail.html", {"storage": storage, "table": table, "sample_count": seed_samples.count()})
+    return TemplateResponse(
+        request,
+        "collect/storage_detail.html",
+        {"storage": storage, "table": table, "sample_count": seed_samples.count()},
+    )
 
 
 class StorageSortView(SortableView):
@@ -242,4 +246,3 @@ def storage_delete(request, pk):
         return redirect(reverse_lazy("collect:storage-list"))
 
     return TemplateResponse(request, "collect/storage_confirm_delete.html", {"storage": storage})
-        
