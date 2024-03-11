@@ -6,13 +6,19 @@
 {% block title %}Collect{% endblock %}
 
 {% block container %}
+    <nav aria-label="breadcrumb">
+	<ol class="breadcrumb">
+	    <li class="breadcrumb-item"><a href="{% url "front:index" %}">Kora</a></li>
+	    <li class="breadcrumb-item">Storage</li>
+	</ol>
+    </nav>
 
-<p class="display-1">Storage</p>
+    <p class="display-1">Storage</p>
 
-<div class="row">
-    <div class="col">
-        {% render_cards object_list "storage" "collect:storage-sort" "collect/partials/storage_card.html" "collect:storage-create" %}
+    <div class="row">
+	<div class="col">
+            {% render_cards object_list "storage" "collect:storage-sort" "collect/partials/storage_card.html" "collect:storage-create" %}
+	</div>
     </div>
-</div>
 
 {% endblock %}

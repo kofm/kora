@@ -14,6 +14,7 @@ from collect.models import SeedSample, Storage, StoragePosition
 from collect.serializers import SeedSampleSerializer
 from collect.tables import SeedSampleDuplicatesTable, SeedSampleInStorageTable, SeedSampleTable
 from django.contrib.auth.decorators import login_required
+from django.db import transaction
 from django.db.models import IntegerField, Q, Value
 from django.db.models.functions import Cast, Concat
 from django.http import HttpResponseBadRequest
@@ -208,30 +209,18 @@ class StorageSortView(SortableView):
 
 def storage_create(request):
     """
-    View to create a new Storage object
+    View to create a new Storage object.
     """
-
-    form = StorageCreateForm()
-
-    if request.POST:
-        form = StorageCreateForm(request.POST)
-        if form.is_valid():
+    form = StorageCreateForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        with transaction.atomic():
             storage = form.save()
             positions_count = form.cleaned_data["positions"]
             for i in range(positions_count):
                 StoragePosition.objects.create(name=f"{i + 1}", storage=storage)
-            if "btn-another" in request.POST:
-                return redirect(reverse("collect:storage-create"))
-            else:
-                return redirect(
-                    reverse(
-                        "collect:storage-detail",
-                        args=[
-                            storage.pk,
-                        ],
-                    )
-                )
-
+        if "btn-another" in request.POST:
+            return redirect(reverse("collect:storage-create"))
+        return redirect(reverse("collect:storage-detail", args=[storage.pk]))
     return TemplateResponse(request, "collect/storage_form.html", {"form": form})
 
 
