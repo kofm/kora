@@ -1,3 +1,4 @@
+from django.core.validators import MaxLengthValidator
 from dynamic_forms import DynamicField, DynamicFormMixin
 
 from django import forms
@@ -176,11 +177,24 @@ class RelatedStateForm(DynamicFormMixin, forms.Form):
 
 
 class DescriptionForm(forms.ModelForm):
-    name = forms.ChoiceField(help_text="The identifying name of the description")
+    """Form used to create or update a Description."""
 
     def __init__(self, *args, **kwargs):
+        """Initialize a DescriptionForm.
+
+            The model field `name` is a CharField but we want the user to be
+        able to select a value from a pre-populated list of values (to
+        prevent duplication); therefore, in the __init__ method the `name`
+        field widget is set to a `forms.Select` and the available choices
+        to the unique values of the `name` field within the entire
+        database. This allow keeping the correct CharField validation
+        while allowing the creation of a TomSelect widget populated from
+        the original <select> element. Using a ChoiceField directly would
+        have automatically introduced a validation against the available
+        choices, which is not what we want here since the user *can*
+        create new `name` values."""
         super(DescriptionForm, self).__init__(*args, **kwargs)
-        self.fields["name"].choices = Description.names()
+        self.fields["name"].widget = forms.Select(choices=Description.names())
 
     class Meta:
         model = Description
