@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django_countries.serializers import CountryFieldMixin
-from collect.models import SeedSample, StoragePosition
+from collect.models import CartItem, SeedSample, StoragePosition
 import math
 from describe.models import Protocol
 
@@ -84,6 +84,16 @@ class SeedSampleSerializer(serializers.ModelSerializer):
     def get_last_weight(self, obj):
         weight = obj.weight
         return 0.0 if weight is None or math.isnan(weight) else weight
+
+
+class CartSerializer(serializers.ModelSerializer):
+    variety_name = serializers.CharField(source="sample.variety.name", read_only=True)
+    variety_id = serializers.IntegerField(source="sample.variety.pk", read_only=True)
+    storage = serializers.CharField(source="sample.position")
+
+    class Meta:
+        model = CartItem
+        fields = ("variety_name", "variety_id", "sample", "storage", "weight")
 
 
 class StoragePositionSerializer(serializers.ModelSerializer):

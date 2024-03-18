@@ -1,12 +1,15 @@
 
 <div class="offcanvas-header">
-  {% if cart %}
-    <h1 id="cartLabel">Cart
-        <a href="{% url 'collect:cart-update' cart.pk %}" class="fs-2 link-body-emphasis text-decoration-none"><i class="bi bi-pencil-square"></i></a>
-        <a href="{% url 'collect:cart-retrieve' cart.pk %}" class="fs-2 link-body-emphasis text-decoration-none"><i class="bi bi-box-arrow-down"></i></a>
-        <a href="{% url 'collect:cart-delete' cart.pk %}" class="fs-2 link-body-emphasis text-decoration-none"><i class="bi bi-trash"></i></a>
-    </h1>
-  {% endif %}
+    {% if cart %}
+	<h1 id="cartLabel">Cart
+            <a href="{% url 'collect:cart-update' cart.pk %}" class="fs-2 link-body-emphasis text-decoration-none"><i class="bi bi-pencil-square"></i></a>
+            <a href="{% url 'collect:cart-retrieve' cart.pk %}" class="fs-2 link-body-emphasis text-decoration-none"><i class="bi bi-box-arrow-down"></i></a>
+            <a href="{% url 'collect:cart-delete' cart.pk %}" class="fs-2 link-body-emphasis text-decoration-none"><i class="bi bi-trash"></i></a>
+            <a href="{% url 'restapi:cartitems' cart.pk %}" class="fs-2 link-body-emphasis text-decoration-none">
+		<i class="bi bi-cloud-download"></i>
+	    </a>
+	</h1>
+    {% endif %}
     <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
 </div>
 

@@ -1,11 +1,13 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
+from rest_framework.permissions import IsAuthenticated
 from describe.models import Protocol
 from parameters.models import VarietalParameter
-from collect.models import SeedSample, StoragePosition
+from collect.models import CartItem, SeedSample, StoragePosition
 
 from register.models import Entity, PlantSpecies, PlantVariety, Protection
 from restapi.serializers import (
+    CartSerializer,
     EntitySerializer,
     PlantSpeciesSerializer,
     PlantVarietySerializer,
@@ -56,6 +58,16 @@ class VarietalParameterViewSet(viewsets.ModelViewSet):
 class SeedSampleViewSet(viewsets.ModelViewSet):
     queryset = SeedSample.objects.all()
     serializer_class = SeedSampleSerializer
+
+
+class CartItemViewSet(viewsets.ModelViewSet):
+    serializer_class = CartSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        cart = self.kwargs["cart"]
+        return CartItem.objects.filter(cart__user=user, cart__pk=cart)
 
 
 class StoragePositionViewSet(viewsets.ModelViewSet):
