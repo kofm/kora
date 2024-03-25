@@ -1,8 +1,9 @@
+import math
+
 from rest_framework import serializers
 from django_countries.serializers import CountryFieldMixin
 from collect.models import CartItem, SeedSample, StoragePosition
-import math
-from describe.models import Protocol
+from describe.models import Description, Expression, Protocol, Trait, State
 
 from parameters.models import SpeciesParameter, VarietalParameter
 from register.models import Entity, PlantSpecies, PlantVariety, PlantVarietyName, Protection
@@ -101,7 +102,7 @@ class StoragePositionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = StoragePosition
-        fields = "__all__"  # This would already include all the fields from the model.
+        fields = "__all__"
 
     def get_storage_verbose_name(self, obj):
         return str(obj)
@@ -111,3 +112,41 @@ class ProtocolSerializer(serializers.ModelSerializer):
     class Meta:
         model = Protocol
         fields = ("pk", "name")
+
+
+class StateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = State
+        fields = ("pk", "numeric_id", "description")
+
+
+class TraitSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Trait
+        fields = ("pk", "numeric_id", "description")
+
+
+class ExpressionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Expression
+        fields = ("description", "state", "note")
+
+
+class DescriptionExpressionSerializer(serializers.ModelSerializer):
+    trait = serializers.StringRelatedField(many=False, source="state.trait", read_only=True)
+    state_description = serializers.StringRelatedField(many=False, source="state", read_only=True)
+
+    class Meta:
+        model = Expression
+        fields = ("state", "trait", "state_description", "note")
+
+
+class DescriptionSerializer(serializers.ModelSerializer):
+    variety_name = serializers.CharField(source="variety.name", read_only=True)
+    species = serializers.StringRelatedField(source="variety.species.latin_name", read_only=True)
+    protocol_name = serializers.StringRelatedField(source="protocol.name", read_only=True)
+    expressions = DescriptionExpressionSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Description
+        fields = ("pk", "name", "variety", "variety_name", "species", "protocol", "protocol_name", "expressions")

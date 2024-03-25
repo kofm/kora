@@ -1,18 +1,23 @@
-from django.shortcuts import get_object_or_404
+from .filters import DescriptionFilter
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
-from describe.models import Protocol
+from describe.models import Description, Protocol, Expression, State, Trait
 from parameters.models import VarietalParameter
 from collect.models import CartItem, SeedSample, StoragePosition
 
 from register.models import Entity, PlantSpecies, PlantVariety, Protection
 from restapi.serializers import (
     CartSerializer,
+    DescriptionSerializer,
     EntitySerializer,
+    ExpressionSerializer,
     PlantSpeciesSerializer,
     PlantVarietySerializer,
     ProtectionSerializer,
     ProtocolSerializer,
+    StateSerializer,
+    TraitSerializer,
     SeedSampleSerializer,
     StoragePositionSerializer,
     VarietalParameterSerializer,
@@ -50,6 +55,37 @@ class ProtectionViewSet(viewsets.ModelViewSet):
     serializer_class = ProtectionSerializer
 
 
+class ProtocolViewSet(viewsets.ModelViewSet):
+    queryset = Protocol.objects.all()
+    serializer_class = ProtocolSerializer
+
+
+class StateViewSet(viewsets.ModelViewSet):
+    queryset = State.objects.all()
+    serializer_class = StateSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ["trait"]
+
+
+class TraitViewSet(viewsets.ModelViewSet):
+    queryset = Trait.objects.all()
+    serializer_class = TraitSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ["protocol"]
+
+
+class DescriptionViewSet(viewsets.ModelViewSet):
+    serializer_class = DescriptionSerializer
+    queryset = Description.objects.all()
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = DescriptionFilter
+
+
+class ExpressionViewSet(viewsets.ModelViewSet):
+    serializer_class = ExpressionSerializer
+    queryset = Expression.objects.all()
+
+
 class VarietalParameterViewSet(viewsets.ModelViewSet):
     queryset = VarietalParameter.objects.all()
     serializer_class = VarietalParameterSerializer
@@ -73,15 +109,3 @@ class CartItemViewSet(viewsets.ModelViewSet):
 class StoragePositionViewSet(viewsets.ModelViewSet):
     queryset = StoragePosition.objects.all()
     serializer_class = StoragePositionSerializer
-
-
-class ProtocolViewSet(viewsets.ModelViewSet):
-    queryset = Protocol.objects.all()
-    serializer_class = ProtocolSerializer
-
-    def get_queryset(self):
-        variety_id = self.request.query_params.get("variety", None)
-        if variety_id is not None:
-            variety = get_object_or_404(PlantVariety, pk=variety_id)
-            return Protocol.objects.filter(plantspecies=variety.species)
-        return Protocol.objects.all()

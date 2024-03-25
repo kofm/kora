@@ -14,6 +14,10 @@ router.register(r"varietalparameters", views.VarietalParameterViewSet)
 router.register(r"seedsamples", views.SeedSampleViewSet)
 router.register(r"storagepositions", views.StoragePositionViewSet)
 router.register(r"protocols", views.ProtocolViewSet, basename="protocols")
+router.register(r"traits", views.TraitViewSet, basename="traits")
+router.register(r"states", views.StateViewSet, basename="states")
+router.register(r"descriptions", views.DescriptionViewSet, basename="descriptions")
+router.register(r"expressions", views.ExpressionViewSet, basename="expressions")
 
 urlpatterns = [
     path("", include(router.urls)),

@@ -213,4 +213,4 @@ class Expression(models.Model):
         return self.state.trait
 
     class Meta:
-        ordering = ["state__numeric_id"]
+        ordering = ["state__trait__numeric_id"]
