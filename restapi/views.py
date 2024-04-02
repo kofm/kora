@@ -1,10 +1,24 @@
-from .filters import DescriptionFilter
+"""
+Kora API
+"""
+from collect.serializers import SampleWeightSerializer
+from .filters import (
+    DescriptionFilter,
+    EntityFilter,
+    SampleWeightFilter,
+    StorageFilter,
+    StoragePositionFilter,
+    PlantSpeciesFilter,
+    PlantVarietyFilter,
+    SeedSampleFilter,
+    ProtectionFilter,
+)
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from describe.models import Description, Protocol, Expression, State, Trait
 from parameters.models import VarietalParameter
-from collect.models import CartItem, SeedSample, StoragePosition
+from collect.models import CartItem, SampleWeight, SeedSample, Storage, StoragePosition
 
 from register.models import Entity, PlantSpecies, PlantVariety, Protection
 from restapi.serializers import (
@@ -19,6 +33,7 @@ from restapi.serializers import (
     StateSerializer,
     TraitSerializer,
     SeedSampleSerializer,
+    StorageSerializer,
     StoragePositionSerializer,
     VarietalParameterSerializer,
 )
@@ -31,28 +46,29 @@ class PlantSpeciesViewSet(viewsets.ModelViewSet):
 
     queryset = PlantSpecies.objects.all()
     serializer_class = PlantSpeciesSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = PlantSpeciesFilter
 
 
 class PlantVarietyViewSet(viewsets.ModelViewSet):
     queryset = PlantVariety.objects.all()
     serializer_class = PlantVarietySerializer
-
-    def get_queryset(self):
-        species = self.request.query_params.get("species", None)
-        queryset = PlantVariety.objects.all()
-        if species is not None:
-            queryset = queryset.filter(species=species)
-        return queryset
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = PlantVarietyFilter
 
 
 class EntityViewSet(viewsets.ModelViewSet):
     queryset = Entity.objects.all()
     serializer_class = EntitySerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = EntityFilter
 
 
 class ProtectionViewSet(viewsets.ModelViewSet):
     queryset = Protection.objects.all()
     serializer_class = ProtectionSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = ProtectionFilter
 
 
 class ProtocolViewSet(viewsets.ModelViewSet):
@@ -91,9 +107,32 @@ class VarietalParameterViewSet(viewsets.ModelViewSet):
     serializer_class = VarietalParameterSerializer
 
 
+class StorageViewSet(viewsets.ModelViewSet):
+    queryset = Storage.objects.all()
+    serializer_class = StorageSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = StorageFilter
+
+
+class StoragePositionViewSet(viewsets.ModelViewSet):
+    queryset = StoragePosition.objects.all()
+    serializer_class = StoragePositionSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = StoragePositionFilter
+
+
 class SeedSampleViewSet(viewsets.ModelViewSet):
     queryset = SeedSample.objects.all()
     serializer_class = SeedSampleSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = SeedSampleFilter
+
+
+class SampleWeightViewSet(viewsets.ModelViewSet):
+    queryset = SampleWeight.objects.all()
+    serializer_class = SampleWeightSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = SampleWeightFilter
 
 
 class CartItemViewSet(viewsets.ModelViewSet):
@@ -104,8 +143,3 @@ class CartItemViewSet(viewsets.ModelViewSet):
         user = self.request.user
         cart = self.kwargs["cart"]
         return CartItem.objects.filter(cart__user=user, cart__pk=cart)
-
-
-class StoragePositionViewSet(viewsets.ModelViewSet):
-    queryset = StoragePosition.objects.all()
-    serializer_class = StoragePositionSerializer

@@ -5,30 +5,20 @@ from django_countries.serializers import CountryFieldMixin
 from collect.models import CartItem, SeedSample, StoragePosition, Storage
 from describe.models import Description, Expression, Protocol, Trait, State
 
-from parameters.models import SpeciesParameter, VarietalParameter
+from parameters.models import VarietalParameter
 from register.models import Entity, PlantSpecies, PlantVariety, PlantVarietyName, Protection
-
-
-class SpeciesParamSerializer(serializers.ModelSerializer):
-    name = serializers.StringRelatedField(many=False, source="parameter")
-
-    class Meta:
-        model = SpeciesParameter
-        fields = ["name", "value"]
 
 
 class PlantSpeciesSerializer(serializers.ModelSerializer):
     class Meta:
         model = PlantSpecies
-        fields = ["common_name", "latin_name", "plant_type"]
+        fields = ["pk", "common_name", "latin_name", "plant_type"]
 
 
 class PlantVarietyNameSerializer(serializers.ModelSerializer):
     class Meta:
         model = PlantVarietyName
-        fields = [
-            "name",
-        ]
+        fields = ["name"]
 
 
 class PlantVarietySerializer(serializers.ModelSerializer):
@@ -36,80 +26,31 @@ class PlantVarietySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PlantVariety
-        fields = [
-            "id",
-            "name",
-            "species",
-            "breeder",
-            "names",
-        ]
+        fields = ["pk", "name", "species", "breeder", "names"]
 
 
 class EntitySerializer(CountryFieldMixin, serializers.ModelSerializer):
     class Meta:
         model = Entity
-        fields = "__all__"
+        fields = ["pk", "name", "type", "country", "contact", "email"]
 
 
 class ProtectionSerializer(CountryFieldMixin, serializers.ModelSerializer):
-    species = serializers.CharField(read_only=True)
-
     class Meta:
         model = Protection
-        fields = "__all__"
-
-
-class VarietalParameterSerializer(serializers.ModelSerializer):
-    variety_name = serializers.StringRelatedField(many=False, source="variety", read_only=True)
-    parameter_code = serializers.StringRelatedField(many=False, source="parameter", read_only=True)
-
-    class Meta:
-        model = VarietalParameter
-        fields = "__all__"
-
-
-class SeedSampleSerializer(serializers.ModelSerializer):
-    last_germinability = serializers.SerializerMethodField()
-    last_weight = serializers.SerializerMethodField()
-
-    class Meta:
-        model = SeedSample
-        fields = "__all__"  # This would already include all the fields from the model.
-
-    def get_last_germinability(self, obj):
-        germinability = obj.germinability
-        return 0.0 if germinability is None or math.isnan(germinability) else germinability
-
-    def get_last_weight(self, obj):
-        weight = obj.weight
-        return 0.0 if weight is None or math.isnan(weight) else weight
-
-
-class CartSerializer(serializers.ModelSerializer):
-    variety_name = serializers.CharField(source="sample.variety.name", read_only=True)
-    variety_id = serializers.IntegerField(source="sample.variety.pk", read_only=True)
-    storage = serializers.CharField(source="sample.position")
-
-    class Meta:
-        model = CartItem
-        fields = ("variety_name", "variety_id", "sample", "storage", "weight")
-
-
-class StorageSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Storage
-        fields = ("name", "order")
-
-
-class StoragePositionSerializer(serializers.ModelSerializer):
-    storage_verbose_name = serializers.SerializerMethodField()
-
-    class Meta:
-        model = StoragePosition
-        fields = ("name", "storage")
-
-    def get_storage_verbose_name(self, obj):
-        return str(obj)
+        fields = [
+            "pk",
+            "type",
+            "status",
+            "country",
+            "variety",
+            "reference",
+            "applicants",
+            "maintainers",
+            "date_start",
+            "date_end",
+            "note",
+        ]
 
 
 class ProtocolSerializer(serializers.ModelSerializer):
@@ -130,12 +71,6 @@ class TraitSerializer(serializers.ModelSerializer):
         fields = ("pk", "numeric_id", "description", "protocol")
 
 
-class ExpressionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Expression
-        fields = ("description", "state", "note")
-
-
 class DescriptionExpressionSerializer(serializers.ModelSerializer):
     trait = serializers.StringRelatedField(many=False, source="state.trait", read_only=True)
     state_description = serializers.StringRelatedField(many=False, source="state", read_only=True)
@@ -154,3 +89,69 @@ class DescriptionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Description
         fields = ("pk", "name", "variety", "variety_name", "species", "protocol", "protocol_name", "expressions")
+
+
+class ExpressionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Expression
+        fields = ("description", "state", "note")
+
+
+class VarietalParameterSerializer(serializers.ModelSerializer):
+    variety_name = serializers.StringRelatedField(many=False, source="variety", read_only=True)
+    parameter_code = serializers.StringRelatedField(many=False, source="parameter", read_only=True)
+
+    class Meta:
+        model = VarietalParameter
+        fields = "__all__"
+
+
+class StorageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Storage
+        fields = ("pk", "name", "order")
+
+
+class StoragePositionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StoragePosition
+        fields = ("pk", "name", "storage")
+
+    def get_storage_verbose_name(self, obj):
+        return str(obj)
+
+
+class SeedSampleSerializer(serializers.ModelSerializer):
+    germinability = serializers.SerializerMethodField(read_only=True)
+    weight = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = SeedSample
+        fields = (
+            "pk",
+            "sample_id",
+            "variety",
+            "notes",
+            "growing_season",
+            "position",
+            "germinability",
+            "weight",
+        )
+
+    def get_germinability(self, obj):
+        germinability = obj.germinability
+        return 0.0 if germinability is None or math.isnan(germinability) else germinability
+
+    def get_weight(self, obj):
+        weight = obj.weight
+        return 0.0 if weight is None or math.isnan(weight) else weight
+
+
+class CartSerializer(serializers.ModelSerializer):
+    variety_name = serializers.CharField(source="sample.variety.name", read_only=True)
+    variety_id = serializers.IntegerField(source="sample.variety.pk", read_only=True)
+    storage = serializers.CharField(source="sample.position")
+
+    class Meta:
+        model = CartItem
+        fields = ("variety_name", "variety_id", "sample", "storage", "weight")

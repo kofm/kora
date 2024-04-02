@@ -226,7 +226,7 @@ class Protection(models.Model):
         blank=True,
     )
     maintainers = models.ManyToManyField(Entity, blank=True)
-    date_start = models.DateField()
+    date_start = models.DateField(blank=True, null=True)
     date_end = models.DateField(blank=True, null=True)
     note = models.CharField(max_length=512, blank=True, help_text="Add any additional information here.")
 

@@ -1,7 +1,6 @@
 from rest_framework import serializers
 
-from collect.models import (Germinability, SampleWeight, SeedSample,
-                            StoragePosition)
+from collect.models import Germinability, SampleWeight, SeedSample, StoragePosition
 
 
 class StoragePositionSerializer(serializers.ModelSerializer):
@@ -19,7 +18,7 @@ class GerminabilitySerializer(serializers.ModelSerializer):
 class SampleWeightSerializer(serializers.ModelSerializer):
     class Meta:
         model = SampleWeight
-        fields = ["weight", "created_at"]
+        fields = ["weight", "seedsample"]
 
 
 class SeedSampleSerializer(serializers.ModelSerializer):
