@@ -2,7 +2,7 @@ import math
 
 from rest_framework import serializers
 from django_countries.serializers import CountryFieldMixin
-from collect.models import CartItem, SeedSample, StoragePosition
+from collect.models import CartItem, SeedSample, StoragePosition, Storage
 from describe.models import Description, Expression, Protocol, Trait, State
 
 from parameters.models import SpeciesParameter, VarietalParameter
@@ -18,11 +18,9 @@ class SpeciesParamSerializer(serializers.ModelSerializer):
 
 
 class PlantSpeciesSerializer(serializers.ModelSerializer):
-    speciesparameter = SpeciesParamSerializer(many=True, read_only=True, source="parameters")
-
     class Meta:
         model = PlantSpecies
-        fields = ["common_name", "latin_name", "speciesparameter"]
+        fields = ["common_name", "latin_name", "plant_type"]
 
 
 class PlantVarietyNameSerializer(serializers.ModelSerializer):
@@ -97,12 +95,18 @@ class CartSerializer(serializers.ModelSerializer):
         fields = ("variety_name", "variety_id", "sample", "storage", "weight")
 
 
+class StorageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Storage
+        fields = ("name", "order")
+
+
 class StoragePositionSerializer(serializers.ModelSerializer):
     storage_verbose_name = serializers.SerializerMethodField()
 
     class Meta:
         model = StoragePosition
-        fields = "__all__"
+        fields = ("name", "storage")
 
     def get_storage_verbose_name(self, obj):
         return str(obj)
@@ -111,19 +115,19 @@ class StoragePositionSerializer(serializers.ModelSerializer):
 class ProtocolSerializer(serializers.ModelSerializer):
     class Meta:
         model = Protocol
-        fields = ("pk", "name")
+        fields = ("pk", "name", "plantspecies", "url_ref")
 
 
 class StateSerializer(serializers.ModelSerializer):
     class Meta:
         model = State
-        fields = ("pk", "numeric_id", "description")
+        fields = ("pk", "numeric_id", "description", "trait")
 
 
 class TraitSerializer(serializers.ModelSerializer):
     class Meta:
         model = Trait
-        fields = ("pk", "numeric_id", "description")
+        fields = ("pk", "numeric_id", "description", "protocol")
 
 
 class ExpressionSerializer(serializers.ModelSerializer):
