@@ -119,10 +119,15 @@ def cart_sort(request):
 def cartitem_delete(request, pk):
     cartitem = get_object_or_404(CartItem, pk=pk)
     cartitem.delete()
+    cart = request.user.carts.active()
+    cartitems = sort_cartitems(request, cart.cartitem_set.all())
     return TemplateResponse(
         request,
         "collect/partials/cart_offcanvas.html",
-        {"cart": request.user.carts.active()},
+        {
+            "cart": cart,
+            "cartitems": cartitems,
+        },
     )
 
 
