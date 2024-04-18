@@ -20,10 +20,22 @@
             {{ error }}
         {% endfor %}
     {% endif %}
+    <div class="dropdown">
+	<button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+	    Sort by
+	</button>
+	<ul class="dropdown-menu">
+	    <li><a href="" class="dropdown-item" hx-get="{% url "collect:cart-sort" %}" hx-target="#cart" hx-vals='{"sort": "growing_season"}'>Year</a></li>
+	    <li><a href="" class="dropdown-item" hx-get="{% url "collect:cart-sort" %}" hx-target="#cart" hx-vals='{"sort": "variety"}'>Variety</a></li>
+	    <li><a href="" class="dropdown-item" hx-get="{% url "collect:cart-sort" %}" hx-target="#cart">Position</a></li>
+	    <li><a href="" class="dropdown-item" hx-get="{% url "collect:cart-sort" %}" hx-target="#cart" hx-vals='{"sort": "pk"}'>Addition</a></li>
+	</ul>
+    </div>
+
     {% if cart %}
         <table class="table align-middle">
             <tbody>
-                {% for cartitem in cart.cartitem_set.all %}
+                {% for cartitem in cartitems %}
                     <tr style="height: 3rem;">
                         <td>{{ cartitem.sample.sample_id }}</td>
                         <td>{{ cartitem }}</td>

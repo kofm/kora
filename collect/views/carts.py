@@ -74,10 +74,43 @@ def cartitem_add(request, pk):
     form = CartItemNewForm({"seedsample": pk, "weight": weight}, user=request.user)
     if form.is_valid():
         form.save()
+    cart = request.user.carts.active()
+    cartitems = sort_cartitems(request, cart.cartitem_set.all())
     return TemplateResponse(
         request,
         "collect/partials/cart_offcanvas.html",
-        {"cart": request.user.carts.active(), "form": form},
+        {"cart": cart, "cartitems": cartitems, "form": form},
+    )
+
+
+def sort_cartitems(request, cartitems):
+    CART_SORTING = {
+        "variety": "sample__variety__name",
+        "growing_season": "sample__growing_season",
+        "position": "sample__position",
+        "pk": "pk",
+    }
+    sort_key = request.session.get("cart_sorting", None)
+    if sort_key in CART_SORTING:
+        sort = CART_SORTING[sort_key]
+        cartitems = cartitems.order_by(sort)
+    return cartitems
+
+
+@login_required
+@require_GET
+def cart_sort(request):
+    sort = request.GET.get("sort", None)
+    request.session["cart_sorting"] = sort
+    cart = request.user.carts.active()
+    cartitems = sort_cartitems(request, cart.cartitem_set.all())
+    return TemplateResponse(
+        request,
+        "collect/partials/cart_offcanvas.html",
+        {
+            "cart": cart,
+            "cartitems": cartitems,
+        },
     )
 
 

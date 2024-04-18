@@ -31,6 +31,7 @@ urlpatterns = [
     path("cart/<int:pk>/delete", views.CartDeleteView.as_view(), name="cart-delete"),
     path("cart/<int:pk>/retrieve", views.cart_retrieve, name="cart-retrieve"),
     path("<int:pk>/cart/add", views.cartitem_add, name="cartitem-add"),
+    path("cart/sort", views.cart_sort, name="cart-sort"),
     path("<int:pk>/cart/delete", views.cartitem_delete, name="cartitem-delete"),
     path(
         "cartitem/<int:pk>/setweight",

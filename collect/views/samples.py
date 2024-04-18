@@ -25,6 +25,7 @@ from django.utils.timezone import now
 from django.views.decorators.http import require_POST
 from django.views.generic import DetailView, ListView, UpdateView
 from django.views.generic.edit import CreateView, DeleteView
+from collect.views.carts import sort_cartitems
 from register.models import PlantVariety, PlantVarietyName
 from sortable_cards.views import SortableView
 
@@ -45,6 +46,7 @@ def seedsample_list(request):
     if request.user.is_authenticated:
         cart = request.user.carts.active() or None
         context["cart"] = cart
+        context["cartitems"] = sort_cartitems(request, cart.cartitem_set.all())
         cart_select_form = CartSelectForm(initial={"cart": cart}, user=request.user)
         context["cart_select_form"] = cart_select_form
 
@@ -62,7 +64,8 @@ def cart_change_htmx(request):
     form = CartSelectForm(request.POST, user=request.user)
     if form.is_valid():
         cart = form.save()
-        return TemplateResponse(request, "collect/partials/cart_offcanvas.html", {"cart": cart})
+        cartitems = sort_cartitems(request, cart.cartitem_set.all())
+        return TemplateResponse(request, "collect/partials/cart_offcanvas.html", {"cart": cart, "cartitems": cartitems})
     else:
         return HttpResponseBadRequest()
 

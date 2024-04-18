@@ -24,7 +24,7 @@ class Storage(models.Model):
         return self.name
 
     def get_absolute_url(self):
-        return reverse("collect:storage-detail", args=(self.pk, ))
+        return reverse("collect:storage-detail", args=(self.pk,))
 
     @property
     def total_positions(self):
@@ -133,9 +133,7 @@ class CartManager(models.Manager):
 
 
 class Cart(models.Model):
-    name = models.CharField(
-        help_text="An identificative name for your cart", max_length=100, default="Cart"
-    )
+    name = models.CharField(help_text="An identificative name for your cart", max_length=100, default="Cart")
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="carts")
     active = models.BooleanField(default=False)
     created_at = models.DateField(auto_now_add=True)
