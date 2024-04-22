@@ -46,7 +46,8 @@ def seedsample_list(request):
     if request.user.is_authenticated:
         cart = request.user.carts.active() or None
         context["cart"] = cart
-        context["cartitems"] = sort_cartitems(request, cart.cartitem_set.all())
+        if cart:
+            context["cartitems"] = sort_cartitems(request, cart.cartitem_set.all())
         cart_select_form = CartSelectForm(initial={"cart": cart}, user=request.user)
         context["cart_select_form"] = cart_select_form
 
