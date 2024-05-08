@@ -27,7 +27,7 @@ class DescriptionTable(tables.Table):
         template_name="describe/partials/description_table_actions.html",
         verbose_name="",
         orderable=False,
-        attrs={"td": {"class": "col-1 text-end"}},
+        attrs={"td": {"class": "col-2 text-end"}},
     )
 
     class Meta:

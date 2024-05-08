@@ -3,7 +3,15 @@ import math
 from rest_framework import serializers
 from django_countries.serializers import CountryFieldMixin
 from collect.models import CartItem, SeedSample, StoragePosition, Storage
-from describe.models import Description, Expression, Protocol, Trait, State
+from describe.models import (
+    DescriptionsUserList,
+    DescriptionsUserListElement,
+    Description,
+    Expression,
+    Protocol,
+    Trait,
+    State,
+)
 
 from parameters.models import VarietalParameter
 from register.models import Entity, PlantSpecies, PlantVariety, PlantVarietyName, Protection
@@ -155,3 +163,24 @@ class CartSerializer(serializers.ModelSerializer):
     class Meta:
         model = CartItem
         fields = ("variety_name", "variety_id", "sample", "storage", "weight")
+
+
+class DescriptionsUserListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DescriptionsUserList
+        fields = ("id", "name")
+
+
+# class DescriptionsUserListElementSerializer(serializers.ModelSerializer):
+#     expressions = DescriptionSerializer(source="description")
+
+
+#     class Meta:
+#         model = DescriptionsUserListElement
+#         fields = ("description", "expressions")
+class DescriptionsUserListElementSerializer(serializers.ModelSerializer):
+    description = DescriptionSerializer(read_only=True)
+
+    class Meta:
+        model = DescriptionsUserListElement
+        fields = ("pk", "description")

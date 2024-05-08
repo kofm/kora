@@ -10,6 +10,7 @@ from django.db.models.functions import Coalesce, Concat
 from django.urls import reverse
 from django.utils.functional import cached_property
 from register.models import PlantSpecies, PlantVariety
+from django.contrib.auth.models import User
 
 
 class ProtocolManager(models.Manager):
@@ -214,3 +215,28 @@ class Expression(models.Model):
 
     class Meta:
         ordering = ["state__trait__numeric_id"]
+
+
+class DescriptionsUserList(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    name = models.CharField(max_length=200)
+    is_active = models.BooleanField(default=False)
+
+    def __str__(self) -> str:
+        return self.name
+
+    def save(self, *args, **kwargs):
+        if self.is_active:
+            DescriptionsUserList.objects.filter(user=self.user).exclude(pk=self.pk).update(is_active=False)
+        super().save(*args, **kwargs)
+
+
+class DescriptionsUserListElement(models.Model):
+    desc_list = models.ForeignKey(DescriptionsUserList, on_delete=models.CASCADE, related_name="descriptions")
+    description = models.ForeignKey(Description, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ("description", "desc_list")
+
+    def __str__(self) -> str:
+        return str(self.description)

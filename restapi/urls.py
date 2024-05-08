@@ -20,8 +20,14 @@ router.register(r"storages", views.StorageViewSet)
 router.register(r"storagepositions", views.StoragePositionViewSet)
 router.register(r"seedsamples", views.SeedSampleViewSet)
 router.register(r"sampleweights", views.SampleWeightViewSet)
+router.register(r"descriptionsuserlists", views.DescriptionsUserListViewSet, basename="DescriptionsUserList")
 
 urlpatterns = [
     path("", include(router.urls)),
     path("<int:cart>/cartitems/", views.CartItemViewSet.as_view({"get": "list"}), name="cartitems"),
+    path(
+        "<int:list>/descriptionsuserlists/",
+        views.DescriptionsUserListElementViewSet.as_view({"get": "list"}),
+        name="descriptionslists",
+    ),
 ]

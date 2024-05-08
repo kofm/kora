@@ -16,13 +16,23 @@ from .filters import (
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
-from describe.models import Description, Protocol, Expression, State, Trait
+from describe.models import (
+    Description,
+    DescriptionsUserListElement,
+    DescriptionsUserList,
+    Protocol,
+    Expression,
+    State,
+    Trait,
+)
 from parameters.models import VarietalParameter
 from collect.models import CartItem, SampleWeight, SeedSample, Storage, StoragePosition
 
 from register.models import Entity, PlantSpecies, PlantVariety, Protection
 from restapi.serializers import (
     CartSerializer,
+    DescriptionsUserListSerializer,
+    DescriptionsUserListElementSerializer,
     DescriptionSerializer,
     EntitySerializer,
     ExpressionSerializer,
@@ -143,3 +153,21 @@ class CartItemViewSet(viewsets.ModelViewSet):
         user = self.request.user
         cart = self.kwargs["cart"]
         return CartItem.objects.filter(cart__user=user, cart__pk=cart)
+
+
+class DescriptionsUserListViewSet(viewsets.ModelViewSet):
+    serializer_class = DescriptionsUserListSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        return DescriptionsUserList.objects.filter(user=user)
+
+
+class DescriptionsUserListElementViewSet(viewsets.ModelViewSet):
+    serializer_class = DescriptionsUserListElementSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        descriptionsuserlist = self.kwargs["list"]
+        return DescriptionsUserListElement.objects.filter(desc_list__user=user, desc_list__pk=descriptionsuserlist)

@@ -70,8 +70,9 @@
      }
     </style>
 
-    <main id="content">
+    {% include 'describe/partials/descriptionsuserlist_detail_offcanvas.html' %}
 
+    <main id="content">
 	<div id="favourites">
 	    {% if description_favourites %}
 		{% include 'describe/partials/description_favourites.html' %}
@@ -133,6 +134,11 @@
 	    <!-- Table Div -->
 	    <div class="col-6">
 		<div class="sticky-top" style="max-height: 100vh; overflow-y: auto;">
+		    <div class="text-end">
+		    <h1>
+			<a class="text-decoration-none link-body-emphasis" data-bs-toggle="offcanvas" data-bs-target="#desListOffcanvas" aria-controls="desListOffcanvas"><i class="bi bi-list-stars"></i></a>
+		    </h1>
+		    </div>
 		    <div id="spinner"></div>
 		    <div id="table">
 			{% render_table page_obj %}

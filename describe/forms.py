@@ -7,7 +7,7 @@ from django.forms.formsets import BaseFormSet
 from django.forms.models import BaseInlineFormSet
 from django.utils.html import format_html
 
-from .models import Description, Expression, Protocol, State, Trait
+from .models import Description, DescriptionsUserList, Expression, Protocol, State, Trait
 
 
 class TraitForm(forms.Form):
@@ -220,3 +220,29 @@ class ExpressionForm(forms.ModelForm):
         self.auto_id = False
         if trait:
             self.fields["state"].queryset = State.objects.filter(trait=trait)
+
+
+class DescriptionsUserListSelect(forms.ModelForm):
+    name = forms.ModelChoiceField(queryset=DescriptionsUserList.objects.none(), label="Description list")
+
+    class Meta:
+        model = DescriptionsUserList
+        fields = ("name",)
+
+    def __init__(self, *args, **kwargs):
+        request = kwargs.pop("request")
+        super().__init__(*args, **kwargs)
+        if request.user.is_authenticated:
+            self.fields["name"].queryset = DescriptionsUserList.objects.filter(user=request.user)
+            active_list = request.user.descriptionsuserlist_set.filter(is_active=True)
+            if active_list.exists():
+                self.fields["name"].initial = active_list.first().pk
+        else:
+            self.fields["name"].disabled = True
+            self.fields["name"].help_text = "You must be logged in to select a list."
+
+
+class DescriptionsUserListCreateForm(forms.ModelForm):
+    class Meta:
+        model = DescriptionsUserList
+        fields = ("name",)

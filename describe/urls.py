@@ -13,9 +13,23 @@ urlpatterns = [
         name="description-favourite-add",
     ),
     path(
+        "<int:pk>/delete_favourite",
+        views.description_favourite_delete,
+        name="description-favourite-delete",
+    ),
+    path(
         "clear_favourites",
         views.description_favourite_clear,
         name="description-favourites-clear",
+    ),
+    path("userlist/create", views.descriptionsuserlist_create, name="descriptionsuserlist-create"),
+    path("userlist/<int:pk>/delete", views.description.descriptionsuserlist_delete, name="descriptionsuserlist-delete"),
+    path("userlist/activate", views.description.descriptionsuserlist_activate, name="descriptionsuserlist-activate"),
+    path("userlist/add", views.description.descriptionsuserlistelement_create, name="descriptionsuserlist-add"),
+    path(
+        "userlist/element/<int:pk>/delete",
+        views.description.descriptionsuserlistelement_delete,
+        name="descriptionsuserlistelement-delete",
     ),
     path("compare", views.description_compare, name="description-compare"),
     path("export", views.description_filter_export, name="description-list-export"),

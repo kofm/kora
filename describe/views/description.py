@@ -3,15 +3,16 @@ Description Views
 List, Detail, Update, Create, Delete
 """
 
+from django.db import IntegrityError
 from django_tables2 import RequestConfig
 from django.db.models import CharField, Q
 from django.db.models.expressions import F
 from django.db.models.functions import Lower
-from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import get_object_or_404, redirect
+from django.http import Http404, HttpResponse, HttpResponseRedirect
+from django.shortcuts import get_object_or_404, redirect, render
 from django.template.response import TemplateResponse
 from django.urls import reverse, reverse_lazy
-from django.views.decorators.http import require_GET
+from django.views.decorators.http import require_GET, require_POST
 from django.views.generic import DetailView, DeleteView
 
 from describe.filters import DescriptionFilterByName
@@ -19,19 +20,38 @@ from describe.forms import (
     DescriptionFilterFormSet,
     DescriptionForm,
     DescriptionUpdateForm,
+    DescriptionsUserListSelect,
+    DescriptionsUserListCreateForm,
     ExpressionForm,
     ProtocolForm,
 )
-from describe.models import Description, Expression, Protocol, State, Trait
+from describe.models import (
+    Description,
+    DescriptionsUserList,
+    DescriptionsUserListElement,
+    Expression,
+    Protocol,
+    State,
+    Trait,
+)
 from describe.tables import DescriptionTable
 from describe.utils import _filter_descriptions, delete_get_param, merge_unique
 from describe.views.protocol import NavActiveDescribe
 from frontpage.decorators import nav_active
 from register.models import PlantVariety
+from django.contrib.auth.decorators import login_required
 
 CharField.register_lookup(Lower)
 
 nav_describe = nav_active("nav_describe")
+
+
+def descriptionsuserlist_get_active(request):
+    if request.user.is_authenticated:
+        desclist = request.user.descriptionsuserlist_set.filter(is_active=True)
+        if desclist.exists():
+            return desclist.first()
+    return None
 
 
 @nav_describe
@@ -108,6 +128,9 @@ def description_list(request):
     else:
         base_template = "describe/description_list_base.html"
 
+    descriptionsuserlist_form = DescriptionsUserListSelect(request=request)
+    descriptionsuserlist = descriptionsuserlist_get_active(request)
+
     context.update(
         {
             "description_filter_by_name": description_filter_by_name,
@@ -116,6 +139,8 @@ def description_list(request):
             "page_obj": description_table,
             "page_template": base_template,
             "description_favourites": bookmarks,
+            "descriptionsuserlist_form": descriptionsuserlist_form,
+            "descriptionsuserlist": descriptionsuserlist,
         }
     )
 
@@ -201,9 +226,11 @@ def description_favourite_add(request):
     if description_id:
         if "description_favourites" not in request.session:
             request.session["description_favourites"] = list()
-        request.session["description_favourites"].append(description_id)
+        faves = request.session["description_favourites"]
+        faves.append(description_id)
+        request.session["description_favourites"] = list(dict.fromkeys(faves))
         request.session.modified = True
-    description_favourites = Description.objects.filter(pk__in=request.session["description_favourites"])
+    description_favourites = Description.objects.bookmarks(request)
     return TemplateResponse(
         request,
         "describe/partials/description_favourites.html",
@@ -211,10 +238,93 @@ def description_favourite_add(request):
     )
 
 
+def description_favourite_delete(request, pk):
+    if "description_favourites" in request.session:
+        try:
+            request.session["description_favourites"].remove(str(pk))
+            request.session.modified = True
+        except ValueError:
+            pass
+    return HttpResponse("")
+
+
 def description_favourite_clear(request):
     if "description_favourites" in request.session:
         del request.session["description_favourites"]
     return HttpResponse("")
+
+
+@login_required
+def descriptionsuserlist_create(request):
+    form = DescriptionsUserListCreateForm()
+    if request.method == "POST":
+        form = DescriptionsUserListCreateForm(request.POST)
+        if form.is_valid():
+            instance = form.save(commit=False)
+            instance.user = request.user
+            instance.save()
+            return redirect(reverse_lazy("describe:description-list"))
+    return TemplateResponse(
+        request, "describe/descriptionsuserlist_form.html", {"form": form, "object_to_create": "List"}
+    )
+
+
+@login_required
+def descriptionsuserlist_delete(request, pk):
+    desc = get_object_or_404(DescriptionsUserList, pk=pk)
+    if request.POST:
+        desc.delete()
+        return redirect(reverse_lazy("describe:description-list"))
+    return TemplateResponse(request, "frontpage/confirm_delete.html", {"desc": desc})
+
+
+@login_required
+@require_POST
+def descriptionsuserlistelement_create(request):
+    description_id = request.POST.get("description_id", None)
+    descriptionsuserlist = request.user.descriptionsuserlist_set.filter(is_active=True)
+    if description_id and descriptionsuserlist.exists():
+        description = get_object_or_404(Description, pk=description_id)
+        descriptiouserlistelement = DescriptionsUserListElement(description=description)
+        descriptiouserlistelement.desc_list = descriptionsuserlist.first()
+        try:
+            descriptiouserlistelement.save()
+        except IntegrityError:
+            pass
+        descriptionsuserlist = descriptionsuserlist.first()
+    else:
+        descriptionsuserlist = None
+    return render(
+        request,
+        "describe/partials/descriptionsuserlist_detail_ul.html",
+        {"descriptionsuserlist": descriptionsuserlist},
+    )
+
+
+@login_required
+def descriptionsuserlistelement_delete(request, pk):
+    elem = get_object_or_404(DescriptionsUserListElement, pk=pk)
+    if request.user == elem.desc_list.user:
+        elem.delete()
+    return HttpResponse("")
+
+
+@login_required
+@require_POST
+def descriptionsuserlist_activate(request):
+    descriptionsuserlist_id = request.POST.get("name", None)
+    if descriptionsuserlist_id:
+        descriptionsuserlist = get_object_or_404(DescriptionsUserList, pk=int(descriptionsuserlist_id))
+        descriptionsuserlist.is_active = True
+        descriptionsuserlist.save()
+    else:
+        DescriptionsUserList.objects.all().update(is_active=False)
+        descriptionsuserlist = None
+    return render(
+        request,
+        "describe/partials/descriptionsuserlist_detail_ul.html",
+        {"descriptionsuserlist": descriptionsuserlist},
+    )
 
 
 @nav_describe

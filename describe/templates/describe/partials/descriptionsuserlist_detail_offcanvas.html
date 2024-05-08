@@ -1,0 +1,16 @@
+{% load crispy_forms_tags %}
+{% load widget_tweaks %}
+<div class="offcanvas offcanvas-end" tabindex="-1" id="desListOffcanvas" aria-labelledby="desListOffcanvasLabel">
+    <div class="offcanvas-header">
+	<h2 id="desListOffcanvasLabel">Descriptions List {% if user.is_authenticated %}<a class="btn btn-secondary" href="{% url 'describe:descriptionsuserlist-create' %}">Create</a>{% endif %}</h2>
+	<button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body">
+	{% url 'describe:descriptionsuserlist-activate' as descriptionsuserlist_activate %}
+	<div class="form-floating">
+	    {% render_field descriptionsuserlist_form.name class="form-select" hx-post=descriptionsuserlist_activate hx-trigger="change" hx-target="#descriptionsuserListUl" hx-swap="outerHTML" %}
+	    <label for="id_name">Active List</label>
+	</div>
+	{% include 'describe/partials/descriptionsuserlist_detail_ul.html' %}
+    </div>
+</div>
