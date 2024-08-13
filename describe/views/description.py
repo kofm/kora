@@ -39,7 +39,7 @@ from describe.utils import _filter_descriptions, delete_get_param, merge_unique
 from describe.views.protocol import NavActiveDescribe
 from frontpage.decorators import nav_active
 from register.models import PlantVariety
-from sortable_cards.views import SortableView
+from django_sortable_htmx.views import SortableView
 from django.contrib.auth.decorators import login_required
 
 CharField.register_lookup(Lower)

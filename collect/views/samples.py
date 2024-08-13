@@ -27,7 +27,7 @@ from django.views.generic import DetailView, ListView, UpdateView
 from django.views.generic.edit import CreateView, DeleteView
 from collect.views.carts import sort_cartitems
 from register.models import PlantVariety, PlantVarietyName
-from sortable_cards.views import SortableView
+from django_sortable_htmx.views import SortableView
 
 
 def seedsample_list(request):

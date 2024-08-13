@@ -28,7 +28,7 @@ INSTALLED_APPS = [
     "spaces.apps.SpacesConfig",
     "calculator.apps.CalculatorConfig",
     "collect.apps.CollectConfig",
-    "sortable_cards",
+    "django_sortable_htmx",
     "view_breadcrumbs",
 ]
 

@@ -11,17 +11,14 @@
     </div>
 </form>
 
-<script src="{% static 'sortable_cards/sortable-cards.bundle.js' %}"></script>
+<script src="{% static 'django_sortable_htmx/sortable.bundle.js' %}"></script>
 
 <script type="text/javascript">
  htmx.onLoad(function (content) {
-     /* var sortableCards = content.querySelectorAll("#{{ sortable.element_id }}"); */
-     /* for (var i = 0; i < sortableCards.length; i++) { */
      var card = document.getElementById('{{ sortable.element_id }}');
      new Sortable(card, {
          animation: 150,
          sort: {{ sortable.is_sortable| yesno:"true,false" }}
      });
-     /* } */
  });
 </script>
