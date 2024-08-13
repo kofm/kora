@@ -51,4 +51,5 @@ __all__ = [
     "relatedstate_delete",
     "related_state_form",
     "descriptionsuserlist_create",
+    "test",
 ]

@@ -94,7 +94,7 @@ class DescriptionManager(models.Manager):
 class Description(models.Model):
     """Stores the Descriptions.
 
-    A description is a collection of Expresions
+    A description is a collection of Expressions.
     """
 
     name = models.CharField(max_length=200, help_text="The identifier of the description")
@@ -234,9 +234,11 @@ class DescriptionsUserList(models.Model):
 class DescriptionsUserListElement(models.Model):
     desc_list = models.ForeignKey(DescriptionsUserList, on_delete=models.CASCADE, related_name="descriptions")
     description = models.ForeignKey(Description, on_delete=models.CASCADE)
+    order = models.PositiveIntegerField(default=0)
 
     class Meta:
         unique_together = ("description", "desc_list")
+        ordering = ["order",]
 
     def __str__(self) -> str:
         return str(self.description)

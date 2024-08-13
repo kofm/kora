@@ -1,7 +1,7 @@
 {% extends "frontpage/base.html" %}
 
 {% load static %}
-{% load render_cards %}
+{% load render_sortable %}
 
 {% block title %}Collect{% endblock %}
 
@@ -17,7 +17,7 @@
 
     <div class="row">
 	<div class="col">
-            {% render_cards object_list "storage" "collect:storage-sort" "collect/partials/storage_card.html" "collect:storage-create" %}
+            {% render_sortable object_list "storage" "row" "collect:storage-sort" "collect/partials/storage_card.html" "collect:storage-create" %}
 	</div>
     </div>
 

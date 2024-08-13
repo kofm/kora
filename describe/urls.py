@@ -31,6 +31,7 @@ urlpatterns = [
         views.description.descriptionsuserlistelement_delete,
         name="descriptionsuserlistelement-delete",
     ),
+    path("userlist/sort", views.description.DescriptionUserListElementSortableView.as_view(), name="descriptionsuserlist-sort"),
     path("compare", views.description_compare, name="description-compare"),
     path("export", views.description_filter_export, name="description-list-export"),
     path("<int:pk>/", views.DescriptionDetail.as_view(), name="description-detail"),

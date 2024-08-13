@@ -1,3 +1,4 @@
+{% load render_sortable %}
 <div id="descriptionsuserListUl" class="row">
     {% if descriptionsuserlist %}
 
@@ -17,27 +18,29 @@
 		</a>
 	    </p>
 
-	    <ul class="list-group mt-5">
-		{% for description in descriptionsuserlist.descriptions.all %}
-		    <li class="list-group-item d-flex justify-content-between align-items-start">
-			<a
-			    class="text-decoration-none link-body-emphasis"
-			    href="{% url 'describe:description-detail' description.description.pk %}"
-			>
-			    {{ description }}
-			</a>
-			<span class="badge">
-			    <a class="text-decoration-none link-body-emphasis" href=""
-			       hx-get="{% url 'describe:descriptionsuserlistelement-delete' description.pk %}"
-			       hx-target="closest li"
-			       hx-swap="outerHTML"
-			    >
-				<i class="bi bi-x-lg"></i>
-			    </a>
-			</span>
-		    </li>
-		{% endfor %}
-	    </ul>
+            {% render_sortable descriptionsuserlist.descriptions.all "descriptionsuserlist" "list-group mt-5" "describe:descriptionsuserlist-sort" "describe/partials/descriptionsuserlist_detail_list_item.html"  %}
+
+	    <!-- <ul class="list-group mt-5">
+		 {% for description in descriptionsuserlist.descriptions.all %}
+		 <li class="list-group-item d-flex justify-content-between align-items-start">
+		 <a
+		 class="text-decoration-none link-body-emphasis"
+		 href="{% url 'describe:description-detail' description.description.pk %}"
+		 >
+		 {{ description }}
+		 </a>
+		 <span class="badge">
+		 <a class="text-decoration-none link-body-emphasis" href=""
+		 hx-get="{% url 'describe:descriptionsuserlistelement-delete' description.pk %}"
+		 hx-target="closest li"
+		 hx-swap="outerHTML"
+		 >
+		 <i class="bi bi-x-lg"></i>
+		 </a>
+		 </span>
+		 </li>
+		 {% endfor %}
+	         </ul> -->
 	</div>
     {% endif %}
 </div>

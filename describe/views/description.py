@@ -3,12 +3,12 @@ Description Views
 List, Detail, Update, Create, Delete
 """
 
-from django.db import IntegrityError
+from django.db import transaction
 from django_tables2 import RequestConfig
-from django.db.models import CharField, Q
+from django.db.models import CharField, Q, Max
 from django.db.models.expressions import F
 from django.db.models.functions import Lower
-from django.http import Http404, HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.response import TemplateResponse
 from django.urls import reverse, reverse_lazy
@@ -39,6 +39,7 @@ from describe.utils import _filter_descriptions, delete_get_param, merge_unique
 from describe.views.protocol import NavActiveDescribe
 from frontpage.decorators import nav_active
 from register.models import PlantVariety
+from sortable_cards.views import SortableView
 from django.contrib.auth.decorators import login_required
 
 CharField.register_lookup(Lower)
@@ -282,22 +283,29 @@ def descriptionsuserlist_delete(request, pk):
 @require_POST
 def descriptionsuserlistelement_create(request):
     description_id = request.POST.get("description_id", None)
-    descriptionsuserlist = request.user.descriptionsuserlist_set.filter(is_active=True)
-    if description_id and descriptionsuserlist.exists():
-        description = get_object_or_404(Description, pk=description_id)
-        descriptiouserlistelement = DescriptionsUserListElement(description=description)
-        descriptiouserlistelement.desc_list = descriptionsuserlist.first()
-        try:
-            descriptiouserlistelement.save()
-        except IntegrityError:
-            pass
-        descriptionsuserlist = descriptionsuserlist.first()
-    else:
-        descriptionsuserlist = None
+    active_list = request.user.descriptionsuserlist_set.filter(is_active=True).first()
+
+    if not description_id or not active_list:
+        return JsonResponse({"error": "Invalid input or no active description."}, status=400)
+
+    description = get_object_or_404(Description, pk=description_id)
+
+    with transaction.atomic():
+        element, created = DescriptionsUserListElement.objects.get_or_create(
+            description=description, desc_list=active_list
+        )
+        if not created:
+            return JsonResponse({"error": "Element already exists."}, status=400)
+
+        order_max = active_list.descriptions.aggregate(Max("order"))["order__max"]
+        if order_max:
+            element.order = order_max + 1
+            element.save()
+
     return render(
         request,
-        "describe/partials/descriptionsuserlist_detail_ul.html",
-        {"descriptionsuserlist": descriptionsuserlist},
+        "describe/partials/descriptionsuserlist_detail_list_item.html",
+        {"object": element},
     )
 
 
@@ -306,7 +314,7 @@ def descriptionsuserlistelement_delete(request, pk):
     elem = get_object_or_404(DescriptionsUserListElement, pk=pk)
     if request.user == elem.desc_list.user:
         elem.delete()
-    return HttpResponse("")
+    return HttpResponse()
 
 
 @login_required
@@ -427,3 +435,7 @@ def description_update_expressions(request, pk):
         "describe/description_update_expressions.html",
         {"description": description, "formset": formset},
     )
+
+
+class DescriptionUserListElementSortableView(SortableView):
+    model = DescriptionsUserListElement

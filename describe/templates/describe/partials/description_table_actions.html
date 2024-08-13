@@ -13,8 +13,8 @@
     class="text-decoration-none link-body-emphasis"
     hx-post="{% url 'describe:descriptionsuserlist-add' %}"
     hx-vals='{"description_id": "{{ record.pk }}"}'
-    hx-target="#descriptionsuserListUl"
-    hx-swap="outerHTML"
+    hx-target="#descriptionsuserlist"
+    hx-swap="beforeend"
 >
     <i class="bi bi-plus-lg h5"></i>
 </a>

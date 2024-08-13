@@ -1,0 +1,6 @@
+<div class="list-group-item">
+    <a href="{{ object.get_absolute_url }}" class="link-body-emphasis text-decoration-none">
+        {{ object }}
+    </a>
+    <input type="hidden" name="order" value="{{ object.pk }}">
+</div>
