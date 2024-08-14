@@ -1,20 +1,13 @@
-<a
-    class="text-decoration-none link-body-emphasis"
-    href="#"
-    hx-get="{% url 'describe:description-favourite-add' %}?description_id={{ record.pk }}"
-    hx-target="#favourites"
->
-    <i class="bi bi-pin-fill h5"></i>
-</a>
 <a class="text-decoration-none link-body-emphasis" href="{% url 'describe:description-find-similar' %}?description_id={{record.pk}}">
     <i class="bi bi-search h5"></i>
 </a>
 <a
+    href="#"
     class="text-decoration-none link-body-emphasis"
     hx-post="{% url 'describe:descriptionsuserlist-add' %}"
     hx-vals='{"description_id": "{{ record.pk }}"}'
     hx-target="#descriptionsuserlist"
     hx-swap="beforeend"
 >
-    <i class="bi bi-plus-lg h5"></i>
+    <i class="bi bi-star-fill h5"></i>
 </a>

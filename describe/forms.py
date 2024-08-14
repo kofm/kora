@@ -114,7 +114,6 @@ class DescriptionFilterForm(forms.Form):
         super(DescriptionFilterForm, self).__init__(*args, **kwargs)
         trait = Trait.objects.get(pk=self.initial["trait"])
         self.fields["state"].queryset = State.objects.filter(trait=trait)
-        # self.fields["state"].label = format_html(str(trait.numeric_id) + ". " + trait.description)
         if trait.grouping:
             self.fields["state"].label = format_html(f"<b>{trait.numeric_id}. {trait.description}</b>")
         else:

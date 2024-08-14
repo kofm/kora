@@ -4,15 +4,36 @@
 
 	<div class="col mt-3">
 	    <p class="text-end">
-		<a class="link-body-emphasis text-decoration-none">
+		<a href=""
+                   class="link-body-emphasis text-decoration-none"
+                   data-bs-toggle="tooltip"
+                   data-bs-title="Edit List"
+                   data-bs-offset="0,20"
+                >
 		    <i class="bi bi-pencil h4"></i>
 		</a>
+		<a
+                    href="{% url 'describe:description-compare' %}"
+                    class="link-body-emphasis text-decoration-none ms-3"
+                    data-bs-toggle="tooltip"
+                    data-bs-title="Compare descriptions"
+                    data-bs-offset="0,20"
+                >
+                    <i class="bi bi-file-diff h4"></i>
+		</a>
 		<a href="{% url 'restapi:descriptionslists' descriptionsuserlist.pk %}"
-		   class="link-body-emphasis text-decoration-none ms-2">
+		   class="link-body-emphasis text-decoration-none ms-3"
+                   data-bs-toggle="tooltip"
+                   data-bs-title="Download raw data"
+                   data-bs-offset="0,20"
+                >
 		    <i class="bi bi-cloud-download h4"></i>
 		</a>
-		<a class="link-body-emphasis text-decoration-none ms-2"
-		   href="{% url 'describe:descriptionsuserlist-delete' descriptionsuserlist.pk %}"
+		<a href="{% url 'describe:descriptionsuserlist-delete' descriptionsuserlist.pk %}"
+                   class="link-body-emphasis text-decoration-none ms-3"
+                   data-bs-toggle="tooltip"
+                   data-bs-title="Delete list"
+                   data-bs-offset="0,20"
 		>
 		    <i class="bi bi-trash h4"></i>
 		</a>

@@ -2,7 +2,7 @@
 {% load django_htmx %}
 
 <!DOCTYPE html>
-<html lang="en"  data-bs-theme="{{ request.session.is_light|yesno:"light,dark" }}">
+<html lang="en" data-bs-theme="{{ request.session.is_light|yesno:"light,dark" }}">
     <head>
 	<script src="{% static 'frontpage/bootstrap.bundle.js' %}"></script>
 	<script src="{% static 'frontpage/htmx.bundle.js' %}" type="text/javascript"></script>

@@ -7,21 +7,6 @@ urlpatterns = [
     path("", views.description_list, name="description-list"),
     path("reset", views.description_list_reset, name="description-list-reset"),
     path("find_similar", views.description_find_similar, name="description-find-similar"),
-    path(
-        "add_favourite",
-        views.description_favourite_add,
-        name="description-favourite-add",
-    ),
-    path(
-        "<int:pk>/delete_favourite",
-        views.description_favourite_delete,
-        name="description-favourite-delete",
-    ),
-    path(
-        "clear_favourites",
-        views.description_favourite_clear,
-        name="description-favourites-clear",
-    ),
     path("userlist/create", views.descriptionsuserlist_create, name="descriptionsuserlist-create"),
     path("userlist/<int:pk>/delete", views.description.descriptionsuserlist_delete, name="descriptionsuserlist-delete"),
     path("userlist/activate", views.description.descriptionsuserlist_activate, name="descriptionsuserlist-activate"),

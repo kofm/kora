@@ -11,7 +11,7 @@ from django.db.models.functions import Lower
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.response import TemplateResponse
-from django.urls import reverse, reverse_lazy
+from django.urls import reverse_lazy
 from django.views.decorators.http import require_GET, require_POST
 from django.views.generic import DetailView, DeleteView
 
@@ -117,7 +117,6 @@ def description_list(request):
         formset = DescriptionFilterFormSet(initial=traits)
 
     description_filter_by_name = DescriptionFilterByName(request.GET, queryset=queryset)
-    bookmarks = Description.objects.bookmarks(request)
     # Instantiate the Descriptions table and corresponding pagination
     description_table = DescriptionTable(description_filter_by_name.qs)
     RequestConfig(request, paginate={"per_page": 15}).configure(description_table)
@@ -139,7 +138,6 @@ def description_list(request):
             "protocol_form": protocol_select_form,
             "page_obj": description_table,
             "page_template": base_template,
-            "description_favourites": bookmarks,
             "descriptionsuserlist_form": descriptionsuserlist_form,
             "descriptionsuserlist": descriptionsuserlist,
         }
@@ -220,39 +218,6 @@ def description_find_similar(request):
             for filter in list(description_filter)
         ]
     return redirect(reverse_lazy("describe:description-list"))
-
-
-def description_favourite_add(request):
-    description_id = request.GET.get("description_id", None)
-    if description_id:
-        if "description_favourites" not in request.session:
-            request.session["description_favourites"] = list()
-        faves = request.session["description_favourites"]
-        faves.append(description_id)
-        request.session["description_favourites"] = list(dict.fromkeys(faves))
-        request.session.modified = True
-    description_favourites = Description.objects.bookmarks(request)
-    return TemplateResponse(
-        request,
-        "describe/partials/description_favourites.html",
-        {"description_favourites": description_favourites},
-    )
-
-
-def description_favourite_delete(request, pk):
-    if "description_favourites" in request.session:
-        try:
-            request.session["description_favourites"].remove(str(pk))
-            request.session.modified = True
-        except ValueError:
-            pass
-    return HttpResponse("")
-
-
-def description_favourite_clear(request):
-    if "description_favourites" in request.session:
-        del request.session["description_favourites"]
-    return HttpResponse("")
 
 
 @login_required
@@ -338,39 +303,47 @@ def descriptionsuserlist_activate(request):
 @nav_describe
 def description_compare(request):
     context = {}
-    description_favourites_ids = request.session.get("description_favourites", None)
-    if description_favourites_ids:
-        descriptions = Description.objects.filter(pk__in=description_favourites_ids)
-        protocols = Protocol.objects.filter(descriptions__in=descriptions).distinct()
+    active_list = request.user.descriptionsuserlist_set.filter(is_active=True).first()
 
-        comparison_table = [{"protocol": protocol.name} for protocol in protocols]
-        comparison_table_header = [f"{description.variety.name} - {description.name}" for description in descriptions]
+    if not active_list:
+        return JsonResponse({"error": "No active description list found."}, status=400)
 
-        for index, protocol in enumerate(protocols):
-            comparison_table[index]["rows"] = []
-            for trait in protocol.traits.all():
-                row = [
-                    f"{trait.numeric_id}. {trait.description}",
-                ]
-                expression_ids = []
-                for description in descriptions:
-                    expressions = description.expressions.filter(
-                        Q(state__trait=trait) | Q(state__related_states__trait=trait)
-                    )
-                    if expressions.exists():
-                        expression = expressions.last()
-                        expression_id = expression.state.numeric_id
-                        row.append(f"{expression_id}. {expression.state.description}")
-                        expression_ids.append(expression_id)
-                    else:
-                        row.append("")
-                equal = all([id == expression_ids[0] for id in expression_ids])
-                comparison_table[index]["rows"].append({"values": row, "equal": equal})
-        context.update({"comparison_table_header": comparison_table_header})
-        context.update({"comparison_table": comparison_table})
+    elements = active_list.descriptions.select_related("description").all()
+    descriptions = [element.description for element in elements]
+
+    if not descriptions:
+        context.update({"comparison_table_header": [], "comparison_table": []})
         return TemplateResponse(request, "describe/description_compare.html", context)
-    else:
-        return reverse("describe:description-list")
+
+    protocols = Protocol.objects.filter(descriptions__in=descriptions).distinct()
+
+    comparison_table = [{"protocol": protocol.name, "rows": []} for protocol in protocols]
+    comparison_table_header = [f"{description.variety.name} - {description.name}" for description in descriptions]
+
+    for protocol_index, protocol in enumerate(protocols):
+        for trait in protocol.traits.all():
+            row = [f"{trait.numeric_id}. {trait.description}"]
+            expression_ids = []
+
+            for description in descriptions:
+                expressions = description.expressions.filter(
+                    Q(state__trait=trait) | Q(state__related_states__trait=trait)
+                )
+
+                if expressions.exists():
+                    expression = expressions.last()
+                    expression_id = expression.state.numeric_id
+                    row.append(f"{expression_id}. {expression.state.description}")
+                    expression_ids.append(expression_id)
+                else:
+                    row.append("")
+
+            rows_equal = all([id == expression_ids[0] for id in expression_ids]) if expression_ids else False
+            comparison_table[protocol_index]["rows"].append({"values": row, "equal": rows_equal})
+
+    context.update({"comparison_table_header": comparison_table_header, "comparison_table": comparison_table})
+
+    return TemplateResponse(request, "describe/description_compare.html", context)
 
 
 class DescriptionDetail(NavActiveDescribe, DetailView):
