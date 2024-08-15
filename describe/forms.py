@@ -1,8 +1,7 @@
-from django.core.validators import MaxLengthValidator
 from dynamic_forms import DynamicField, DynamicFormMixin
 
 from django import forms
-from django.forms import formset_factory, inlineformset_factory
+from django.forms import CheckboxSelectMultiple, formset_factory, inlineformset_factory
 from django.forms.formsets import BaseFormSet
 from django.forms.models import BaseInlineFormSet
 from django.utils.html import format_html
@@ -108,7 +107,7 @@ class DescriptionFilterForm(forms.Form):
     """
 
     trait = forms.IntegerField(widget=forms.HiddenInput())
-    state = forms.ModelMultipleChoiceField(queryset=None, required=False)
+    state = forms.ModelMultipleChoiceField(queryset=None, required=False, widget=CheckboxSelectMultiple)
 
     def __init__(self, *args, **kwargs):
         super(DescriptionFilterForm, self).__init__(*args, **kwargs)
