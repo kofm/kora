@@ -24,7 +24,7 @@
 		<li class="breadcrumb-item"><a href="{% url 'register:plantvariety-list' %}">Varieties</a></li>
 		<li class="breadcrumb-item"><a href="{% url 'register:plantvariety_detail' variety.pk %}">{{ variety }}</a></li>
 	    {% endif %}
-		<li class="breadcrumb-item"><a href="{% url 'register:plantvariety-list' %}">Descriptions</a></li>
+		<li class="breadcrumb-item"><a href="{% url 'describe:description-list' %}">Descriptions</a></li>
 	    {% if description %}
 		<li class="breadcrumb-item"><a href="{{ description_update_url }}">{{ description.name }}</a></li>
 		<li class="breadcrumb-item active" aria-current="page">Update</li>
