@@ -1,5 +1,4 @@
 from functools import cached_property
-from django_tables2.config import RequestConfig
 
 from django.core.paginator import Paginator
 from django.http.response import HttpResponseRedirect
@@ -8,27 +7,24 @@ from django.template.response import TemplateResponse
 from django.urls.base import reverse, reverse_lazy
 from django.views.generic import DetailView
 from django.views.generic.edit import DeleteView, UpdateView
-from describe.views.base import custom_variety_crumbs
-from parameters.forms import SpeciesParameterForm, VarietalParameterForm
-from register.filters import EntityFilter
-from register.tables import (
-    EntityTable,
-    PlantVarietyEntityTable,
-)
+from django_tables2.config import RequestConfig
 from view_breadcrumbs import (
     BaseBreadcrumbMixin,
     CreateBreadcrumbMixin,
     UpdateBreadcrumbMixin,
 )
 
+from describe.views.base import custom_variety_crumbs
+from parameters.forms import SpeciesParameterForm, VarietalParameterForm
+from register.filters import EntityFilter
 from register.forms import ProtectionForm
 from register.models import Entity, PlantSpecies, PlantVariety, Protection
+from register.tables import (
+    EntityTable,
+    PlantVarietyEntityTable,
+)
 from register.views.base_views import NavActivePlants, nav_active_plants
 from register.views.plantspecies_views import PlantCreateMixin
-
-
-
-
 
 
 class PlantSpeciesParametersList(NavActivePlants, DetailView):
@@ -62,8 +58,6 @@ class PlantVarietyParametersList(NavActivePlants, DetailView):
         return context
 
 
-
-
 @nav_active_plants
 def add_speciesparametervervalue(request, pk):
     """
@@ -77,16 +71,10 @@ def add_speciesparametervervalue(request, pk):
         form = SpeciesParameterForm(request.POST)
         if form.is_valid():
             form.save()
-            return HttpResponseRedirect(
-                reverse(
-                    "register:plantspeciesparameters_list", kwargs={"pk": species.id}
-                )
-            )
+            return HttpResponseRedirect(reverse("register:plantspeciesparameters_list", kwargs={"pk": species.id}))
 
     context = {"form": form}
-    return TemplateResponse(
-        request, "register/plantspeciesparameters_create.html", context
-    )
+    return TemplateResponse(request, "register/plantspeciesparameters_create.html", context)
 
 
 @nav_active_plants
@@ -97,18 +85,10 @@ def add_varietalparamevterervalue(request, pk):
         form = VarietalParameterForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect(
-                reverse(
-                    "register:plantvarietyparameters_list", kwargs={"pk": variety.id}
-                )
-            )
+            return redirect(reverse("register:plantvarietyparameters_list", kwargs={"pk": variety.id}))
 
     context = {"form": form}
-    return TemplateResponse(
-        request, "register/plantspeciesparameters_create.html", context
-    )
-
-
+    return TemplateResponse(request, "register/plantspeciesparameters_create.html", context)
 
 
 @nav_active_plants
@@ -168,9 +148,7 @@ class ProtectionDeleteView(DeleteView):
     model = Protection
 
     def get_success_url(self):
-        return reverse_lazy(
-            "register:plantvariety_detail", args=[self.object.variety.pk]
-        )
+        return reverse_lazy("register:plantvariety_detail", args=[self.object.variety.pk])
 
 
 class ProtectionDetailView(NavActivePlants, BaseBreadcrumbMixin, DetailView):
@@ -180,7 +158,7 @@ class ProtectionDetailView(NavActivePlants, BaseBreadcrumbMixin, DetailView):
     def crumbs(self):
         return custom_variety_crumbs(
             self.object.variety,
-            (str(self.object), "")
+            (str(self.object), ""),
             # (f"Update {self.model._meta.verbose_name.capitalize()}", ""),
         )
 

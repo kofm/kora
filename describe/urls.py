@@ -1,3 +1,5 @@
+"""Describe URL endpoints."""
+
 from django.urls import path
 from . import views
 
@@ -8,15 +10,19 @@ urlpatterns = [
     path("reset", views.description_list_reset, name="description-list-reset"),
     path("find_similar", views.description_find_similar, name="description-find-similar"),
     path("userlist/create", views.descriptionsuserlist_create, name="descriptionsuserlist-create"),
-    path("userlist/<int:pk>/delete", views.description.descriptionsuserlist_delete, name="descriptionsuserlist-delete"),
-    path("userlist/activate", views.description.descriptionsuserlist_activate, name="descriptionsuserlist-activate"),
-    path("userlist/add", views.description.descriptionsuserlistelement_create, name="descriptionsuserlist-add"),
+    path("userlist/<int:pk>/delete", views.descriptionsuserlist_delete, name="descriptionsuserlist-delete"),
+    path("userlist/activate", views.descriptionsuserlist_activate, name="descriptionsuserlist-activate"),
+    path("userlist/add", views.descriptionsuserlistelement_create, name="descriptionsuserlist-add"),
     path(
         "userlist/element/<int:pk>/delete",
-        views.description.descriptionsuserlistelement_delete,
+        views.descriptionsuserlistelement_delete,
         name="descriptionsuserlistelement-delete",
     ),
-    path("userlist/sort", views.description.DescriptionUserListElementSortableView.as_view(), name="descriptionsuserlist-sort"),
+    path(
+        "userlist/sort",
+        views.DescriptionUserListElementSortableView.as_view(),
+        name="descriptionsuserlist-sort",
+    ),
     path("compare", views.description_compare, name="description-compare"),
     path("export", views.description_filter_export, name="description-list-export"),
     path("<int:pk>/", views.DescriptionDetail.as_view(), name="description-detail"),

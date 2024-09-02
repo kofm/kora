@@ -1,6 +1,64 @@
-{% extends "frontpage/_form.html" %}
+{% extends "frontpage/base.html" %}
+
+{% load crispy_forms_tags %}
 {% load static %}
 
-{% block additional_content %}
-<script src="{% static 'register/plantvariety-form.bundle.js' %}"></script>
+{% block title %}
+    {% if object %}
+        Update: {{ object }}
+    {% else %}
+        Create {{ object_to_create }}
+    {% endif %}
+{% endblock %}
+
+
+{% block container %}
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+	    <li class="breadcrumb-item"><a href="{% url "front:index" %}">Kora</a></li>
+	    <li class="breadcrumb-item"><a href="{% url 'register:plantvariety-list' %}">Varieties</a></li>
+	    {% if object %}
+		<li class="breadcrumb-item"><a href="{% url 'register:plantvariety_detail' object.pk %}">{{ object }}</a></li>
+		<li class="breadcrumb-item"><a href="{{ description_update_url }}">{{ description.name }}</a></li>
+		<li class="breadcrumb-item active" aria-current="page">Update</li>
+	    {% else %}
+		<li class="breadcrumb-item active" aria-current="page">Create</li>
+	    {% endif %}
+        </ol>
+    </nav>
+
+    <h1 class="display-1">
+	{% if object %}
+	    Update: {{ object }}
+	{% else %}
+	    Create {{ object_to_create }}
+	{% endif %}
+    </h1>
+
+    <p class="lead">
+	{% block subheading %}
+	{% endblock %}
+    </p>
+
+
+    <form method="post">
+
+	{% csrf_token %}
+
+	<div class="mb-3">
+            {{ form|crispy }}
+	</div>
+
+	<p><small><sup>*</sup>Required field</small></p>
+
+	<input class="btn btn-secondary" type="submit" value="Create">
+
+	{% if object.get_delete_url and object.is_deletable %}
+            <a class="btn btn-danger" href="{{ object.get_delete_url }}">Delete</a>
+	{% endif %}
+
+    </form>
+
+    <script src="{% static 'register/plantvariety-form.bundle.js' %}"></script>
+
 {% endblock %}

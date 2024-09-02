@@ -1,67 +1,51 @@
-"""
-Description Views
+"""Description Views.
+
 List, Detail, Update, Create, Delete
 """
 
-from django.db import transaction
-from django_tables2 import RequestConfig
-from django.db.models import CharField, Q, Max
+import contextlib
+
+from django.db.models import CharField, Q
 from django.db.models.expressions import F
 from django.db.models.functions import Lower
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.urls import reverse_lazy
-from django.views.decorators.http import require_GET, require_POST
-from django.views.generic import DetailView, DeleteView
+from django.views.decorators.http import require_GET
+from django.views.generic import DeleteView, DetailView
+from django_tables2 import RequestConfig
 
 from describe.filters import DescriptionFilterByName
 from describe.forms import (
     DescriptionFilterFormSet,
     DescriptionForm,
-    DescriptionUpdateForm,
     DescriptionsUserListSelect,
-    DescriptionsUserListCreateForm,
+    DescriptionUpdateForm,
     ExpressionForm,
     ProtocolForm,
 )
-from describe.models import (
-    Description,
-    DescriptionsUserList,
-    DescriptionsUserListElement,
-    Expression,
-    Protocol,
-    State,
-    Trait,
-)
+from describe.models import Description, DescriptionsUserListElement, Expression, Protocol, State, Trait
 from describe.tables import DescriptionTable
-from describe.utils import _filter_descriptions, delete_get_param, merge_unique
+from describe.utils import descriptionsuserlist_get_active, _filter_descriptions, delete_get_param, merge_unique
 from describe.views.protocol import NavActiveDescribe
+from django_sortable_htmx.views import SortableView
 from frontpage.decorators import nav_active
 from register.models import PlantVariety
-from django_sortable_htmx.views import SortableView
-from django.contrib.auth.decorators import login_required
+
 
 CharField.register_lookup(Lower)
 
 nav_describe = nav_active("nav_describe")
 
 
-def descriptionsuserlist_get_active(request):
-    if request.user.is_authenticated:
-        desclist = request.user.descriptionsuserlist_set.filter(is_active=True)
-        if desclist.exists():
-            return desclist.first()
-    return None
-
-
 @nav_describe
 def description_list(request):
-    """List of Descriptions
-    Filter descriptions by state of expression(s) according to the selected reference
-    protocol
-    """
-    context = dict()
+    """List Descriptions.
+
+    Filter descriptions by state of expression(s) according to the
+    selected reference protocol."""
+    context = {}
 
     # Check if the protocol has changed; if yes, set the session variable and
     # reset the filter to operate with the newly selected protocol.
@@ -123,10 +107,8 @@ def description_list(request):
 
     # Check if the current request is an htmx request, then render only the
     # relevant part of the page; otherwise return the full page
-    if request.htmx:
-        base_template = "describe/description_list_partial.html"
-    else:
-        base_template = "describe/description_list_base.html"
+
+    base_template = "describe/description_list_partial.html" if request.htmx else "describe/description_list_base.html"
 
     descriptionsuserlist_form = DescriptionsUserListSelect(request=request)
     descriptionsuserlist = descriptionsuserlist_get_active(request)
@@ -147,46 +129,44 @@ def description_list(request):
 
 
 def reset_description_filter(request):
-    try:
+    with contextlib.suppress(KeyError):
         del request.session["description_filter"]
-    except KeyError:
-        pass
 
 
 def description_filter_export(request):
-    """
-    Endpoint to export the current filter and the matching
-    descriptions as text.
-    """
+    """Export current filter and the matching descriptions as plain text."""
     from datetime import datetime
 
-    filter = request.session.get("description_filter", None)
+    description_filter = request.session.get("description_filter", None)
     protocol = request.session.get("protocol", None)
-    filename = f"description_filter_{datetime.today().strftime('%Y%m%d%H%M%S')}.txt"
+    curtime = datetime.today().strftime("%Y%m%d%H%M%S")
+    filename = f"description_filter_{curtime}.txt"
     text = [
         "There is no filter set, yet.",
     ]
 
-    if filter and protocol:
+    if description_filter and protocol:
         queryset = Description.objects.all().prefetch_related("expressions")
         text = list()
-        text.append("# Current search:")
+        text.append("==========================")
+        text.append("Description Search")
+        text.append("==========================")
         text.append("")
         text.append(f"Protocol: {Protocol.objects.get(pk=protocol)}")
         text.append("")
-        for f in filter:
+        for f in description_filter:
             text.append(Trait.objects.get(pk=f["trait"]).__str__())
-            text.extend([f"\t { State.objects.get(pk=s) }" for s in f["state"]])
+            text.extend([f"\t {State.objects.get(pk=s)}" for s in f["state"]])
             queryset = _filter_descriptions(queryset, f["state"])
         text.append("")
-        text.append("---")
-        text.append("")
-        text.append(f"# Found descriptions ({ queryset.count() }):")
+        text.append("=========================")
+        text.append(f"Results ({queryset.count()}):")
+        text.append("=========================")
         text.append("")
         text.extend([f"- {description}" for description in queryset])
 
     response = HttpResponse("\n".join(text), content_type="text/plain; charset=utf-8")
-    response["Content-Disposition"] = "attachment; filename={0}".format(filename)
+    response["Content-Disposition"] = f"attachment; filename={filename}"
     return response
 
 
@@ -197,10 +177,10 @@ def description_list_reset(request):
 
 
 def description_find_similar(request):
-    """
-    This view gets a description_id as input and set the description filter
-    with the grouping characteristics of the description.
-    """
+    """Find similar Descriptions according to the 'grouping' criteria.
+
+    Get a description_id as input and set the description filter with
+    the grouping characteristics of the description."""
     description_id = request.GET.get("description_id", None)
 
     if description_id:
@@ -210,94 +190,14 @@ def description_find_similar(request):
         # Transform the filter to ease querying with __in
         request.session["description_filter"] = [
             {
-                "trait": filter["trait"],
+                "trait": filt["trait"],
                 "state": [
-                    filter["states"],
+                    filt["states"],
                 ],
             }
-            for filter in list(description_filter)
+            for filt in list(description_filter)
         ]
     return redirect(reverse_lazy("describe:description-list"))
-
-
-@login_required
-def descriptionsuserlist_create(request):
-    form = DescriptionsUserListCreateForm()
-    if request.method == "POST":
-        form = DescriptionsUserListCreateForm(request.POST)
-        if form.is_valid():
-            instance = form.save(commit=False)
-            instance.user = request.user
-            instance.save()
-            return redirect(reverse_lazy("describe:description-list"))
-    return TemplateResponse(
-        request, "describe/descriptionsuserlist_form.html", {"form": form, "object_to_create": "List"}
-    )
-
-
-@login_required
-def descriptionsuserlist_delete(request, pk):
-    desc = get_object_or_404(DescriptionsUserList, pk=pk)
-    if request.POST:
-        desc.delete()
-        return redirect(reverse_lazy("describe:description-list"))
-    return TemplateResponse(request, "frontpage/confirm_delete.html", {"desc": desc})
-
-
-@login_required
-@require_POST
-def descriptionsuserlistelement_create(request):
-    description_id = request.POST.get("description_id", None)
-    active_list = request.user.descriptionsuserlist_set.filter(is_active=True).first()
-
-    if not description_id or not active_list:
-        return JsonResponse({"error": "Invalid input or no active description."}, status=400)
-
-    description = get_object_or_404(Description, pk=description_id)
-
-    with transaction.atomic():
-        element, created = DescriptionsUserListElement.objects.get_or_create(
-            description=description, desc_list=active_list
-        )
-        if not created:
-            return JsonResponse({"error": "Element already exists."}, status=400)
-
-        order_max = active_list.descriptions.aggregate(Max("order"))["order__max"]
-        if order_max:
-            element.order = order_max + 1
-            element.save()
-
-    return render(
-        request,
-        "describe/partials/descriptionsuserlist_detail_list_item.html",
-        {"object": element},
-    )
-
-
-@login_required
-def descriptionsuserlistelement_delete(request, pk):
-    elem = get_object_or_404(DescriptionsUserListElement, pk=pk)
-    if request.user == elem.desc_list.user:
-        elem.delete()
-    return HttpResponse()
-
-
-@login_required
-@require_POST
-def descriptionsuserlist_activate(request):
-    descriptionsuserlist_id = request.POST.get("name", None)
-    if descriptionsuserlist_id:
-        descriptionsuserlist = get_object_or_404(DescriptionsUserList, pk=int(descriptionsuserlist_id))
-        descriptionsuserlist.is_active = True
-        descriptionsuserlist.save()
-    else:
-        DescriptionsUserList.objects.all().update(is_active=False)
-        descriptionsuserlist = None
-    return render(
-        request,
-        "describe/partials/descriptionsuserlist_detail_ul.html",
-        {"descriptionsuserlist": descriptionsuserlist},
-    )
 
 
 @nav_describe
@@ -333,7 +233,8 @@ def description_compare(request):
                 if expressions.exists():
                     expression = expressions.last()
                     expression_id = expression.state.numeric_id
-                    row.append(f"{expression_id}. {expression.state.description}")
+                    row.append(f"{expression_id}. {
+                               expression.state.description}")
                     expression_ids.append(expression_id)
                 else:
                     row.append("")
