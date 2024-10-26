@@ -1,32 +1,30 @@
 from functools import cached_property
 from typing import Any, Dict
-from django.core.paginator import Paginator
-from django.http import HttpRequest, HttpResponseBase
-from django.shortcuts import get_object_or_404, render
-from django_tables2 import RequestConfig
 
+from django_tables2 import RequestConfig
+from view_breadcrumbs import BaseBreadcrumbMixin
 
 from collect.models import SeedSample
+from describe.models import Description
+from django.core.paginator import Paginator
+from django.db import models
+from django.http import HttpRequest, HttpResponseBase
+from django.shortcuts import get_object_or_404, render
+from django.urls import reverse
 from django.urls.base import reverse_lazy
 from django.views.generic import DetailView
 from django.views.generic.edit import DeleteView, UpdateView
-from describe.models import Description
 from parameters.models import VarietalParameter
 from register.filters import PlantVarietyFilter
+from register.forms import PlantVarietyForm
+from register.models import PlantVariety, PlantVarietyName, Protection
 from register.tables import (
     PlantVarietyAccessionTable,
-    ProtectionTable,
     PlantVarietyDescriptionTable,
+    ProtectionTable,
     VarietalParameterTable,
 )
-from view_breadcrumbs import BaseBreadcrumbMixin, CreateBreadcrumbMixin
-
-from register.forms import PlantVarietyForm
-from register.models import PlantSpecies, PlantVariety, PlantVarietyName, Protection
-from register.views.base_views import (
-    NavActivePlants,
-    custom_variety_crumbs,
-)
+from register.views.base_views import NavActivePlants, custom_variety_crumbs
 from register.views.plantspecies_views import PlantCreateMixin
 
 
@@ -81,7 +79,7 @@ class PlantVarietyDelete(NavActivePlants, DeleteView):
     model = PlantVariety
 
     def get_success_url(self):
-        return reverse_lazy("register:plantspecies_detail", args=[self.object.species.pk])
+        return reverse_lazy("register:plantvariety-list", args=[self.object.species.pk])
 
 
 class PlantVarietyNameCreate(BaseBreadcrumbMixin, PlantCreateMixin):
@@ -142,17 +140,31 @@ class PlantVarietyNameDelete(NavActivePlants, DeleteView):
         return reverse_lazy("register:plantvariety_detail", args=[self.object.variety.pk])
 
 
+def get_model_verbose_name_plural_capitalized(model: models.Model):
+    return model._meta.verbose_name_plural.capitalize()
+
+
 def plantvariety_list(request):
     queryset = PlantVariety.objects.all().order_by("-created_at")
-    filter = PlantVarietyFilter(request.GET, queryset=queryset)
-    paginator = Paginator(filter.qs, 12)
-    count = filter.qs.count()
+    queryset_filter = PlantVarietyFilter(request.GET, queryset=queryset)
+    paginator = Paginator(queryset_filter.qs, 12)
+    count = queryset_filter.qs.count()
     page_obj = paginator.page(request.GET.get("page", 1))
+
     get_params = request.GET.copy()
     if "page" in get_params:
         del get_params["page"]
+    crumbs = [
+        (get_model_verbose_name_plural_capitalized(PlantVariety), reverse("register:plantvariety-list")),
+    ]
     return render(
         request,
         "register/plantvariety_list.html",
-        {"form": filter.form, "page_obj": page_obj, "get_params": get_params.urlencode(), "count": count},
+        {
+            "form": queryset_filter.form,
+            "page_obj": page_obj,
+            "get_params": get_params.urlencode(),
+            "count": count,
+            "crumbs": crumbs,
+        },
     )

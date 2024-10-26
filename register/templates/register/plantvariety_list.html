@@ -2,6 +2,8 @@
 
 {% load static %}
 {% load crispy_forms_tags %}
+{% load frontpage_extras %}
+
 {% block javascript %}
     <script type="text/javascript" src="{% static 'frontpage/popper.bundle.js' %}"></script>
     <script type="text/javascript" src="{% static 'frontpage/tomselect.bundle.js' %}"></script>
@@ -17,12 +19,7 @@
 {% endblock %}
 
 {% block container %}
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-	    <li class="breadcrumb-item"><a href="{% url "front:index" %}">Kora</a></li>
-	    <li class="breadcrumb-item active" aria-current="page">Varieties</li>
-        </ol>
-    </nav>
+    {% render_breadcrumbs crumbs %}
 
     <h1 class="display-1">Varieties
 	<a
