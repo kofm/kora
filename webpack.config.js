@@ -21,7 +21,7 @@ const commonConfig = {
           {
             loader: "postcss-loader",
             options: {
-              postcssOptions: {
+              postcssoptions: {
                 plugins: () => [require("autoprefixer")],
               },
             },
