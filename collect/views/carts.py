@@ -132,12 +132,7 @@ def cartitem_delete(request, pk):
 
 
 @login_required
-@require_http_methods(
-    [
-        "GET",
-        "POST",
-    ]
-)
+@require_http_methods(["GET", "POST"])
 def cartitem_set_weight(request, pk):
     template = "collect/partials/cartitem_setweight_form.html"
     form = CartItemSetWeightForm(initial={"cartitem": pk})
