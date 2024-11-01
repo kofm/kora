@@ -1,4 +1,5 @@
 """Project-wide decorators."""
+import functools
 
 
 def nav_active(nav):

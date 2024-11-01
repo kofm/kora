@@ -8,7 +8,7 @@ class ModelIsDeletableMixin:
     def is_deletable(self):
         for rel in self._meta.get_fields():
             try:
-                if not rel.on_delete.__name__ in [
+                if rel.on_delete.__name__ not in [
                     "PROTECT",
                     "RESTRICT",
                 ]:
@@ -154,7 +154,7 @@ class PlantVariety(ModelIsDeletableMixin, models.Model):
         )
 
     def get_list_url(self):
-        return reverse("register:plantvariety-list")
+        return reverse("register:variety_list")
 
     def get_delete_url(self):
         return reverse(

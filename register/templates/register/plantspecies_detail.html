@@ -2,7 +2,6 @@
 
 {% load render_table from django_tables2 %}
 {% load crispy_forms_tags %}
-{% load view_breadcrumbs %}
 
 {% block javascript %}
 <style>
@@ -16,8 +15,6 @@
 {% block title %}{{ species.common_name }}{% endblock %}
 
 {% block container %}
-
-{% render_breadcrumbs %}
 
 <!-- Title -->
 <h1 class="display-1">

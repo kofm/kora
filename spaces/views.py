@@ -20,11 +20,7 @@ class SortLocation(SortableView):
     model = Location
 
 
-@require_http_methods(
-    [
-        "POST",
-    ]
-)
+@require_http_methods(["POST"])
 def area_sort_hx(request):
     area_pks_ordered = request.POST.getlist("area_order")
     location_pk = request.POST.get("location")
@@ -75,6 +71,7 @@ class LocationCreateView(CreateView):
     model = Location
     fields = ["name", "latitude", "longitude"]
     success_url = reverse_lazy("spaces:location-list")
+
 
 class LocationUpdateView(UpdateView):
     model = Location

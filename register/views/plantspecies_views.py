@@ -3,25 +3,17 @@ from django.urls import reverse_lazy
 from django.views.generic import DeleteView, DetailView, UpdateView
 from django_tables2 import RequestConfig, SingleTableView
 
-from view_breadcrumbs import (
-    CreateBreadcrumbMixin,
-    DeleteBreadcrumbMixin,
-    DetailBreadcrumbMixin,
-    ListBreadcrumbMixin,
-    UpdateBreadcrumbMixin,
-)
-
 from register.views.base_views import NavActivePlants, PlantCreateMixin
 from register.models import PlantSpecies, PlantVariety
 from register.tables import PlantSpeciesTable, PlantVarietyTable
 
 
-class PlantSpeciesCreate(CreateBreadcrumbMixin, PlantCreateMixin):
+class PlantSpeciesCreate(PlantCreateMixin):
     model = PlantSpecies
     fields = ["common_name", "latin_name", "plant_type"]
 
 
-class PlantSpeciesList(NavActivePlants, ListBreadcrumbMixin, SingleTableView):
+class PlantSpeciesList(NavActivePlants, SingleTableView):
     model = PlantSpecies
     table_class = PlantSpeciesTable
     paginate_by = 10
@@ -35,7 +27,7 @@ class PlantSpeciesList(NavActivePlants, ListBreadcrumbMixin, SingleTableView):
         return queryset
 
 
-class PlantSpeciesDetailView(NavActivePlants, DetailBreadcrumbMixin, DetailView):
+class PlantSpeciesDetailView(NavActivePlants, DetailView):
     model = PlantSpecies
     context_object_name = "species"
     template_name = "register/plantspecies_detail.html"
@@ -49,11 +41,11 @@ class PlantSpeciesDetailView(NavActivePlants, DetailBreadcrumbMixin, DetailView)
         return context
 
 
-class PlantSpeciesUpdateView(NavActivePlants, UpdateBreadcrumbMixin, UpdateView):
+class PlantSpeciesUpdateView(NavActivePlants, UpdateView):
     model = PlantSpecies
     fields = ["common_name", "latin_name", "plant_type"]
 
 
-class PlantSpeciesDeleteView(NavActivePlants, DeleteBreadcrumbMixin, DeleteView):
+class PlantSpeciesDeleteView(NavActivePlants, DeleteView):
     model = PlantSpecies
     success_url = reverse_lazy("register:plantspecies_list")

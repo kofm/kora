@@ -15,9 +15,9 @@
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
 	    <li class="breadcrumb-item"><a href="{% url "front:index" %}">Kora</a></li>
-	    <li class="breadcrumb-item"><a href="{% url 'register:plantvariety-list' %}">Varieties</a></li>
+	    <li class="breadcrumb-item"><a href="{% url 'register:variety_list' %}">Varieties</a></li>
 	    <li class="breadcrumb-item"><a href="{% url 'register:plantvariety_detail' description.variety.pk %}">{{ description.variety }}</a></li>
-	    <li class="breadcrumb-item"><a href="{% url 'register:plantvariety-list' %}">Descriptions</a></li>
+	    <li class="breadcrumb-item"><a href="{% url 'register:variety_list' %}">Descriptions</a></li>
 	    <li class="breadcrumb-item"><a href="{% url 'describe:description-detail' description.pk %}">{{ description.name }}</a></li>
 	    <li class="breadcrumb-item active" aria-current="page">Update</li>
         </ol>

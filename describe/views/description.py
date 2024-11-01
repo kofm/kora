@@ -103,7 +103,7 @@ def description_list(request):
     description_filter_by_name = DescriptionFilterByName(request.GET, queryset=queryset)
     # Instantiate the Descriptions table and corresponding pagination
     description_table = DescriptionTable(description_filter_by_name.qs)
-    RequestConfig(request, paginate={"per_page": 15}).configure(description_table)
+    RequestConfig(request, paginate={"per_page": 10}).configure(description_table)
 
     # Check if the current request is an htmx request, then render only the
     # relevant part of the page; otherwise return the full page
@@ -233,8 +233,10 @@ def description_compare(request):
                 if expressions.exists():
                     expression = expressions.last()
                     expression_id = expression.state.numeric_id
-                    row.append(f"{expression_id}. {
-                               expression.state.description}")
+                    row.append(
+                        f"{expression_id}. {
+                               expression.state.description}"
+                    )
                     expression_ids.append(expression_id)
                 else:
                     row.append("")

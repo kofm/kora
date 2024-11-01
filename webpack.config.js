@@ -1,6 +1,5 @@
 const path = require("path");
 const { merge } = require("webpack-merge");
-const FileManagerPlugin = require("filemanager-webpack-plugin");
 const commonConfig = {
   mode: "development",
   devtool: false,

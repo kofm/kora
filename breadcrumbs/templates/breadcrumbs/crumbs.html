@@ -9,7 +9,7 @@
                     {% if forloop.last %}aria-current="page"{% endif %}>{{ label }}</li>
             {% else %}
                 <li class="breadcrumb-item">
-                    <a href="{{ url }}">
+                    <a href="{% url url %}">
                         {{ label }}
                     </a>
                 </li>

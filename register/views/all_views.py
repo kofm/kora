@@ -8,11 +8,6 @@ from django.urls.base import reverse, reverse_lazy
 from django.views.generic import DetailView
 from django.views.generic.edit import DeleteView, UpdateView
 from django_tables2.config import RequestConfig
-from view_breadcrumbs import (
-    BaseBreadcrumbMixin,
-    CreateBreadcrumbMixin,
-    UpdateBreadcrumbMixin,
-)
 
 from describe.views.base import custom_variety_crumbs
 from parameters.forms import SpeciesParameterForm, VarietalParameterForm
@@ -151,19 +146,11 @@ class ProtectionDeleteView(DeleteView):
         return reverse_lazy("register:plantvariety_detail", args=[self.object.variety.pk])
 
 
-class ProtectionDetailView(NavActivePlants, BaseBreadcrumbMixin, DetailView):
+class ProtectionDetailView(NavActivePlants, DetailView):
     model = Protection
 
-    @cached_property
-    def crumbs(self):
-        return custom_variety_crumbs(
-            self.object.variety,
-            (str(self.object), ""),
-            # (f"Update {self.model._meta.verbose_name.capitalize()}", ""),
-        )
 
-
-class EntityCreateView(CreateBreadcrumbMixin, PlantCreateMixin):
+class EntityCreateView(PlantCreateMixin):
     model = Entity
     fields = "__all__"
 
@@ -177,7 +164,7 @@ def entity_detail(request, pk):
     return TemplateResponse(request, "register/entity_detail.html", context)
 
 
-class EntityUpdateView(NavActivePlants, UpdateBreadcrumbMixin, UpdateView):
+class EntityUpdateView(NavActivePlants, UpdateView):
     model = Entity
     fields = "__all__"
 

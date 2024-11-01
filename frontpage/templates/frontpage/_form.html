@@ -1,7 +1,6 @@
 {% extends "frontpage/base.html" %}
 
 {% load crispy_forms_tags %}
-{% load view_breadcrumbs %}
 
 {% block title %}
   {% if object %}
@@ -13,8 +12,6 @@
 
 
 {% block container %}
-
-    {% render_breadcrumbs %}
 
     <h1 class="display-1">
 	{% if object %}

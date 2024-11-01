@@ -30,8 +30,3 @@ def add_valid_class(field, css_class):
     if field.form.is_bound and not (hasattr(field, "errors") and field.errors):
         return add_class(field, css_class)
     return field
-
-
-@register.inclusion_tag("frontpage/breadcrumbs.html")
-def render_breadcrumbs(crumbs):
-    return {"crumbs": crumbs}

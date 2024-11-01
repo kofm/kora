@@ -93,5 +93,5 @@ urlpatterns = [
         views.PlantVarietyUpdateView.as_view(),
         name="plantvariety-update",
     ),
-    path("varieties", views.plantvariety_list, name="plantvariety-list"),
+    path("varieties", views.plantvariety_list, name="variety_list"),
 ]

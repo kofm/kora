@@ -29,7 +29,7 @@ INSTALLED_APPS = [
     "calculator.apps.CalculatorConfig",
     "collect.apps.CollectConfig",
     "django_sortable_htmx",
-    "view_breadcrumbs",
+    "breadcrumbs",
 ]
 
 MIDDLEWARE = [
