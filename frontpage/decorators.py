@@ -1,14 +1,11 @@
 """Project-wide decorators."""
-import functools
 
 
-def nav_active(nav):
-    """View decorator that adds a key-value pair to the 'context_data' dictionary of a Django view.
+def nav_active(nav: str):
+    """Add active menu item to view context.
 
-    Attributes:
-    ------------
-    nav : str
-        The name of the navigation section that is currently active.
+    nav: The name of the navigation section that is currently active.
+
     """
 
     def decorator(view_func):
@@ -24,32 +21,13 @@ def nav_active(nav):
 
 
 class NavActive:
-    """Class providing support for active navigation in UI. Upon initialization assigns navigation element.
+    """Mixin to add active menu item to view context."""
 
-    Attributes:
-    ------------
-    nav : str
-        The name of the navigation section that is currently active.
-    """
-
-    def __init__(self, nav) -> None:
-        """Initialize NavActive with specified navigation scope.
-
-        Parameters:
-        ----------
-        nav : str
-            The name of the navigation section.
-        """
+    def __init__(self, nav: str) -> None:
+        """nav: the name of the navigation section."""
         self.nav = nav
 
     def get_context_data(self, **kwargs):
-        """Retrieve context data and add a marker corresponding to the active navigation section.
-
-        Returns:
-        -------
-        dict
-            The context data including the current active navigation marker.
-        """
         context = super().get_context_data(**kwargs)
         context[self.nav] = "active"
         return context
