@@ -12,10 +12,10 @@ from register.filters import EntityFilter
 from register.forms import ProtectionForm
 from register.models import Entity, PlantSpecies, PlantVariety, Protection
 from register.tables import EntityTable, PlantVarietyEntityTable
-from register.views.base_views import NavActivePlants, nav_active_plants
+from register.views.base_views import NavPlantActiveContext, nav_active_plants
 
 
-class PlantSpeciesParametersList(NavActivePlants, DetailView):
+class PlantSpeciesParametersList(NavPlantActiveContext, DetailView):
     model = PlantSpecies
     context_object_name = "species"
     template_name = "register/plantspeciesparameters_list.html"
@@ -35,7 +35,7 @@ class PlantSpeciesParametersList(NavActivePlants, DetailView):
         return parameters
 
 
-class PlantVarietyParametersList(NavActivePlants, DetailView):
+class PlantVarietyParametersList(NavPlantActiveContext, DetailView):
     model = PlantVariety
     context_object_name = "variety"
     template_name = "register/plantvarietyparameters_list.html"
@@ -139,7 +139,7 @@ class ProtectionDeleteView(DeleteView):
         return reverse_lazy("register:plantvariety_detail", args=[self.object.variety.pk])
 
 
-class ProtectionDetailView(NavActivePlants, DetailView):
+class ProtectionDetailView(NavPlantActiveContext, DetailView):
     model = Protection
 
 
@@ -157,7 +157,7 @@ def entity_detail(request, pk):
     return TemplateResponse(request, "register/entity_detail.html", context)
 
 
-class EntityUpdateView(NavActivePlants, UpdateView):
+class EntityUpdateView(NavPlantActiveContext, UpdateView):
     model = Entity
     fields = "__all__"
 

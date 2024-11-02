@@ -6,14 +6,14 @@ from django_countries.fields import CountryField
 
 class ModelIsDeletableMixin:
     def is_deletable(self):
-        for rel in self._meta.get_fields():
+        for field in self._meta.get_fields():
             try:
-                if rel.on_delete.__name__ not in [
+                if field.on_delete.__name__ not in [
                     "PROTECT",
                     "RESTRICT",
                 ]:
                     continue
-                related = rel.related_model.objects.filter(**{rel.field.name: self})
+                related = field.related_model.objects.filter(**{field.field.name: self})
                 if related.exists():
                     return False
             except AttributeError:
@@ -161,7 +161,7 @@ class PlantVariety(ModelIsDeletableMixin, models.Model):
 
     def get_delete_url(self):
         return reverse(
-            "register:plantvariety_delete",
+            "register:variety_delete",
             args=[
                 self.pk,
             ],

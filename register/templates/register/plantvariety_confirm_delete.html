@@ -1,5 +1,5 @@
 {% extends "frontpage/confirm_delete.html" %}
 
 {% block delete_message %}
-You are about to delete the <b>{{ object.species.common_name|lower }} variety {{ object.name }}</b>.
+    You are about to delete the <b>{{ object.species.common_name|lower }}</b> variety <b>{{ object.name }}</b>.
 {% endblock %}

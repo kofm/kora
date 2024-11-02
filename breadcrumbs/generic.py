@@ -1,4 +1,19 @@
-from .utils import add_crumbs, create_crumb, detail_crumb, list_crumb, update_crumb
+from django.views.generic import (
+    CreateView,
+    DeleteView,
+    DetailView,
+    ListView,
+    UpdateView,
+)
+
+from .utils import (
+    add_crumbs,
+    create_crumb,
+    delete_crumb,
+    detail_crumb,
+    list_crumb,
+    update_crumb,
+)
 
 
 class BaseBreadcrumbsMixin:
@@ -23,6 +38,12 @@ class UpdateBreadcrumbsMixin(BaseBreadcrumbsMixin):
         return [list_crumb(self.model), detail_crumb(self.object), update_crumb(self.object)]
 
 
+class DeleteBreadcrumbsMixin(BaseBreadcrumbsMixin):
+    @property
+    def crumbs(self):
+        return [list_crumb(self.model), detail_crumb(self.object), delete_crumb(self.object)]
+
+
 class DetailBreadcrumbsMixin(BaseBreadcrumbsMixin):
     @property
     def crumbs(self):
@@ -33,3 +54,23 @@ class ListBreadcrumbsMixin(BaseBreadcrumbsMixin):
     @property
     def crumbs(self):
         return [list_crumb(self.model)]
+
+
+class CreateView(CreateBreadcrumbsMixin, CreateView):
+    pass
+
+
+class UpdateView(UpdateBreadcrumbsMixin, UpdateView):
+    pass
+
+
+class ListView(ListBreadcrumbsMixin, ListView):
+    pass
+
+
+class DeleteView(DeleteBreadcrumbsMixin, DeleteView):
+    pass
+
+
+class DetailView(DetailBreadcrumbsMixin, DetailView):
+    pass

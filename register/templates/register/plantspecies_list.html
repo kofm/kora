@@ -3,11 +3,16 @@
 {% load django_tables2 %}
 {% load breadcrumbs %}
 
-{% block title %}Plants{% endblock %}
+{% block title %}Plant Species{% endblock %}
 
 {% block container %}
     {% render_breadcrumbs %}
-    <p class="display-1">Plant Species <a class="btn btn-secondary ms-2" href="{% url 'register:plantspecies_create' %}">Create</a>
+    <p class="display-1">
+        Plant Species
+        <a class="btn btn-secondary ms-2"
+           href="{% url 'register:plantspecies_create' %}">
+            Create
+        </a>
     </p>
 
     <div class="row">

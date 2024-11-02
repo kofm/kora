@@ -96,7 +96,7 @@ function(){function t(t){t.remember("_draggable",this),this.el=t}t.prototype.ini
 /******/ 	
 /************************************************************************/
 var __webpack_exports__ = {};
-// This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
+// This entry needs to be wrapped in an IIFE because it needs to be isolated against other modules in the chunk.
 (() => {
 /*!****************************************!*\
   !*** ./assets/js/seedsample-detail.js ***!

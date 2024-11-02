@@ -46,14 +46,11 @@ def cropparam_table_hx(request, pk):
 
 
 def crop_update_view(request, pk):
-
     # Get the crop
     crop = get_object_or_404(Crop, pk=pk)
 
     # Instantiate the form
-    form = CropModelForm(
-        initial={"sowing": crop.sowing, "harvest": crop.harvest}, instance=crop
-    )
+    form = CropModelForm(initial={"sowing": crop.sowing, "harvest": crop.harvest}, instance=crop)
 
     if request.POST:
         form = CropModelForm(request.POST, instance=crop)
@@ -91,9 +88,7 @@ def cropparam_update_hx(request, pk):
         form.save()
     # context["cropparameter_table"] = CropParameterTable(get_crop_params_list(crop))
     context["cropparameter_table"] = get_crop_params_list(crop)
-    return TemplateResponse(
-        request, "calculator/partials/cropparameter_table.html", context
-    )
+    return TemplateResponse(request, "calculator/partials/cropparameter_table.html", context)
 
 
 def cropparam_value(request):
@@ -111,9 +106,7 @@ class CropCreateView(CreateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["plantspecies"] = list(
-            PlantSpecies.objects.all().values("pk", "common_name")
-        )
+        context["plantspecies"] = list(PlantSpecies.objects.all().values("pk", "common_name"))
         return context
 
     def get_initial(self):
@@ -156,9 +149,7 @@ def statistics_view(request):
         for column_name in crop_statistics.keys()
         if column_name != "common_name" and column_name != "total_area"
     ]
-    crop_statistics_table = CropStatisticsTable(
-        crop_statistics.to_dict(orient="records"), extra_columns=extra_columns
-    )
+    crop_statistics_table = CropStatisticsTable(crop_statistics.to_dict(orient="records"), extra_columns=extra_columns)
 
     RequestConfig(request).configure(crop_statistics_table)
 

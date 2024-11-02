@@ -1,3 +1,4 @@
+from django.db.models.base import Model
 from django.urls import reverse
 
 CONTEXT_KEY = "KORA_BREADCRUMBS"
@@ -16,7 +17,10 @@ def model_label(model):
 
 
 def view_url(model, action):
-    return reverse(f"{app_label(model)}:{model_label(model)}_{action}")
+    url_name = f"{app_label(model)}:{model_label(model)}_{action}"
+    if isinstance(model, Model):
+        return reverse(url_name, args=[model.pk])
+    return reverse(url_name)
 
 
 def add_crumbs(context, crumbs: list):
@@ -33,8 +37,16 @@ def create_crumb(model):
 
 
 def update_crumb(object):
-    return ("Update", object.get_update_url() or None)
+    return ("Update", view_url(object, "update"))
+
+
+def delete_crumb(object):
+    return ("Delete", view_url(object, "delete"))
 
 
 def detail_crumb(object):
-    return (object.__str__(), object.get_absolute_url() or None)
+    if hasattr(object, "get_absolute_url") and callable(getattr(object, "get_absolute_url")):
+        view_url = object.get_absolute_url()
+    else:
+        view_url = view_url(object)
+    return (object.__str__(), view_url)

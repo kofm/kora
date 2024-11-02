@@ -3,7 +3,12 @@ from typing import Any, Dict
 from django_tables2 import RequestConfig
 
 from breadcrumbs.decorators import list_breadcrumb
-from breadcrumbs.generic import CreateBreadcrumbsMixin
+from breadcrumbs.generic import (
+    CreateView,
+    DeleteView,
+    DetailView,
+    UpdateView,
+)
 from collect.models import SeedSample
 from describe.models import Description
 from django.core.paginator import Paginator
@@ -12,8 +17,6 @@ from django.http import HttpRequest, HttpResponseBase
 from django.shortcuts import get_object_or_404
 from django.template.response import TemplateResponse
 from django.urls.base import reverse_lazy
-from django.views.generic import CreateView, DetailView
-from django.views.generic.edit import DeleteView, UpdateView
 from parameters.models import VarietalParameter
 from register.filters import PlantVarietyFilter
 from register.forms import PlantVarietyForm
@@ -24,15 +27,20 @@ from register.tables import (
     ProtectionTable,
     VarietalParameterTable,
 )
-from register.views.base_views import NavActivePlants
+from register.views.base_views import NavPlantActiveContext
 
 
-class PlantVarietyCreate(CreateBreadcrumbsMixin, CreateView):
+class PlantVarietyCreate(NavPlantActiveContext, CreateView):
     model = PlantVariety
     form_class = PlantVarietyForm
+    template_name_suffix = "_create_form"
+
+    def get_context_data(self, **kwargs):
+        kwargs.update({"model_name": self.model._meta.verbose_name.title()})
+        return super().get_context_data(**kwargs)
 
 
-class PlantVarietyDetail(NavActivePlants, DetailView):
+class PlantVarietyDetail(NavPlantActiveContext, DetailView):
     model = PlantVariety
     context_object_name = "variety"
 
@@ -56,18 +64,17 @@ class PlantVarietyDetail(NavActivePlants, DetailView):
         return context
 
 
-class PlantVarietyUpdateView(NavActivePlants, UpdateView):
+class PlantVarietyUpdateView(NavPlantActiveContext, UpdateView):
     model = PlantVariety
-    fields = [
-        "breeder",
-    ]
+    fields = ["breeder"]
+    template_name = "register/plantvariety_update_form.html"
 
 
-class PlantVarietyDelete(NavActivePlants, DeleteView):
+class PlantVarietyDelete(NavPlantActiveContext, DeleteView):
     model = PlantVariety
 
     def get_success_url(self):
-        return reverse_lazy("register:variety_list", args=[self.object.species.pk])
+        return reverse_lazy("register:variety_list")
 
 
 class PlantVarietyNameCreate(CreateView):
@@ -96,7 +103,7 @@ class PlantVarietyNameCreate(CreateView):
         return super().form_valid(form)
 
 
-class PlantVarietyNameUpdate(NavActivePlants, UpdateView):
+class PlantVarietyNameUpdate(NavPlantActiveContext, UpdateView):
     model = PlantVarietyName
     fields = [
         "name",
@@ -107,7 +114,7 @@ class PlantVarietyNameUpdate(NavActivePlants, UpdateView):
         return reverse_lazy("register:plantvariety_detail", args=[self.object.variety.pk])
 
 
-class PlantVarietyNameDelete(NavActivePlants, DeleteView):
+class PlantVarietyNameDelete(NavPlantActiveContext, DeleteView):
     model = PlantVarietyName
 
     def get_success_url(self):

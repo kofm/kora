@@ -1,7 +1,13 @@
 {% extends "frontpage/_form.html" %}
 
+{% load static %}
+
+{% block javascript %}
+    <script type="text/javascript" src="{% static 'frontpage/popper.bundle.js' %}"></script>
+{% endblock %}
+
 {% block title %}
-    Update: {{ object }}
+    Update {{ object }}
 {% endblock %}
 
 {% block heading %}
@@ -12,8 +18,15 @@
 {% endblock %}
 
 {% block buttons %}
-    <input class="btn btn-secondary" type="submit" value="Update">
+    <input class="btn btn-lg btn-secondary me-2" type="submit" value="Update">
     {% if object.get_delete_url and object.is_deletable %}
-        <a class="btn btn-danger" href="{{ object.get_delete_url }}">Delete</a>
+        <a class="btn btn-lg btn-danger" href="{{ object.get_delete_url }}">Delete</a>
+    {% else %}
+        <a class="btn btn-lg btn-danger disabled" role="button" aria-disabled="true"
+           href="{{ object.get_delete_url }}"
+        >Delete</a>
+        <span class="ms-1 small text-muted">
+            <a data-bs-toggle="tooltip" data-bs-title="You can't remove this entry because it is referenced by other data."><i class="bi bi-info-circle"></i></a>
+        </span>
     {% endif %}
 {% endblock %}

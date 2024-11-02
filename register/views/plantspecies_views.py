@@ -4,12 +4,12 @@ import breadcrumbs.generic as crumbs
 from django.db.models import Count
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, DeleteView, DetailView, UpdateView
-from register.models import PlantSpecies, PlantVariety
+from register.models import PlantSpecies
 from register.tables import PlantSpeciesTable, PlantVarietyTable
-from register.views.base_views import NavActivePlants
+from register.views.base_views import NavPlantActiveContext
 
 
-class PlantSpeciesCreate(crumbs.CreateBreadcrumbsMixin, NavActivePlants, CreateView):
+class PlantSpeciesCreate(crumbs.CreateBreadcrumbsMixin, NavPlantActiveContext, CreateView):
     model = PlantSpecies
     fields = ["common_name", "latin_name", "plant_type"]
     template_name = "frontpage/_create_form.html"
@@ -19,7 +19,7 @@ class PlantSpeciesCreate(crumbs.CreateBreadcrumbsMixin, NavActivePlants, CreateV
         return super().get_context_data(**kwargs)
 
 
-class PlantSpeciesList(crumbs.ListBreadcrumbsMixin, NavActivePlants, SingleTableView):
+class PlantSpeciesList(crumbs.ListBreadcrumbsMixin, NavPlantActiveContext, SingleTableView):
     model = PlantSpecies
     table_class = PlantSpeciesTable
     paginate_by = 10
@@ -33,7 +33,7 @@ class PlantSpeciesList(crumbs.ListBreadcrumbsMixin, NavActivePlants, SingleTable
         return queryset
 
 
-class PlantSpeciesDetailView(crumbs.DetailBreadcrumbsMixin, NavActivePlants, DetailView):
+class PlantSpeciesDetailView(crumbs.DetailBreadcrumbsMixin, NavPlantActiveContext, DetailView):
     model = PlantSpecies
 
     def get_context_data(self, **kwargs):
@@ -45,12 +45,12 @@ class PlantSpeciesDetailView(crumbs.DetailBreadcrumbsMixin, NavActivePlants, Det
         return context
 
 
-class PlantSpeciesUpdateView(crumbs.UpdateBreadcrumbsMixin, NavActivePlants, UpdateView):
+class PlantSpeciesUpdateView(crumbs.UpdateBreadcrumbsMixin, NavPlantActiveContext, UpdateView):
     model = PlantSpecies
     fields = ["common_name", "latin_name", "plant_type"]
     template_name = "frontpage/_update_form.html"
 
 
-class PlantSpeciesDeleteView(NavActivePlants, DeleteView):
+class PlantSpeciesDeleteView(NavPlantActiveContext, DeleteView):
     model = PlantSpecies
     success_url = reverse_lazy("register:plantspecies_list")

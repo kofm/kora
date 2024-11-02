@@ -1,0 +1,10 @@
+{% extends 'frontpage/_update_form.html' %}
+
+{% load crispy_forms_tags %}
+{% load breadcrumbs %}
+
+{% load static %}
+
+{% block additional_content %}
+    <script src="{% static 'register/plantvariety-form.bundle.js' %}"></script>
+{% endblock %}

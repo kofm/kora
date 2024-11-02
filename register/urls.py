@@ -40,7 +40,7 @@ urlpatterns = [
     path(
         "variety/create",
         views.PlantVarietyCreate.as_view(),
-        name="plantvariety-create",
+        name="variety_create",
     ),
     path(
         "variety/<int:pk>/parameters",
@@ -55,7 +55,7 @@ urlpatterns = [
     path(
         "variety/<int:pk>/delete",
         views.PlantVarietyDelete.as_view(),
-        name="plantvariety_delete",
+        name="variety_delete",
     ),
     path(
         "variety/name/<int:pk>/delete",
@@ -91,7 +91,7 @@ urlpatterns = [
     path(
         "variety/<int:pk>/update",
         views.PlantVarietyUpdateView.as_view(),
-        name="plantvariety-update",
+        name="variety_update",
     ),
     path("varieties", views.plantvariety_list, name="variety_list"),
 ]

@@ -1,6 +1,7 @@
 {% extends "frontpage/base.html" %}
 {% load register_extras %}
 {% load static %}
+{% load breadcrumbs %}
 {% load render_table from django_tables2 %}
 
 {% block javascript %}
@@ -13,9 +14,11 @@
 
 {% block container %}
 
+    {% render_breadcrumbs %}
+
     <h1 class="display-1">
         {{ variety.name }} <small class="text-muted"><i>{{ variety.species.common_name }}</i></small>
-        <a class="text-decoration-none link-body-emphasis" href="{% url 'register:plantvariety-update' variety.pk %}">
+        <a class="text-decoration-none link-body-emphasis" href="{% url 'register:variety_update' variety.pk %}">
             <i class="bi bi-pencil" style="font-size:2rem"></i>
         </a>
     </h1>

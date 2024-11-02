@@ -5,7 +5,6 @@
 {% load breadcrumbs %}
 
 {% block javascript %}
-    <script type="text/javascript" src="{% static 'frontpage/popper.bundle.js' %}"></script>
     <script type="text/javascript" src="{% static 'frontpage/tomselect.bundle.js' %}"></script>
     <script type="text/javascript">
      document.addEventListener('DOMContentLoaded', function() {
@@ -24,7 +23,7 @@
         Varieties
         <a
             class="btn btn-secondary"
-            href="{% url 'register:plantvariety-create' %}"
+            href="{% url 'register:variety_create' %}"
         >
             Create
         </a>
