@@ -1,47 +1,38 @@
 {% extends "frontpage/base.html" %}
 
 {% load crispy_forms_tags %}
+{% load breadcrumbs %}
 
 {% block title %}
-  {% if object %}
-    Update: {{ object }}
-  {% else %}
-  Add {{ object_to_create }}
-  {% endif %}
 {% endblock %}
 
 
 {% block container %}
 
-    <h1 class="display-1">
-	{% if object %}
-	    Update: {{ object }}
-	{% else %}
-	    Create {{ object_to_create }}
-	{% endif %}
+    {% render_breadcrumbs %}
+
+    <h1 class="display-3">
+        {% block heading %}
+        {% endblock %}
     </h1>
 
     <p class="lead">
-	{% block subheading %}
-	{% endblock %}
+	    {% block subheading %}
+	    {% endblock %}
     </p>
 
 
     <form method="post">
+	    {% csrf_token %}
 
-	{% csrf_token %}
-
-	<div class="mb-3">
+	    <div class="mb-3">
             {{ form|crispy }}
-	</div>
+	    </div>
 
-	<p><small><sup>*</sup>Required field</small></p>
+	    <p><small><sup>*</sup>Required field</small></p>
 
-	<input class="btn btn-secondary" type="submit" value="Create">
-
-	{% if object.get_delete_url and object.is_deletable %}
-            <a class="btn btn-danger" href="{{ object.get_delete_url }}">Delete</a>
-	{% endif %}
+        {% block buttons %}
+        {% endblock %}
 
     </form>
 

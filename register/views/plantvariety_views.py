@@ -1,9 +1,9 @@
-from functools import cached_property
 from typing import Any, Dict
 
 from django_tables2 import RequestConfig
 
-from breadcrumbs.generic.create import CreateBreadcrumbsMixin
+from breadcrumbs.decorators import list_breadcrumb
+from breadcrumbs.generic import CreateBreadcrumbsMixin
 from collect.models import SeedSample
 from describe.models import Description
 from django.core.paginator import Paginator
@@ -12,9 +12,8 @@ from django.http import HttpRequest, HttpResponseBase
 from django.shortcuts import get_object_or_404
 from django.template.response import TemplateResponse
 from django.urls.base import reverse_lazy
-from django.views.generic import DetailView
+from django.views.generic import CreateView, DetailView
 from django.views.generic.edit import DeleteView, UpdateView
-from breadcrumbs.decorators import list_breadcrumb
 from parameters.models import VarietalParameter
 from register.filters import PlantVarietyFilter
 from register.forms import PlantVarietyForm
@@ -25,11 +24,10 @@ from register.tables import (
     ProtectionTable,
     VarietalParameterTable,
 )
-from register.views.base_views import NavActivePlants, custom_variety_crumbs
-from register.views.plantspecies_views import PlantCreateMixin
+from register.views.base_views import NavActivePlants
 
 
-class PlantVarietyCreate(CreateBreadcrumbsMixin, PlantCreateMixin):
+class PlantVarietyCreate(CreateBreadcrumbsMixin, CreateView):
     model = PlantVariety
     form_class = PlantVarietyForm
 
@@ -72,7 +70,7 @@ class PlantVarietyDelete(NavActivePlants, DeleteView):
         return reverse_lazy("register:variety_list", args=[self.object.species.pk])
 
 
-class PlantVarietyNameCreate(PlantCreateMixin):
+class PlantVarietyNameCreate(CreateView):
     model = PlantVarietyName
     fields = [
         "name",

@@ -14,21 +14,3 @@ class NavActivePlants(NavActive):
 
 # A decorator for displaying the Plant menu item as selected.
 nav_active_plants = nav_active("nav_plants")
-
-
-def custom_variety_crumbs(variety: PlantVariety, *args) -> List[Tuple[str, str]]:
-    """This function builds the custom breadcrumbs used in PlantVariety views.
-    Home / Plants / Species / ...
-    """
-    return [
-        (str(variety._meta.verbose_name_plural.capitalize()), variety.get_list_url()),
-        (str(variety), variety.get_absolute_url()),
-        *args,
-    ]
-
-
-class PlantCreateMixin(NavActivePlants, CreateView):
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["object_to_create"] = self.model._meta.verbose_name.capitalize()
-        return context

@@ -1,25 +1,18 @@
-from functools import cached_property
+from django_tables2.config import RequestConfig
 
 from django.core.paginator import Paginator
 from django.http.response import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.urls.base import reverse, reverse_lazy
-from django.views.generic import DetailView
+from django.views.generic import CreateView, DetailView
 from django.views.generic.edit import DeleteView, UpdateView
-from django_tables2.config import RequestConfig
-
-from describe.views.base import custom_variety_crumbs
 from parameters.forms import SpeciesParameterForm, VarietalParameterForm
 from register.filters import EntityFilter
 from register.forms import ProtectionForm
 from register.models import Entity, PlantSpecies, PlantVariety, Protection
-from register.tables import (
-    EntityTable,
-    PlantVarietyEntityTable,
-)
+from register.tables import EntityTable, PlantVarietyEntityTable
 from register.views.base_views import NavActivePlants, nav_active_plants
-from register.views.plantspecies_views import PlantCreateMixin
 
 
 class PlantSpeciesParametersList(NavActivePlants, DetailView):
@@ -150,7 +143,7 @@ class ProtectionDetailView(NavActivePlants, DetailView):
     model = Protection
 
 
-class EntityCreateView(PlantCreateMixin):
+class EntityCreateView(CreateView):
     model = Entity
     fields = "__all__"
 

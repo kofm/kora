@@ -102,6 +102,9 @@ class PlantSpecies(ModelIsDeletableMixin, models.Model):
     def get_absolute_url(self):
         return reverse("register:plantspecies_detail", kwargs={"pk": self.pk})
 
+    def get_update_url(self):
+        return reverse("register:plantspecies_update", kwargs={"pk": self.pk})
+
     def get_list_url(self):
         return reverse("register:plantspecies_list")
 
@@ -115,8 +118,8 @@ class PlantSpecies(ModelIsDeletableMixin, models.Model):
 
     class Meta:
         ordering = ["common_name"]
-        verbose_name = "plant"
-        verbose_name_plural = "plants"
+        verbose_name = "plant species"
+        verbose_name_plural = "plant species"
 
 
 class PlantVarietyManager(models.Manager):

@@ -1,8 +1,13 @@
 {% extends "frontpage/base.html" %}
+
 {% load django_tables2 %}
+{% load breadcrumbs %}
+
 {% block title %}Plants{% endblock %}
+
 {% block container %}
-    <p class="display-1">Plant species <a class="btn btn-secondary ms-2" href="{% url 'register:plantspecies_create' %}">Create</a>
+    {% render_breadcrumbs %}
+    <p class="display-1">Plant Species <a class="btn btn-secondary ms-2" href="{% url 'register:plantspecies_create' %}">Create</a>
     </p>
 
     <div class="row">

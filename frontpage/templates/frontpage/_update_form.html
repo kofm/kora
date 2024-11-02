@@ -1,0 +1,19 @@
+{% extends "frontpage/_form.html" %}
+
+{% block title %}
+    Update: {{ object }}
+{% endblock %}
+
+{% block heading %}
+    Update: <i>{{ object }}</i>
+{% endblock %}
+
+{% block subheading %}
+{% endblock %}
+
+{% block buttons %}
+    <input class="btn btn-secondary" type="submit" value="Update">
+    {% if object.get_delete_url and object.is_deletable %}
+        <a class="btn btn-danger" href="{{ object.get_delete_url }}">Delete</a>
+    {% endif %}
+{% endblock %}
