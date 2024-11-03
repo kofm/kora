@@ -1,38 +1,21 @@
 from django_tables2.config import RequestConfig
 
-from django.core.paginator import Paginator
-from django.http.response import HttpResponseRedirect
+from breadcrumbs.decorators import list_breadcrumb
+from breadcrumbs.generic import CrumbsCreateView
+from breadcrumbs.utils import detail_crumb, list_crumb
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
-from django.urls.base import reverse, reverse_lazy
+from django.urls import reverse
+from django.urls.base import reverse_lazy
 from django.views.generic import CreateView, DetailView
 from django.views.generic.edit import DeleteView, UpdateView
-from parameters.forms import SpeciesParameterForm, VarietalParameterForm
+from parameters.forms import VarietalParameterForm
+from parameters.models import VarietalParameter
 from register.filters import EntityFilter
 from register.forms import ProtectionForm
-from register.models import Entity, PlantSpecies, PlantVariety, Protection
+from register.models import Entity, PlantVariety, Protection
 from register.tables import EntityTable, PlantVarietyEntityTable
 from register.views.base_views import NavPlantActiveContext, nav_active_plants
-
-
-class PlantSpeciesParametersList(NavPlantActiveContext, DetailView):
-    model = PlantSpecies
-    context_object_name = "species"
-    template_name = "register/plantspeciesparameters_list.html"
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        parameters = self.get_related_parameters()
-        context["nav_species"] = "active"
-        context["parameters"] = parameters
-        return context
-
-    def get_related_parameters(self):
-        queryset = self.object.parameters.all()
-        paginator = Paginator(queryset, 5)
-        page = self.request.GET.get("page")
-        parameters = paginator.get_page(page)
-        return parameters
 
 
 class PlantVarietyParametersList(NavPlantActiveContext, DetailView):
@@ -46,37 +29,26 @@ class PlantVarietyParametersList(NavPlantActiveContext, DetailView):
         return context
 
 
-@nav_active_plants
-def add_speciesparametervervalue(request, pk):
-    """
-    https://stackoverflow.com/questions/37303171/django-create-new-object-in-form-update-select-box-and-save-it
-    https://stackoverflow.com/questions/7782479/django-reverse-engineering-the-admin-sites-add-foreign-key-button
-    Check this to add new parameter without leaving this view
-    """
-    species = PlantSpecies.objects.get(pk=pk)
-    form = SpeciesParameterForm(initial={"specie": species})
-    if request.method == "POST":
-        form = SpeciesParameterForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return HttpResponseRedirect(reverse("register:plantspeciesparameters_list", kwargs={"pk": species.id}))
+class VarietalParameterCreate(NavPlantActiveContext, CrumbsCreateView):
+    model = VarietalParameter
+    form_class = VarietalParameterForm
+    template_name_suffix = "_create_form"
 
-    context = {"form": form}
-    return TemplateResponse(request, "register/plantspeciesparameters_create.html", context)
+    @property
+    def crumbs(self):
+        return [list_crumb(self.variety._meta.model), detail_crumb(self.variety), ("Create Parameter", None)]
 
+    @property
+    def variety(self):
+        return PlantVariety.objects.get(pk=self.kwargs.get("pk"))
 
-@nav_active_plants
-def add_varietalparamevterervalue(request, pk):
-    variety = PlantVariety.objects.get(pk=pk)
-    form = VarietalParameterForm(initial={"variety": variety})
-    if request.method == "POST":
-        form = VarietalParameterForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect(reverse("register:plantvarietyparameters_list", kwargs={"pk": variety.id}))
+    def get_initial(self, *args, **kwargs):
+        initial_data = super().get_initial(*args, **kwargs)
+        initial_data.update({"variety": self.variety})
+        return initial_data
 
-    context = {"form": form}
-    return TemplateResponse(request, "register/plantspeciesparameters_create.html", context)
+    def get_success_url(self, *args, **kwargs):
+        return reverse("register:plantvarietyparameters_list", kwargs={"pk": self.variety.pk})
 
 
 @nav_active_plants
@@ -163,6 +135,7 @@ class EntityUpdateView(NavPlantActiveContext, UpdateView):
 
 
 @nav_active_plants
+@list_breadcrumb(Entity)
 def entity_list(request):
     context = {}
     filter = EntityFilter(request.GET, queryset=Entity.objects.all())

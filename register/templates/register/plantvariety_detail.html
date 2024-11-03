@@ -117,7 +117,7 @@
 
     <div class="row mt-5">
         <div class="col">
-            <h2 id="parameters">Parameters <a class="btn btn-secondary btn-sm" href="{% url 'register:add_varparamval' variety.id %}">Create</a></h2>
+            <h2 id="parameters">Parameters <a class="btn btn-secondary btn-sm" href="{% url 'parameters:varietalparameter_create' variety.id %}">Create</a></h2>
 	    {% render_table parameters_table %}
 	</div>
     </div>

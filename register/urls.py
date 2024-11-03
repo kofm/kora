@@ -23,16 +23,6 @@ urlpatterns = [
         name="plantspecies_delete",
     ),
     path(
-        "species/<int:pk>/parameters",
-        views.PlantSpeciesParametersList.as_view(),
-        name="plantspeciesparameters_list",
-    ),
-    path(
-        "species/<int:pk>/parameters/create",
-        views.add_speciesparametervervalue,
-        name="add_cropparamval",
-    ),
-    path(
         "variety/<int:pk>",
         views.PlantVarietyDetail.as_view(),
         name="plantvariety_detail",
@@ -46,11 +36,6 @@ urlpatterns = [
         "variety/<int:pk>/parameters",
         views.PlantVarietyParametersList.as_view(),
         name="plantvarietyparameters_list",
-    ),
-    path(
-        "variety/<int:pk>/parameters/create",
-        views.add_varietalparamevterervalue,
-        name="add_varparamval",
     ),
     path(
         "variety/<int:pk>/delete",
