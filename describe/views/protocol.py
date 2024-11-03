@@ -12,11 +12,11 @@ from django.views.generic.edit import CreateView, DeleteView
 
 from describe.forms import ProtocolNameForm, TraitFormSet
 from describe.models import Protocol
-from describe.views.base import NavActiveDescribe
+from describe.views.base import NavDescribeActiveContext
 from frontpage.decorators import nav_active
 
 
-class ProtocolList(NavActiveDescribe, ListView):
+class ProtocolList(NavDescribeActiveContext, ListView):
     model = Protocol
     template_name = "describe/protocols_list.html"
     context_object_name = "protocols"
@@ -27,7 +27,7 @@ class ProtocolList(NavActiveDescribe, ListView):
         return context
 
 
-class ProtocolDetail(NavActiveDescribe, DetailView):
+class ProtocolDetail(NavDescribeActiveContext, DetailView):
     model = Protocol
     context_object_name = "protocol"
 
@@ -81,7 +81,7 @@ def protocol_update_name_htmx(request, pk):
     return TemplateResponse(request, template, {"form": form, "protocol": protocol})
 
 
-class ProtocolCreate(NavActiveDescribe, CreateView):
+class ProtocolCreate(NavDescribeActiveContext, CreateView):
     """View to create a new Protocol."""
 
     model = Protocol

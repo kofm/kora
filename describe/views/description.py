@@ -28,7 +28,7 @@ from describe.forms import (
 from describe.models import Description, DescriptionsUserListElement, Expression, Protocol, State, Trait
 from describe.tables import DescriptionTable
 from describe.utils import descriptionsuserlist_get_active, _filter_descriptions, delete_get_param, merge_unique
-from describe.views.protocol import NavActiveDescribe
+from describe.views.protocol import NavDescribeActiveContext
 from django_sortable_htmx.views import SortableView
 from frontpage.decorators import nav_active
 from register.models import PlantVariety
@@ -249,7 +249,7 @@ def description_compare(request):
     return TemplateResponse(request, "describe/description_compare.html", context)
 
 
-class DescriptionDetail(NavActiveDescribe, DetailView):
+class DescriptionDetail(NavDescribeActiveContext, DetailView):
     model = Description
     context_object_name = "description"
 
@@ -289,7 +289,7 @@ def description_create(request):
     return TemplateResponse(request, "describe/description_create.html", context)
 
 
-class DescriptionDeleteView(NavActiveDescribe, DeleteView):
+class DescriptionDeleteView(NavDescribeActiveContext, DeleteView):
     model = Description
     success_url = reverse_lazy("describe:description-list")
 

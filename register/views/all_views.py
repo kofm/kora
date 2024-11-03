@@ -18,7 +18,9 @@ from register.filters import EntityFilter
 from register.forms import ProtectionForm
 from register.models import Entity, PlantVariety, Protection
 from register.tables import EntityTable, PlantVarietyEntityTable
-from register.views.base_views import NavPlantActiveContext, nav_active_plants
+from register.views.base_views import NavPlantActiveContext, nav_plant_active_context
+
+from describe.views.base import NavDescribeActiveContext
 
 
 class PlantVarietyParametersList(NavPlantActiveContext, DetailView):
@@ -49,7 +51,7 @@ class VarietalParameterCreate(NavPlantActiveContext, CrumbsCreateView):
         return reverse("register:plantvarietyparameters_list", kwargs={"pk": self.variety.pk})
 
 
-@nav_active_plants
+@nav_plant_active_context
 def protection_create(request, variety_id):
     variety = get_object_or_404(PlantVariety, pk=variety_id)
     if request.POST:
@@ -85,7 +87,7 @@ def protection_create(request, variety_id):
     )
 
 
-@nav_active_plants
+@nav_plant_active_context
 def protection_update(request, pk):
     context = {}
     protection = get_object_or_404(Protection, pk=pk)
@@ -113,7 +115,7 @@ class ProtectionDetailView(NavPlantActiveContext, DetailView):
     model = Protection
 
 
-class EntityCreateView(CreateBreadcrumbsMixin, CreateView):
+class EntityCreateView(CreateBreadcrumbsMixin, NavDescribeActiveContext, CreateView):
     model = Entity
     fields = "__all__"
     template_name = "frontpage/_create_form.html"
@@ -124,7 +126,7 @@ class EntityCreateView(CreateBreadcrumbsMixin, CreateView):
         return context
 
 
-@nav_active_plants
+@nav_plant_active_context
 def entity_detail(request, pk):
     entity = get_object_or_404(Entity, pk=pk)
     table = PlantVarietyEntityTable(entity.plantvariety_set.all())
@@ -140,7 +142,7 @@ class EntityUpdateView(UpdateBreadcrumbsMixin, NavPlantActiveContext, UpdateView
     template_name = "frontpage/_update_form.html"
 
 
-@nav_active_plants
+@nav_plant_active_context
 def entity_list(request):
     context = {}
     filter = EntityFilter(request.GET, queryset=Entity.objects.all())

@@ -9,4 +9,4 @@ class NavPlantActiveContext(NavActive):
 
 
 # A decorator for displaying the Plant menu item as selected.
-nav_active_plants = nav_active("nav_plants")
+nav_plant_active_context = nav_active("nav_plants")

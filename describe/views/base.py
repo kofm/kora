@@ -1,7 +1,7 @@
 from frontpage.decorators import NavActive
 
 
-class NavActiveDescribe(NavActive):
+class NavDescribeActiveContext(NavActive):
     """Class for displaying active navigation in UI for Describe section."""
 
     def __init__(self) -> None:
