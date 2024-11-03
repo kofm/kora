@@ -1,14 +1,18 @@
 {% extends "frontpage/base.html" %}
 
 {% load static %}
+{% load breadcrumbs %}
 
 
 {% block title %}Protocols{% endblock %}
 
 {% block container %}
 
-    <h1 class="display-1">Protocols <a class="btn btn-secondary" href="{% url 'describe:protocol-create' %}">Create</a>
+    {% render_breadcrumbs %}
+
+    <h1 class="display-1">Protocols <a class="btn btn-secondary" href="{% url 'describe:protocol_create' %}">Create</a>
     </h1>
+
     {% if protocols %}
         <div class="row mt-3">
             <div class="col">
@@ -29,9 +33,9 @@
                                 <td>{{ protocol.descriptions.count }}</td>
                                 <td>
                                     <a class="link-body-emphasis" href="{% url 'describe:protocol_detail' protocol.id %}"><i class="bi bi-zoom-in"></i></a>
-                                    <a class="link-body-emphasis" href={% url 'describe:protocol-update' protocol.id  %}><i class="bi-pencil"></i></a>
+                                    <a class="link-body-emphasis" href={% url 'describe:protocol_update' protocol.id  %}><i class="bi-pencil"></i></a>
                                     {% if protocol.descriptions.count == 0 %}
-                                        <a class="link-body-emphasis" href={% url 'describe:protocol-delete' protocol.id  %}><i class="bi bi-trash"></i></a>
+                                        <a class="link-body-emphasis" href={% url 'describe:protocol_delete' protocol.id  %}><i class="bi bi-trash"></i></a>
                                     {% else %}
                                         <a href="#" class="link-secondary" data-bs-toggle="tooltip" data-bs-title="Can't delete. There are {{ protocol.descriptions.count }} Descriptions referencing this Protocol"><i class="bi bi-trash"></i></a>
                                     {% endif %}
@@ -41,7 +45,6 @@
                     </thead>
                 </table></div>
         </div>
-    <script type="text/javascript" src="{% static 'frontpage/popper.bundle.js' %}"></script>
     {% else %}
         <p>There are no available protocols, yet.</p>
     {% endif %}

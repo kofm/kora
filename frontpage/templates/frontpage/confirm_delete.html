@@ -1,4 +1,5 @@
 {% extends "frontpage/base.html" %}
+
 {% load crispy_forms_tags %}
 {% load static %}
 {% load breadcrumbs %}
@@ -15,16 +16,20 @@
 
     <h5 class="display-5">Are you sure?</h5>
 
-    {% block delete_message %}{% endblock %}
+    <div class="row mt-3 d-flex justify-content-center">
+        <div class="col-6">
+            <div class="alert alert-danger mt-5" role="alert">Caution! The deletion will be <b>permanent</b> and can't be undone.</div>
+            {% block delete_message %}{% endblock %}
 
-    <p>The operation cannot be undone.</p>
-
-    {% block extended_delete_message %}{% endblock %}
-
-    <form method="post">
-        {% csrf_token %}
-        <button name="btn-save" type="submit" class="btn btn-danger mt-3">Confirm</button>
-        <a class="btn btn-outline-secondary mt-3" _="on click go back">Cancel</a>
-    </form>
+            {% block extended_delete_message %}{% endblock %}
+            <form method="post">
+                {% csrf_token %}
+                <div class="d-flex justify-content-end">
+                    <a class="btn btn-outline-secondary btn-lg mt-3" _="on click go back">Cancel</a>
+                    <button type="submit" class="btn btn-danger btn-lg mt-3  ms-3">Confirm</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
 {% endblock %}

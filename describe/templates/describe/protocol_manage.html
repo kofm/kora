@@ -3,6 +3,7 @@
 {% load static %}
 {% load crispy_forms_tags %}
 {% load widget_tweaks %}
+{% load breadcrumbs %}
 
 {% block javascript %}
     <link rel="stylesheet" href="{% static 'flags/sprite.css' %}">
@@ -13,6 +14,8 @@
 {% block title %}Updating {{ protocol.name }}{% endblock %}
 
 {% block container %}
+
+    {% render_breadcrumbs %}
 
     <h1 class="display-1" hx-get="{% url 'describe:protocol-updatename' protocol.pk %}" hx-trigger="click" hx-swap="outerHTML">{{ protocol.name }}</h1>
     <p class="lead"><i>{{ protocol.plantspecies.latin_name }}</i></p>

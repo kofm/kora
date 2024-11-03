@@ -1,13 +1,9 @@
-{% extends "frontpage/base.html" %}
-{% block title %}Delete {{ object }}{% endblock %}
-{% block container %}
-<form method="post">
-    {% csrf_token %}
-    <p>Are you sure you want to delete "{{ object }}"?</p>
-    <p>The operation is not reversible.</p>
-    <button class="btn btn-danger" type="submit">Confirm</button>
-    <a class="btn btn-secondary" href="{% url 'describe:protocol_detail' object.id %}">Cancel</a>
-</form>
+{% extends "frontpage/confirm_delete.html" %}
+
+{% block delete_message %}
+    <p>You are about to delete the protocol {{ protocol.name }}, for the species {{ protocol.plantspecies }}.</p>
+    <p>There are no Descriptions referencing this Protocol and it can be safely removed.</p>
+    <p>Just remember that all of its descriptiors and relative states of expression will be deleted, too.</p>
 {% endblock %}
 
 
