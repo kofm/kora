@@ -30,7 +30,7 @@ from describe.tables import DescriptionTable
 from describe.utils import descriptionsuserlist_get_active, _filter_descriptions, delete_get_param, merge_unique
 from describe.views.protocol import NavDescribeActiveContext
 from django_sortable_htmx.views import SortableView
-from frontpage.decorators import nav_active
+from frontpage.views_decorators import nav_active
 from register.models import PlantVariety
 
 

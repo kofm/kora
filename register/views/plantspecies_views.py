@@ -6,7 +6,7 @@ from django.urls import reverse_lazy
 from django.views.generic import CreateView, DeleteView, DetailView, UpdateView
 from register.models import PlantSpecies
 from register.tables import PlantSpeciesTable, PlantVarietyTable
-from register.views.base_views import NavPlantActiveContext
+from frontpage.views_decorators import NavPlantActiveContext
 
 
 class PlantSpeciesCreate(crumbs.CreateBreadcrumbsMixin, NavPlantActiveContext, CreateView):

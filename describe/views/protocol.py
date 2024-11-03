@@ -1,6 +1,9 @@
 """Protocol views."""
 
 from typing import ClassVar
+
+from describe.forms import ProtocolNameForm, TraitFormSet
+from describe.models import Protocol
 from django.http.response import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.template.response import TemplateResponse
@@ -9,11 +12,7 @@ from django.urls.base import reverse_lazy
 from django.utils.html import format_html
 from django.views.generic import DetailView, ListView
 from django.views.generic.edit import CreateView, DeleteView
-
-from describe.forms import ProtocolNameForm, TraitFormSet
-from describe.models import Protocol
-from describe.views.base import NavDescribeActiveContext
-from frontpage.decorators import nav_active
+from frontpage.views_decorators import NavDescribeActiveContext, nav_active
 
 
 class ProtocolList(NavDescribeActiveContext, ListView):

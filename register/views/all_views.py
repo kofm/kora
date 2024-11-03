@@ -12,15 +12,14 @@ from django.urls import reverse
 from django.urls.base import reverse_lazy
 from django.views.generic import CreateView, DetailView
 from django.views.generic.edit import DeleteView, UpdateView
+from frontpage.views_decorators import NavDescribeActiveContext
+from frontpage.views_decorators import NavPlantActiveContext, nav_plant_active_context
 from parameters.forms import VarietalParameterForm
 from parameters.models import VarietalParameter
 from register.filters import EntityFilter
 from register.forms import ProtectionForm
 from register.models import Entity, PlantVariety, Protection
 from register.tables import EntityTable, PlantVarietyEntityTable
-from register.views.base_views import NavPlantActiveContext, nav_plant_active_context
-
-from describe.views.base import NavDescribeActiveContext
 
 
 class PlantVarietyParametersList(NavPlantActiveContext, DetailView):

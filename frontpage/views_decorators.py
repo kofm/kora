@@ -31,3 +31,21 @@ class NavActive:
         context = super().get_context_data(**kwargs)
         context[self.nav] = "active"
         return context
+
+
+class NavPlantActiveContext(NavActive):
+    """A mixin for displaying the Plant menu item as selected."""
+
+    def __init__(self) -> None:
+        super().__init__("nav_plants")
+
+
+class NavDescribeActiveContext(NavActive):
+    """Class for displaying active navigation in UI for Describe section."""
+
+    def __init__(self) -> None:
+        """Initialize the `nav` as 'nav_describe'."""
+        super().__init__("nav_describe")
+
+
+nav_plant_active_context = nav_active("nav_plants")

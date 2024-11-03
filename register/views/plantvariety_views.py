@@ -27,7 +27,7 @@ from register.tables import (
     ProtectionTable,
     VarietalParameterTable,
 )
-from register.views.base_views import NavPlantActiveContext
+from frontpage.views_decorators import NavPlantActiveContext
 
 
 class PlantVarietyCreate(NavPlantActiveContext, CrumbsCreateView):
