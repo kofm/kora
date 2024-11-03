@@ -50,3 +50,12 @@ def detail_crumb(object):
     else:
         view_url = view_url(object)
     return (object.__str__(), view_url)
+
+
+def generate_breadcrumbs(model=None, object=None):
+    crumbs = []
+    if model:
+        crumbs.append(list_crumb(model))
+    if object:
+        crumbs.append(detail_crumb(object))
+    return {CONTEXT_KEY: crumbs}

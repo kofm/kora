@@ -56,21 +56,21 @@ class ListBreadcrumbsMixin(BaseBreadcrumbsMixin):
         return [list_crumb(self.model)]
 
 
-class CreateView(CreateBreadcrumbsMixin, CreateView):
+class CrumbsCreateView(CreateBreadcrumbsMixin, CreateView):
     pass
 
 
-class UpdateView(UpdateBreadcrumbsMixin, UpdateView):
+class CrumbsUpdateView(UpdateBreadcrumbsMixin, UpdateView):
     pass
 
 
-class ListView(ListBreadcrumbsMixin, ListView):
+class CrumbsListView(ListBreadcrumbsMixin, ListView):
     pass
 
 
-class DeleteView(DeleteBreadcrumbsMixin, DeleteView):
+class CrumbsDeleteView(DeleteBreadcrumbsMixin, DeleteView):
     pass
 
 
-class DetailView(DetailBreadcrumbsMixin, DetailView):
+class CrumbsDetailView(DetailBreadcrumbsMixin, DetailView):
     pass

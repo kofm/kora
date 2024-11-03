@@ -4,10 +4,10 @@ from django_tables2 import RequestConfig
 
 from breadcrumbs.decorators import list_breadcrumb
 from breadcrumbs.generic import (
-    CreateView,
-    DeleteView,
-    DetailView,
-    UpdateView,
+    CrumbsCreateView,
+    CrumbsDeleteView,
+    CrumbsDetailView,
+    CrumbsUpdateView,
 )
 from collect.models import SeedSample
 from describe.models import Description
@@ -30,7 +30,7 @@ from register.tables import (
 from register.views.base_views import NavPlantActiveContext
 
 
-class PlantVarietyCreate(NavPlantActiveContext, CreateView):
+class PlantVarietyCreate(NavPlantActiveContext, CrumbsCreateView):
     model = PlantVariety
     form_class = PlantVarietyForm
     template_name_suffix = "_create_form"
@@ -40,7 +40,7 @@ class PlantVarietyCreate(NavPlantActiveContext, CreateView):
         return super().get_context_data(**kwargs)
 
 
-class PlantVarietyDetail(NavPlantActiveContext, DetailView):
+class PlantVarietyDetail(NavPlantActiveContext, CrumbsDetailView):
     model = PlantVariety
     context_object_name = "variety"
 
@@ -64,20 +64,20 @@ class PlantVarietyDetail(NavPlantActiveContext, DetailView):
         return context
 
 
-class PlantVarietyUpdateView(NavPlantActiveContext, UpdateView):
+class PlantVarietyUpdateView(NavPlantActiveContext, CrumbsUpdateView):
     model = PlantVariety
     fields = ["breeder"]
     template_name = "register/plantvariety_update_form.html"
 
 
-class PlantVarietyDelete(NavPlantActiveContext, DeleteView):
+class PlantVarietyDelete(NavPlantActiveContext, CrumbsDeleteView):
     model = PlantVariety
 
     def get_success_url(self):
         return reverse_lazy("register:variety_list")
 
 
-class PlantVarietyNameCreate(CreateView):
+class PlantVarietyNameCreate(CrumbsCreateView):
     model = PlantVarietyName
     fields = [
         "name",
@@ -103,7 +103,7 @@ class PlantVarietyNameCreate(CreateView):
         return super().form_valid(form)
 
 
-class PlantVarietyNameUpdate(NavPlantActiveContext, UpdateView):
+class PlantVarietyNameUpdate(NavPlantActiveContext, CrumbsUpdateView):
     model = PlantVarietyName
     fields = [
         "name",
@@ -114,7 +114,7 @@ class PlantVarietyNameUpdate(NavPlantActiveContext, UpdateView):
         return reverse_lazy("register:plantvariety_detail", args=[self.object.variety.pk])
 
 
-class PlantVarietyNameDelete(NavPlantActiveContext, DeleteView):
+class PlantVarietyNameDelete(NavPlantActiveContext, CrumbsDeleteView):
     model = PlantVarietyName
 
     def get_success_url(self):

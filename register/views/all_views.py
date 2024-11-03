@@ -1,8 +1,11 @@
 from django_tables2.config import RequestConfig
 
-from breadcrumbs.decorators import list_breadcrumb
-from breadcrumbs.generic import CrumbsCreateView
-from breadcrumbs.utils import detail_crumb, list_crumb
+from breadcrumbs.generic import (
+    CreateBreadcrumbsMixin,
+    CrumbsCreateView,
+    UpdateBreadcrumbsMixin,
+)
+from breadcrumbs.utils import detail_crumb, generate_breadcrumbs, list_crumb
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.urls import reverse
@@ -22,11 +25,6 @@ class PlantVarietyParametersList(NavPlantActiveContext, DetailView):
     model = PlantVariety
     context_object_name = "variety"
     template_name = "register/plantvarietyparameters_list.html"
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["nav_species"] = "active"
-        return context
 
 
 class VarietalParameterCreate(NavPlantActiveContext, CrumbsCreateView):
@@ -115,27 +113,34 @@ class ProtectionDetailView(NavPlantActiveContext, DetailView):
     model = Protection
 
 
-class EntityCreateView(CreateView):
+class EntityCreateView(CreateBreadcrumbsMixin, CreateView):
     model = Entity
     fields = "__all__"
+    template_name = "frontpage/_create_form.html"
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context["model_name"] = "Entity"
+        return context
 
 
 @nav_active_plants
 def entity_detail(request, pk):
-    context = {}
     entity = get_object_or_404(Entity, pk=pk)
-    context["entity"] = entity
-    context["varieties_table"] = PlantVarietyEntityTable(entity.plantvariety_set.all())
+    table = PlantVarietyEntityTable(entity.plantvariety_set.all())
+    RequestConfig(request, paginate={"per_page": 10}).configure(table)
+    context = {"entity": entity, "table": table}
+    context.update(generate_breadcrumbs(Entity, entity))
     return TemplateResponse(request, "register/entity_detail.html", context)
 
 
-class EntityUpdateView(NavPlantActiveContext, UpdateView):
+class EntityUpdateView(UpdateBreadcrumbsMixin, NavPlantActiveContext, UpdateView):
     model = Entity
     fields = "__all__"
+    template_name = "frontpage/_update_form.html"
 
 
 @nav_active_plants
-@list_breadcrumb(Entity)
 def entity_list(request):
     context = {}
     filter = EntityFilter(request.GET, queryset=Entity.objects.all())
@@ -143,4 +148,5 @@ def entity_list(request):
     RequestConfig(request, paginate={"per_page": 25}).configure(table)
     context["table"] = table
     context["filter"] = filter
+    context.update(generate_breadcrumbs(Entity))
     return TemplateResponse(request, "register/entity_list.html", context)
