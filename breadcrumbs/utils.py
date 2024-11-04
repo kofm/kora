@@ -52,10 +52,12 @@ def detail_crumb(object):
     return (object.__str__(), view_url)
 
 
-def generate_breadcrumbs(model=None, object=None, update=False, delete=False):
+def generate_breadcrumbs(model=None, object=None, create=False, update=False, delete=False):
     crumbs = []
     if model:
         crumbs.append(list_crumb(model))
+    if create:
+        crumbs.append(create_crumb(model))
     if object:
         crumbs.append(detail_crumb(object))
         if update:

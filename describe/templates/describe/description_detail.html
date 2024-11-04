@@ -10,14 +10,14 @@
 	    <li class="breadcrumb-item"><a href="{% url "front:index" %}">Kora</a></li>
 	    <li class="breadcrumb-item"><a href="{% url 'register:variety_list' %}">Varieties</a></li>
 	    <li class="breadcrumb-item"><a href="{% url 'register:plantvariety_detail' description.variety.pk %}">{{ description.variety }}</a></li>
-            <li class="breadcrumb-item"><a href="{% url 'describe:description-list' %}">Descriptions</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'describe:description_list' %}">Descriptions</a></li>
             <li class="breadcrumb-item active" aria-current="page">{{ description.name }}</li>
         </ol>
     </nav>
     <p class="display-3">{{ description.variety.name }} <small class="text-muted">{{ description.name }}</small> {% render_edit_icon description_update_metadata_url %}</p>
     <p class="lead">Reference protocol <a href="{% url 'describe:protocol_detail' description.protocol.id %}">{{ description.protocol.name }}</a> (<i>{{ description.protocol.plantspecies.latin_name }}</i>)</p>
     <p>
-        <a class="btn btn-secondary" href="{% url 'describe:description-update' description.id %}">Update</a>
+        <a class="btn btn-secondary" href="{% url 'describe:expression_update' description.id %}">Update</a>
         <a class="btn btn-secondary" href="{% url 'describe:description-find-similar' %}?description_id={{ description.pk }}">Find similar</a>
         <a class="btn btn-danger" href="{% url 'describe:description-delete' description.id %}">Delete</a>
     </p>

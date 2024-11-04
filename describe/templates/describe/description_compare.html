@@ -16,7 +16,7 @@
 
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{% url 'describe:description-list' %}">Descriptions</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'describe:description_list' %}">Descriptions</a></li>
             <li class="breadcrumb-item"><i>Compare</i></li>
         </ol>
     </nav>
@@ -43,6 +43,6 @@
             </tbody>
         </table>
     {% empty %}
-        The selected list is empty. Please, <a href="{% url 'describe:description-list' %}">go back</a> and select some descriptions or another list.
+        The selected list is empty. Please, <a href="{% url 'describe:description_list' %}">go back</a> and select some descriptions or another list.
     {% endfor %}
 {% endblock %}

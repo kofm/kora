@@ -22,7 +22,7 @@ def descriptionsuserlist_create(request):
             instance = form.save(commit=False)
             instance.user = request.user
             instance.save()
-            return redirect(reverse_lazy("describe:description-list"))
+            return redirect(reverse_lazy("describe:description_list"))
     return TemplateResponse(
         request, "describe/descriptionsuserlist_form.html", {"form": form, "object_to_create": "List"}
     )
@@ -33,7 +33,7 @@ def descriptionsuserlist_delete(request, pk):
     desc = get_object_or_404(DescriptionsUserList, pk=pk)
     if request.POST:
         desc.delete()
-        return redirect(reverse_lazy("describe:description-list"))
+        return redirect(reverse_lazy("describe:description_list"))
     return TemplateResponse(request, "frontpage/confirm_delete.html", {"desc": desc})
 
 

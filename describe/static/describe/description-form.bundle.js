@@ -30,7 +30,698 @@ var ___CSS_LOADER_URL_REPLACEMENT_0___ = _node_modules_css_loader_dist_runtime_g
 var ___CSS_LOADER_URL_REPLACEMENT_1___ = _node_modules_css_loader_dist_runtime_getUrl_js__WEBPACK_IMPORTED_MODULE_2___default()(___CSS_LOADER_URL_IMPORT_1___);
 var ___CSS_LOADER_URL_REPLACEMENT_2___ = _node_modules_css_loader_dist_runtime_getUrl_js__WEBPACK_IMPORTED_MODULE_2___default()(___CSS_LOADER_URL_IMPORT_2___);
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, "/**\n * Tom Select Bootstrap 5\n */\n/**\n * tom-select.css (v2.3.1)\n * Copyright (c) contributors\n *\n * Licensed under the Apache License, Version 2.0 (the \"License\"); you may not use this\n * file except in compliance with the License. You may obtain a copy of the License at:\n * http://www.apache.org/licenses/LICENSE-2.0\n *\n * Unless required by applicable law or agreed to in writing, software distributed under\n * the License is distributed on an \"AS IS\" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF\n * ANY KIND, either express or implied. See the License for the specific language\n * governing permissions and limitations under the License.\n *\n */\n.ts-control {\n  border: 1px solid var(--bs-border-color);\n  padding: 0.375rem 0.75rem;\n  width: 100%;\n  overflow: hidden;\n  position: relative;\n  z-index: 1;\n  box-sizing: border-box;\n  box-shadow: none;\n  border-radius: var(--bs-border-radius);\n  display: flex;\n  flex-wrap: wrap;\n}\n\n.ts-wrapper.multi.has-items .ts-control {\n  padding: calc(0.375rem - 1px - 0) 0.75rem calc(0.375rem - 1px - 3px - 0);\n}\n\n.full .ts-control {\n  background-color: var(--bs-body-bg);\n}\n\n.disabled .ts-control, .disabled .ts-control * {\n  cursor: default !important;\n}\n\n.focus .ts-control {\n  box-shadow: none;\n}\n\n.ts-control > * {\n  vertical-align: baseline;\n  display: inline-block;\n}\n\n.ts-wrapper.multi .ts-control > div {\n  cursor: pointer;\n  margin: 0 3px 3px 0;\n  padding: 1px 5px;\n  background: #efefef;\n  color: #343a40;\n  border: 0 solid #dee2e6;\n}\n\n.ts-wrapper.multi .ts-control > div.active {\n  background: #0d6efd;\n  color: #fff;\n  border: 0 solid rgba(0, 0, 0, 0);\n}\n\n.ts-wrapper.multi.disabled .ts-control > div, .ts-wrapper.multi.disabled .ts-control > div.active {\n  color: #878787;\n  background: white;\n  border: 0 solid white;\n}\n\n.ts-control > input {\n  flex: 1 1 auto;\n  min-width: 7rem;\n  display: inline-block !important;\n  padding: 0 !important;\n  min-height: 0 !important;\n  max-height: none !important;\n  max-width: 100% !important;\n  margin: 0 !important;\n  text-indent: 0 !important;\n  border: 0 none !important;\n  background: none !important;\n  line-height: inherit !important;\n  -webkit-user-select: auto !important;\n  -moz-user-select: auto !important;\n  -ms-user-select: auto !important;\n  user-select: auto !important;\n  box-shadow: none !important;\n}\n\n.ts-control > input::-ms-clear {\n  display: none;\n}\n\n.ts-control > input:focus {\n  outline: none !important;\n}\n\n.has-items .ts-control > input {\n  margin: 0 4px !important;\n}\n\n.ts-control.rtl {\n  text-align: right;\n}\n\n.ts-control.rtl.single .ts-control:after {\n  left: calc(0.75rem + 5px);\n  right: auto;\n}\n\n.ts-control.rtl .ts-control > input {\n  margin: 0 4px 0 -2px !important;\n}\n\n.disabled .ts-control {\n  opacity: 0.5;\n  background-color: var(--bs-secondary-bg);\n}\n\n.input-hidden .ts-control > input {\n  opacity: 0;\n  position: absolute;\n  left: -10000px;\n}\n\n.ts-dropdown {\n  position: absolute;\n  top: 100%;\n  left: 0;\n  width: 100%;\n  z-index: 10;\n  border: 1px solid #d0d0d0;\n  background: var(--bs-body-bg);\n  margin: 0.25rem 0 0;\n  border-top: 0 none;\n  box-sizing: border-box;\n  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);\n  border-radius: 0 0 var(--bs-border-radius) var(--bs-border-radius);\n}\n\n.ts-dropdown [data-selectable] {\n  cursor: pointer;\n  overflow: hidden;\n}\n\n.ts-dropdown [data-selectable] .highlight {\n  background: rgba(255, 237, 40, 0.4);\n  border-radius: 1px;\n}\n\n.ts-dropdown .option,\n.ts-dropdown .optgroup-header,\n.ts-dropdown .no-results,\n.ts-dropdown .create {\n  padding: 3px 0.75rem;\n}\n\n.ts-dropdown .option, .ts-dropdown [data-disabled], .ts-dropdown [data-disabled] [data-selectable].option {\n  cursor: inherit;\n  opacity: 0.5;\n}\n\n.ts-dropdown [data-selectable].option {\n  opacity: 1;\n  cursor: pointer;\n}\n\n.ts-dropdown .optgroup:first-child .optgroup-header {\n  border-top: 0 none;\n}\n\n.ts-dropdown .optgroup-header {\n  color: #6c757d;\n  background: var(--bs-body-bg);\n  cursor: default;\n}\n\n.ts-dropdown .active {\n  background-color: var(--bs-tertiary-bg);\n  color: var(--bs-body-color);\n}\n\n.ts-dropdown .active.create {\n  color: var(--bs-body-color);\n}\n\n.ts-dropdown .create {\n  color: rgba(52, 58, 64, 0.5);\n}\n\n.ts-dropdown .spinner {\n  display: inline-block;\n  width: 30px;\n  height: 30px;\n  margin: 3px 0.75rem;\n}\n\n.ts-dropdown .spinner::after {\n  content: \" \";\n  display: block;\n  width: 24px;\n  height: 24px;\n  margin: 3px;\n  border-radius: 50%;\n  border: 5px solid #d0d0d0;\n  border-color: #d0d0d0 transparent #d0d0d0 transparent;\n  animation: lds-dual-ring 1.2s linear infinite;\n}\n\n@keyframes lds-dual-ring {\n  0% {\n    transform: rotate(0deg);\n  }\n  100% {\n    transform: rotate(360deg);\n  }\n}\n.ts-dropdown-content {\n  overflow: hidden auto;\n  max-height: 200px;\n  scroll-behavior: smooth;\n}\n\n.ts-wrapper.plugin-drag_drop .ts-dragging {\n  color: transparent !important;\n}\n\n.ts-wrapper.plugin-drag_drop .ts-dragging > * {\n  visibility: hidden !important;\n}\n\n.plugin-checkbox_options:not(.rtl) .option input {\n  margin-right: 0.5rem;\n}\n\n.plugin-checkbox_options.rtl .option input {\n  margin-left: 0.5rem;\n}\n\n/* stylelint-disable function-name-case */\n.plugin-clear_button {\n  --ts-pr-clear-button: 1em;\n}\n\n.plugin-clear_button .clear-button {\n  opacity: 0;\n  position: absolute;\n  top: 50%;\n  transform: translateY(-50%);\n  right: calc(0.75rem - 5px);\n  margin-right: 0 !important;\n  background: transparent !important;\n  transition: opacity 0.5s;\n  cursor: pointer;\n}\n\n.plugin-clear_button.form-select .clear-button, .plugin-clear_button.single .clear-button {\n  right: max(var(--ts-pr-caret), 0.75rem);\n}\n\n.plugin-clear_button.focus.has-items .clear-button, .plugin-clear_button:not(.disabled):hover.has-items .clear-button {\n  opacity: 1;\n}\n\n.ts-wrapper .dropdown-header {\n  position: relative;\n  padding: 6px 0.75rem;\n  border-bottom: 1px solid #d0d0d0;\n  background: color-mix(var(--bs-body-bg), #d0d0d0, 85%);\n  border-radius: var(--bs-border-radius) var(--bs-border-radius) 0 0;\n}\n\n.ts-wrapper .dropdown-header-close {\n  position: absolute;\n  right: 0.75rem;\n  top: 50%;\n  color: #343a40;\n  opacity: 0.4;\n  margin-top: -12px;\n  line-height: 20px;\n  font-size: 20px !important;\n}\n\n.ts-wrapper .dropdown-header-close:hover {\n  color: black;\n}\n\n.plugin-dropdown_input.focus.dropdown-active .ts-control {\n  box-shadow: none;\n  border: 1px solid var(--bs-border-color);\n  box-shadow: var(--bs-box-shadow-inset);\n}\n\n.plugin-dropdown_input .dropdown-input {\n  border: 1px solid #d0d0d0;\n  border-width: 0 0 1px;\n  display: block;\n  padding: 0.375rem 0.75rem;\n  box-shadow: none;\n  width: 100%;\n  background: transparent;\n}\n\n.plugin-dropdown_input.focus .ts-dropdown .dropdown-input {\n  border-color: #86b7fe;\n  outline: 0;\n  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);\n}\n\n.plugin-dropdown_input .items-placeholder {\n  border: 0 none !important;\n  box-shadow: none !important;\n  width: 100%;\n}\n\n.plugin-dropdown_input.has-items .items-placeholder, .plugin-dropdown_input.dropdown-active .items-placeholder {\n  display: none !important;\n}\n\n.ts-wrapper.plugin-input_autogrow.has-items .ts-control > input {\n  min-width: 0;\n}\n\n.ts-wrapper.plugin-input_autogrow.has-items.focus .ts-control > input {\n  flex: none;\n  min-width: 4px;\n}\n\n.ts-wrapper.plugin-input_autogrow.has-items.focus .ts-control > input::-ms-input-placeholder {\n  color: transparent;\n}\n\n.ts-wrapper.plugin-input_autogrow.has-items.focus .ts-control > input::placeholder {\n  color: transparent;\n}\n\n.ts-dropdown.plugin-optgroup_columns .ts-dropdown-content {\n  display: flex;\n}\n\n.ts-dropdown.plugin-optgroup_columns .optgroup {\n  border-right: 1px solid #f2f2f2;\n  border-top: 0 none;\n  flex-grow: 1;\n  flex-basis: 0;\n  min-width: 0;\n}\n\n.ts-dropdown.plugin-optgroup_columns .optgroup:last-child {\n  border-right: 0 none;\n}\n\n.ts-dropdown.plugin-optgroup_columns .optgroup::before {\n  display: none;\n}\n\n.ts-dropdown.plugin-optgroup_columns .optgroup-header {\n  border-top: 0 none;\n}\n\n.ts-wrapper.plugin-remove_button .item {\n  display: inline-flex;\n  align-items: center;\n}\n\n.ts-wrapper.plugin-remove_button .item .remove {\n  color: inherit;\n  text-decoration: none;\n  vertical-align: middle;\n  display: inline-block;\n  padding: 0 5px;\n  border-radius: 0 2px 2px 0;\n  box-sizing: border-box;\n}\n\n.ts-wrapper.plugin-remove_button .item .remove:hover {\n  background: rgba(0, 0, 0, 0.05);\n}\n\n.ts-wrapper.plugin-remove_button.disabled .item .remove:hover {\n  background: none;\n}\n\n.ts-wrapper.plugin-remove_button .remove-single {\n  position: absolute;\n  right: 0;\n  top: 0;\n  font-size: 23px;\n}\n\n.ts-wrapper.plugin-remove_button:not(.rtl) .item {\n  padding-right: 0 !important;\n}\n\n.ts-wrapper.plugin-remove_button:not(.rtl) .item .remove {\n  border-left: 1px solid #dee2e6;\n  margin-left: 5px;\n}\n\n.ts-wrapper.plugin-remove_button:not(.rtl) .item.active .remove {\n  border-left-color: rgba(0, 0, 0, 0);\n}\n\n.ts-wrapper.plugin-remove_button:not(.rtl).disabled .item .remove {\n  border-left-color: white;\n}\n\n.ts-wrapper.plugin-remove_button.rtl .item {\n  padding-left: 0 !important;\n}\n\n.ts-wrapper.plugin-remove_button.rtl .item .remove {\n  border-right: 1px solid #dee2e6;\n  margin-right: 5px;\n}\n\n.ts-wrapper.plugin-remove_button.rtl .item.active .remove {\n  border-right-color: rgba(0, 0, 0, 0);\n}\n\n.ts-wrapper.plugin-remove_button.rtl.disabled .item .remove {\n  border-right-color: white;\n}\n\n:root {\n  --ts-pr-clear-button: 0;\n  --ts-pr-caret: 0;\n  --ts-pr-min: .75rem;\n}\n\n.ts-wrapper.single .ts-control, .ts-wrapper.single .ts-control input {\n  cursor: pointer;\n}\n\n.ts-control:not(.rtl) {\n  padding-right: max(var(--ts-pr-min), var(--ts-pr-clear-button) + var(--ts-pr-caret)) !important;\n}\n\n.ts-control.rtl {\n  padding-left: max(var(--ts-pr-min), var(--ts-pr-clear-button) + var(--ts-pr-caret)) !important;\n}\n\n.ts-wrapper {\n  position: relative;\n}\n\n.ts-dropdown,\n.ts-control,\n.ts-control input {\n  color: #343a40;\n  font-family: inherit;\n  font-size: inherit;\n  line-height: 1.5;\n}\n\n.ts-control,\n.ts-wrapper.single.input-active .ts-control {\n  background: var(--bs-body-bg);\n  cursor: text;\n}\n\n.ts-hidden-accessible {\n  border: 0 !important;\n  clip: rect(0 0 0 0) !important;\n  -webkit-clip-path: inset(50%) !important;\n  clip-path: inset(50%) !important;\n  overflow: hidden !important;\n  padding: 0 !important;\n  position: absolute !important;\n  width: 1px !important;\n  white-space: nowrap !important;\n}\n\n.ts-dropdown,\n.ts-dropdown.form-control,\n.ts-dropdown.form-select {\n  height: auto;\n  padding: 0;\n  z-index: 1000;\n  background: var(--bs-body-bg);\n  border: 1px solid var(--bs-border-color-translucent);\n  border-radius: 0.375rem;\n  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);\n}\n\n.ts-dropdown .optgroup-header {\n  font-size: 0.875rem;\n  line-height: 1.5;\n}\n\n.ts-dropdown .optgroup:first-child::before {\n  display: none;\n}\n\n.ts-dropdown .optgroup::before {\n  content: \" \";\n  display: block;\n  height: 0;\n  margin: 0.5rem 0;\n  overflow: hidden;\n  border-top: 1px solid var(--bs-border-color-translucent);\n  margin-left: -0.75rem;\n  margin-right: -0.75rem;\n}\n\n.ts-dropdown .create {\n  padding-left: 0.75rem;\n}\n\n.ts-dropdown-content {\n  padding: 5px 0;\n}\n\n.ts-control {\n  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;\n  display: flex;\n  align-items: center;\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .ts-control {\n    transition: none;\n  }\n}\n.focus .ts-control {\n  border-color: #86b7fe;\n  outline: 0;\n  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);\n}\n\n.ts-control .item {\n  display: flex;\n  align-items: center;\n}\n\n.ts-wrapper.is-invalid,\n.was-validated .invalid,\n.was-validated :invalid + .ts-wrapper {\n  border-color: var(--bs-form-invalid-color);\n}\n\n.ts-wrapper.is-invalid:not(.single),\n.was-validated .invalid:not(.single),\n.was-validated :invalid + .ts-wrapper:not(.single) {\n  background-image: url(" + ___CSS_LOADER_URL_REPLACEMENT_0___ + ");\n  background-position: right calc(0.375em + 0.1875rem) center;\n  background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);\n  background-repeat: no-repeat;\n}\n\n.ts-wrapper.is-invalid.single,\n.was-validated .invalid.single,\n.was-validated :invalid + .ts-wrapper.single {\n  background-image: url(" + ___CSS_LOADER_URL_REPLACEMENT_1___ + "), url(" + ___CSS_LOADER_URL_REPLACEMENT_0___ + ");\n  background-position: right 0.75rem center, center right 2.25rem;\n  background-size: 16px 12px, calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);\n  background-repeat: no-repeat;\n}\n\n.ts-wrapper.is-invalid.focus .ts-control,\n.was-validated .invalid.focus .ts-control,\n.was-validated :invalid + .ts-wrapper.focus .ts-control {\n  border-color: var(--bs-form-invalid-color);\n  box-shadow: 0 0 0 0.25rem rgba(var(--bs-form-invalid-color), 0.25);\n}\n\n.ts-wrapper.is-valid,\n.was-validated .valid,\n.was-validated :valid + .ts-wrapper {\n  border-color: var(--bs-form-valid-color);\n}\n\n.ts-wrapper.is-valid:not(.single),\n.was-validated .valid:not(.single),\n.was-validated :valid + .ts-wrapper:not(.single) {\n  background-image: url(" + ___CSS_LOADER_URL_REPLACEMENT_2___ + ");\n  background-position: right calc(0.375em + 0.1875rem) center;\n  background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);\n  background-repeat: no-repeat;\n}\n\n.ts-wrapper.is-valid.single,\n.was-validated .valid.single,\n.was-validated :valid + .ts-wrapper.single {\n  background-image: url(" + ___CSS_LOADER_URL_REPLACEMENT_1___ + "), url(" + ___CSS_LOADER_URL_REPLACEMENT_2___ + ");\n  background-position: right 0.75rem center, center right 2.25rem;\n  background-size: 16px 12px, calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);\n  background-repeat: no-repeat;\n}\n\n.ts-wrapper.is-valid.focus .ts-control,\n.was-validated .valid.focus .ts-control,\n.was-validated :valid + .ts-wrapper.focus .ts-control {\n  border-color: var(--bs-form-valid-color);\n  box-shadow: 0 0 0 0.25rem rgba(var(--bs-form-valid-color), 0.25);\n}\n\n.ts-wrapper {\n  min-height: calc(1.5em + 0.75rem + var(--bs-border-width) * 2);\n  display: flex;\n}\n\n.input-group-sm > .ts-wrapper, .ts-wrapper.form-select-sm, .ts-wrapper.form-control-sm {\n  min-height: calc(1.5em + 0.5rem + var(--bs-border-width) * 2);\n}\n\n.input-group-sm > .ts-wrapper .ts-control, .ts-wrapper.form-select-sm .ts-control, .ts-wrapper.form-control-sm .ts-control {\n  border-radius: var(--bs-border-radius-sm);\n  font-size: 0.875rem;\n}\n\n.input-group-sm > .ts-wrapper.has-items .ts-control, .ts-wrapper.form-select-sm.has-items .ts-control, .ts-wrapper.form-control-sm.has-items .ts-control {\n  font-size: 0.875rem;\n  padding-bottom: 0;\n}\n\n.input-group-sm > .ts-wrapper.multi.has-items .ts-control, .ts-wrapper.form-select-sm.multi.has-items .ts-control, .ts-wrapper.form-control-sm.multi.has-items .ts-control {\n  padding-top: calc((1.5em + 0.5rem + var(--bs-border-width) * 2 - 1.3125rem - (var(--bs-border-width) + 1px) * 2) / 2) !important;\n}\n\n.ts-wrapper.multi.has-items .ts-control {\n  padding-left: calc(0.75rem - 5px);\n  --ts-pr-min: calc(0.75rem - 5px);\n}\n\n.ts-wrapper.multi .ts-control > div {\n  border-radius: calc(var(--bs-border-radius) - 1px);\n}\n\n.input-group-lg > .ts-wrapper, .ts-wrapper.form-control-lg, .ts-wrapper.form-select-lg {\n  min-height: calc(1.5em + 1rem + var(--bs-border-width) * 2);\n}\n\n.input-group-lg > .ts-wrapper .ts-control, .ts-wrapper.form-control-lg .ts-control, .ts-wrapper.form-select-lg .ts-control {\n  border-radius: var(--bs-border-radius-lg);\n  font-size: 1.25rem;\n}\n\n.ts-wrapper:not(.form-control, .form-select) {\n  padding: 0;\n  border: none;\n  height: auto;\n  box-shadow: none;\n  background: none;\n}\n\n.ts-wrapper:not(.form-control, .form-select).single .ts-control {\n  background-image: url(" + ___CSS_LOADER_URL_REPLACEMENT_1___ + ");\n  background-repeat: no-repeat;\n  background-position: right 0.75rem center;\n  background-size: 16px 12px;\n}\n\n.ts-wrapper.form-select, .ts-wrapper.single {\n  --ts-pr-caret: 2.25rem;\n}\n\n.ts-wrapper.form-control, .ts-wrapper.form-select {\n  padding: 0 !important;\n  height: auto;\n  box-shadow: none;\n  display: flex;\n}\n\n.ts-wrapper.form-control .ts-control, .ts-wrapper.form-control.single.input-active .ts-control, .ts-wrapper.form-select .ts-control, .ts-wrapper.form-select.single.input-active .ts-control {\n  border: none !important;\n}\n\n.ts-wrapper.form-control:not(.disabled) .ts-control, .ts-wrapper.form-control:not(.disabled).single.input-active .ts-control, .ts-wrapper.form-select:not(.disabled) .ts-control, .ts-wrapper.form-select:not(.disabled).single.input-active .ts-control {\n  background: transparent !important;\n}\n\n.input-group > .ts-wrapper {\n  flex-grow: 1;\n  width: 1%;\n}\n\n.input-group > .ts-wrapper:not(:nth-child(2)) > .ts-control {\n  border-top-left-radius: 0;\n  border-bottom-left-radius: 0;\n}\n\n.input-group > .ts-wrapper:not(:last-child) > .ts-control {\n  border-top-right-radius: 0;\n  border-bottom-right-radius: 0;\n}\n\n", ""]);
+___CSS_LOADER_EXPORT___.push([module.id, `/**
+ * Tom Select Bootstrap 5
+ */
+/**
+ * tom-select.css (v2.3.1)
+ * Copyright (c) contributors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this
+ * file except in compliance with the License. You may obtain a copy of the License at:
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under
+ * the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF
+ * ANY KIND, either express or implied. See the License for the specific language
+ * governing permissions and limitations under the License.
+ *
+ */
+.ts-control {
+  border: 1px solid var(--bs-border-color);
+  padding: 0.375rem 0.75rem;
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+  z-index: 1;
+  box-sizing: border-box;
+  box-shadow: none;
+  border-radius: var(--bs-border-radius);
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.ts-wrapper.multi.has-items .ts-control {
+  padding: calc(0.375rem - 1px - 0) 0.75rem calc(0.375rem - 1px - 3px - 0);
+}
+
+.full .ts-control {
+  background-color: var(--bs-body-bg);
+}
+
+.disabled .ts-control, .disabled .ts-control * {
+  cursor: default !important;
+}
+
+.focus .ts-control {
+  box-shadow: none;
+}
+
+.ts-control > * {
+  vertical-align: baseline;
+  display: inline-block;
+}
+
+.ts-wrapper.multi .ts-control > div {
+  cursor: pointer;
+  margin: 0 3px 3px 0;
+  padding: 1px 5px;
+  background: #b9b9b9;
+  color: var(--bs-body-color);
+  border: 0 solid #dee2e6;
+}
+
+.ts-wrapper.multi .ts-control > div.active {
+  background: #0d6efd;
+  color: var(--bs-body-color);
+  border: 0 solid rgba(0, 0, 0, 0);
+}
+
+.ts-wrapper.multi.disabled .ts-control > div, .ts-wrapper.multi.disabled .ts-control > div.active {
+  color: var(--bs-body-color), 30%;
+  background: #b9b9b9, 30%;
+  border: 0 solid white;
+}
+
+.ts-control > input {
+  flex: 1 1 auto;
+  min-width: 7rem;
+  display: inline-block !important;
+  padding: 0 !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  text-indent: 0 !important;
+  border: 0 none !important;
+  background: none !important;
+  line-height: inherit !important;
+  -webkit-user-select: auto !important;
+  -moz-user-select: auto !important;
+  -ms-user-select: auto !important;
+  user-select: auto !important;
+  box-shadow: none !important;
+}
+
+.ts-control > input::-ms-clear {
+  display: none;
+}
+
+.ts-control > input:focus {
+  outline: none !important;
+}
+
+.has-items .ts-control > input {
+  margin: 0 4px !important;
+}
+
+.ts-control.rtl {
+  text-align: right;
+}
+
+.ts-control.rtl.single .ts-control:after {
+  left: calc(0.75rem + 5px);
+  right: auto;
+}
+
+.ts-control.rtl .ts-control > input {
+  margin: 0 4px 0 -2px !important;
+}
+
+.disabled .ts-control {
+  opacity: 0.5;
+  background-color: var(--bs-secondary-bg);
+}
+
+.input-hidden .ts-control > input {
+  opacity: 0;
+  position: absolute;
+  left: -10000px;
+}
+
+.ts-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  z-index: 10;
+  border: 1px solid #d0d0d0;
+  background: var(--bs-body-bg);
+  margin: 0.25rem 0 0;
+  border-top: 0 none;
+  box-sizing: border-box;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border-radius: 0 0 var(--bs-border-radius) var(--bs-border-radius);
+}
+
+.ts-dropdown [data-selectable] {
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.ts-dropdown [data-selectable] .highlight {
+  background: rgba(255, 237, 40, 0.4);
+  border-radius: 1px;
+}
+
+.ts-dropdown .option,
+.ts-dropdown .optgroup-header,
+.ts-dropdown .no-results,
+.ts-dropdown .create {
+  padding: 3px 0.75rem;
+}
+
+.ts-dropdown .option, .ts-dropdown [data-disabled], .ts-dropdown [data-disabled] [data-selectable].option {
+  cursor: inherit;
+  opacity: 0.5;
+}
+
+.ts-dropdown [data-selectable].option {
+  opacity: 1;
+  cursor: pointer;
+}
+
+.ts-dropdown .optgroup:first-child .optgroup-header {
+  border-top: 0 none;
+}
+
+.ts-dropdown .optgroup-header {
+  color: #6c757d;
+  background: var(--bs-body-bg);
+  cursor: default;
+}
+
+.ts-dropdown .active {
+  background-color: var(--bs-tertiary-bg);
+  color: var(--bs-body-color);
+}
+
+.ts-dropdown .active.create {
+  color: var(--bs-body-color);
+}
+
+.ts-dropdown .create {
+  color: rgba(var(--bs-body-color), 50%);
+}
+
+.ts-dropdown .spinner {
+  display: inline-block;
+  width: 30px;
+  height: 30px;
+  margin: 3px 0.75rem;
+}
+
+.ts-dropdown .spinner::after {
+  content: " ";
+  display: block;
+  width: 24px;
+  height: 24px;
+  margin: 3px;
+  border-radius: 50%;
+  border: 5px solid #d0d0d0;
+  border-color: #d0d0d0 transparent #d0d0d0 transparent;
+  animation: lds-dual-ring 1.2s linear infinite;
+}
+
+@keyframes lds-dual-ring {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+.ts-dropdown-content {
+  overflow: hidden auto;
+  max-height: 200px;
+  scroll-behavior: smooth;
+}
+
+.ts-wrapper.plugin-drag_drop .ts-dragging {
+  color: transparent !important;
+}
+
+.ts-wrapper.plugin-drag_drop .ts-dragging > * {
+  visibility: hidden !important;
+}
+
+.plugin-checkbox_options:not(.rtl) .option input {
+  margin-right: 0.5rem;
+}
+
+.plugin-checkbox_options.rtl .option input {
+  margin-left: 0.5rem;
+}
+
+/* stylelint-disable function-name-case */
+.plugin-clear_button {
+  --ts-pr-clear-button: 1em;
+}
+
+.plugin-clear_button .clear-button {
+  opacity: 0;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  right: calc(0.75rem - 5px);
+  margin-right: 0 !important;
+  background: transparent !important;
+  transition: opacity 0.5s;
+  cursor: pointer;
+}
+
+.plugin-clear_button.form-select .clear-button, .plugin-clear_button.single .clear-button {
+  right: max(var(--ts-pr-caret), 0.75rem);
+}
+
+.plugin-clear_button.focus.has-items .clear-button, .plugin-clear_button:not(.disabled):hover.has-items .clear-button {
+  opacity: 1;
+}
+
+.ts-wrapper .dropdown-header {
+  position: relative;
+  padding: 6px 0.75rem;
+  border-bottom: 1px solid #d0d0d0;
+  background: color-mix(var(--bs-body-bg), #d0d0d0, 85%);
+  border-radius: var(--bs-border-radius) var(--bs-border-radius) 0 0;
+}
+
+.ts-wrapper .dropdown-header-close {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  color: var(--bs-body-color);
+  opacity: 0.4;
+  margin-top: -12px;
+  line-height: 20px;
+  font-size: 20px !important;
+}
+
+.ts-wrapper .dropdown-header-close:hover {
+  filter: contrast(200%);
+}
+
+.plugin-dropdown_input.focus.dropdown-active .ts-control {
+  box-shadow: none;
+  border: 1px solid var(--bs-border-color);
+  box-shadow: var(--bs-box-shadow-inset);
+}
+
+.plugin-dropdown_input .dropdown-input {
+  border: 1px solid #d0d0d0;
+  border-width: 0 0 1px;
+  display: block;
+  padding: 0.375rem 0.75rem;
+  box-shadow: none;
+  width: 100%;
+  background: transparent;
+}
+
+.plugin-dropdown_input.focus .ts-dropdown .dropdown-input {
+  border-color: rgb(134, 182.5, 254);
+  outline: 0;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.plugin-dropdown_input .items-placeholder {
+  border: 0 none !important;
+  box-shadow: none !important;
+  width: 100%;
+}
+
+.plugin-dropdown_input.has-items .items-placeholder, .plugin-dropdown_input.dropdown-active .items-placeholder {
+  display: none !important;
+}
+
+.ts-wrapper.plugin-input_autogrow.has-items .ts-control > input {
+  min-width: 0;
+}
+
+.ts-wrapper.plugin-input_autogrow.has-items.focus .ts-control > input {
+  flex: none;
+  min-width: 4px;
+}
+
+.ts-wrapper.plugin-input_autogrow.has-items.focus .ts-control > input::-ms-input-placeholder {
+  color: transparent;
+}
+
+.ts-wrapper.plugin-input_autogrow.has-items.focus .ts-control > input::placeholder {
+  color: transparent;
+}
+
+.ts-dropdown.plugin-optgroup_columns .ts-dropdown-content {
+  display: flex;
+}
+
+.ts-dropdown.plugin-optgroup_columns .optgroup {
+  border-right: 1px solid #f2f2f2;
+  border-top: 0 none;
+  flex-grow: 1;
+  flex-basis: 0;
+  min-width: 0;
+}
+
+.ts-dropdown.plugin-optgroup_columns .optgroup:last-child {
+  border-right: 0 none;
+}
+
+.ts-dropdown.plugin-optgroup_columns .optgroup::before {
+  display: none;
+}
+
+.ts-dropdown.plugin-optgroup_columns .optgroup-header {
+  border-top: 0 none;
+}
+
+.ts-wrapper.plugin-remove_button .item {
+  display: inline-flex;
+  align-items: center;
+}
+
+.ts-wrapper.plugin-remove_button .item .remove {
+  color: inherit;
+  text-decoration: none;
+  vertical-align: middle;
+  display: inline-block;
+  padding: 0 5px;
+  border-radius: 0 2px 2px 0;
+  box-sizing: border-box;
+}
+
+.ts-wrapper.plugin-remove_button .item .remove:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.ts-wrapper.plugin-remove_button.disabled .item .remove:hover {
+  background: none;
+}
+
+.ts-wrapper.plugin-remove_button .remove-single {
+  position: absolute;
+  right: 0;
+  top: 0;
+  font-size: 23px;
+}
+
+.ts-wrapper.plugin-remove_button:not(.rtl) .item {
+  padding-right: 0 !important;
+}
+
+.ts-wrapper.plugin-remove_button:not(.rtl) .item .remove {
+  border-left: 1px solid #dee2e6;
+  margin-left: 5px;
+}
+
+.ts-wrapper.plugin-remove_button:not(.rtl) .item.active .remove {
+  border-left-color: rgba(0, 0, 0, 0);
+}
+
+.ts-wrapper.plugin-remove_button:not(.rtl).disabled .item .remove {
+  border-left-color: white;
+}
+
+.ts-wrapper.plugin-remove_button.rtl .item {
+  padding-left: 0 !important;
+}
+
+.ts-wrapper.plugin-remove_button.rtl .item .remove {
+  border-right: 1px solid #dee2e6;
+  margin-right: 5px;
+}
+
+.ts-wrapper.plugin-remove_button.rtl .item.active .remove {
+  border-right-color: rgba(0, 0, 0, 0);
+}
+
+.ts-wrapper.plugin-remove_button.rtl.disabled .item .remove {
+  border-right-color: white;
+}
+
+:root {
+  --ts-pr-clear-button: 0;
+  --ts-pr-caret: 0;
+  --ts-pr-min: .75rem;
+}
+
+.ts-wrapper.single .ts-control, .ts-wrapper.single .ts-control input {
+  cursor: pointer;
+}
+
+.ts-control:not(.rtl) {
+  padding-right: max(var(--ts-pr-min), var(--ts-pr-clear-button) + var(--ts-pr-caret)) !important;
+}
+
+.ts-control.rtl {
+  padding-left: max(var(--ts-pr-min), var(--ts-pr-clear-button) + var(--ts-pr-caret)) !important;
+}
+
+.ts-wrapper {
+  position: relative;
+}
+
+.ts-dropdown,
+.ts-control,
+.ts-control input {
+  color: var(--bs-body-color);
+  font-family: inherit;
+  font-size: inherit;
+  line-height: 1.5;
+}
+
+.ts-control,
+.ts-wrapper.single.input-active .ts-control {
+  background: var(--bs-body-bg);
+  cursor: text;
+}
+
+.ts-hidden-accessible {
+  border: 0 !important;
+  clip: rect(0 0 0 0) !important;
+  -webkit-clip-path: inset(50%) !important;
+  clip-path: inset(50%) !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+  position: absolute !important;
+  width: 1px !important;
+  white-space: nowrap !important;
+}
+
+.ts-dropdown,
+.ts-dropdown.form-control,
+.ts-dropdown.form-select {
+  height: auto;
+  padding: 0;
+  z-index: 1000;
+  background: var(--bs-body-bg);
+  border: 1px solid var(--bs-border-color-translucent);
+  border-radius: 0.375rem;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
+}
+
+.ts-dropdown .optgroup-header {
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.ts-dropdown .optgroup:first-child::before {
+  display: none;
+}
+
+.ts-dropdown .optgroup::before {
+  content: " ";
+  display: block;
+  height: 0;
+  margin: 0.5rem 0;
+  overflow: hidden;
+  border-top: 1px solid var(--bs-border-color-translucent);
+  margin-left: -0.75rem;
+  margin-right: -0.75rem;
+}
+
+.ts-dropdown .create {
+  padding-left: 0.75rem;
+}
+
+.ts-dropdown-content {
+  padding: 5px 0;
+}
+
+.ts-control {
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  display: flex;
+  align-items: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ts-control {
+    transition: none;
+  }
+}
+.focus .ts-control {
+  border-color: rgb(134, 182.5, 254);
+  outline: 0;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.ts-control .item {
+  display: flex;
+  align-items: center;
+}
+
+.ts-wrapper.is-invalid,
+.was-validated .invalid,
+.was-validated :invalid + .ts-wrapper {
+  border-color: var(--bs-form-invalid-color);
+}
+
+.ts-wrapper.is-invalid:not(.single),
+.was-validated .invalid:not(.single),
+.was-validated :invalid + .ts-wrapper:not(.single) {
+  background-image: url(${___CSS_LOADER_URL_REPLACEMENT_0___});
+  background-position: right calc(0.375em + 0.1875rem) center;
+  background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+  background-repeat: no-repeat;
+}
+
+.ts-wrapper.is-invalid.single,
+.was-validated .invalid.single,
+.was-validated :invalid + .ts-wrapper.single {
+  background-image: url(${___CSS_LOADER_URL_REPLACEMENT_1___}), url(${___CSS_LOADER_URL_REPLACEMENT_0___});
+  background-position: right 0.75rem center, center right 2.25rem;
+  background-size: 16px 12px, calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+  background-repeat: no-repeat;
+}
+
+.ts-wrapper.is-invalid.focus .ts-control,
+.was-validated .invalid.focus .ts-control,
+.was-validated :invalid + .ts-wrapper.focus .ts-control {
+  border-color: var(--bs-form-invalid-color);
+  box-shadow: 0 0 0 0.25rem rgba(var(--bs-form-invalid-color), 0.25);
+}
+
+.ts-wrapper.is-valid,
+.was-validated .valid,
+.was-validated :valid + .ts-wrapper {
+  border-color: var(--bs-form-valid-color);
+}
+
+.ts-wrapper.is-valid:not(.single),
+.was-validated .valid:not(.single),
+.was-validated :valid + .ts-wrapper:not(.single) {
+  background-image: url(${___CSS_LOADER_URL_REPLACEMENT_2___});
+  background-position: right calc(0.375em + 0.1875rem) center;
+  background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+  background-repeat: no-repeat;
+}
+
+.ts-wrapper.is-valid.single,
+.was-validated .valid.single,
+.was-validated :valid + .ts-wrapper.single {
+  background-image: url(${___CSS_LOADER_URL_REPLACEMENT_1___}), url(${___CSS_LOADER_URL_REPLACEMENT_2___});
+  background-position: right 0.75rem center, center right 2.25rem;
+  background-size: 16px 12px, calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+  background-repeat: no-repeat;
+}
+
+.ts-wrapper.is-valid.focus .ts-control,
+.was-validated .valid.focus .ts-control,
+.was-validated :valid + .ts-wrapper.focus .ts-control {
+  border-color: var(--bs-form-valid-color);
+  box-shadow: 0 0 0 0.25rem rgba(var(--bs-form-valid-color), 0.25);
+}
+
+.ts-wrapper {
+  min-height: calc(1.5em + 0.75rem + var(--bs-border-width) * 2);
+  display: flex;
+}
+
+.input-group-sm > .ts-wrapper, .ts-wrapper.form-select-sm, .ts-wrapper.form-control-sm {
+  min-height: calc(1.5em + 0.5rem + var(--bs-border-width) * 2);
+}
+
+.input-group-sm > .ts-wrapper .ts-control, .ts-wrapper.form-select-sm .ts-control, .ts-wrapper.form-control-sm .ts-control {
+  border-radius: var(--bs-border-radius-sm);
+  font-size: 0.875rem;
+}
+
+.input-group-sm > .ts-wrapper.has-items .ts-control, .ts-wrapper.form-select-sm.has-items .ts-control, .ts-wrapper.form-control-sm.has-items .ts-control {
+  font-size: 0.875rem;
+  padding-bottom: 0;
+}
+
+.input-group-sm > .ts-wrapper.multi.has-items .ts-control, .ts-wrapper.form-select-sm.multi.has-items .ts-control, .ts-wrapper.form-control-sm.multi.has-items .ts-control {
+  padding-top: calc((1.5em + 0.5rem + var(--bs-border-width) * 2 - 1.3125rem - (var(--bs-border-width) + 1px) * 2) / 2) !important;
+}
+
+.ts-wrapper.multi.has-items .ts-control {
+  padding-left: calc(0.75rem - 5px);
+  --ts-pr-min: calc(0.75rem - 5px);
+}
+
+.ts-wrapper.multi .ts-control > div {
+  border-radius: calc(var(--bs-border-radius) - 1px);
+}
+
+.input-group-lg > .ts-wrapper, .ts-wrapper.form-control-lg, .ts-wrapper.form-select-lg {
+  min-height: calc(1.5em + 1rem + var(--bs-border-width) * 2);
+}
+
+.input-group-lg > .ts-wrapper .ts-control, .ts-wrapper.form-control-lg .ts-control, .ts-wrapper.form-select-lg .ts-control {
+  border-radius: var(--bs-border-radius-lg);
+  font-size: 1.25rem;
+}
+
+.ts-wrapper:not(.form-control, .form-select) {
+  padding: 0;
+  border: none;
+  height: auto;
+  box-shadow: none;
+  background: none;
+}
+
+.ts-wrapper:not(.form-control, .form-select).single .ts-control {
+  background-image: url(${___CSS_LOADER_URL_REPLACEMENT_1___});
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 16px 12px;
+}
+
+.ts-wrapper.form-select, .ts-wrapper.single {
+  --ts-pr-caret: 2.25rem;
+}
+
+.ts-wrapper.form-control, .ts-wrapper.form-select {
+  padding: 0 !important;
+  height: auto;
+  box-shadow: none;
+  display: flex;
+}
+
+.ts-wrapper.form-control .ts-control, .ts-wrapper.form-control.single.input-active .ts-control, .ts-wrapper.form-select .ts-control, .ts-wrapper.form-select.single.input-active .ts-control {
+  border: none !important;
+}
+
+.ts-wrapper.form-control:not(.disabled) .ts-control, .ts-wrapper.form-control:not(.disabled).single.input-active .ts-control, .ts-wrapper.form-select:not(.disabled) .ts-control, .ts-wrapper.form-select:not(.disabled).single.input-active .ts-control {
+  background: transparent !important;
+}
+
+.input-group > .ts-wrapper {
+  flex-grow: 1;
+  width: 1%;
+}
+
+.input-group > .ts-wrapper:not(:nth-child(2)) > .ts-control {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.input-group > .ts-wrapper:not(:last-child) > .ts-control {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+`, ""]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 
@@ -511,10 +1202,10 @@ module.exports = styleTagTransform;
 
 /***/ }),
 
-/***/ "./node_modules/tom-select/dist/js/tom-select.complete.js":
-/*!****************************************************************!*\
-  !*** ./node_modules/tom-select/dist/js/tom-select.complete.js ***!
-  \****************************************************************/
+/***/ "../tom-select/dist/js/tom-select.complete.js":
+/*!****************************************************!*\
+  !*** ../tom-select/dist/js/tom-select.complete.js ***!
+  \****************************************************/
 /***/ (function(module) {
 
 /**
@@ -911,7 +1602,7 @@ module.exports = styleTagTransform;
 
 	const initialize = _code_points => {
 	  if (unicode_map !== undefined) return;
-	  unicode_map = generateMap(_code_points || code_points);
+	  unicode_map = generateMap(code_points);
 	};
 	/**
 	 * Helper method for normalize a string
@@ -2820,7 +3511,6 @@ module.exports = styleTagTransform;
 	    } else {
 	      self.enable(); //sets tabIndex
 	    }
-
 	    self.on('change', this.onChange);
 	    addClasses(input, 'tomselected', 'ts-hidden-accessible');
 	    self.trigger('initialize');
@@ -5962,12 +6652,8 @@ var __webpack_exports__ = {};
   \***************************************/
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _scss_tom_select_scss__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../scss/tom-select.scss */ "./assets/scss/tom-select.scss");
-/* harmony import */ var tom_select__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! tom-select */ "./node_modules/tom-select/dist/js/tom-select.complete.js");
+/* harmony import */ var tom_select__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! tom-select */ "../tom-select/dist/js/tom-select.complete.js");
 /* harmony import */ var tom_select__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(tom_select__WEBPACK_IMPORTED_MODULE_1__);
-// JS logic to populate the tom-select inputs in Description forms
-// Mind that the protocol restapi endpoint is stored in a `url`
-// variable assigned in the description_form.html template
-
 
 
 
@@ -5980,51 +6666,50 @@ new (tom_select__WEBPACK_IMPORTED_MODULE_1___default())("#id_name", {
     maxItems: 1,
     create: true,
     persist: false,
+    items: []
 });
 
-var protocol = document.getElementById('id_protocol');
+const protocol = document.getElementById("id_protocol");
 
-if(protocol) {
+if (protocol) {
     const protocolTomSelect = new (tom_select__WEBPACK_IMPORTED_MODULE_1___default())("#id_protocol", {
-	maxItems: 1,
-	create: false,
-	valueField: "pk",
-	labelField: "name",
-	searchField: ["name"],
+        maxItems: 1,
+        create: false,
+        valueField: "pk",
+        labelField: "name",
+        searchField: ["name"],
     });
 
-
     function getProtocols(id) {
-	if (!id) {
-	    protocolTomSelect.disable();
-	    return;
-	}
+        if (!id) {
+            protocolTomSelect.disable();
+            return;
+        }
 
-	let protocol = protocolTomSelect.getValue();
+        const protocolValue = protocolTomSelect.getValue();
 
-	fetch(`${url}&variety=${id}`)
-	    .then((response) => response.json())
-	    .then((data) => {
-		protocolTomSelect.clear();
-		
-		protocolTomSelect.addOptions(data);
-		protocolTomSelect.enable();
-		if (protocol) {
-		    protocolTomSelect.setValue(protocol);
-		}
-	    });
+        fetch(`${url}&variety=${id}`)
+            .then((response) => response.json())
+            .then((data) => {
+                protocolTomSelect.clearOptions(); 
+                protocolTomSelect.addOptions(data);
+                protocolTomSelect.refreshOptions(); 
+                protocolTomSelect.enable(); 
+                
+                if (protocolValue) {
+                    protocolTomSelect.setValue(protocolValue);
+                }
+            });
     }
-
-    varietyTomSelect.on("change", getProtocols);
-
-    let variety = varietyTomSelect.getValue();
-
-    if (variety) {
-	getProtocols(variety);
+    
+    varietyTomSelect.on("change", () => getProtocols(varietyTomSelect.getValue()));
+    
+    const initialVariety = varietyTomSelect.getValue();
+    if (initialVariety) {
+        getProtocols(initialVariety);
     } else {
-	protocolTomSelect.disable();
+        protocolTomSelect.disable();
     }
-
 }
 
 })();

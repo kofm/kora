@@ -35,7 +35,7 @@
         <div class="col">
             <h2 id="descriptions">
                 Descriptions
-                <a class="btn btn-sm btn-secondary" href="{% url 'describe:description-create' %}?variety_id={{ variety.pk }}" >Create</a>
+                <a class="btn btn-sm btn-secondary" href="{% url 'describe:description_create' %}?variety_id={{ variety.pk }}" >Create</a>
             </h2>
             {% if variety.description_set.count %}
                 <table class="table">

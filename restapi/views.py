@@ -1,51 +1,54 @@
 """
 Kora API
 """
-from collect.serializers import SampleWeightSerializer
-from .filters import (
-    DescriptionFilter,
-    EntityFilter,
-    SampleWeightFilter,
-    StorageFilter,
-    StoragePositionFilter,
-    PlantSpeciesFilter,
-    PlantVarietyFilter,
-    SeedSampleFilter,
-    ProtectionFilter,
-)
+
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
+
+from collect.models import CartItem, SampleWeight, SeedSample, Storage, StoragePosition
+from collect.serializers import SampleWeightSerializer
 from describe.models import (
     Description,
-    DescriptionsUserListElement,
     DescriptionsUserList,
-    Protocol,
+    DescriptionsUserListElement,
     Expression,
+    Protocol,
     State,
     Trait,
 )
 from parameters.models import VarietalParameter
-from collect.models import CartItem, SampleWeight, SeedSample, Storage, StoragePosition
-
 from register.models import Entity, PlantSpecies, PlantVariety, Protection
 from restapi.serializers import (
     CartSerializer,
-    DescriptionsUserListSerializer,
-    DescriptionsUserListElementSerializer,
     DescriptionSerializer,
+    DescriptionsUserListElementSerializer,
+    DescriptionsUserListSerializer,
     EntitySerializer,
     ExpressionSerializer,
     PlantSpeciesSerializer,
     PlantVarietySerializer,
     ProtectionSerializer,
     ProtocolSerializer,
-    StateSerializer,
-    TraitSerializer,
     SeedSampleSerializer,
-    StorageSerializer,
+    StateSerializer,
     StoragePositionSerializer,
+    StorageSerializer,
+    TraitSerializer,
     VarietalParameterSerializer,
+)
+
+from .filters import (
+    DescriptionFilter,
+    EntityFilter,
+    PlantSpeciesFilter,
+    PlantVarietyFilter,
+    ProtectionFilter,
+    ProtocolFilter,
+    SampleWeightFilter,
+    SeedSampleFilter,
+    StorageFilter,
+    StoragePositionFilter,
 )
 
 
@@ -84,6 +87,8 @@ class ProtectionViewSet(viewsets.ModelViewSet):
 class ProtocolViewSet(viewsets.ModelViewSet):
     queryset = Protocol.objects.all()
     serializer_class = ProtocolSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = ProtocolFilter
 
 
 class StateViewSet(viewsets.ModelViewSet):

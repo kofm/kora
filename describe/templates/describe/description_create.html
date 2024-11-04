@@ -1,52 +1,16 @@
-{% extends "frontpage/base.html" %}
-{% load crispy_forms_tags %}
+{% extends "frontpage/_create_form.html" %}
+
 {% load widget_tweaks %}
 {% load static %}
-
+{% load breadcrumbs %}
 
 {% block javascript %}
-    
     <script type="text/javascript">
      let url = "{% url 'restapi:protocols-list' %}?format=json";
     </script>
 {% endblock %}
 
 
-{% block title %}Create description{% endblock %}
-
-
-{% block container %}
-
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-	    <li class="breadcrumb-item"><a href="{% url "front:index" %}">Kora</a></li>
-	    {% if variety %}
-		<li class="breadcrumb-item"><a href="{% url 'register:variety_list' %}">Varieties</a></li>
-		<li class="breadcrumb-item"><a href="{% url 'register:plantvariety_detail' variety.pk %}">{{ variety }}</a></li>
-	    {% endif %}
-		<li class="breadcrumb-item"><a href="{% url 'describe:description-list' %}">Descriptions</a></li>
-	    {% if description %}
-		<li class="breadcrumb-item"><a href="{{ description_update_url }}">{{ description.name }}</a></li>
-		<li class="breadcrumb-item active" aria-current="page">Update</li>
-	    {% else %}
-		<li class="breadcrumb-item active" aria-current="page">Create</li>
-	    {% endif %}
-        </ol>
-    </nav>
-
-    <h1 class="display-1">{{ updating|yesno:"Update,Create" }} Description</h1>
-
-    <form method="post">
-        {% csrf_token %}
-        <div class="mb-3">
-            {{form|crispy}}
-        </div>
-        <div>
-            <button class="btn btn-secondary" type="submit">{{ updating|yesno:"Update,Create" }}</button>
-	    {% if description %}
-		<a class="btn btn-secondary" href="{{ description_update_url }}">Cancel</a>
-	    {% endif %}
-        </div>
-    </form>
+{% block additional_content %}
     <script src="{% static 'describe/description-form.bundle.js' %}"></script>
 {% endblock %}

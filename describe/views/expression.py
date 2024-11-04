@@ -1,4 +1,5 @@
-""" Expression Views. """
+"""Expression Views."""
+
 from describe.forms import ExpressionForm
 from describe.models import Description, Expression
 from django.http import HttpResponse
@@ -8,7 +9,7 @@ from django.views.decorators.http import require_GET, require_POST
 
 
 @require_GET
-def expression_form(request, pk, trait):
+def expression_create_form_empty(request, pk, trait):
     """Return a Description ExpressionForm for a specific Trait.
 
     Used by the `description_update` view via htmx to add an empty field for a specific trait."""
@@ -18,7 +19,7 @@ def expression_form(request, pk, trait):
 
 
 @require_POST
-def expression_update(request, pk):
+def expression_update_form(request, pk):
     expression = get_object_or_404(Expression, pk=pk)
     form = ExpressionForm(request.POST, instance=expression, trait=expression.state.trait)
     context = {"form": form}

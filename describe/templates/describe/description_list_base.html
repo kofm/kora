@@ -1,19 +1,14 @@
 {% extends "frontpage/base.html" %}
-{% load static %}
-{% block javascript %}
 
-{% endblock %}
+{% load static %}
+{% load breadcrumbs %}
 
 {% block title %}Descriptions{% endblock %}
 
 {% block container %}
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-	    <li class="breadcrumb-item"><a href="{% url "front:index" %}">Kora</a></li>
-	    <li class="breadcrumb-item active" aria-current="page">Descriptions</li>
-        </ol>
-    </nav>
-    <!-- Page title -->
+
+    {% render_breadcrumbs %}
+    
     <div class="row mb-3">
         <div class="col">
             <h1 class="display-1">
@@ -21,7 +16,7 @@
             </h1>
         </div>
         <div class="col d-flex justify-content-end align-items-center">
-            <a class="btn btn btn-outline-primary ms-2" href="{% url 'describe:description-create' %}">
+            <a class="btn btn btn-outline-primary ms-2" href="{% url 'describe:description_create' %}">
                 Create
             </a>
 

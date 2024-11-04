@@ -1,7 +1,8 @@
 import django_filters
-from describe.models import Description
-from collect.models import SeedSample, Storage, StoragePosition, SampleWeight
-from register.models import PlantVariety, PlantSpecies, Entity, Protection
+
+from collect.models import SampleWeight, SeedSample, Storage, StoragePosition
+from describe.models import Description, Protocol
+from register.models import Entity, PlantSpecies, PlantVariety, Protection
 
 
 class NumberInFilter(django_filters.BaseInFilter, django_filters.NumberFilter):
@@ -32,8 +33,21 @@ class ProtectionFilter(django_filters.FilterSet):
         fields = ("variety", "type", "status", "reference")
 
 
+class ProtocolFilter(django_filters.FilterSet):
+    variety = django_filters.NumberFilter(method="by_variety")
+
+    class Meta:
+        model = Protocol
+        fields = ("name", "plantspecies")
+
+    def by_variety(self, queryset, name, value):
+        variety = PlantVariety.objects.get(pk=value)
+        return queryset.filter(plantspecies=variety.species)
+
+
 class DescriptionFilter(django_filters.FilterSet):
-    # FIXME: Is this really needed? Can't be just solved on the client-side by making multiple requests instead of passing a list here?
+    # FIXME: Is this really needed? Can't we just make multiple
+    # requests instead of passing a list here?
     description = NumberInFilter(field_name="description", lookup_expr="in", label="Description IDs")
     variety = NumberInFilter(field_name="variety__pk", lookup_expr="in", label="Variety IDs")
 

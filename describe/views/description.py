@@ -5,17 +5,9 @@ List, Detail, Update, Create, Delete
 
 import contextlib
 
-from django.db.models import CharField, Q
-from django.db.models.expressions import F
-from django.db.models.functions import Lower
-from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
-from django.shortcuts import get_object_or_404, redirect
-from django.template.response import TemplateResponse
-from django.urls import reverse_lazy
-from django.views.decorators.http import require_GET
-from django.views.generic import DeleteView, DetailView
 from django_tables2 import RequestConfig
 
+from breadcrumbs.utils import generate_breadcrumbs
 from describe.filters import DescriptionFilterByName
 from describe.forms import (
     DescriptionFilterFormSet,
@@ -25,14 +17,34 @@ from describe.forms import (
     ExpressionForm,
     ProtocolForm,
 )
-from describe.models import Description, DescriptionsUserListElement, Expression, Protocol, State, Trait
+from describe.models import (
+    Description,
+    DescriptionsUserListElement,
+    Expression,
+    Protocol,
+    State,
+    Trait,
+)
 from describe.tables import DescriptionTable
-from describe.utils import descriptionsuserlist_get_active, _filter_descriptions, delete_get_param, merge_unique
+from describe.utils import (
+    _filter_descriptions,
+    delete_get_param,
+    descriptionsuserlist_get_active,
+    merge_unique,
+)
 from describe.views.protocol import NavDescribeActiveContext
+from django.db.models import CharField, Q
+from django.db.models.expressions import F
+from django.db.models.functions import Lower
+from django.http import HttpResponse, JsonResponse
+from django.shortcuts import get_object_or_404, redirect
+from django.template.response import TemplateResponse
+from django.urls import reverse_lazy
+from django.views.decorators.http import require_GET
+from django.views.generic import DeleteView, DetailView
 from django_sortable_htmx.views import SortableView
 from frontpage.views_decorators import nav_active
 from register.models import PlantVariety
-
 
 CharField.register_lookup(Lower)
 
@@ -113,6 +125,8 @@ def description_list(request):
     descriptionsuserlist_form = DescriptionsUserListSelect(request=request)
     descriptionsuserlist = descriptionsuserlist_get_active(request)
 
+    context.update(generate_breadcrumbs(Description))
+
     context.update(
         {
             "description_filter_by_name": description_filter_by_name,
@@ -173,7 +187,7 @@ def description_filter_export(request):
 @require_GET
 def description_list_reset(request):
     reset_description_filter(request)
-    return redirect(reverse_lazy("describe:description-list"))
+    return redirect(reverse_lazy("describe:description_list"))
 
 
 def description_find_similar(request):
@@ -197,7 +211,7 @@ def description_find_similar(request):
             }
             for filt in list(description_filter)
         ]
-    return redirect(reverse_lazy("describe:description-list"))
+    return redirect(reverse_lazy("describe:description_list"))
 
 
 @nav_describe
@@ -261,23 +275,27 @@ def description_update(request, pk):
 
     if form.is_valid():
         description = form.save()
-        return HttpResponseRedirect(description.get_absolute_url())
-
+        return redirect(description.get_absolute_url())
+    context = {"form": form, "object": description, "description": description}
+    context.update(generate_breadcrumbs(Description, description, update=True))
     return TemplateResponse(
         request,
         "describe/description_update.html",
-        {"form": form, "description": description},
+        context,
     )
 
 
 @nav_describe
 def description_create(request):
+    # TODO: Should create different breadcrumbs depending if
+    # initialised with a variety.
+    # e.g. Kora > Varieties > Carnaroli > Descriptions > Create
     context = {}
 
     form = DescriptionForm(request.POST or None)
     if form.is_valid():
         description = form.save()
-        return HttpResponseRedirect(description.get_absolute_url())
+        return redirect(description.get_absolute_url())
 
     variety_id = request.GET.get("variety_id", None)
     if variety_id:
@@ -285,16 +303,18 @@ def description_create(request):
         form.initial["variety"] = variety
         context["variety"] = variety
     context["form"] = form
+    context["model_name"] = "Description"
+    context.update(generate_breadcrumbs(Description, create=True))
 
     return TemplateResponse(request, "describe/description_create.html", context)
 
 
 class DescriptionDeleteView(NavDescribeActiveContext, DeleteView):
     model = Description
-    success_url = reverse_lazy("describe:description-list")
+    success_url = reverse_lazy("describe:description_list")
 
 
-def description_update_expressions(request, pk):
+def description_expression_update(request, pk):
     description = get_object_or_404(Description, pk=pk)
     traits = description.available_traits
     formset = list()
@@ -308,7 +328,7 @@ def description_update_expressions(request, pk):
         formset.append({"trait": trait, "forms": forms})
     return TemplateResponse(
         request,
-        "describe/description_update_expressions.html",
+        "describe/description_expression_update.html",
         {"description": description, "formset": formset},
     )
 
