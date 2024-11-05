@@ -2,17 +2,13 @@
 
 {% load static %}
 {% load django_tables2 %}
+{% load breadcrumbs %}
 
 {% block title %}Collect{% endblock %}
 
 {% block container %}
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-	    <li class="breadcrumb-item"><a href="{% url "front:index" %}">Kora</a></li>
-            <li class="breadcrumb-item"><a href="{% url 'collect:storage-list' %}">Storage</a></li>
-            <li class="breadcrumb-item active" aria-current="page">{{ storage }}</li>
-        </ol>
-    </nav>
+    
+    {% render_breadcrumbs %}
 
     <h1 class="display-1">
 	Storage {{ storage }}

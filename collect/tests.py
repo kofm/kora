@@ -59,7 +59,7 @@ class StorageCreateViewTests(TestCase):
         self.assertEqual(StoragePosition.objects.count(), 5)
 
         storage = Storage.objects.first()
-        self.assertRedirects(response, reverse("collect:storage-detail", args=[storage.pk]))
+        self.assertRedirects(response, reverse("collect:storage_detail", args=[storage.pk]))
 
     def test_post_with_invalid_data(self):
         url = reverse("collect:storage-create")

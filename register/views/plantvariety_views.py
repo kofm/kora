@@ -9,6 +9,7 @@ from breadcrumbs.generic import (
     CrumbsDetailView,
     CrumbsUpdateView,
 )
+from breadcrumbs.utils import generate_breadcrumbs
 from collect.models import SeedSample
 from describe.models import Description
 from django.core.paginator import Paginator
@@ -17,6 +18,7 @@ from django.http import HttpRequest, HttpResponseBase
 from django.shortcuts import get_object_or_404
 from django.template.response import TemplateResponse
 from django.urls.base import reverse_lazy
+from frontpage.views_decorators import NavPlantActiveContext
 from parameters.models import VarietalParameter
 from register.filters import PlantVarietyFilter
 from register.forms import PlantVarietyForm
@@ -27,7 +29,6 @@ from register.tables import (
     ProtectionTable,
     VarietalParameterTable,
 )
-from frontpage.views_decorators import NavPlantActiveContext
 
 
 class PlantVarietyCreate(NavPlantActiveContext, CrumbsCreateView):
@@ -46,7 +47,6 @@ class PlantVarietyDetail(NavPlantActiveContext, CrumbsDetailView):
 
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         context = super().get_context_data(**kwargs)
-
         # The tables to display
         table_data = {
             "description_table": {"table": PlantVarietyDescriptionTable, "model": Description},
@@ -125,27 +125,16 @@ def get_model_verbose_name_plural_capitalized(model: models.Model):
     return model._meta.verbose_name_plural.capitalize()
 
 
-@list_breadcrumb(PlantVariety)
 def plantvariety_list(request):
-    view_func = request.resolver_match.func
-    view_name = view_func.__name__
-
-    # Optionally, get the fully qualified name (including module)
-    full_view_name = f"{view_func.__module__}.{view_name}"
-
-    print(f"Current view function: {view_name}")
-    print(f"Full view function path: {full_view_name}")
     queryset = PlantVariety.objects.all().order_by("-created_at")
     flt = PlantVarietyFilter(request.GET, queryset=queryset)
     paginator = Paginator(flt.qs, 12)
     page = request.GET.get("page", 1)
     page_obj = paginator.page(page)
-
+    context = {"filter": flt, "page_obj": page_obj}
+    context.update(generate_breadcrumbs(request, PlantVariety))
     return TemplateResponse(
         request,
         "register/plantvariety_list.html",
-        {
-            "filter": flt,
-            "page_obj": page_obj,
-        },
+        context,
     )

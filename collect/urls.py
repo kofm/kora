@@ -5,25 +5,25 @@ from . import views
 app_name = "collect"
 
 urlpatterns = [
-    path("", views.seedsample_list, name="seedsample-list"),
+    path("", views.seedsample_list, name="seedsample_list"),
     path("api", views.SeedSampleListAPI.as_view(), name="seedsample-list-api"),
     path("<int:pk>", views.seedsample_detail, name="seedsample-detail"),
-    path("new", views.SeedSampleCreateView.as_view(), name="seedsample-create"),
-    path("storage", views.StorageListView.as_view(), name="storage-list"),
+    path("new", views.SeedSampleCreateView.as_view(), name="seedsample_create"),
+    path("storage", views.StorageListView.as_view(), name="storage_list"),
     path("storage/create", views.storage_create, name="storage-create"),
-    path("storage/<int:pk>", views.storage_detail, name="storage-detail"),
+    path("storage/<int:pk>", views.StorageDetailView.as_view(), name="storage_detail"),
     path("storage/<int:pk>/delete", views.storage_delete, name="storage-delete"),
     path("storage/sort", views.StorageSortView.as_view(), name="storage-sort"),
     path("cart/change", views.cart_change_htmx, name="cart-change"),
     path(
         "<int:pk>/update",
         views.SeedSampleUpdateView.as_view(),
-        name="seedsample-update",
+        name="seedsample_update",
     ),
     path(
         "<int:pk>/delete",
         views.SeedSampleDeleteView.as_view(),
-        name="seedsample-delete",
+        name="seedsample_delete",
     ),
     path("cart/change", views.cart_change_htmx, name="cart-change"),
     path("cart/new", views.cart_create, name="cart-create"),

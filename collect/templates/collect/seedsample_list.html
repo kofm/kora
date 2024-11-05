@@ -4,6 +4,7 @@
 {% load widget_tweaks %}
 {% load static %}
 {% load render_table from django_tables2 %}
+{% load breadcrumbs %}
 
 {% block title %}
     Accessions
@@ -11,7 +12,9 @@
 
 {% block container %}
 
-    <h1 class="display-1">Accessions <a class="btn btn-secondary" href="{% url 'collect:seedsample-create'  %}">Create</a></h1>
+    {% render_breadcrumbs %}
+
+    <h1 class="display-1">Accessions <a class="btn btn-secondary" href="{% url 'collect:seedsample_create'  %}">Create</a></h1>
 
     <div class="row">
 	<div class="col-8">

@@ -21,7 +21,7 @@
   <form method="post">
     {% csrf_token %}
     <button name="btn-save" type="submit" class="btn btn-outline-primary mt-3">Confirm</button>
-    <a class="btn btn-outline-secondary mt-3" type="submit" href="{% url 'collect:seedsample-list' %}">Cancel</a>
+    <a class="btn btn-outline-secondary mt-3" type="submit" href="{% url 'collect:seedsample_list' %}">Cancel</a>
   </form>
 </div>
 {% endblock %}

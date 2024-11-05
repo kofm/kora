@@ -3,56 +3,52 @@
 {% load crispy_forms_tags %}
 {% load render_table from django_tables2 %}
 {% load static %}
+{% load breadcrumbs %}
 
 {% block title %}
-  {{ seedsample.variety.name }}
+    {{ seedsample.variety.name }}
 {% endblock %}
 
 {% block container %}
 
-<nav aria-label="breadcrumb">
-  <ol class="breadcrumb">
-    <li class="breadcrumb-item"><a href="{% url 'collect:seedsample-list' %}">Accessions</a></li>
-    <li class="breadcrumb-item active" aria-current="page">{{ seedsample.variety.name }}</li>
-  </ol>
-</nav>
+    {% render_breadcrumbs %}
 
-<h1 class="display-1">{{ seedsample.variety.name }}</h1>
+    <h1 class="display-1">{{ seedsample.variety.name }}</h1>
 
-{% if seedsample.notes %}
-<p class="lead">
-  {{ seedsample.notes }}
-</p>
-{% endif %}
+    {% if seedsample.notes %}
+        <p class="lead">
+            {{ seedsample.notes }}
+        </p>
+    {% endif %}
 
-<div class="row mx-2">
-  <div class="card mx-1 py-2 col d-flex">
-    <div class="card-title"><h2>Sample</h2></div>
-    <div class="card-body">
-      <ul class="list-group list-group-flush">
-        <li class="list-group-item">ID: {{ seedsample.sample_id }}</li>
-        <li class="list-group-item">Variety: <a href="{% url 'register:plantvariety_detail' seedsample.variety.pk %}">{{ seedsample.variety.name }}</a></li>
-        {% if seedsample.variety.has_breeder %}<li class="list-group-item">Breeder: <a href="{% url 'register:entity_detail' seedsample.variety.breeder.pk %}">{{ seedsample.variety.breeder }}</a></li>{% endif %}
-        <li class="list-group-item">Growing Season: {{ seedsample.growing_season|default_if_none:"&nbsp;" }}</li>
-        <li class="list-group-item">Location: {{ seedsample.position }}</li>
-      </ul>
+    <div class="row mx-2">
+        <div class="card mx-1 py-2 col d-flex">
+            <div class="card-title"><h2>Sample</h2></div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">ID: {{ seedsample.sample_id }}</li>
+                    <li class="list-group-item">Variety: <a href="{% url 'register:plantvariety_detail' seedsample.variety.pk %}">{{ seedsample.variety.name }}</a></li>
+                    {% if seedsample.variety.has_breeder %}<li class="list-group-item">Breeder: <a href="{% url 'register:entity_detail' seedsample.variety.breeder.pk %}">{{ seedsample.variety.breeder }}</a></li>{% endif %}
+                    <li class="list-group-item">Growing Season: {{ seedsample.growing_season|default_if_none:"&nbsp;" }}</li>
+                    <li class="list-group-item">Storage: <a href="{{ seedsample.position.get_absolute_url }}">{{ seedsample.position }}</a></li>
+                </ul>
+            </div>
+            <div class="mt-auto">
+                <a id="sample-form-button" class="btn btn-primary mt-3 col-12" href="{% url 'collect:seedsample_update' seedsample.pk %}">Update</a>
+                <a class="btn btn-danger mt-3 col-12" href="{% url 'collect:seedsample_delete' seedsample.pk %}">Delete</a>
+            </div>
+        </div>
+
+
+        <div class="card mx-1 py-2 col">
+            <div class="card-title">
+                <h2>Duplicate samples</h2>
+            </div>
+            <div class="card-body">
+                {% render_table seedsample_duplicates_table %}
+            </div>
+        </div>
+
     </div>
-    <div class="mt-auto">
-      <a id="sample-form-button" class="btn btn-primary mt-3 col-12" href="{% url 'collect:seedsample-update' seedsample.pk %}">Update</a>
-      <a class="btn btn-danger mt-3 col-12" href="{% url 'collect:seedsample-delete' seedsample.pk %}">Delete</a>
-    </div>
-  </div>
-
-
-  <div class="card mx-1 py-2 col">
-    <div class="card-title">
-      <h2>Duplicate samples</h2>
-    </div>
-    <div class="card-body">
-      {% render_table seedsample_duplicates_table %}
-    </div>
-  </div>
-
-</div>
 
 {% endblock %}

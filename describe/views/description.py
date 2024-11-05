@@ -8,6 +8,7 @@ import contextlib
 from django_tables2 import RequestConfig
 
 from breadcrumbs.utils import generate_breadcrumbs
+from breadcrumbs.generic import DeleteBreadcrumbsMixin
 from describe.filters import DescriptionFilterByName
 from describe.forms import (
     DescriptionFilterFormSet,
@@ -125,7 +126,7 @@ def description_list(request):
     descriptionsuserlist_form = DescriptionsUserListSelect(request=request)
     descriptionsuserlist = descriptionsuserlist_get_active(request)
 
-    context.update(generate_breadcrumbs(Description))
+    context.update(generate_breadcrumbs(request, Description))
 
     context.update(
         {
@@ -277,7 +278,7 @@ def description_update(request, pk):
         description = form.save()
         return redirect(description.get_absolute_url())
     context = {"form": form, "object": description, "description": description}
-    context.update(generate_breadcrumbs(Description, description, update=True))
+    context.update(generate_breadcrumbs(request, Description, description))
     return TemplateResponse(
         request,
         "describe/description_update.html",
@@ -304,12 +305,12 @@ def description_create(request):
         context["variety"] = variety
     context["form"] = form
     context["model_name"] = "Description"
-    context.update(generate_breadcrumbs(Description, create=True))
+    context.update(generate_breadcrumbs(request, Description))
 
     return TemplateResponse(request, "describe/description_create.html", context)
 
 
-class DescriptionDeleteView(NavDescribeActiveContext, DeleteView):
+class DescriptionDeleteView(DeleteBreadcrumbsMixin, NavDescribeActiveContext, DeleteView):
     model = Description
     success_url = reverse_lazy("describe:description_list")
 

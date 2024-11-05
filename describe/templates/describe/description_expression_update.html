@@ -1,4 +1,5 @@
 {% extends "frontpage/base.html" %}
+
 {% load static %}
 {% load crispy_forms_tags %}
 
@@ -10,70 +11,72 @@
 
 {% block container %}
 
-    <nav aria-label="breadcrumb">
-	<ol class="breadcrumb">
-	    <li class="breadcrumb-item"><a href="{% url "front:index" %}">Kora</a></li>
-	    <li class="breadcrumb-item"><a href="{% url 'register:variety_list' %}">Varieties</a></li>
-	    <li class="breadcrumb-item"><a href="{% url 'register:plantvariety_detail' description.variety.pk %}">{{ description.variety }}</a></li>
-	    <li class="breadcrumb-item"><a href="{% url 'describe:description_list' %}">Descriptions</a></li>
-	    <li class="breadcrumb-item active" aria-current="page"><a href="{% url 'describe:description-detail' description.id %}">{{ description.name }}</a></li>
-	    <li class="breadcrumb-item active" aria-current="page">Update</li>
-	</ol>
-    </nav>
+    {% render_breadcrumbs %}
+
+    <!-- <nav aria-label="breadcrumb">
+	     <ol class="breadcrumb">
+	     <li class="breadcrumb-item"><a href="{% url "front:index" %}">Kora</a></li>
+	     <li class="breadcrumb-item"><a href="{% url 'register:variety_list' %}">Varieties</a></li>
+	     <li class="breadcrumb-item"><a href="{% url 'register:plantvariety_detail' description.variety.pk %}">{{ description.variety }}</a></li>
+	     <li class="breadcrumb-item"><a href="{% url 'describe:description_list' %}">Descriptions</a></li>
+	     <li class="breadcrumb-item active" aria-current="page"><a href="{% url 'describe:description_detail' description.id %}">{{ description.name }}</a></li>
+	     <li class="breadcrumb-item active" aria-current="page">Update</li>
+	     </ol>
+         </nav> -->
 
     <div class="row mb-5">
-	<div class="col">
-	    <h1 class="display-1">
-		{{ description }}
-	    </h1>
-	    <p class="lead">Reference protocol <a href="{% url 'describe:protocol_detail' description.protocol.id %}">{{ description.protocol.name }}</a> (<i>{{ description.protocol.plantspecies.latin_name }}</i>)</p>
-	</div>
+	    <div class="col">
+	        <h1 class="display-3">
+		        {{ description }}
+	        </h1>
+	        <p class="lead">Reference protocol <a href="{% url 'describe:protocol_detail' description.protocol.id %}">{{ description.protocol.name }}</a> (<i>{{ description.protocol.plantspecies.latin_name }}</i>)</p>
+	    </div>
     </div>
 
     <div class="row mb-5">
 
-	<div class="col-3 navbar-example">
-	    <div id="simple-list-example" class="d-flex flex-column gap-2 simple-list-example-scrollspy">
-		{% for row in formset %}
-		    <a class="p-1 rounded text-decoration-none link-body-emphasis {{ row.trait.grouping|yesno:"fw-bold," }}" href="#trait-{{ row.trait.pk }}">
-			{{ row.trait }}
-		    </a>
-		{% endfor %}
+	    <div class="col-3 navbar-example">
+	        <div id="simple-list-example" class="d-flex flex-column gap-2 simple-list-example-scrollspy">
+		        {% for row in formset %}
+		            <a class="p-1 rounded text-decoration-none link-body-emphasis {{ row.trait.grouping|yesno:"fw-bold," }}" href="#trait-{{ row.trait.pk }}">
+			            {{ row.trait }}
+		            </a>
+		        {% endfor %}
+	        </div>
 	    </div>
-	</div>
 
-	<div
-	    data-bs-spy="scroll"
-	    data-bs-target="#navbar-example"
-	    data-bs-root-margin="0px 0px -80%"
-	    data-bs-smooth-scroll="true"
-	    class="col"
-	    tabindex="0">
-	    {% for row in formset %}
-		<div id="trait-{{ row.trait.pk }}" class="card mb-2">
-		    <div class="card-header bg-secondary text-white">
-			{{ row.trait }}
-		    </div>
-		    <div class="card-body">
-			{% for form in row.forms %}
-			    {% include 'describe/partials/expression_update.html' with form=form %}
-			{% endfor %}
-			<a href=""
-			   class="text-decoration-none link-body-emphasis"
-			   hx-get="{% url 'describe:description-expression-form' description.pk row.trait.pk %}"
-			   hx-swap="beforebegin"
-			   hx-target="this">
-			    <i class="bi bi-plus-circle"></i>
-			</a>
-		    </div>
-		</div>
+	    <div
+	        data-bs-spy="scroll"
+	        data-bs-target="#navbar-example"
+	        data-bs-root-margin="0px 0px -80%"
+	        data-bs-smooth-scroll="true"
+	        class="col"
+	        tabindex="0">
+	        {% for row in formset %}
+		        <div id="trait-{{ row.trait.pk }}" class="card mb-2">
+		            <div class="card-header bg-secondary text-white">
+			            {{ row.trait }}
+		            </div>
+		            <div class="card-body">
+			            {% for form in row.forms %}
+			                {% include 'describe/partials/expression_update.html' with form=form %}
+			            {% endfor %}
+			            <a href=""
+			               class="text-decoration-none link-body-emphasis"
+			               hx-get="{% url 'describe:description-expression-form' description.pk row.trait.pk %}"
+			               hx-swap="beforebegin"
+			               hx-target="this">
+			                <i class="bi bi-plus-circle"></i>
+			            </a>
+		            </div>
+		        </div>
 
-	    {% endfor %}
+	        {% endfor %}
 
-	    <a href="{% url 'describe:description-detail' description.pk %}" class="btn btn-primary submit-btn">Back</a>
-
+	        <a href="{% url 'describe:description_detail' description.pk %}" class="btn btn-primary submit-btn">Back</a>
 
 
-	</div>
+
+	    </div>
     </div>
 {% endblock %}

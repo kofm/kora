@@ -131,7 +131,7 @@ def entity_detail(request, pk):
     table = PlantVarietyEntityTable(entity.plantvariety_set.all())
     RequestConfig(request, paginate={"per_page": 10}).configure(table)
     context = {"entity": entity, "table": table}
-    context.update(generate_breadcrumbs(Entity, entity))
+    context.update(generate_breadcrumbs(request, Entity, entity))
     return TemplateResponse(request, "register/entity_detail.html", context)
 
 
@@ -149,5 +149,5 @@ def entity_list(request):
     RequestConfig(request, paginate={"per_page": 25}).configure(table)
     context["table"] = table
     context["filter"] = filter
-    context.update(generate_breadcrumbs(Entity))
+    context.update(generate_breadcrumbs(request, Entity))
     return TemplateResponse(request, "register/entity_list.html", context)

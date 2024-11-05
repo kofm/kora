@@ -22,7 +22,7 @@ def cart_create(request):
             cart = Cart(name=form.cleaned_data["name"], user=request.user)
             cart.active = True
             cart.save()
-            return HttpResponseRedirect(reverse("collect:seedsample-list"))
+            return HttpResponseRedirect(reverse("collect:seedsample_list"))
     context["form"] = form
     return TemplateResponse(request, "collect/cart_form.html", context)
 
@@ -36,7 +36,7 @@ def cart_update(request, pk):
         if form.is_valid():
             cart.name = form.cleaned_data["name"]
             cart.save()
-            return HttpResponseRedirect(reverse("collect:seedsample-list"))
+            return HttpResponseRedirect(reverse("collect:seedsample_list"))
     context["form"] = form
     return TemplateResponse(request, "collect/cart_form.html", context)
 
@@ -46,21 +46,21 @@ def cart_retrieve(request, pk):
     cart = get_object_or_404(Cart, pk=pk, user=request.user)
     cartitems = cart.cartitem_set.all()
     if not cartitems.exists():
-        return HttpResponseRedirect(reverse("collect:seedsample-list"))
+        return HttpResponseRedirect(reverse("collect:seedsample_list"))
     if request.POST:
         for cartitem in cartitems:
             weight = cartitem.sample.weight - cartitem.weight
             seedsample_weight = SampleWeight(seedsample=cartitem.sample, weight=weight)
             seedsample_weight.save()
         cart.delete()
-        return HttpResponseRedirect(reverse("collect:seedsample-list"))
+        return HttpResponseRedirect(reverse("collect:seedsample_list"))
     context["cart"] = cart
     return TemplateResponse(request, "collect/cart_confirm_retrieve.html", context)
 
 
 class CartDeleteView(DeleteView):
     model = Cart
-    success_url = reverse_lazy("collect:seedsample-list")
+    success_url = reverse_lazy("collect:seedsample_list")
 
     def get_queryset(self):
         queryset = super().get_queryset()

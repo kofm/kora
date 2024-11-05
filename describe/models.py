@@ -120,7 +120,7 @@ class Description(models.Model):
         return self.protocol.traits.all()
 
     def get_absolute_url(self):
-        return reverse("describe:description-detail", kwargs={"pk": self.pk})
+        return reverse("describe:description_detail", kwargs={"pk": self.pk})
 
     def __str__(self):
         return f"{self.variety} ({self.name} description)"

@@ -24,7 +24,7 @@ class Storage(models.Model):
         return self.name
 
     def get_absolute_url(self):
-        return reverse("collect:storage-detail", args=(self.pk,))
+        return reverse("collect:storage_detail", args=(self.pk,))
 
     @property
     def total_positions(self):
@@ -45,6 +45,9 @@ class StoragePosition(models.Model):
 
     def __str__(self) -> str:
         return self.storage.name + "-" + self.name
+
+    def get_absolute_url(self):
+        return reverse("collect:storage_detail", args=(self.storage.pk,))
 
 
 class SeedSample(models.Model):

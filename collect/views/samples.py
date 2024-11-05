@@ -2,6 +2,14 @@ from django_tables2 import RequestConfig
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from breadcrumbs.generic import (
+    CreateBreadcrumbsMixin,
+    DeleteBreadcrumbsMixin,
+    DetailBreadcrumbsMixin,
+    ListBreadcrumbsMixin,
+    UpdateBreadcrumbsMixin,
+)
+from breadcrumbs.utils import generate_breadcrumbs
 from collect.filters import SeedSampleFilter
 from collect.forms import (
     CartSelectForm,
@@ -12,7 +20,12 @@ from collect.forms import (
 )
 from collect.models import SeedSample, Storage, StoragePosition
 from collect.serializers import SeedSampleSerializer
-from collect.tables import SeedSampleDuplicatesTable, SeedSampleInStorageTable, SeedSampleTable
+from collect.tables import (
+    SeedSampleDuplicatesTable,
+    SeedSampleInStorageTable,
+    SeedSampleTable,
+)
+from collect.views.carts import sort_cartitems
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.db.models import IntegerField, Q, Value
@@ -25,9 +38,8 @@ from django.utils.timezone import now
 from django.views.decorators.http import require_POST
 from django.views.generic import DetailView, ListView, UpdateView
 from django.views.generic.edit import CreateView, DeleteView
-from collect.views.carts import sort_cartitems
-from register.models import PlantVariety, PlantVarietyName
 from django_sortable_htmx.views import SortableView
+from register.models import PlantVariety, PlantVarietyName
 
 
 def seedsample_list(request):
@@ -56,6 +68,8 @@ def seedsample_list(request):
     if request.htmx:
         template_file = "collect/partials/seedsample_table.html"
 
+    context.update(generate_breadcrumbs(request, SeedSample))
+
     return TemplateResponse(request, template_file, context)
 
 
@@ -76,10 +90,11 @@ def seedsample_detail(request, pk):
     seedsample = get_object_or_404(SeedSample, pk=pk)
     context["seedsample"] = seedsample
     context["seedsample_duplicates_table"] = SeedSampleDuplicatesTable(seedsample.duplicate_samples)
+    context.update(generate_breadcrumbs(request, SeedSample, seedsample))
     return TemplateResponse(request, "collect/seedsample_detail.html", context)
 
 
-class SeedSampleCreateView(CreateView):
+class SeedSampleCreateView(CreateBreadcrumbsMixin, CreateView):
     form_class = SeedSampleForm
     model = SeedSample
 
@@ -126,11 +141,11 @@ class SeedSampleCreateView(CreateView):
 
     def get_success_url(self):
         if "btn-another" in self.request.POST:
-            return reverse("collect:seedsample-create")
+            return reverse("collect:seedsample_create")
         return super().get_success_url()
 
 
-class SeedSampleUpdateView(UpdateView):
+class SeedSampleUpdateView(UpdateBreadcrumbsMixin, UpdateView):
     form_class = SeedSampleForm
     model = SeedSample
 
@@ -149,9 +164,9 @@ class SeedSampleUpdateView(UpdateView):
         return context
 
 
-class SeedSampleDeleteView(DeleteView):
+class SeedSampleDeleteView(DeleteBreadcrumbsMixin, DeleteView):
     model = SeedSample
-    success_url = reverse_lazy("collect:seedsample-list")
+    success_url = reverse_lazy("collect:seedsample_list")
 
 
 class SeedSampleListAPI(APIView):
@@ -165,15 +180,16 @@ class SeedSampleListAPI(APIView):
         return Response(serializer.data)
 
 
-class StorageListView(ListView):
+class StorageListView(ListBreadcrumbsMixin, ListView):
     """
     View to display and sort Storage objects
     """
 
+    model = Storage
     queryset = Storage.objects.all().order_by("order", "pk")
 
 
-class StorageDetailView(DetailView):
+class StorageDetailView(DetailBreadcrumbsMixin, DetailView):
     model = Storage
 
     def get_context_data(self, **kwargs):
@@ -224,7 +240,7 @@ def storage_create(request):
                 StoragePosition.objects.create(name=f"{i + 1}", storage=storage)
         if "btn-another" in request.POST:
             return redirect(reverse("collect:storage-create"))
-        return redirect(reverse("collect:storage-detail", args=[storage.pk]))
+        return redirect(reverse("collect:storage_detail", args=[storage.pk]))
     return TemplateResponse(request, "collect/storage_form.html", {"form": form})
 
 
@@ -232,10 +248,10 @@ def storage_delete(request, pk):
     storage = get_object_or_404(Storage, pk=pk)
 
     if storage.stored_samples:
-        return redirect(reverse_lazy("collect:storage-list"))
+        return redirect(reverse_lazy("collect:storage_list"))
 
     if request.POST:
         storage.delete()
-        return redirect(reverse_lazy("collect:storage-list"))
+        return redirect(reverse_lazy("collect:storage_list"))
 
     return TemplateResponse(request, "collect/storage_confirm_delete.html", {"storage": storage})

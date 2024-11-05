@@ -39,7 +39,7 @@ def protocol_update(request, pk):
     else:
         form = TraitFormSet(instance=protocol)
     context = {"fs": form, "protocol": protocol, "nav_protocols": "active"}
-    context.update(generate_breadcrumbs(Protocol, protocol, True))
+    context.update(generate_breadcrumbs(request, Protocol, protocol))
     return render(request, "describe/protocol_manage.html", context)
 
 

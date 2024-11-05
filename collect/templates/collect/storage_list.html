@@ -2,18 +2,15 @@
 
 {% load static %}
 {% load render_sortable %}
+{% load breadcrumbs %}
 
 {% block title %}Collect{% endblock %}
 
 {% block container %}
-    <nav aria-label="breadcrumb">
-	<ol class="breadcrumb">
-	    <li class="breadcrumb-item"><a href="{% url "front:index" %}">Kora</a></li>
-	    <li class="breadcrumb-item">Storage</li>
-	</ol>
-    </nav>
 
-    <p class="display-1">Storage</p>
+    {% render_breadcrumbs %}
+
+    <p class="display-1">Storages</p>
 
     <div class="row">
 	<div class="col">

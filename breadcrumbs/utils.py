@@ -1,3 +1,5 @@
+import re
+
 from django.db.models.base import Model
 from django.urls import reverse
 
@@ -52,16 +54,25 @@ def detail_crumb(object):
     return (object.__str__(), view_url)
 
 
-def generate_breadcrumbs(model=None, object=None, create=False, update=False, delete=False):
+def generate_breadcrumbs(request, model=None, object=None):
     crumbs = []
+    url_name = get_view_url_name(request)
     if model:
         crumbs.append(list_crumb(model))
-    if create:
+    if re.search("_create$", url_name):
         crumbs.append(create_crumb(model))
     if object:
         crumbs.append(detail_crumb(object))
-        if update:
+        if re.search("_update$", url_name):
             crumbs.append(update_crumb(object))
-        if delete:
+        if re.search("_delete$", url_name):
             crumbs.append(delete_crumb(object))
     return {CONTEXT_KEY: crumbs}
+
+
+def get_view_url_name(request):
+    # ResolverMatch(func=register.views.plantvariety_views.plantvariety_list,
+    # args=(), kwargs={}, url_name='variety_list',
+    # app_names=['register'], namespaces=['register'],
+    # route='varieties')
+    return request.resolver_match.url_name
