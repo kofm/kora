@@ -1,6 +1,4 @@
 from django_tables2 import RequestConfig
-from rest_framework.response import Response
-from rest_framework.views import APIView
 
 from breadcrumbs.generic import (
     CreateBreadcrumbsMixin,
@@ -9,7 +7,7 @@ from breadcrumbs.generic import (
     ListBreadcrumbsMixin,
     UpdateBreadcrumbsMixin,
 )
-from breadcrumbs.utils import generate_breadcrumbs, add_plantvariety_breadcrumbs
+from breadcrumbs.utils import add_plantvariety_breadcrumbs, generate_breadcrumbs
 from collect.filters import SeedSampleFilter
 from collect.forms import (
     CartSelectForm,
@@ -19,13 +17,12 @@ from collect.forms import (
     StorageCreateForm,
 )
 from collect.models import SeedSample, Storage, StoragePosition
-from collect.serializers import SeedSampleSerializer
 from collect.tables import (
     SeedSampleDuplicatesTable,
     SeedSampleInStorageTable,
     SeedSampleTable,
 )
-from collect.views.carts import sort_cartitems
+from collect.views.carts import cartitems_sort
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.db.models import IntegerField, Q, Value
@@ -59,7 +56,7 @@ def seedsample_list(request):
         cart = request.user.carts.active() or None
         context["cart"] = cart
         if cart:
-            context["cartitems"] = sort_cartitems(request, cart.cartitem_set.all())
+            context["cartitems"] = cartitems_sort(request, cart.cartitem_set.all())
         cart_select_form = CartSelectForm(initial={"cart": cart}, user=request.user)
         context["cart_select_form"] = cart_select_form
 
@@ -75,11 +72,11 @@ def seedsample_list(request):
 
 @require_POST
 @login_required
-def cart_change_htmx(request):
+def cart_change(request):
     form = CartSelectForm(request.POST, user=request.user)
     if form.is_valid():
         cart = form.save()
-        cartitems = sort_cartitems(request, cart.cartitem_set.all())
+        cartitems = cartitems_sort(request, cart.cartitem_set.all())
         return TemplateResponse(request, "collect/partials/cart_offcanvas.html", {"cart": cart, "cartitems": cartitems})
     else:
         return HttpResponseBadRequest()
@@ -171,22 +168,7 @@ class SeedSampleDeleteView(DeleteBreadcrumbsMixin, DeleteView):
     success_url = reverse_lazy("collect:seedsample_list")
 
 
-class SeedSampleListAPI(APIView):
-    """
-    List all snippets, or create a new snippet.
-    """
-
-    def get(self, request, format=None):
-        snippets = SeedSample.objects.all()
-        serializer = SeedSampleSerializer(snippets, many=True)
-        return Response(serializer.data)
-
-
 class StorageListView(ListBreadcrumbsMixin, ListView):
-    """
-    View to display and sort Storage objects
-    """
-
     model = Storage
     queryset = Storage.objects.all().order_by("order", "pk")
 

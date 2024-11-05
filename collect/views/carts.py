@@ -1,15 +1,15 @@
+from collect.forms import CartForm, CartItemNewForm, CartItemSetWeightForm
+from collect.models import Cart, CartItem, SampleWeight
 from django.contrib.auth.decorators import login_required
+from django.db.models.query import QuerySet
 from django.http import HttpResponseRedirect
 from django.http.response import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.template.response import TemplateResponse
 from django.urls import reverse, reverse_lazy
 from django.utils.html import format_html
-from django.views.decorators.http import require_GET, require_POST, require_http_methods
+from django.views.decorators.http import require_GET, require_http_methods, require_POST
 from django.views.generic import DeleteView
-from collect.forms import CartForm, CartItemNewForm, CartItemSetWeightForm
-
-from collect.models import Cart, CartItem, SampleWeight
 
 
 @login_required
@@ -69,13 +69,13 @@ class CartDeleteView(DeleteView):
 
 @login_required
 @require_POST
-def cartitem_add(request, pk):
+def cartitem_create(request, pk):
     weight = request.POST.get("default-weight", None)
     form = CartItemNewForm({"seedsample": pk, "weight": weight}, user=request.user)
     if form.is_valid():
         form.save()
     cart = request.user.carts.active()
-    cartitems = sort_cartitems(request, cart.cartitem_set.all())
+    cartitems = cartitems_sort(request, cart.cartitem_set.all())
     return TemplateResponse(
         request,
         "collect/partials/cart_offcanvas.html",
@@ -83,7 +83,7 @@ def cartitem_add(request, pk):
     )
 
 
-def sort_cartitems(request, cartitems):
+def cartitems_sort(request, cartitems: QuerySet[CartItem]):
     CART_SORTING = {
         "variety": "sample__variety__name",
         "growing_season": "sample__growing_season",
@@ -103,7 +103,7 @@ def cart_sort(request):
     sort = request.GET.get("sort", None)
     request.session["cart_sorting"] = sort
     cart = request.user.carts.active()
-    cartitems = sort_cartitems(request, cart.cartitem_set.all())
+    cartitems = cartitems_sort(request, cart.cartitem_set.all())
     return TemplateResponse(
         request,
         "collect/partials/cart_offcanvas.html",
@@ -120,7 +120,7 @@ def cartitem_delete(request, pk):
     cartitem = get_object_or_404(CartItem, pk=pk)
     cartitem.delete()
     cart = request.user.carts.active()
-    cartitems = sort_cartitems(request, cart.cartitem_set.all())
+    cartitems = cartitems_sort(request, cart.cartitem_set.all())
     return TemplateResponse(
         request,
         "collect/partials/cart_offcanvas.html",

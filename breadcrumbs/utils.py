@@ -1,83 +1,93 @@
-import re
+from typing import Any, Dict, List, Optional, Tuple, Type
 
 from django.db.models.base import Model
+from django.http import HttpRequest
 from django.urls import reverse
 from register.models import PlantVariety
 
 CONTEXT_KEY = "KORA_BREADCRUMBS"
 
 
-def model_verbose(model):
+def breadcrumbs_context(breadcrumbs: list[tuple[str, str]]) -> dict:
+    return {CONTEXT_KEY: breadcrumbs}
+
+
+def model_verbose(model: Type[Model]) -> str:
     return model._meta.verbose_name_plural.title()
 
 
-def app_label(model):
-    return model._meta.app_label
-
-
-def model_label(model):
+def model_name(model: Type[Model]) -> str:
     return model._meta.verbose_name.replace(" ", "")
 
 
-def view_url(model, action):
-    url_name = f"{app_label(model)}:{model_label(model)}_{action}"
+def app_label(model: Type[Model]) -> str:
+    return model._meta.app_label
+
+
+def view_url(model: Type[Model], action: str) -> str:
+    url_name = f"{app_label(model)}:{model_name(model)}_{action}"
     if isinstance(model, Model):
         return reverse(url_name, args=[model.pk])
     return reverse(url_name)
 
 
-def add_crumbs(context, crumbs: list):
+def get_view_url_name(request: HttpRequest) -> str:
+    return request.resolver_match.url_name
+
+
+def list_crumb(model: Type[Model]) -> tuple[str, str]:
+    return (model_verbose(model), view_url(model, "list"))
+
+
+def create_crumb(model: Type[Model]) -> tuple[str, str]:
+    return ("Create", view_url(model, "create"))
+
+
+def update_crumb(instance: Model) -> tuple[str, str]:
+    return ("Update", view_url(instance, "update"))
+
+
+def delete_crumb(instance: Model) -> tuple[str, str]:
+    return ("Delete", view_url(instance, "delete"))
+
+
+def detail_crumb(instance: Model) -> tuple[str, str]:
+    if hasattr(instance, "get_absolute_url") and callable(getattr(instance, "get_absolute_url")):
+        view_url = instance.get_absolute_url()
+    else:
+        view_url = view_url(instance)
+    return (instance.__str__(), view_url)
+
+
+def add_crumbs(context: Dict[str, Any], crumbs: List[Tuple[str, str]]) -> Dict[str, Any]:
     context[CONTEXT_KEY] = crumbs
     return context
 
 
-def list_crumb(model):
-    return (model_verbose(model), view_url(model, "list"))
-
-
-def create_crumb(model):
-    return ("Create", view_url(model, "create"))
-
-
-def update_crumb(object):
-    return ("Update", view_url(object, "update"))
-
-
-def delete_crumb(object):
-    return ("Delete", view_url(object, "delete"))
-
-
-def detail_crumb(object):
-    if hasattr(object, "get_absolute_url") and callable(getattr(object, "get_absolute_url")):
-        view_url = object.get_absolute_url()
-    else:
-        view_url = view_url(object)
-    return (object.__str__(), view_url)
-
-
-def generate_breadcrumbs(request, model=None, object=None):
-    crumbs = []
+def generate_breadcrumbs(
+    request: HttpRequest, model: Optional[Type[Model]] = None, instance: Optional[Model] = None
+) -> dict:
+    breadcrumbs = []
     url_name = get_view_url_name(request)
+
     if model:
-        crumbs.append(list_crumb(model))
-    if re.search("_create$", url_name):
-        crumbs.append(create_crumb(model))
-    if object:
-        crumbs.append(detail_crumb(object))
-        if re.search("_update$", url_name):
-            crumbs.append(update_crumb(object))
-        if re.search("_delete$", url_name):
-            crumbs.append(delete_crumb(object))
-    return {CONTEXT_KEY: crumbs}
+        breadcrumbs.append(list_crumb(model))
+
+    if model and url_name.endswith("_create"):
+        breadcrumbs.append(create_crumb(model))
+
+    if instance:
+        breadcrumbs.append(detail_crumb(instance))
+
+    if instance and url_name.endswith("_update"):
+        breadcrumbs.append(update_crumb(instance))
+
+    if instance and url_name.endswith("_delete"):
+        breadcrumbs.append(delete_crumb(instance))
+
+    return breadcrumbs_context(breadcrumbs)
 
 
-def add_plantvariety_breadcrumbs(crumbs, plantvariety_object):
-    return {CONTEXT_KEY: [list_crumb(PlantVariety), detail_crumb(plantvariety_object)] + crumbs[CONTEXT_KEY]}
-
-
-def get_view_url_name(request):
-    # ResolverMatch(func=register.views.plantvariety_views.plantvariety_list,
-    # args=(), kwargs={}, url_name='variety_list',
-    # app_names=['register'], namespaces=['register'],
-    # route='varieties')
-    return request.resolver_match.url_name
+def add_plantvariety_breadcrumbs(breadcrumbs: list[tuple[str, str]], plantvariety_instance: PlantVariety) -> dict:
+    plantvariety_breadcrumbs = [list_crumb(PlantVariety), detail_crumb(plantvariety_instance)]
+    return breadcrumbs_context(plantvariety_breadcrumbs + breadcrumbs[CONTEXT_KEY])

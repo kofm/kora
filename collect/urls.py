@@ -6,7 +6,6 @@ app_name = "collect"
 
 urlpatterns = [
     path("", views.seedsample_list, name="seedsample_list"),
-    path("api", views.SeedSampleListAPI.as_view(), name="seedsample-list-api"),
     path("<int:pk>", views.seedsample_detail, name="seedsample-detail"),
     path("new", views.SeedSampleCreateView.as_view(), name="seedsample_create"),
     path("storage", views.StorageListView.as_view(), name="storage_list"),
@@ -14,7 +13,6 @@ urlpatterns = [
     path("storage/<int:pk>", views.StorageDetailView.as_view(), name="storage_detail"),
     path("storage/<int:pk>/delete", views.storage_delete, name="storage_delete"),
     path("storage/sort", views.StorageSortView.as_view(), name="storage-sort"),
-    path("cart/change", views.cart_change_htmx, name="cart-change"),
     path(
         "<int:pk>/update",
         views.SeedSampleUpdateView.as_view(),
@@ -25,12 +23,12 @@ urlpatterns = [
         views.SeedSampleDeleteView.as_view(),
         name="seedsample_delete",
     ),
-    path("cart/change", views.cart_change_htmx, name="cart-change"),
+    path("cart/change", views.cart_change, name="cart-change"),
     path("cart/new", views.cart_create, name="cart-create"),
     path("cart/<int:pk>/update", views.cart_update, name="cart-update"),
     path("cart/<int:pk>/delete", views.CartDeleteView.as_view(), name="cart-delete"),
     path("cart/<int:pk>/retrieve", views.cart_retrieve, name="cart-retrieve"),
-    path("<int:pk>/cart/add", views.cartitem_add, name="cartitem-add"),
+    path("<int:pk>/cart/add", views.cartitem_create, name="cartitem-add"),
     path("cart/sort", views.cart_sort, name="cart-sort"),
     path("<int:pk>/cart/delete", views.cartitem_delete, name="cartitem-delete"),
     path(
