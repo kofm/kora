@@ -2,7 +2,6 @@ from typing import Any, Dict
 
 from django_tables2 import RequestConfig
 
-from breadcrumbs.decorators import list_breadcrumb
 from breadcrumbs.generic import (
     CrumbsCreateView,
     CrumbsDeleteView,

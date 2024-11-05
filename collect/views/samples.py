@@ -256,4 +256,7 @@ def storage_delete(request, pk):
         storage.delete()
         return redirect(reverse_lazy("collect:storage_list"))
 
-    return TemplateResponse(request, "collect/storage_confirm_delete.html", {"storage": storage})
+    context = {"storage": storage}
+    context.update(generate_breadcrumbs(request, Storage, storage))
+
+    return TemplateResponse(request, "collect/storage_confirm_delete.html", context)

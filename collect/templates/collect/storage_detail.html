@@ -12,16 +12,16 @@
 
     <h1 class="display-1">
 	Storage {{ storage }}
-	{% if sample_count == 0 %}
-	<a
-	    class="text-decoration-none link-body-emphasis"
-	    href="{% url 'collect:storage-delete' storage.pk %}">
-	{% else %}
+	{% if storage.stored_samples %}
 	<a
 	    class="text-decoration-none link-body-emphasis text-muted"
 	    data-bs-toggle="tooltip"
 	    data-bs-title="Can't delete. Storage not empty."
 	    >
+	{% else %}
+	<a
+	    class="text-decoration-none link-body-emphasis"
+	    href="{% url 'collect:storage_delete' storage.pk %}">
 	{% endif %}
 	    <i class="bi bi-trash" style="font-size:2rem"></i>
 	</a>
