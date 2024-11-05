@@ -2,6 +2,7 @@ import re
 
 from django.db.models.base import Model
 from django.urls import reverse
+from register.models import PlantVariety
 
 CONTEXT_KEY = "KORA_BREADCRUMBS"
 
@@ -68,6 +69,10 @@ def generate_breadcrumbs(request, model=None, object=None):
         if re.search("_delete$", url_name):
             crumbs.append(delete_crumb(object))
     return {CONTEXT_KEY: crumbs}
+
+
+def add_plantvariety_breadcrumbs(crumbs, plantvariety_object):
+    return {CONTEXT_KEY: [list_crumb(PlantVariety), detail_crumb(plantvariety_object)] + crumbs[CONTEXT_KEY]}
 
 
 def get_view_url_name(request):

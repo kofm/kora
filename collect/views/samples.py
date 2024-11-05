@@ -9,7 +9,7 @@ from breadcrumbs.generic import (
     ListBreadcrumbsMixin,
     UpdateBreadcrumbsMixin,
 )
-from breadcrumbs.utils import generate_breadcrumbs
+from breadcrumbs.utils import generate_breadcrumbs, add_plantvariety_breadcrumbs
 from collect.filters import SeedSampleFilter
 from collect.forms import (
     CartSelectForm,
@@ -90,7 +90,9 @@ def seedsample_detail(request, pk):
     seedsample = get_object_or_404(SeedSample, pk=pk)
     context["seedsample"] = seedsample
     context["seedsample_duplicates_table"] = SeedSampleDuplicatesTable(seedsample.duplicate_samples)
-    context.update(generate_breadcrumbs(request, SeedSample, seedsample))
+    crumbs = generate_breadcrumbs(request, SeedSample, seedsample)
+    crumbs = add_plantvariety_breadcrumbs(crumbs, seedsample.variety)
+    context.update(crumbs)
     return TemplateResponse(request, "collect/seedsample_detail.html", context)
 
 
