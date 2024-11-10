@@ -5,7 +5,7 @@ from breadcrumbs.generic import (
     CrumbsCreateView,
     UpdateBreadcrumbsMixin,
 )
-from breadcrumbs.utils import detail_crumb, generate_breadcrumbs, list_crumb
+from breadcrumbs.utils import detail_breadcrumb, generate_breadcrumbs, list_breadcrumb
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.urls import reverse
@@ -35,7 +35,11 @@ class VarietalParameterCreate(NavPlantActiveContext, CrumbsCreateView):
 
     @property
     def crumbs(self):
-        return [list_crumb(self.variety._meta.model), detail_crumb(self.variety), ("Create Parameter", None)]
+        return [
+            list_breadcrumb(self.variety._meta.model),
+            detail_breadcrumb(self.variety),
+            ("Create Parameter", None),
+        ]
 
     @property
     def variety(self):

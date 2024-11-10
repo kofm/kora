@@ -7,12 +7,12 @@ from django.views.generic import (
 )
 
 from .utils import (
-    add_crumbs,
-    create_crumb,
-    delete_crumb,
-    detail_crumb,
-    list_crumb,
-    update_crumb,
+    add_breadcrumbs,
+    create_breadcrumb,
+    delete_breadcrumb,
+    detail_breadcrumb,
+    list_breadcrumb,
+    update_breadcrumb,
 )
 
 
@@ -23,37 +23,37 @@ class BaseBreadcrumbsMixin:
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
-        return add_crumbs(context, self.crumbs)
+        return add_breadcrumbs(context, self.crumbs)
 
 
 class CreateBreadcrumbsMixin(BaseBreadcrumbsMixin):
     @property
     def crumbs(self):
-        return [list_crumb(self.model), create_crumb(self.model)]
+        return [list_breadcrumb(self.model), create_breadcrumb(self.model)]
 
 
 class UpdateBreadcrumbsMixin(BaseBreadcrumbsMixin):
     @property
     def crumbs(self):
-        return [list_crumb(self.model), detail_crumb(self.object), update_crumb(self.object)]
+        return [list_breadcrumb(self.model), detail_breadcrumb(self.object), update_breadcrumb(self.object)]
 
 
 class DeleteBreadcrumbsMixin(BaseBreadcrumbsMixin):
     @property
     def crumbs(self):
-        return [list_crumb(self.model), detail_crumb(self.object), delete_crumb(self.object)]
+        return [list_breadcrumb(self.model), detail_breadcrumb(self.object), delete_breadcrumb(self.object)]
 
 
 class DetailBreadcrumbsMixin(BaseBreadcrumbsMixin):
     @property
     def crumbs(self):
-        return [list_crumb(self.model), detail_crumb(self.object)]
+        return [list_breadcrumb(self.model), detail_breadcrumb(self.object)]
 
 
 class ListBreadcrumbsMixin(BaseBreadcrumbsMixin):
     @property
     def crumbs(self):
-        return [list_crumb(self.model)]
+        return [list_breadcrumb(self.model)]
 
 
 class CrumbsCreateView(CreateBreadcrumbsMixin, CreateView):

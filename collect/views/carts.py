@@ -1,3 +1,4 @@
+from breadcrumbs.utils import generate_breadcrumbs
 from collect.forms import CartForm, CartItemNewForm, CartItemSetWeightForm
 from collect.models import Cart, CartItem, SampleWeight
 from django.contrib.auth.decorators import login_required
