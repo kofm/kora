@@ -1,31 +1,24 @@
-"""Models to create varieties descriptions.
+"""Characterization-related models."""
 
-These are the models related to the describe app, used for creating
-varieties descriptions.
-"""
-
+from django.contrib.auth.models import User
 from django.db import models
+from django.db.models import QuerySet, Q
 from django.db.models.aggregates import Count
 from django.db.models.functions import Coalesce, Concat
 from django.urls import reverse
 from django.utils.functional import cached_property
 from register.models import PlantSpecies, PlantVariety
-from django.contrib.auth.models import User
 
 
 class ProtocolManager(models.Manager):
     def most_used(self):
         if Protocol.objects.count() > 0:
             return self.annotate(count=Coalesce(Count("descriptions"), 0)).order_by("-count").first()
-        else:
-            return None
+        return None
 
 
 class Protocol(models.Model):
-    """
-    Stores a Protocols used in descriptions. It is basically a collection
-    of traits.
-    """
+    """A Protocol is a list of descriptors (Trait)."""
 
     name = models.CharField(max_length=200, help_text="the name of the protocol")
     plantspecies = models.ForeignKey(
@@ -33,56 +26,24 @@ class Protocol(models.Model):
         on_delete=models.PROTECT,
         help_text="reference to the specie it is meant to use with",
     )
-    url_ref = models.URLField(blank=True, null=True, help_text="the URL reference to the protocol")
+    url_ref = models.URLField(blank=True, default="", help_text="the URL reference to the protocol")
     objects = ProtocolManager()
-
-    def traits_list(self):
-        return self.traits.all().order_by("numeric_id").values("pk", "numeric_id", "description")
-
-    def traits_states_list(self):
-        state_description_annotation = {
-            "state_description": Concat(
-                "numeric_id",
-                models.Value(". "),
-                "description",
-                output_field=models.CharField(),
-            )
-        }
-        traits_states_list = [
-            {
-                "pk": trait["pk"],
-                "numeric_id": trait["numeric_id"],
-                "description": trait["description"],
-                "states": list(
-                    State.objects.filter(trait=trait["pk"])
-                    .annotate(**state_description_annotation)
-                    .values("pk", "numeric_id", "state_description")
-                ),
-            }
-            for trait in self.traits_list()
-        ]
-        return traits_states_list
-
-    def get_absolute_url(self):
-        return reverse("describe:protocol_detail", kwargs={"pk": self.pk})
 
     def __str__(self):
         return f"{self.name} ({self.plantspecies.latin_name})"
 
+    def get_absolute_url(self):
+        return reverse("describe:protocol_detail", kwargs={"pk": self.pk})
+
 
 class DescriptionManager(models.Manager):
-    def filter_by_expression(self, filters):
-        description_ids = None
-        for filter in filters:
-            query_result = self.filter(
-                models.Q(expressions__state__id__in=filter["state"])
-                | models.Q(expressions__state__related_states__id__in=filter["state"])
-            ).values_list("pk", flat=True)
-            if description_ids is None:
-                description_ids = query_result
-            else:
-                description_ids = description_ids.intersection(query_result)
-        return self.filter(pk__in=list(description_ids)).select_related("variety").select_related("protocol")
+    def filter_by_expressions(self, states_list: list[dict[str:list]]):
+        query = Q()
+        for flt in states_list:
+            query &= Q(expressions__state__id__in=flt["state"]) | Q(
+                expressions__state__related_states__pk__in=flt["state"]
+            )
+        return self.select_related("variety", "protocol").filter(query)
 
 
 class Description(models.Model):

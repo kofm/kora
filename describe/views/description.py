@@ -100,7 +100,7 @@ def description_list(request):
     if request.session.get("description_filter", None):
         # If a Description filter session variable exists, get the matching
         # Descriptions and instantiate the formset with the corresponding data
-        queryset = Description.objects.filter_by_expression(request.session.get("description_filter"))
+        queryset = Description.objects.filter_by_expressions(request.session.get("description_filter"))
         # Merge unique is needed here because we need all the available traits
         # merged with the actual filter. If we pass description_filter alone
         # the formset will be instantiated with only the filtered traits
