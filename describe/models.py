@@ -2,7 +2,7 @@
 
 from django.contrib.auth.models import User
 from django.db import models
-from django.db.models import QuerySet, Q
+from django.db.models import QuerySet
 from django.db.models.aggregates import Count
 from django.db.models.functions import Coalesce, Concat
 from django.urls import reverse
@@ -35,15 +35,43 @@ class Protocol(models.Model):
     def get_absolute_url(self):
         return reverse("describe:protocol_detail", kwargs={"pk": self.pk})
 
+    def traits_list(self):
+        return self.traits.all().order_by("numeric_id").values("pk", "numeric_id", "description")
+
+    def traits_states_list(self):
+        state_description_annotation = {
+            "state_description": Concat(
+                "numeric_id",
+                models.Value(". "),
+                "description",
+                output_field=models.CharField(),
+            )
+        }
+        return [
+            {
+                "pk": trait["pk"],
+                "numeric_id": trait["numeric_id"],
+                "description": trait["description"],
+                "states": list(
+                    State.objects.filter(trait=trait["pk"])
+                    .annotate(**state_description_annotation)
+                    .values("pk", "numeric_id", "state_description")
+                ),
+            }
+            for trait in self.traits_list()
+        ]
+
 
 class DescriptionManager(models.Manager):
-    def filter_by_expressions(self, states_list: list[dict[str:list]]):
-        query = Q()
-        for flt in states_list:
-            query &= Q(expressions__state__id__in=flt["state"]) | Q(
-                expressions__state__related_states__pk__in=flt["state"]
-            )
-        return self.select_related("variety", "protocol").filter(query)
+    def filter_by_expressions(self, expressions_filter: list[dict[str:list]]) -> QuerySet:
+        description_ids = None
+        for flt in expressions_filter:
+            query_result = self.filter(
+                models.Q(expressions__state__id__in=flt["state"])
+                | models.Q(expressions__state__related_states__id__in=flt["state"])
+            ).values_list("pk", flat=True)
+            description_ids = query_result if description_ids is None else description_ids.intersection(query_result)
+        return self.filter(pk__in=list(description_ids)).select_related("variety").select_related("protocol")
 
 
 class Description(models.Model):
@@ -174,7 +202,7 @@ class Expression(models.Model):
 
 class DescriptionsUserList(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    name = models.CharField(max_length=200)
+    name = models.CharField(max_length=200, help_text="The identificative name of the list")
     is_active = models.BooleanField(default=False)
 
     def __str__(self) -> str:

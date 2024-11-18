@@ -11,9 +11,8 @@ class SortableView(View):
         if self.model is None:
             raise Http404("A model must be provided")
 
-    def post(self, request, *args, **kwargs):
-
-        try: 
+    def post(self, request):
+        try:
             sorted_ids = [int(pk) for pk in request.POST.getlist("order")]
         except ValueError:
             return HttpResponseBadRequest("Invalid object ids provided.", content_type="text/plain")
@@ -26,8 +25,8 @@ class SortableView(View):
         sorted_mapping = {pk: order for order, pk in enumerate(sorted_ids)}
 
         with transaction.atomic():
-            for object in queryset:
-                object.order = sorted_mapping[object.pk]
+            for instance in queryset:
+                instance.order = sorted_mapping[instance.pk]
 
             self.model.objects.bulk_update(queryset, ["order"])
 

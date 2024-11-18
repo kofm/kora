@@ -1,0 +1,100 @@
+{% load render_sortable %}
+<div id="descriptionsuserListUl" class="row">
+    {% if descriptionsuserlist %}
+
+	    <div class="col mt-3">
+	        <p class="text-end">
+                <a class="link-body-emphasis text-decoration-none ms-3"
+                   data-bs-toggle="tooltip"
+                   data-bs-title="Create List"
+                   data-bs-offset="0,20"
+                   hx-get="{% url 'describe:descriptionsuserlist-create' %}"
+                   hx-target="#listSelectInput"
+                >
+                    <i class="bi bi-plus-circle h4"></i>
+                </a>
+		        <a href=""
+                   class="link-body-emphasis text-decoration-none ms-3"
+                   data-bs-toggle="tooltip"
+                   data-bs-title="Update List"
+                   data-bs-offset="0,20"
+                   hx-get="{% url 'describe:descriptionsuserlist_update' descriptionsuserlist.pk %}"
+                   hx-target="#listSelectInput"
+                >
+		            <i class="bi bi-pencil h4"></i>
+		        </a>
+		        <a
+                    href="{% url 'describe:description-compare' %}"
+                    class="link-body-emphasis text-decoration-none ms-3"
+                    data-bs-toggle="tooltip"
+                    data-bs-title="Compare descriptions"
+                    data-bs-offset="0,20"
+                >
+                    <i class="bi bi-file-diff h4"></i>
+		        </a>
+		        <a href="{% url 'restapi:descriptionslists' descriptionsuserlist.pk %}"
+		           class="link-body-emphasis text-decoration-none ms-3"
+                   data-bs-toggle="tooltip"
+                   data-bs-title="Download raw data"
+                   data-bs-offset="0,20"
+                >
+		            <i class="bi bi-cloud-download h4"></i>
+		        </a>
+		        <a href="{% url 'describe:descriptionsuserlist-delete' descriptionsuserlist.pk %}"
+                   class="link-body-emphasis text-decoration-none ms-3"
+                   data-bs-toggle="tooltip"
+                   data-bs-title="Delete list"
+                   data-bs-offset="0,20"
+		        >
+		            <i class="bi bi-trash h4"></i>
+		        </a>
+	        </p>
+
+            <hr class="mt-3"/>
+
+            {% render_sortable descriptionsuserlist.descriptions.all "descriptionsuserlist" "list-group mt-5" "describe:descriptionsuserlist-sort" "describe/partials/descriptionsuserlist/detail_list_item.html"  %}
+
+	        <!-- <ul class="list-group mt-5">
+		         {% for description in descriptionsuserlist.descriptions.all %}
+		         <li class="list-group-item d-flex justify-content-between align-items-start">
+		         <a
+		         class="text-decoration-none link-body-emphasis"
+		         href="{% url 'describe:description_detail' description.description.pk %}"
+		         >
+		         {{ description }}
+		         </a>
+		         <span class="badge">
+		         <a class="text-decoration-none link-body-emphasis" href=""
+		         hx-get="{% url 'describe:descriptionsuserlistelement-delete' description.pk %}"
+		         hx-target="closest li"
+		         hx-swap="outerHTML"
+		         >
+		         <i class="bi bi-x-lg"></i>
+		         </a>
+		         </span>
+		         </li>
+		         {% endfor %}
+	             </ul> -->
+	    </div>
+    {% endif %}
+
+    <!-- Modal -->
+    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="exampleModalLabel">Modal title</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    ...
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary">Save changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>

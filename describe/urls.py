@@ -10,9 +10,11 @@ urlpatterns = [
     path("reset", views.description_list_reset, name="description-list-reset"),
     path("find_similar", views.description_find_similar, name="description-find-similar"),
     path("userlist/create", views.descriptionsuserlist_create, name="descriptionsuserlist-create"),
+    path("userlist/<int:pk>/update", views.descriptionsuserlist_update, name="descriptionsuserlist_update"),
     path("userlist/<int:pk>/delete", views.descriptionsuserlist_delete, name="descriptionsuserlist-delete"),
     path("userlist/activate", views.descriptionsuserlist_activate, name="descriptionsuserlist-activate"),
     path("userlist/add", views.descriptionsuserlistelement_create, name="descriptionsuserlist-add"),
+    path("userlist/select_input", views.descriptionuserlist_select_input, name="descriptionsuserlist_select_input"),
     path(
         "userlist/element/<int:pk>/delete",
         views.descriptionsuserlistelement_delete,

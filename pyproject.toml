@@ -19,6 +19,7 @@ ignore = [
     "TD003",
     "FIX002", # too verbose descriptions of todos
     "D10",
+    "INP001",
 ]
 
 [tool.ruff.lint.pydocstyle]

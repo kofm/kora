@@ -1,16 +1,19 @@
 """DescriptionsList Views."""
 
-from django.db import transaction
+from describe.forms import DescriptionsUserListCreateForm, DescriptionsUserListSelect
+from describe.models import (
+    Description,
+    DescriptionsUserList,
+    DescriptionsUserListElement,
+)
 from django.contrib.auth.decorators import login_required
+from django.db import transaction
 from django.db.models import Max
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.response import TemplateResponse
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.views.decorators.http import require_POST
-
-from describe.forms import DescriptionsUserListCreateForm
-from describe.models import Description, DescriptionsUserList, DescriptionsUserListElement
 
 
 @login_required
@@ -22,9 +25,40 @@ def descriptionsuserlist_create(request):
             instance = form.save(commit=False)
             instance.user = request.user
             instance.save()
-            return redirect(reverse_lazy("describe:description_list"))
-    return TemplateResponse(
-        request, "describe/descriptionsuserlist_form.html", {"form": form, "object_to_create": "List"}
+            return redirect(reverse("describe:descriptionsuserlist_select_input"))
+    return render(
+        request,
+        "describe/partials/descriptionsuserlist/create_form.html",
+        {
+            "form": form,
+            "model_name": "Descriptions List",
+        },
+    )
+
+
+@login_required
+def descriptionsuserlist_update(request, pk):
+    instance = get_object_or_404(DescriptionsUserList, pk=pk)
+    if request.method == "POST":
+        form = DescriptionsUserListCreateForm(request.POST, instance=instance)
+        if form.is_valid():
+            instance = form.save(commit=False)
+            instance.user = request.user
+            instance.save()
+            return redirect(reverse("describe:descriptionsuserlist_select_input"))
+    form = DescriptionsUserListCreateForm(instance=instance)
+    return render(
+        request,
+        "describe/partials/descriptionsuserlist/update_form.html",
+        {"form": form, "instance": instance},
+    )
+
+
+def descriptionuserlist_select_input(request):
+    return render(
+        request,
+        "describe/partials/descriptionsuserlist/select_input.html",
+        {"descriptionsuserlist_form": DescriptionsUserListSelect(request=request)},
     )
 
 
@@ -62,16 +96,16 @@ def descriptionsuserlistelement_create(request):
 
     return render(
         request,
-        "describe/partials/descriptionsuserlist_detail_list_item.html",
+        "describe/partials/descriptionsuserlist/detail_list_item.html",
         {"object": element},
     )
 
 
 @login_required
 def descriptionsuserlistelement_delete(request, pk):
-    elem = get_object_or_404(DescriptionsUserListElement, pk=pk)
-    if request.user == elem.desc_list.user:
-        elem.delete()
+    element = get_object_or_404(DescriptionsUserListElement, pk=pk)
+    if request.user == element.desc_list.user:
+        element.delete()
     return HttpResponse()
 
 
@@ -88,6 +122,6 @@ def descriptionsuserlist_activate(request):
         descriptionsuserlist = None
     return render(
         request,
-        "describe/partials/descriptionsuserlist_detail_ul.html",
+        "describe/partials/descriptionsuserlist/detail_ul.html",
         {"descriptionsuserlist": descriptionsuserlist},
     )

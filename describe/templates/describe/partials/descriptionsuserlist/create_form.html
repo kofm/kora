@@ -1,0 +1,12 @@
+{% load widget_tweaks %}
+{% load crispy_forms_tags %}
+
+<form id="descriptionsuserlistCreateForm" hx-post={% url 'describe:descriptionsuserlist-create' %} hx-swap="innerHTML">
+    <div class="input-group">
+        <div class="form-floating">
+            {% render_field form.name class+='form-control' script="on click from elsewhere wait 100ms then fetch /descriptions/userlist/select_input then put the result into #listSelectInput then call htmx.process(#listSelectInput)" %}
+            <label for="{{ form.name.id_for_label }}">Create List</label>
+        </div>
+        <button class="btn btn-outline-success" type="submit"><i class="bi bi-check"></i></button>
+    </div>
+</form>

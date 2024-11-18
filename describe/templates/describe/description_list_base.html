@@ -8,7 +8,7 @@
 {% block container %}
 
     {% render_breadcrumbs %}
-    
+
     <div class="row mb-3">
         <div class="col">
             <h1 class="display-1">
@@ -22,9 +22,9 @@
 
 
             <div class="dropdown dropup">
-                
-                    <i class="bi bi-three-dots-vertical h4 mx-3" data-bs-toggle="dropdown" aria-expande="false"></i>
-                
+
+                <i class="bi bi-three-dots-vertical h4 mx-3" data-bs-toggle="dropdown" aria-expande="false"></i>
+
                 <ul class="dropdown-menu">
                     <li>
                         <a class="dropdown-item" href="{% url 'describe:description-list-reset' %}">
@@ -39,11 +39,11 @@
                 </ul>
             </div>
 
-	    <span data-bs-toggle="offcanvas" data-bs-target="#desListOffcanvas" aria-controls="desListOffcanvas">
-		<a class="text-decoration-none link-body-emphasis" data-bs-toggle="tooltip" data-bs-title="Show list" data-bs-delay="500">
+	        <span data-bs-toggle="offcanvas" data-bs-target="#desListOffcanvas" aria-controls="desListOffcanvas">
+		        <a class="text-decoration-none link-body-emphasis" data-bs-toggle="tooltip" data-bs-title="Show list" data-bs-delay="500">
                     <i class="h1 bi bi-list-stars"></i>
                 </a>
-	    </span>
+	        </span>
         </div>
     </div>
     {% block main %}

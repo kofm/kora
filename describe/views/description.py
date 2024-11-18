@@ -288,9 +288,6 @@ def description_update(request, pk):
 
 @nav_describe
 def description_create(request):
-    # TODO: Should create different breadcrumbs depending if
-    # initialised with a variety.
-    # e.g. Kora > Varieties > Carnaroli > Descriptions > Create
     context = {}
 
     form = DescriptionForm(request.POST or None)
@@ -318,19 +315,22 @@ class DescriptionDeleteView(DeleteBreadcrumbsMixin, NavDescribeActiveContext, De
 def description_expression_update(request, pk):
     description = get_object_or_404(Description, pk=pk)
     traits = description.available_traits
-    formset = list()
+    formset = []
+
     for trait in traits:
         expressions = description.expressions.filter(state__trait=trait)
-        forms = list()
+        forms = []
         if expressions.exists():
             for expression in expressions:
                 form = ExpressionForm(instance=expression, trait=trait)
                 forms.append(form)
         formset.append({"trait": trait, "forms": forms})
+    context = {"description": description, "formset": formset}
+    context.update(generate_breadcrumbs(request, Description, description))
     return TemplateResponse(
         request,
         "describe/description_expression_update.html",
-        {"description": description, "formset": formset},
+        context,
     )
 
 
