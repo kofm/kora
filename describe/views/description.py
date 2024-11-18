@@ -248,10 +248,7 @@ def description_compare(request):
                 if expressions.exists():
                     expression = expressions.last()
                     expression_id = expression.state.numeric_id
-                    row.append(
-                        f"{expression_id}. {
-                               expression.state.description}"
-                    )
+                    row.append(f"{expression_id}. {expression.state.description}")
                     expression_ids.append(expression_id)
                 else:
                     row.append("")
