@@ -2,18 +2,15 @@
 
 {% load django_tables2 %}
 {% load breadcrumbs %}
+{% load components %}
 
 {% block title %}Plant Species{% endblock %}
 
 {% block container %}
     {% render_breadcrumbs %}
-    <p class="display-1">
-        Plant Species
-        <a class="btn btn-secondary ms-2"
-           href="{% url 'register:plantspecies_create' %}">
-            Create
-        </a>
-    </p>
+
+    {% url 'register:plantspecies_create' as create_url %}
+    {% page_header "Plant Species" create_url=create_url %}
 
     <div class="row">
         <div class="col">

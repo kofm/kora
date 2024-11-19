@@ -19,6 +19,7 @@ class Storage(models.Model):
 
     class Meta:
         ordering = ["name"]
+        verbose_name_plural = "Storage"
 
     def __str__(self) -> str:
         return self.name

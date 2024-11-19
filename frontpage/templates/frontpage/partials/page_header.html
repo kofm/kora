@@ -1,0 +1,28 @@
+<div class="row mb-3">
+    <div class="col">
+        <h1 class="display-1">
+            {{ page_title }}
+        </h1>
+    </div>
+    <div class="col d-flex justify-content-end align-items-center">
+
+        <a class="btn btn-outline-primary ms-2" href="{{ create_url }}">
+            Create
+        </a>
+
+        {% if menu_items %}
+            <div class="dropdown dropup">
+                <i class="bi bi-three-dots-vertical h4 mx-3" data-bs-toggle="dropdown" aria-expande="false"></i>
+                <ul class="dropdown-menu">
+                    {% for item in menu_items %}
+                        <li>
+                            <a class="dropdown-item" href="{{ item.url }}">
+                                {{ item.name }}
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+    </div>
+</div>

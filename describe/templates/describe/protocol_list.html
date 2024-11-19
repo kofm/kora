@@ -2,6 +2,7 @@
 
 {% load static %}
 {% load breadcrumbs %}
+{% load components %}
 
 
 {% block title %}Protocols{% endblock %}
@@ -10,9 +11,9 @@
 
     {% render_breadcrumbs %}
 
-    <h1 class="display-1">Protocols <a class="btn btn-secondary" href="{% url 'describe:protocol_create' %}">Create</a>
-    </h1>
-
+    {% url 'describe:protocol_create' as create_url %}
+    {% page_header "Protocols" create_url=create_url %}
+    
     {% if protocols %}
         <div class="row mt-3">
             <div class="col">

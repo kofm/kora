@@ -2,6 +2,7 @@
 
 {% load static %}
 {% load breadcrumbs %}
+{% load components %}
 
 {% block title %}Descriptions{% endblock %}
 
@@ -9,43 +10,9 @@
 
     {% render_breadcrumbs %}
 
-    <div class="row mb-3">
-        <div class="col">
-            <h1 class="display-1">
-                Descriptions
-            </h1>
-        </div>
-        <div class="col d-flex justify-content-end align-items-center">
-            <a class="btn btn btn-outline-primary ms-2" href="{% url 'describe:description_create' %}">
-                Create
-            </a>
-
-
-            <div class="dropdown dropup">
-
-                <i class="bi bi-three-dots-vertical h4 mx-3" data-bs-toggle="dropdown" aria-expande="false"></i>
-
-                <ul class="dropdown-menu">
-                    <li>
-                        <a class="dropdown-item" href="{% url 'describe:description-list-reset' %}">
-                            Reset Filters
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item" href="{% url 'describe:description-list-export' %}">
-                            Export
-                        </a>
-                    </li>
-                </ul>
-            </div>
-
-	        <span data-bs-toggle="offcanvas" data-bs-target="#desListOffcanvas" aria-controls="desListOffcanvas">
-		        <a class="text-decoration-none link-body-emphasis" data-bs-toggle="tooltip" data-bs-title="Show list" data-bs-delay="500">
-                    <i class="h1 bi bi-list-stars"></i>
-                </a>
-	        </span>
-        </div>
-    </div>
+    {% url 'describe:description_create' as create_url %}
+    {% page_header "Descriptions" create_url=create_url %}
+    
     {% block main %}
     {% endblock %}
 

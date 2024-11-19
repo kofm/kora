@@ -4,6 +4,7 @@
 {% load render_table from django_tables2 %}
 {% load static %}
 {% load breadcrumbs %}
+{% load components %}
 
 {% block javascript %}
     <link rel="stylesheet" href="{% static 'flags/sprite.css' %}">
@@ -16,10 +17,9 @@
 {% block container %}
 
     {% render_breadcrumbs %}
-
-    <h1 class="display-1">
-        Entities <a class="btn btn-secondary" href="{% url 'register:entity_create' %}">Create</a>
-    </h1>
+    {% url 'register:entity_create' as create_url %}
+    {% page_header "Entities" create_url=create_url %}
+    
     <div class="row">
         <div class="col">
             <h2>Search</h2>

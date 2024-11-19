@@ -3,6 +3,7 @@
 {% load static %}
 {% load render_sortable %}
 {% load breadcrumbs %}
+{% load components %}
 
 {% block title %}Collect{% endblock %}
 
@@ -10,12 +11,13 @@
 
     {% render_breadcrumbs %}
 
-    <p class="display-1">Storages</p>
+    {% url 'collect:storage_create' as create_url %}
+    {% page_header "Storage" create_url=create_url %}
 
     <div class="row">
-	<div class="col">
+	    <div class="col">
             {% render_sortable object_list "storage" "row" "collect:storage-sort" "collect/partials/storage_card.html" "collect:storage-create" %}
-	</div>
+	    </div>
     </div>
 
 {% endblock %}

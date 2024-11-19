@@ -5,6 +5,7 @@
 {% load static %}
 {% load render_table from django_tables2 %}
 {% load breadcrumbs %}
+{% load components %}
 
 {% block title %}
     Accessions
@@ -13,8 +14,8 @@
 {% block container %}
 
     {% render_breadcrumbs %}
-
-    <h1 class="display-1">Accessions <a class="btn btn-secondary" href="{% url 'collect:seedsample_create'  %}">Create</a></h1>
+    {% url 'collect:seedsample_create' as create_url %}
+    {% page_header "Accessions" create_url=create_url %}
 
     <div class="row">
 	    <div class="col-8">

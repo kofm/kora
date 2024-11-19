@@ -3,6 +3,7 @@
 {% load static %}
 {% load crispy_forms_tags %}
 {% load breadcrumbs %}
+{% load components %}
 
 {% block javascript %}
     <script type="text/javascript" src="{% static 'frontpage/tomselect.bundle.js' %}"></script>
@@ -19,17 +20,11 @@
 
 {% block container %}
     {% render_breadcrumbs %}
-    <h1 class="display-1">
-        Varieties
-        <a
-            class="btn btn-secondary"
-            href="{% url 'register:variety_create' %}"
-        >
-            Create
-        </a>
-    </h1>
 
-    <div class="row">
+    {% url 'register:variety_create' as create_url %}
+    {% page_header "Varieties" create_url=create_url %}
+    
+    <div class="row my-3">
         <div class="col">
             <h2>Search</h2>
             <form method="get">
