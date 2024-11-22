@@ -15,14 +15,14 @@
 
 {% block buttons %}
     <input class="btn btn-lg btn-secondary me-2" type="submit" value="Update">
-    {% if object.get_delete_url and object.is_deletable %}
-        <a class="btn btn-lg btn-danger" href="{{ object.get_delete_url }}">Delete</a>
-    {% else %}
-        <a class="btn btn-lg btn-danger disabled" role="button" aria-disabled="true"
-           href="{{ object.get_delete_url }}"
-        >Delete</a>
-        <span class="ms-1 small text-muted">
-            <a data-bs-toggle="tooltip" data-bs-title="You can't remove this entry because it is referenced by other data."><i class="bi bi-info-circle"></i></a>
-        </span>
+    {% if object.get_delete_url %}
+        <a class="btn btn-lg btn-danger {{ object.is_deletable|yesno:",disabled" }}"
+           aria-disabled="{{ object.is_deletable|yesno:"false,true" }}"
+           href="{{ object.get_delete_url }}">Delete</a>
+        {% if not object.is_deletable %}
+            <span class="ms-1 small text-muted">
+                <a data-bs-toggle="tooltip" data-bs-title="{% block cant_delete_message %}You can't remove this entry because it is referenced by other data.{% endblock %}"><i class="bi bi-info-circle"></i></a>
+            </span>
+        {% endif %}
     {% endif %}
 {% endblock %}

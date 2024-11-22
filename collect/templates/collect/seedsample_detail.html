@@ -4,51 +4,65 @@
 {% load render_table from django_tables2 %}
 {% load static %}
 {% load breadcrumbs %}
+{% load components %}
+{% load frontpage_extras %}
+
 
 {% block title %}
-    {{ seedsample.variety.name }}
+    {{ seedsample }}
 {% endblock %}
 
 {% block container %}
 
     {% render_breadcrumbs %}
+    {% detail_page_header seedsample %}
 
-    <h1 class="display-1">{{ seedsample.variety.name }}</h1>
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 border rounded p-2 g-2 my-3">
 
-    {% if seedsample.notes %}
-        <p class="lead">
-            {{ seedsample.notes }}
-        </p>
-    {% endif %}
+        {% url 'register:plantvariety_detail' seedsample.variety.pk as variety_url %}
+        {% card_col_rows seedsample.variety "Variety" variety_url %}
 
-    <div class="row mx-2">
-        <div class="card mx-1 py-2 col d-flex">
-            <div class="card-title"><h2>Sample</h2></div>
-            <div class="card-body">
-                <ul class="list-group list-group-flush">
-                    <li class="list-group-item">ID: {{ seedsample.sample_id }}</li>
-                    <li class="list-group-item">Variety: <a href="{% url 'register:plantvariety_detail' seedsample.variety.pk %}">{{ seedsample.variety.name }}</a></li>
-                    {% if seedsample.variety.has_breeder %}<li class="list-group-item">Breeder: <a href="{% url 'register:entity_detail' seedsample.variety.breeder.pk %}">{{ seedsample.variety.breeder }}</a></li>{% endif %}
-                    <li class="list-group-item">Growing Season: {{ seedsample.growing_season|default_if_none:"&nbsp;" }}</li>
-                    <li class="list-group-item">Storage: <a href="{{ seedsample.position.get_absolute_url }}">{{ seedsample.position }}</a></li>
-                </ul>
-            </div>
-            <div class="mt-auto">
-                <a id="sample-form-button" class="btn btn-primary mt-3 col-12" href="{% url 'collect:seedsample_update' seedsample.pk %}">Update</a>
-                <a class="btn btn-danger mt-3 col-12" href="{% url 'collect:seedsample_delete' seedsample.pk %}">Delete</a>
-            </div>
-        </div>
+        {% url 'collect:storage_detail' seedsample.position.storage.pk as storage_url %}
+        {% card_col_rows seedsample.position "Storage Location" storage_url %}
+
+        {% card_col_rows seedsample.growing_season "Growing Season" %}
+
+        {% with record=seedsample.sampleweight_set.last %}
+            {% card_col_rows record.weight "Current Weight (g)" time=record.created_at %}
+        {% endwith %}
+
+        {% with record=seedsample.germinability_set.last %}
+            {% card_col_rows record.germinability|default:"-" "Germinability (%)" time=record.performed_at %}
+        {% endwith %}
 
 
-        <div class="card mx-1 py-2 col">
-            <div class="card-title">
-                <h2>Duplicate samples</h2>
-            </div>
-            <div class="card-body">
-                {% render_table seedsample_duplicates_table %}
-            </div>
-        </div>
+        {% url 'collect:storage_detail' seedsample.position.storage.pk as storage_url %}
+        {% card_col_rows seedsample.notes "Notes" %}
 
     </div>
+
+    <div class="row my-3 d-flex justify-content-center">
+        <div class="col-6">
+            <h2 class="display-5 mb-3">Log</h2>
+            <div class="list-group">
+                {% for item in log %}
+                    {% if item.weight %}
+                        {% list_group_item item.weight|add_suffix:" g" "Weight" time=item.date %}
+                    {% elif item.germinability %}
+                        {% list_group_item item.germinability|add_suffix:"%" "Germination rate" time=item.date %}
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="row border rounded my-3 p-2 g-2">
+        <div class="col">
+            <h2>Related Accessions</h2>
+            {% render_table duplicates_table %}
+        </div>
+    </div>
+
+
 
 {% endblock %}

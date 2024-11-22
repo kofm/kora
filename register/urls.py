@@ -44,18 +44,18 @@ urlpatterns = [
     ),
     path(
         "variety/name/<int:pk>/delete",
-        views.PlantVarietyNameDelete.as_view(),
-        name="plantvarietyname-delete",
+        views.plantvarietyname_delete,
+        name="denomination_delete",
     ),
     path(
         "variety/<int:pk>/name/create",
-        views.PlantVarietyNameCreate.as_view(),
-        name="plantvarietyname-create",
+        views.plantvarietyname_create,
+        name="denomination_create",
     ),
     path(
         "variety/name/<int:pk>/update",
-        views.PlantVarietyNameUpdate.as_view(),
-        name="plantvarietyname-update",
+        views.plantvarietyname_update,
+        name="denomination_update",
     ),
     path(
         "protection/<int:pk>",

@@ -78,8 +78,8 @@
     <div class="row mt-5">
         <div class="col">
             <h2 id="names">
-		Names <a class="btn btn-secondary btn-sm" href="{% url 'register:plantvarietyname-create' variety.pk %}">Create</a>
-	    </h2>
+		        Names <a class="btn btn-secondary btn-sm" href="{% url 'register:denomination_create' variety.pk %}">Create</a>
+	        </h2>
             <table class="table">
                 <thead>
                     <th scope="col">Name</th>
@@ -91,15 +91,10 @@
                         <tr>
                             <td>{{ name.name }}</td>
                             <td>{{ name.change_date }}</td>
-                            <td align="right">
-                                <a class="link-body-emphasis" href="{% url 'register:plantvarietyname-update' name.pk %}">
-				    <i class="bi-pencil link-body-emphasis"></i>
-				</a>
-                                {% if variety.names.count > 1 %}
-				    <a class="link-body-emphasis" href="{% url 'register:plantvarietyname-delete' name.pk %}">
-					<i class="bi bi-trash"></i>
-				    </a>
-				{% endif %}
+                            <td class="d-flex justify-content-end align-items-center">
+                                <a class="link-body-emphasis h5" href="{% url 'register:denomination_update' name.pk %}">
+				                    <i class="bi-pencil link-body-emphasis"></i>
+				                </a>
                         </tr>
                     {% endfor %}
                 </tbody>
@@ -118,8 +113,8 @@
     <div class="row mt-5">
         <div class="col">
             <h2 id="parameters">Parameters <a class="btn btn-secondary btn-sm" href="{% url 'parameters:varietalparameter_create' variety.id %}">Create</a></h2>
-	    {% render_table parameters_table %}
-	</div>
+	        {% render_table parameters_table %}
+	    </div>
     </div>
 
 

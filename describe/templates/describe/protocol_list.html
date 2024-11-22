@@ -12,7 +12,7 @@
     {% render_breadcrumbs %}
 
     {% url 'describe:protocol_create' as create_url %}
-    {% page_header "Protocols" create_url=create_url %}
+    {% list_page_header "Protocols" create_url=create_url %}
     
     {% if protocols %}
         <div class="row mt-3">

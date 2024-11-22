@@ -5,20 +5,21 @@ from django.db.models.query_utils import Q
 from django.urls import reverse
 from django.utils.timezone import now
 from register.models import PlantVariety
+import datetime
 
 
 class Storage(models.Model):
-    """
-    This is a container of multiple seed samples. The number of slots available
-    for seed samples is defined by how many StoragePositions are associated with
-    each instance. They should be ideally ordered by name.
+    """Container of multiple seed samples.
+
+    The number of slots available for seed samples is defined by how
+    many StoragePositions are associated with each instance.
     """
 
     name = models.CharField(max_length=200, unique=True)
     order = models.PositiveIntegerField(default=0)
 
     class Meta:
-        ordering = ["name"]
+        ordering = ("name",)
         verbose_name_plural = "Storage"
 
     def __str__(self) -> str:
@@ -53,56 +54,42 @@ class StoragePosition(models.Model):
 
 class SeedSample(models.Model):
     sample_id = models.PositiveIntegerField(
-        verbose_name="ID",
-        help_text="An unique identificative number of the seed sample",
-        unique=True,
+        verbose_name="ID", help_text="An unique identificative number of the seed sample", unique=True
     )
     variety = models.ForeignKey(PlantVariety, on_delete=models.PROTECT)
-    notes = models.CharField(
-        max_length=500,
-        help_text="Notes relative to the seed sample",
-        blank=True,
-        null=True,
-        default="",
-    )
+    notes = models.CharField(max_length=500, help_text="Notes relative to the seed sample", default="")
     growing_season = models.IntegerField(blank=True, null=True)
     position = models.ForeignKey(StoragePosition, on_delete=models.PROTECT)
 
     class Meta:
-        ordering = [
-            "-sample_id",
-        ]
+        ordering = ("-sample_id",)
+
+    def __str__(self):
+        return f"#{self.sample_id}"
 
     def get_absolute_url(self):
         return reverse("collect:seedsample-detail", kwargs={"pk": self.pk})
 
     @property
+    def growing_season_as_date(self):
+        now = datetime.datetime.now()
+        return datetime.datetime(self.growing_season, now.month, now.day)
+
+    @property
     def germinability(self):
         if self.germinability_set.count() > 0:
             return self.germinability_set.last().germinability
-        else:
-            return None
+        return None
 
     @property
     def weight(self):
         if self.sampleweight_set.count() > 0:
             return self.sampleweight_set.last().weight
-        else:
-            return None
-
-    @property
-    def in_cart(self):
-        if self.cartitem_set.all():
-            return True
-        else:
-            return False
+        return None
 
     @property
     def duplicate_samples(self):
         return SeedSample.objects.filter(variety=self.variety).exclude(pk=self.pk)
-
-    def __str__(self):
-        return f"#{self.sample_id} - {self.variety.name} ({self.growing_season})"
 
 
 class Germinability(models.Model):
@@ -112,9 +99,7 @@ class Germinability(models.Model):
     performed_at = models.DateField(default=now, blank=True, null=True)
 
     class Meta:
-        ordering = [
-            "-performed_at",
-        ]
+        ordering = ("-performed_at",)
 
     def __str__(self):
         return str(self.germinability)
@@ -126,9 +111,10 @@ class SampleWeight(models.Model):
     created_at = models.DateField(auto_now_add=True)
 
     class Meta:
-        ordering = [
-            "created_at",
-        ]
+        ordering = ("created_at",)
+
+    def __str__(self):
+        return f"{self.seedsample} ({self.created_at}): {self.weight}g"
 
 
 class CartManager(models.Manager):

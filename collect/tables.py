@@ -1,7 +1,6 @@
-from django.utils.html import format_html
 import django_tables2 as tables
 
-from collect.models import SeedSample
+from collect.models import SampleWeight, SeedSample
 
 
 class SeedSampleTableMixin:
@@ -14,16 +13,6 @@ class SeedSampleTableMixin:
         # NaN values are stored in the db
         return int(record.weight) if record.weight == record.weight else None
 
-    # def render_variety(self, record):
-    #     if record.variety.breeder:
-    #         return format_html(
-    #             "{} <i class='{}'></i>",
-    #             record.variety.name,
-    #             record.variety.breeder.country.flag_css,
-    #         )
-    #     else:
-    #         return record.variety
-
 
 class SeedSampleBaseTable(tables.Table, SeedSampleTableMixin):
     sample_id = tables.Column(linkify=True, attrs={"td": {"class": "col-1"}})
@@ -33,7 +22,7 @@ class SeedSampleBaseTable(tables.Table, SeedSampleTableMixin):
 
     class Meta:
         model = SeedSample
-        fields = (
+        fields: tuple = (
             "sample_id",
             "position",
             "weight",
@@ -45,11 +34,11 @@ class SeedSampleBaseTable(tables.Table, SeedSampleTableMixin):
 
 
 class SeedSampleTable(SeedSampleBaseTable):
-    """
-    An extension of the SeedSampleBaseTable for the Accession List. It
-    uses HTMX for dynamic content display. See the template for details.
-    It also has (HTMX) action buttons to add Accessions to the
-    selected cart.
+    """Extension of the SeedSampleBaseTable for the Accession List.
+
+    It uses HTMX for dynamic content display. See the template for
+    details.  It also has (HTMX) action buttons to add Accessions to
+    the selected cart.
     """
 
     variety = tables.Column(
@@ -86,6 +75,7 @@ class SeedSampleDuplicatesTable(SeedSampleBaseTable):
     class Meta(SeedSampleBaseTable.Meta):
         fields = (
             "sample_id",
+            "variety",
             "position",
             "weight",
             "germinability",
@@ -105,3 +95,9 @@ class SeedSampleInStorageTable(SeedSampleBaseTable):
             "growing_season",
             "notes",
         )
+
+
+class SampleWeightTable(tables.Table):
+    class Meta:
+        model = SampleWeight
+        fields = ("created_at", "weight")

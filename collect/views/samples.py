@@ -18,6 +18,7 @@ from collect.forms import (
 )
 from collect.models import SeedSample, Storage, StoragePosition
 from collect.tables import (
+    SampleWeightTable,
     SeedSampleDuplicatesTable,
     SeedSampleInStorageTable,
     SeedSampleTable,
@@ -25,7 +26,7 @@ from collect.tables import (
 from collect.views.carts import cartitems_sort
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
-from django.db.models import IntegerField, Q, Value
+from django.db.models import IntegerField, Q, Value, F
 from django.db.models.functions import Cast, Concat
 from django.http import HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, redirect
@@ -86,10 +87,14 @@ def seedsample_detail(request, pk):
     context = {}
     seedsample = get_object_or_404(SeedSample, pk=pk)
     context["seedsample"] = seedsample
-    context["seedsample_duplicates_table"] = SeedSampleDuplicatesTable(seedsample.duplicate_samples)
+    context["duplicates_table"] = SeedSampleDuplicatesTable(seedsample.duplicate_samples)
     crumbs = generate_breadcrumbs(request, SeedSample, seedsample)
     crumbs = add_plantvariety_breadcrumbs(crumbs, seedsample.variety)
     context.update(crumbs)
+    germ_rates = seedsample.germinability_set.annotate(date=F("performed_at")).values("date", "germinability")
+    weights = seedsample.sampleweight_set.annotate(date=F("created_at")).values("date", "weight")
+    log = list(germ_rates) + list(weights)
+    context["log"] = sorted(log, key=lambda e: e["date"], reverse=True)
     return TemplateResponse(request, "collect/seedsample_detail.html", context)
 
 
@@ -98,7 +103,7 @@ class SeedSampleCreateView(CreateBreadcrumbsMixin, CreateView):
     model = SeedSample
 
     def form_valid(self, form):
-        response = super(SeedSampleCreateView, self).form_valid(form)
+        response = super().form_valid(form)
         weight_form = SampleWeightForm(self.request.POST)
         new_weight = weight_form.save(commit=False)
         new_weight.seedsample = self.object

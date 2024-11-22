@@ -8,14 +8,10 @@ class ModelIsDeletableMixin:
     def is_deletable(self):
         for field in self._meta.get_fields():
             try:
-                if field.on_delete.__name__ not in [
-                    "PROTECT",
-                    "RESTRICT",
-                ]:
+                if field.on_delete.__name__ not in ["PROTECT", "RESTRICT"]:
                     continue
-                related = field.related_model.objects.filter(**{field.field.name: self})
-                if related.exists():
-                    return False
+                related_object = field.related_model.objects.filter(**{field.field.name: self})
+                return not related_object.exists()
             except AttributeError:
                 pass
         return True
@@ -26,39 +22,36 @@ class Entity(models.Model):
     PARTNERSHIP = "PA"
     COMPANY = "CO"
     COOPERATIVE = "CP"
-    ENTITY_TYPE_CHOICES = [
+    ENTITY_TYPE_CHOICES = (
         (INDIVIDUAL, "Individual"),
         (PARTNERSHIP, "Partnership"),
         (COMPANY, "Company"),
         (COOPERATIVE, "Cooperative"),
-    ]
-    name = models.CharField(
-        max_length=200,
-        help_text="Name of the entity. E.g., 'John Doe', 'Doe & Partners', etc.",
     )
+    name = models.CharField(max_length=200, help_text="Name of the entity. E.g., 'John Doe', 'Doe & Partners', etc.")
     type = models.CharField(
         max_length=2,
         choices=ENTITY_TYPE_CHOICES,
         blank=True,
-        null=True,
+        default="",
         help_text="Type of the entity. Choose from the available options.",
     )
-    country = CountryField(
-        blank=True,
-        null=True,
-        help_text="Country where the entity is based or operates.",
-    )
+    country = CountryField(blank=True, null=True, help_text="Country where the entity is based or operates.")
     contact = models.CharField(
         max_length=500,
         blank=True,
-        null=True,
+        default="",
         help_text="Contact details of the entity, such as phone number or address.",
     )
-    email = models.EmailField(
-        blank=True,
-        null=True,
-        help_text="Email address of the entity. E.g., 'john.doe@example.com'.",
-    )
+    email = models.EmailField(default="", help_text="Email address of the entity. E.g., 'john.doe@example.com'.")
+
+    class Meta:
+        ordering = ("name",)
+        verbose_name = "entity"
+        verbose_name_plural = "entities"
+
+    def __str__(self):
+        return self.name
 
     def get_absolute_url(self):
         return reverse(
@@ -67,14 +60,6 @@ class Entity(models.Model):
                 self.pk,
             ],
         )
-
-    def __str__(self):
-        return self.name
-
-    class Meta:
-        ordering = ("name",)
-        verbose_name = "entity"
-        verbose_name_plural = "entities"
 
 
 class PlantSpecies(ModelIsDeletableMixin, models.Model):
@@ -88,6 +73,17 @@ class PlantSpecies(ModelIsDeletableMixin, models.Model):
     )
     plant_type = models.CharField(max_length=100, choices=plant_types)
 
+    class Meta:
+        ordering = ("common_name",)
+        verbose_name = "plant species"
+        verbose_name_plural = "plant species"
+
+    def __str__(self):
+        return self.common_name
+
+    def get_absolute_url(self):
+        return reverse("register:plantspecies_detail", args=[self.pk])
+
     @property
     def total_descriptions(self):
         return self.variety.filter(description__isnull=False).count()
@@ -96,40 +92,14 @@ class PlantSpecies(ModelIsDeletableMixin, models.Model):
     def total_seedsamples(self):
         return self.variety.filter(seedsample__isnull=False).count()
 
-    def __str__(self):
-        return self.common_name
-
-    def get_absolute_url(self):
-        return reverse("register:plantspecies_detail", kwargs={"pk": self.pk})
-
     def get_update_url(self):
-        return reverse("register:plantspecies_update", kwargs={"pk": self.pk})
+        return reverse("register:plantspecies_update", args=[self.pk])
 
     def get_list_url(self):
         return reverse("register:plantspecies_list")
 
     def get_delete_url(self):
-        return reverse(
-            "register:plantspecies_delete",
-            args=[
-                self.pk,
-            ],
-        )
-
-    class Meta:
-        ordering = ["common_name"]
-        verbose_name = "plant species"
-        verbose_name_plural = "plant species"
-
-
-class PlantVarietyManager(models.Manager):
-    def get_by_species_values_list(self, plantspecies):
-        """
-        Returns a list of dictionaries containing the PKs and the names of the
-        varieties of a particular PlantSpecies
-        """
-        qs = self.filter(species=plantspecies).prefetch_related("breeder").values("pk", "name", "breeder__name")
-        return list(qs)
+        return reverse("register:plantspecies_delete", args=[self.pk])
 
 
 class PlantVariety(ModelIsDeletableMixin, models.Model):
@@ -138,43 +108,29 @@ class PlantVariety(ModelIsDeletableMixin, models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     breeder = models.ForeignKey(Entity, on_delete=models.SET_NULL, null=True, blank=True)
-    objects = PlantVarietyManager()
 
     class Meta:
-        ordering = ["name"]
+        ordering = ("name",)
         verbose_name = "variety"
         verbose_name_plural = "varieties"
 
     def __str__(self):
-        return self.name
+        return f"{self.name} ({self.species.latin_name})"
 
     def get_absolute_url(self):
-        return reverse(
-            "register:plantvariety_detail",
-            args=[
-                self.pk,
-            ],
-        )
+        return reverse("register:plantvariety_detail", args=[self.pk])
 
     def get_list_url(self):
         return reverse("register:variety_list")
 
     def get_delete_url(self):
-        return reverse(
-            "register:variety_delete",
-            args=[
-                self.pk,
-            ],
-        )
+        return reverse("register:variety_delete", args=[self.pk])
 
     def other_names(self):
         return self.names.exclude(name=self.name)
 
     def has_breeder(self):
-        if self.breeder:
-            return True
-        else:
-            return False
+        return bool(self.breeder)
 
 
 class PlantVarietyName(models.Model):
@@ -183,9 +139,7 @@ class PlantVarietyName(models.Model):
     change_date = models.DateField(blank=True, null=True, default=date.today)
 
     class Meta:
-        ordering = [
-            "-change_date",
-        ]
+        ordering = ("-change_date",)
         verbose_name = "denomination"
         verbose_name_plural = "denominations"
 
@@ -193,51 +147,48 @@ class PlantVarietyName(models.Model):
         return self.name
 
     def get_absolute_url(self):
-        return reverse(
-            "register:plantvariety_detail",
-            args=[
-                self.variety.pk,
-            ],
-        )
+        return reverse("register:plantvariety_detail", args=[self.variety.pk])
+
+    def get_delete_url(self):
+        return reverse("register:denomination_delete", args=[self.pk])
+
+    def is_deletable(self):
+        return self.variety.names.count() > 1
 
 
 class Protection(models.Model):
     PBR = "PBR"
     NLI = "NLI"
     CAT = "CAT"
-    PROTECTION_TYPE_CHOICES = [
+    PROTECTION_TYPE_CHOICES = (
         (PBR, "Plant Breeders' Right"),
         (NLI, "National Listing"),
         (CAT, "Common Catalogue"),
-    ]
-    PROTECTION_STATUS_CHOICES = [
+    )
+    PROTECTION_STATUS_CHOICES = (
         ("G", "Granted"),
         ("T", "Terminated"),
         ("A", "Active Application"),
         ("W", "Withdrawn"),
         ("R", "Refused"),
         ("S", "Surrendered"),
-    ]
+    )
     type = models.CharField(max_length=3, choices=PROTECTION_TYPE_CHOICES)
-    status = models.CharField(max_length=1, blank=True, null=True, choices=PROTECTION_STATUS_CHOICES)
+    status = models.CharField(max_length=1, blank=True, default="", choices=PROTECTION_STATUS_CHOICES)
     country = CountryField(null=True)
     variety = models.ForeignKey(PlantVariety, on_delete=models.CASCADE)
-    reference = models.CharField(max_length=100, blank=True, null=True)
-    applicants = models.ManyToManyField(
-        Entity,
-        related_name="applicants",
-        blank=True,
-    )
+    reference = models.CharField(max_length=100, blank=True, default="")
+    applicants = models.ManyToManyField(Entity, related_name="applicants", blank=True)
     maintainers = models.ManyToManyField(Entity, blank=True)
     date_start = models.DateField(blank=True, null=True)
     date_end = models.DateField(blank=True, null=True)
     note = models.CharField(max_length=512, blank=True, help_text="Add any additional information here.")
 
-    def get_absolute_url(self):
-        return reverse("register:protection-detail", kwargs={"pk": self.pk})
-
     class Meta:
-        ordering = ["-date_start"]
+        ordering = ("-date_start",)
 
     def __str__(self) -> str:
         return self.get_type_display() + " for " + self.variety.name
+
+    def get_absolute_url(self):
+        return reverse("register:protection-detail", kwargs={"pk": self.pk})
