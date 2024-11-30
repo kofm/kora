@@ -1,11 +1,20 @@
-from django import forms
-from django.forms.widgets import HiddenInput
-from django.shortcuts import get_object_or_404
-from django.utils.translation import gettext_lazy as _
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Submit
 
-from collect.models import Cart, CartItem, Germinability, SampleWeight, SeedSample, Storage
+from collect.models import (
+    Cart,
+    CartItem,
+    Germinability,
+    SampleWeight,
+    SeedSample,
+    Storage,
+    StoragePosition,
+)
+from django import forms
+from django.core.validators import MinValueValidator
+from django.db import transaction
+from django.forms.widgets import HiddenInput
+from django.shortcuts import get_object_or_404
 
 
 class SeedSampleForm(forms.ModelForm):
@@ -56,9 +65,7 @@ class SampleWeightForm(forms.ModelForm):
 
 class GerminabilityForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
-        # first call parent's constructor
-        super(GerminabilityForm, self).__init__(*args, **kwargs)
-        # there's a `fields` property now
+        super().__init__(*args, **kwargs)
         self.fields["germinability"].required = False
 
     class Meta:
@@ -68,23 +75,14 @@ class GerminabilityForm(forms.ModelForm):
 
 class SeedSampleYearForm(forms.Form):
     year = forms.ChoiceField(
-        choices=[
-            (0, ""),
-        ],
-        # + list(
-        #     SeedSample.objects.filter(growing_season__isnull=False)
-        #     .order_by("growing_season")
-        #     .distinct("growing_season")
-        #     .values_list("growing_season", "growing_season")
-        # ),
+        choices=((0, ""),),
         widget=forms.Select(
             attrs={
                 "class": "form-select",
                 "hx-get": "_hx",
                 "hx-trigger": "change",
                 "hx-target": "#seedsample-table",
-                "hx-include": "#search-form"
-                # 'onchange': 'this.parentElement.submit()'
+                "hx-include": "#search-form",
             }
         ),
     )
@@ -93,7 +91,7 @@ class SeedSampleYearForm(forms.Form):
 class CartSelectForm(forms.Form):
     def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['cart'].empty_label = None
+        self.fields["cart"].empty_label = None
         self.fields["cart"].queryset = Cart.objects.filter(user=user)
 
     cart = forms.ModelChoiceField(queryset=Cart.objects.none())
@@ -129,22 +127,17 @@ class CartItemNewForm(forms.Form):
         weight = cleaned_data.get("weight", None)
         cart = self.user.carts.active()
         if not cart:
-            raise forms.ValidationError(
-                "You did not select any cart to add to."
-            )
-        cartitem = CartItem.objects.filter(
-            cart=cart, sample=seedsample
-        )
+            e = "You did not select any cart to add to."
+            raise forms.ValidationError(e)
+        cartitem = CartItem.objects.filter(cart=cart, sample=seedsample)
 
         if cartitem.exists():
-            raise forms.ValidationError(
-                f"{seedsample} is already in the selected Cart."
-            )
+            e = f"{seedsample} is already in the selected Cart."
+            raise forms.ValidationError(e)
 
         if weight and weight > seedsample.weight:
-            raise forms.ValidationError(
-                f"There is only {seedsample.weight} grams available of {seedsample}."
-            )
+            e = f"There is only {seedsample.weight} grams available of {seedsample}."
+            raise forms.ValidationError(e)
 
         return cleaned_data
 
@@ -157,18 +150,18 @@ class CartItemNewForm(forms.Form):
         cartitem.save()
         return cartitem
 
+
 class CartItemSetWeightForm(forms.Form):
     cartitem = forms.IntegerField(widget=forms.HiddenInput)
     weight = forms.FloatField(required=True)
 
     def clean(self):
         cleaned_data = super().clean()
-        self.object = get_object_or_404(CartItem, pk = cleaned_data.get("cartitem"))
+        self.object = get_object_or_404(CartItem, pk=cleaned_data.get("cartitem"))
         weight = cleaned_data.get("weight")
         if weight and weight > self.object.sample.weight:
-            raise forms.ValidationError(
-                f"There is only {self.object.sample.weight} grams available of {self.object.sample}."
-            )
+            e = f"There is only {self.object.sample.weight} grams available of {self.object.sample}."
+            raise forms.ValidationError(e)
         return cleaned_data
 
     def save(self):
@@ -176,17 +169,39 @@ class CartItemSetWeightForm(forms.Form):
         self.object.save()
         return self.object
 
+
 class CartForm(forms.ModelForm):
-    """
-    Form to create a new Cart
-    """
     class Meta:
         model = Cart
-        fields = ("name", )
+        fields = ("name",)
+
 
 class StorageCreateForm(forms.ModelForm):
     positions = forms.IntegerField(min_value=1, label="Number of available slots in this container")
 
     class Meta:
         model = Storage
-        fields = ("name", )
+        fields = ("name",)
+
+
+class StorageUpdateForm(forms.ModelForm):
+    positions = forms.IntegerField(min_value=1, label="Number of available slots in this container")
+
+    class Meta:
+        model = Storage
+        fields = ("name",)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["positions"].widget.attrs["min"] = self.instance.stored_samples
+        self.fields["positions"].initial = self.instance.total_positions
+        self.fields["positions"].validators.append(MinValueValidator(self.instance.stored_samples))
+
+    def save(self, *args, **kwargs):
+        instance = super().save(*args, **kwargs)
+        pos = self.cleaned_data["positions"]
+        total_pos = instance.total_positions
+        if pos > total_pos:
+            instance.increase_positions(pos)
+        if pos < total_pos:
+            instance.decrease_positions(pos)

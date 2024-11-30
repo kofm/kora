@@ -20,6 +20,7 @@ ignore = [
     "FIX002", # too verbose descriptions of todos
     "D10",
     "INP001",
+    "SLF001",
 ]
 
 [tool.ruff.lint.pydocstyle]

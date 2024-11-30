@@ -1,0 +1,9 @@
+{% extends "frontpage/_update_form.html" %}
+
+{% load static %}
+
+{% block additional_content %}
+    {{ varieties|json_script:"varieties-data" }}
+    {{ positions|json_script:"positions-data" }}
+    <script src="{% static 'collect/seedsample-form.bundle.js' %}"></script>
+{% endblock %}

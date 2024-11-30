@@ -4,6 +4,7 @@
 {% load render_table from django_tables2 %}
 {% load static %}
 {% load breadcrumbs %}
+{% load components %}
 
 {% block javascript %}
     <link rel="stylesheet" href="{% static 'flags/sprite.css' %}">
@@ -15,10 +16,8 @@
 
 {% block container %}
     {% render_breadcrumbs %}
-    <h1 class="display-1">{{ entity }}
-        <a class="text-decoration-none link-body-emphasis" href="{% url 'register:entity_update' entity.pk %}">
-            <i class="bi bi-pencil-square" style="font-size:2rem"></i>
-        </a></span></h1>
+    {% url 'register:entity_update' entity.pk as update_url %}
+    {% detail_page_header entity update_url=update_url %}
     <p class="lead">
         {{ entity.get_type_display }} based in {{ entity.country.name }} <i class="{{ entity.country.flag_css }}"></i>
     </p>

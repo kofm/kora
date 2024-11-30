@@ -2,22 +2,10 @@ from datetime import date
 from django.db import models
 from django.urls.base import reverse
 from django_countries.fields import CountryField
+from frontpage.generic import ModelIsDeletableMixin
 
 
-class ModelIsDeletableMixin:
-    def is_deletable(self):
-        for field in self._meta.get_fields():
-            try:
-                if field.on_delete.__name__ not in ["PROTECT", "RESTRICT"]:
-                    continue
-                related_object = field.related_model.objects.filter(**{field.field.name: self})
-                return not related_object.exists()
-            except AttributeError:
-                pass
-        return True
-
-
-class Entity(models.Model):
+class Entity(ModelIsDeletableMixin, models.Model):
     INDIVIDUAL = "IN"
     PARTNERSHIP = "PA"
     COMPANY = "CO"
@@ -54,12 +42,10 @@ class Entity(models.Model):
         return self.name
 
     def get_absolute_url(self):
-        return reverse(
-            "register:entity_detail",
-            args=[
-                self.pk,
-            ],
-        )
+        return reverse("register:entity_detail", args=(self.pk,))
+
+    def get_delete_url(self):
+        return reverse("register:entity_delete", args=(self.pk,))
 
 
 class PlantSpecies(ModelIsDeletableMixin, models.Model):
@@ -107,7 +93,7 @@ class PlantVariety(ModelIsDeletableMixin, models.Model):
     species = models.ForeignKey(PlantSpecies, on_delete=models.PROTECT, related_name="variety")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    breeder = models.ForeignKey(Entity, on_delete=models.SET_NULL, null=True, blank=True)
+    breeder = models.ForeignKey(Entity, on_delete=models.PROTECT, null=True, blank=True)
 
     class Meta:
         ordering = ("name",)
@@ -115,7 +101,7 @@ class PlantVariety(ModelIsDeletableMixin, models.Model):
         verbose_name_plural = "varieties"
 
     def __str__(self):
-        return f"{self.name} ({self.species.latin_name})"
+        return f"{self.name} ({self.species.common_name})"
 
     def get_absolute_url(self):
         return reverse("register:plantvariety_detail", args=[self.pk])

@@ -1,15 +1,27 @@
+from typing import Generic, TypeVar
+
+from django.db import transaction
+from django.db.models import Model
 from django.http import Http404, HttpResponseBadRequest, JsonResponse
 from django.views import View
-from django.db import transaction
+
+T = TypeVar("T", bound=Model)
 
 
-class SortableView(View):
-    model = None
+class SortableView(View, Generic[T]):
+    model: None | type[T] = None
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if self.model is None:
-            raise Http404("A model must be provided")
+            e = "A model must be provided."
+            raise Http404(e)
+        if not issubclass(self.model, Model):
+            e = "Property 'model' should be a Django ORM Model."
+            raise Http404(e)
+        if not hasattr(self.model, "order"):
+            e = "The model must have an 'order' field."
+            raise Http404(e)
 
     def post(self, request):
         try:

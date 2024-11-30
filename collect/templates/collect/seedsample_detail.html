@@ -15,7 +15,9 @@
 {% block container %}
 
     {% render_breadcrumbs %}
-    {% detail_page_header seedsample %}
+
+    {% url 'collect:seedsample_update' seedsample.pk as update_url %}
+    {% detail_page_header seedsample subtitle=seedsample.variety update_url=update_url %}
 
     <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 border rounded p-2 g-2 my-3">
 
@@ -43,16 +45,18 @@
 
     <div class="row my-3 d-flex justify-content-center">
         <div class="col-6">
-            <h2 class="display-5 mb-3">Log</h2>
-            <div class="list-group">
-                {% for item in log %}
-                    {% if item.weight %}
-                        {% list_group_item item.weight|add_suffix:" g" "Weight" time=item.date %}
-                    {% elif item.germinability %}
-                        {% list_group_item item.germinability|add_suffix:"%" "Germination rate" time=item.date %}
-                    {% endif %}
-                {% endfor %}
-            </div>
+            {% if log|length > 1 %}
+                <h2 class="display-5 mb-3">Log</h2>
+                <div class="list-group">
+                    {% for item in log %}
+                        {% if item.weight %}
+                            {% list_group_item item.weight|add_suffix:" g" "Weight" time=item.date %}
+                        {% elif item.germinability %}
+                            {% list_group_item item.germinability|add_suffix:"%" "Germination rate" time=item.date %}
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            {% endif %}
         </div>
     </div>
 

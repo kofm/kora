@@ -14,23 +14,23 @@
 
     <h5 class="display-3">{% if object %}Update: <small class="text-muted">{{ object }}{% else %}Create Accession{% endif %}</small></h1>
 
-    {{ varieties|json_script:"varieties-data" }}
-    {{ positions|json_script:"positions-data" }}
+        {{ varieties|json_script:"varieties-data" }}
+        {{ positions|json_script:"positions-data" }}
 
-    <form method="post">
-        {% csrf_token %}
-        {% crispy form %}
-        {% if weight_form %}
-            {{ weight_form|crispy}}
-        {% endif %}
-        {% if germinability_form %}
-            {{ germinability_form|crispy}}
-        {% endif %}
-        <button name="btn-save" type="submit" class="btn btn-outline-primary mt-3">Save</button>
-        {% if not object %}<button id="btn-another" name="btn-another" type="submit" class="btn btn-outline-primary mt-3">Save & +1</button>{% endif %}
-        <a class="btn btn-outline-secondary mt-3" type="submit" href="{% url 'collect:seedsample_list'  %}">Cancel</a>
-    </form>
+        <form method="post">
+            {% csrf_token %}
+            {% crispy form %}
+            {% if weight_form %}
+                {{ weight_form|crispy}}
+            {% endif %}
+            {% if germinability_form %}
+                {{ germinability_form|crispy}}
+            {% endif %}
+            <button name="btn-save" type="submit" class="btn btn-outline-primary mt-3">Save</button>
+            {% if not object %}<button id="btn-another" name="btn-another" type="submit" class="btn btn-outline-primary mt-3">Save & +1</button>{% endif %}
+            <a class="btn btn-outline-secondary mt-3" type="submit" href="{% url 'collect:seedsample_list'  %}">Cancel</a>
+        </form>
 
-    <script src="{% static 'collect/seedsample-form.bundle.js' %}"></script>
+        <script src="{% static 'collect/seedsample-form.bundle.js' %}"></script>
 
 {% endblock %}

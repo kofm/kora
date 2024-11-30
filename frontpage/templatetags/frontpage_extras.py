@@ -1,6 +1,8 @@
+from widget_tweaks.templatetags.widget_tweaks import add_class, silence_without_field
+
 from django import template
 from django.core.paginator import Paginator
-from widget_tweaks.templatetags.widget_tweaks import silence_without_field, add_class
+from django.utils.html import format_html
 
 register = template.Library()
 
@@ -37,3 +39,10 @@ def add_suffix(value, suffix):
     if not isinstance(value, str):
         value = str(value)
     return f"{value}{suffix}"
+
+
+@register.filter("italic")
+def italic(value):
+    if not isinstance(value, str):
+        value = str(value)
+    return format_html(f"<i>{value}</i>")

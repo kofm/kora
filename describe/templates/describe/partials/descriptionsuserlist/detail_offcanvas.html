@@ -9,7 +9,7 @@
 >
 
     <div class="offcanvas-header">
-	    <h5 id="desListOffcanvasLabel">Descriptions List</h5>
+	    <h5 id="desListOffcanvasLabel">Collections</h5>
 	    <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
     </div>
     <div class="offcanvas-body">
@@ -18,7 +18,7 @@
                 {% include 'describe/partials/descriptionsuserlist/select_input.html' %}
             </div>
         {% else %}
-            <p class="text-muted">You must be logged in to use Descriptions Lists. <a href="{% url 'login' %}">Log In</a></p>
+            <p class="text-muted">You must be logged in to access Collections. <a href="{% url 'login' %}">Log In</a></p>
         {% endif %}
 	    {% include 'describe/partials/descriptionsuserlist/detail_ul.html' %}
     </div>

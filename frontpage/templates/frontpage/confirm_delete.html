@@ -24,9 +24,9 @@
             {% block extended_delete_message %}{% endblock %}
             <form method="post">
                 {% csrf_token %}
-                <div class="d-flex justify-content-end">
-                    <a class="btn btn-outline-secondary btn-lg mt-3" _="on click go back">Cancel</a>
-                    <button type="submit" class="btn btn-danger btn-lg mt-3  ms-3">Confirm</button>
+                <div class="d-flex justify-content-end mt-3">
+                    <button type="submit" class="btn btn-danger">Confirm</button>
+                    <a class="btn btn-outline-secondary ms-2" _="on click go back">Cancel</a>
                 </div>
             </form>
         </div>

@@ -1,11 +1,13 @@
+import datetime
+
 from django.contrib.auth.models import User
-from django.db import models
+from django.db import models, transaction
 from django.db.models.constraints import UniqueConstraint
 from django.db.models.query_utils import Q
 from django.urls import reverse
 from django.utils.timezone import now
+from frontpage.generic import ModelIsDeletableMixin
 from register.models import PlantVariety
-import datetime
 
 
 class Storage(models.Model):
@@ -28,6 +30,28 @@ class Storage(models.Model):
     def get_absolute_url(self):
         return reverse("collect:storage_detail", args=(self.pk,))
 
+    def get_update_url(self):
+        return reverse("collect:storage_update", args=(self.pk,))
+
+    def get_delete_url(self):
+        return reverse("collect:storage_delete", args=(self.pk,))
+
+    def is_deletable(self):
+        return self.stored_samples == 0
+
+    def increase_positions(self, value):
+        if value <= self.total_positions:
+            return
+        with transaction.atomic():
+            for i in range(self.total_positions + 1, value + 1):
+                StoragePosition.objects.get_or_create(storage=self, name=str(i))
+
+    def decrease_positions(self, value):
+        if value >= self.total_positions:
+            return
+        positions = [str(i) for i in range(value + 1, self.total_positions + 1)]
+        StoragePosition.objects.filter(storage=self, name__in=positions).delete()
+
     @property
     def total_positions(self):
         return self.storageposition_set.count()
@@ -46,13 +70,13 @@ class StoragePosition(models.Model):
     storage = models.ForeignKey(Storage, on_delete=models.CASCADE)
 
     def __str__(self) -> str:
-        return self.storage.name + "-" + self.name
+        return f"{self.storage.name}-{self.name}"
 
     def get_absolute_url(self):
         return reverse("collect:storage_detail", args=(self.storage.pk,))
 
 
-class SeedSample(models.Model):
+class SeedSample(ModelIsDeletableMixin, models.Model):
     sample_id = models.PositiveIntegerField(
         verbose_name="ID", help_text="An unique identificative number of the seed sample", unique=True
     )
@@ -68,7 +92,10 @@ class SeedSample(models.Model):
         return f"#{self.sample_id}"
 
     def get_absolute_url(self):
-        return reverse("collect:seedsample-detail", kwargs={"pk": self.pk})
+        return reverse("collect:seedsample_detail", kwargs={"pk": self.pk})
+
+    def get_delete_url(self):
+        return reverse("collect:seedsample_delete", kwargs={"pk": self.pk})
 
     @property
     def growing_season_as_date(self):

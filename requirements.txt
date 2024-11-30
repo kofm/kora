@@ -1,7 +1,7 @@
 Django
 django-countries
 django-crispy-forms==1.14
-crispy-bootstrap4
+crispy-bootstrap5
 django-extensions
 django-filter
 django-forms-dynamic

@@ -6,7 +6,7 @@
 	        <p class="text-end">
                 <a class="link-body-emphasis text-decoration-none ms-3"
                    data-bs-toggle="tooltip"
-                   data-bs-title="Create List"
+                   data-bs-title="Create Collection"
                    data-bs-offset="0,20"
                    hx-get="{% url 'describe:descriptionsuserlist-create' %}"
                    hx-target="#listSelectInput"
@@ -16,7 +16,7 @@
 		        <a href=""
                    class="link-body-emphasis text-decoration-none ms-3"
                    data-bs-toggle="tooltip"
-                   data-bs-title="Update List"
+                   data-bs-title="Rename Collection"
                    data-bs-offset="0,20"
                    hx-get="{% url 'describe:descriptionsuserlist_update' descriptionsuserlist.pk %}"
                    hx-target="#listSelectInput"
@@ -27,7 +27,7 @@
                     href="{% url 'describe:description-compare' %}"
                     class="link-body-emphasis text-decoration-none ms-3"
                     data-bs-toggle="tooltip"
-                    data-bs-title="Compare descriptions"
+                    data-bs-title="Compare Descriptions"
                     data-bs-offset="0,20"
                 >
                     <i class="bi bi-file-diff h4"></i>
@@ -35,7 +35,7 @@
 		        <a href="{% url 'restapi:descriptionslists' descriptionsuserlist.pk %}"
 		           class="link-body-emphasis text-decoration-none ms-3"
                    data-bs-toggle="tooltip"
-                   data-bs-title="Download raw data"
+                   data-bs-title="Download Raw Data"
                    data-bs-offset="0,20"
                 >
 		            <i class="bi bi-cloud-download h4"></i>
@@ -43,7 +43,7 @@
 		        <a href="{% url 'describe:descriptionsuserlist-delete' descriptionsuserlist.pk %}"
                    class="link-body-emphasis text-decoration-none ms-3"
                    data-bs-toggle="tooltip"
-                   data-bs-title="Delete list"
+                   data-bs-title="Delete Collection"
                    data-bs-offset="0,20"
 		        >
 		            <i class="bi bi-trash h4"></i>

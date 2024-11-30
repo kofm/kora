@@ -1,28 +1,30 @@
-<div class="row mb-3">
-    <div class="col">
+<div class="row">
+    <div class="col-8">
         <h1 class="display-1">
             {{ page_title }}
+        <small class="text-body-secondary h1">{{ subtitle }}</small>
         </h1>
     </div>
     <div class="col d-flex justify-content-end align-items-center">
-
-        <a class="btn btn-outline-primary ms-2" href="{{ update_url }}">
-            Update
-        </a>
-
-        {% if menu_items %}
-            <div class="dropdown dropup">
-                <i class="bi bi-three-dots-vertical h4 mx-3" data-bs-toggle="dropdown" aria-expande="false"></i>
-                <ul class="dropdown-menu">
-                    {% for item in menu_items %}
-                        <li>
-                            <a class="dropdown-item" href="{{ item.url }}">
-                                {{ item.name }}
-                            </a>
-                        </li>
-                    {% endfor %}
-                </ul>
-            </div>
+        <div class="btn-group" role="group" aria-label="Actions">
+            {% if update_url %}
+                <a class="btn btn-outline-primary" href="{{ update_url }}">
+                    Update
+                </a>
+            {% endif %}
+            {% if delete_url %}
+                <a class="btn btn-outline-danger {{ object.is_deletable|yesno:",disabled" }}"
+                   href="{{ delete_url }}"
+                   aria-disabled="{{ object.is_deletable|yesno:"false,true" }}"
+                >
+                    Delete
+                </a>
+            {% endif %}
+        </div>
+        {% if delete_url and not object.is_deletable %}
+            <span class="ms-1 small text-muted">
+                <a data-bs-toggle="tooltip" data-bs-title="{{ cant_delete_msg }}"><i class="bi bi-info-circle"></i></a>
+            </span>
         {% endif %}
     </div>
 </div>

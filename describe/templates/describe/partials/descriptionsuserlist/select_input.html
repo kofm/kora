@@ -3,5 +3,5 @@
 {% url 'describe:descriptionsuserlist-activate' as descriptionsuserlist_activate %}
 <div class="form-floating">
 	{% render_field descriptionsuserlist_form.name class="form-select" hx-post=descriptionsuserlist_activate hx-trigger="change" hx-target="#descriptionsuserListUl" hx-swap="outerHTML" %}
-	<label for="id_name">Active List</label>
+	<label for="id_name">Active Collection</label>
 </div>

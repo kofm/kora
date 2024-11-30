@@ -2,6 +2,8 @@
 {% load register_extras %}
 {% load static %}
 {% load breadcrumbs %}
+{% load components %}
+{% load frontpage_extras %}
 {% load render_table from django_tables2 %}
 
 {% block javascript %}
@@ -16,12 +18,8 @@
 
     {% render_breadcrumbs %}
 
-    <h1 class="display-1">
-        {{ variety.name }} <small class="text-muted"><i>{{ variety.species.common_name }}</i></small>
-        <a class="text-decoration-none link-body-emphasis" href="{% url 'register:variety_update' variety.pk %}">
-            <i class="bi bi-pencil" style="font-size:2rem"></i>
-        </a>
-    </h1>
+    {% url 'register:variety_update' object.pk as update_url %}
+    {% detail_page_header object title=object.name subtitle=object.species.common_name update_url=update_url %}
 
     {% if variety.has_breeder %}
         <p class="lead">

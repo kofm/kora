@@ -1,12 +1,12 @@
 import django_tables2 as tables
 from django_tables2 import columns
-from django.utils.html import format_html
+
 from collect.models import SeedSample
 from collect.tables import SeedSampleBaseTable
 from describe.models import Description
 from describe.tables import DescriptionTable
+from django.utils.html import format_html
 from parameters.models import ParameterValue
-
 from register.models import Entity, PlantSpecies, PlantVariety, Protection
 
 
@@ -21,19 +21,13 @@ class ProtectionTable(tables.Table, CountryRenderer):
     class Meta:
         model = Protection
         template_name = "django_tables2/bootstrap4.html"
-        exclude = (
-            "id",
-            "variety",
-        )
+        exclude = ("id", "variety")
 
 
 class PlantVarietyDescriptionTable(DescriptionTable):
     class Meta:
         model = Description
-        exclude = (
-            "id",
-            "variety",
-        )
+        exclude = ("id", "variety")
 
 
 class PlantVarietyAccessionTable(SeedSampleBaseTable):
@@ -45,7 +39,7 @@ class EntityTable(tables.Table, CountryRenderer):
 
     class Meta:
         model = Entity
-        fields = ["name", "country", "email"]
+        fields = ("name", "country", "email")
 
 
 class VarietalParameterTable(tables.Table):
@@ -77,16 +71,10 @@ class PlantSpeciesTable(tables.Table):
 
     class Meta:
         model = PlantSpecies
-        fields = [
-            "common_name",
-            "latin_name",
-            "num_varieties",
-            "num_accessions",
-            "num_parameters",
-        ]
-        order_by = ["-num_varieties", "common_name"]
+        fields = ("common_name", "latin_name", "num_varieties", "num_accessions", "num_parameters")
+        order_by = ("-num_varieties", "common_name")
 
-    def render_latin_name(self, value, *args):
+    def render_latin_name(self, value):
         return format_html("<i>{}</i>", value)
 
 
@@ -99,14 +87,11 @@ class PlantVarietyEntityTable(tables.Table):
 
     class Meta:
         model = Entity
-        fields = ["name", "species", "country"]
+        fields = ("name", "species", "country")
 
 
 def render_icon(value):
-    if value:
-        icon = "bi-check"
-    else:
-        icon = "bi-dash"
+    icon = "bi-check" if value else "bi-dash"
     return format_html('<i class="bi {}"></i>', icon)
 
 
@@ -117,17 +102,15 @@ class PlantVarietyTable(tables.Table):
 
     class Meta:
         model = PlantVariety
-        fields = (
-            "name",
-            "breeder",
-        )
+        fields = ("name", "breeder")
+        empty_text = "No cultivars have been catalogued under this plant species."
 
     def render_protected(self, record):
         protected = Protection.objects.filter(variety=record, type="PBR", status="G").exists()
         return render_icon(protected)
 
     def render_enlisted(self, record):
-        enlisted = Protection.objects.filter(variety=record, type__in=["CAT", "NLI"], status="G").exists()
+        enlisted = Protection.objects.filter(variety=record, type__in=("CAT", "NLI"), status="G").exists()
         return render_icon(enlisted)
 
     def render_described(self, record):

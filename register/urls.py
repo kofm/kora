@@ -73,6 +73,7 @@ urlpatterns = [
     path("entity/", views.entity_list, name="entity_list"),
     path("entity/<int:pk>", views.entity_detail, name="entity_detail"),
     path("entity/<int:pk>/update", views.EntityUpdateView.as_view(), name="entity_update"),
+    path("entity/<int:pk>/delete", views.EntityDeleteView.as_view(), name="entity_delete"),
     path(
         "variety/<int:pk>/update",
         views.PlantVarietyUpdateView.as_view(),

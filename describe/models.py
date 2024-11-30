@@ -7,6 +7,7 @@ from django.db.models.aggregates import Count
 from django.db.models.functions import Coalesce, Concat
 from django.urls import reverse
 from django.utils.functional import cached_property
+from frontpage.generic import ModelIsDeletableMixin
 from register.models import PlantSpecies, PlantVariety
 
 
@@ -17,7 +18,7 @@ class ProtocolManager(models.Manager):
         return None
 
 
-class Protocol(models.Model):
+class Protocol(ModelIsDeletableMixin, models.Model):
     """A Protocol is a list of descriptors (Trait)."""
 
     name = models.CharField(max_length=200, help_text="the name of the protocol")
@@ -34,6 +35,12 @@ class Protocol(models.Model):
 
     def get_absolute_url(self):
         return reverse("describe:protocol_detail", kwargs={"pk": self.pk})
+
+    def get_update_url(self):
+        return reverse("describe:protocol_update", args=(self.pk,))
+
+    def get_delete_url(self):
+        return reverse("describe:protocol_delete", args=(self.pk,))
 
     def traits_list(self):
         return self.traits.all().order_by("numeric_id").values("pk", "numeric_id", "description")
@@ -63,7 +70,7 @@ class Protocol(models.Model):
 
 
 class DescriptionManager(models.Manager):
-    def filter_by_expressions(self, expressions_filter: list[dict[str:list]]) -> QuerySet:
+    def filter_by_expressions(self, expressions_filter: list[dict[str, list]]) -> QuerySet:
         description_ids = None
         for flt in expressions_filter:
             query_result = self.filter(
@@ -74,7 +81,7 @@ class DescriptionManager(models.Manager):
         return self.filter(pk__in=list(description_ids)).select_related("variety").select_related("protocol")
 
 
-class Description(models.Model):
+class Description(ModelIsDeletableMixin, models.Model):
     """Stores the Descriptions.
 
     A description is a collection of Expressions.
@@ -99,6 +106,18 @@ class Description(models.Model):
     class Meta:
         ordering = ("variety__name",)
 
+    def __str__(self):
+        return f"{self.variety} ({self.name} description)"
+
+    def get_absolute_url(self):
+        return reverse("describe:description_detail", args=(self.pk,))
+
+    def get_update_url(self):
+        return reverse("describe:description_update", args=(self.pk,))
+
+    def get_delete_url(self):
+        return reverse("describe:description_delete", args=(self.pk,))
+
     @classmethod
     def names(cls):
         queryset = cls.objects.all().order_by("name").values_list("name", flat=True).distinct("name")
@@ -107,12 +126,6 @@ class Description(models.Model):
     @cached_property
     def available_traits(self):
         return self.protocol.traits.all()
-
-    def get_absolute_url(self):
-        return reverse("describe:description_detail", kwargs={"pk": self.pk})
-
-    def __str__(self):
-        return f"{self.variety} ({self.name} description)"
 
 
 class Trait(models.Model):
@@ -188,6 +201,9 @@ class Expression(models.Model):
     description = models.ForeignKey(Description, on_delete=models.CASCADE, related_name="expressions")
     note = models.CharField(max_length=512, blank=True, help_text="Add any additional information here.")
 
+    class Meta:
+        ordering = ("state__trait__numeric_id",)
+
     def __str__(self):
         """Return the string representation of the Expression instance."""
         return self.state.__str__()
@@ -195,9 +211,6 @@ class Expression(models.Model):
     def trait(self):
         """Return the trait related to the Expression' State."""
         return self.state.trait
-
-    class Meta:
-        ordering = ["state__trait__numeric_id"]
 
 
 class DescriptionsUserList(models.Model):
@@ -221,9 +234,7 @@ class DescriptionsUserListElement(models.Model):
 
     class Meta:
         unique_together = ("description", "desc_list")
-        ordering = [
-            "order",
-        ]
+        ordering = ("order",)
 
     def __str__(self) -> str:
         return str(self.description)

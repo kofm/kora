@@ -7,8 +7,16 @@
 
 {% block javascript %}
     <link rel="stylesheet" href="{% static 'flags/sprite.css' %}">
-    
-    
+    <style>
+     .overlay {
+         position: fixed;
+         bottom: 20px;
+         right: calc((100% - 98vw) / 2);
+         z-index: 2;
+     }
+
+    </style>
+
 {% endblock %}
 
 {% block title %}Updating {{ protocol.name }}{% endblock %}
@@ -97,7 +105,7 @@
                                 <a class="btn btn-outline-secondary col-12 add_state"><i class="bi bi-plus-circle"></i></a>
                             </div>
                     {% endif %}
-                </div>
+                        </div>
                 </div>
             {% endfor %}
         </div>
@@ -106,9 +114,10 @@
         <div class="row mt-3 justify-content-center">
             <a id="add_trait" class="btn btn-secondary col-12 pa-2"><i class="bi bi-plus-circle"></i></a>
         </div>
-        <div class="d-grid gap-2 d-md-flex my-4">
-            <input type="submit" value="Save" class="btn btn-primary col-6"/>
-            <a href="{% url 'describe:protocol_detail' protocol.pk %}" class="btn btn-secondary col-6">Cancel</a>
+
+        <div class="d-flex grid gap-1 overlay">
+            <button type="submit" class="btn btn-primary">Save</button>
+            <a href="{% url 'describe:protocol_detail' protocol.pk %}" class="btn btn-secondary">Cancel</a>
         </div>
 
     </form>

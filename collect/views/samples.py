@@ -5,7 +5,6 @@ from breadcrumbs.generic import (
     DeleteBreadcrumbsMixin,
     DetailBreadcrumbsMixin,
     ListBreadcrumbsMixin,
-    UpdateBreadcrumbsMixin,
 )
 from breadcrumbs.utils import add_plantvariety_breadcrumbs, generate_breadcrumbs
 from collect.filters import SeedSampleFilter
@@ -15,10 +14,10 @@ from collect.forms import (
     SampleWeightForm,
     SeedSampleForm,
     StorageCreateForm,
+    StorageUpdateForm,
 )
 from collect.models import SeedSample, Storage, StoragePosition
 from collect.tables import (
-    SampleWeightTable,
     SeedSampleDuplicatesTable,
     SeedSampleInStorageTable,
     SeedSampleTable,
@@ -26,7 +25,7 @@ from collect.tables import (
 from collect.views.carts import cartitems_sort
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
-from django.db.models import IntegerField, Q, Value, F
+from django.db.models import F, IntegerField, Q, Value
 from django.db.models.functions import Cast, Concat
 from django.http import HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, redirect
@@ -34,7 +33,7 @@ from django.template.response import TemplateResponse
 from django.urls import reverse, reverse_lazy
 from django.utils.timezone import now
 from django.views.decorators.http import require_POST
-from django.views.generic import DetailView, ListView, UpdateView
+from django.views.generic import DetailView, ListView
 from django.views.generic.edit import CreateView, DeleteView
 from django_sortable_htmx.views import SortableView
 from register.models import PlantVariety, PlantVarietyName
@@ -43,13 +42,13 @@ from register.models import PlantVariety, PlantVarietyName
 def seedsample_list(request):
     context = {}
 
-    filter = SeedSampleFilter(request.GET)
-    table = SeedSampleTable(filter.qs)
+    flt = SeedSampleFilter(request.GET)
+    table = SeedSampleTable(flt.qs)
     RequestConfig(request, paginate={"per_page": 15}).configure(table)
     context.update(
         {
             "table": table,
-            "filter": filter,
+            "filter": flt,
         }
     )
 
@@ -79,8 +78,7 @@ def cart_change(request):
         cart = form.save()
         cartitems = cartitems_sort(request, cart.cartitem_set.all())
         return TemplateResponse(request, "collect/partials/cart_offcanvas.html", {"cart": cart, "cartitems": cartitems})
-    else:
-        return HttpResponseBadRequest()
+    return HttpResponseBadRequest()
 
 
 def seedsample_detail(request, pk):
@@ -116,7 +114,7 @@ class SeedSampleCreateView(CreateBreadcrumbsMixin, CreateView):
         return response
 
     def get_form(self):
-        form = super(SeedSampleCreateView, self).get_form()
+        form = super().get_form()
         variety_id = self.request.GET.get("variety_id", None)
         if variety_id:
             variety = get_object_or_404(PlantVariety, pk=variety_id)
@@ -149,26 +147,43 @@ class SeedSampleCreateView(CreateBreadcrumbsMixin, CreateView):
         return super().get_success_url()
 
 
-class SeedSampleUpdateView(UpdateBreadcrumbsMixin, UpdateView):
-    form_class = SeedSampleForm
-    model = SeedSample
+def get_empty_positions_for_accession(instance: SeedSample):
+    # TODO: This should be in the model manager
+    qs = StoragePosition.objects.all()
+    query = Q(seedsample__id=instance.pk)
+    query |= Q(seedsample__isnull=True)
+    qs = qs.filter(query)
+    qs = qs.annotate(
+        position_name=Concat("storage__name", Value("-"), "name"),
+        posn=Cast("name", output_field=IntegerField()),
+    )
+    qs = qs.order_by("storage__name", "posn")
+    return qs.values("pk", "position_name")
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["varieties"] = list(PlantVarietyName.objects.values("variety__id", "name"))
-        context["positions"] = list(
-            StoragePosition.objects.filter(Q(seedsample__id=self.object.pk) | Q(seedsample__isnull=True))
-            .annotate(
-                position_name=Concat("storage__name", Value("-"), "name"),
-                posn=Cast("name", output_field=IntegerField()),
-            )
-            .order_by("storage__name", "posn")
-            .values("pk", "position_name")
-        )
-        return context
+
+def seedsample_update(request, pk):
+    context = {}
+    instance = get_object_or_404(SeedSample, pk=pk)
+    if request.method == "POST":
+        form = SeedSampleForm(request.POST, instance=instance)
+        if form.is_valid():
+            form.save()
+            return redirect(reverse("collect:seedsample_detail", args=(pk,)))
+    else:
+        form = SeedSampleForm(instance=instance)
+    context.update({"form": form, "object": instance})
+
+    context["varieties"] = list(PlantVarietyName.objects.values("variety__id", "name"))
+    context["positions"] = list(get_empty_positions_for_accession(instance))
+    crumbs = generate_breadcrumbs(request, SeedSample, instance)
+    crumbs = add_plantvariety_breadcrumbs(crumbs, instance.variety)
+    context.update(crumbs)
+
+    return TemplateResponse(request, "collect/seedsample_update.html", context)
 
 
 class SeedSampleDeleteView(DeleteBreadcrumbsMixin, DeleteView):
+    object: SeedSample
     model = SeedSample
     success_url = reverse_lazy("collect:seedsample_list")
 
@@ -209,17 +224,10 @@ def storage_detail(request, pk):
 
 
 class StorageSortView(SortableView):
-    """
-    Endpoint for sorting Storage objects via htmx
-    """
-
     model = Storage
 
 
 def storage_create(request):
-    """
-    View to create a new Storage object.
-    """
     form = StorageCreateForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
         with transaction.atomic():
@@ -231,6 +239,17 @@ def storage_create(request):
             return redirect(reverse("collect:storage-create"))
         return redirect(reverse("collect:storage_detail", args=[storage.pk]))
     return TemplateResponse(request, "collect/storage_form.html", {"form": form})
+
+
+def storage_update(request, pk):
+    instance = get_object_or_404(Storage, pk=pk)
+    if request.method == "POST":
+        form = StorageUpdateForm(request.POST, instance=instance)
+        if form.is_valid():
+            form.save()
+            return redirect(reverse("collect:storage_detail", args=(instance.pk,)))
+    form = StorageUpdateForm(instance=instance)
+    return TemplateResponse(request, "frontpage/_update_form.html", {"form": form})
 
 
 def storage_delete(request, pk):

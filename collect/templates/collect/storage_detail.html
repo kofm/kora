@@ -3,6 +3,7 @@
 {% load static %}
 {% load django_tables2 %}
 {% load breadcrumbs %}
+{% load components %}
 
 {% block title %}Collect{% endblock %}
 
@@ -10,22 +11,9 @@
     
     {% render_breadcrumbs %}
 
-    <h1 class="display-1">
-	Storage {{ storage }}
-	{% if storage.stored_samples %}
-	<a
-	    class="text-decoration-none link-body-emphasis text-muted"
-	    data-bs-toggle="tooltip"
-	    data-bs-title="Can't delete. Storage not empty."
-	    >
-	{% else %}
-	<a
-	    class="text-decoration-none link-body-emphasis"
-	    href="{% url 'collect:storage_delete' storage.pk %}">
-	{% endif %}
-	    <i class="bi bi-trash" style="font-size:2rem"></i>
-	</a>
-    </h1>
+    {% detail_page_header storage subtitle="Storage" cant_delete_msg="You can't delete this storage as it is not empty." %}
+
+    <h2>Samples <span class="badge rounded-pill text-bg-secondary">{{ storage.stored_samples }}/{{ storage.total_positions }}</span></h2>
 
     {% render_table table %}
 

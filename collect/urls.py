@@ -6,16 +6,17 @@ app_name = "collect"
 
 urlpatterns = [
     path("", views.seedsample_list, name="seedsample_list"),
-    path("<int:pk>", views.seedsample_detail, name="seedsample-detail"),
+    path("<int:pk>", views.seedsample_detail, name="seedsample_detail"),
     path("new", views.SeedSampleCreateView.as_view(), name="seedsample_create"),
     path("storage", views.StorageListView.as_view(), name="storage_list"),
     path("storage/create", views.storage_create, name="storage-create"),
     path("storage/<int:pk>", views.StorageDetailView.as_view(), name="storage_detail"),
+    path("storage/<int:pk>/update", views.storage_update, name="storage_update"),
     path("storage/<int:pk>/delete", views.storage_delete, name="storage_delete"),
     path("storage/sort", views.StorageSortView.as_view(), name="storage-sort"),
     path(
         "<int:pk>/update",
-        views.SeedSampleUpdateView.as_view(),
+        views.seedsample_update,
         name="seedsample_update",
     ),
     path(

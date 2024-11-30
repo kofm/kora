@@ -34,7 +34,7 @@
                         <h2>Search</h2>
                     </div>
                     <div class="col d-flex justify-content-end align-items-center">
-                        
+
                         <div class="dropdown dropstart">
                             <a href="" class="bi bi-three-dots-vertical h4 ms-3" data-bs-toggle="dropdown" aria-expande="false"></a>
                             <ul class="dropdown-menu">
@@ -101,31 +101,28 @@
 
 	        <!-- Table Div -->
 	        <div class="col-7">
-		        <div class="sticky-top" style="max-height: 100vh; overflow-y: auto;">
+		        <div class="sticky-top" style="max-height: 100vh;">
                     <div id="spinner" class="spinner-grow my-indicator" role="status">
                         <span class="visually-hidden">Loading...</span>
                     </div>
 
 		            <div id="table">
-                        <div class="row">
-                            <div class="col">
-                                <h2>Results <span class="badge text-bg-secondary">{{ page_obj.data|length }}</span></h2>
-                            </div>
-                            <div class="col d-flex justify-content-end align-items-center">
-                                <span data-bs-toggle="offcanvas" data-bs-target="#desListOffcanvas" aria-controls="desListOffcanvas">
-		                            <a class="text-decoration-none link-body-emphasis" data-bs-toggle="tooltip" data-bs-title="Show list" data-bs-delay="500">
-                                        <i class="h1 bi bi-list-stars"></i>
-                                    </a>
-	                            </span>
-                            </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h2>Results <span class="badge text-bg-secondary">{{ page_obj.data|length }}</span></h2>
+                            <span class="me-2" data-bs-toggle="offcanvas" data-bs-target="#desListOffcanvas" aria-controls="desListOffcanvas">
+		                        <a class="text-decoration-none link-body-emphasis" data-bs-toggle="tooltip" data-bs-title="Show Collection" data-bs-delay="500">
+                                    <i class="h1 bi bi-list-stars"></i>
+                                </a>
+	                        </span>
                         </div>
+                    </div>
 
 
 
-			            {% render_table page_obj %}
-		            </div>
+			        {% render_table page_obj %}
 		        </div>
-	        </div>
+		    </div>
+	    </div>
 	    </div>
 
         <script>

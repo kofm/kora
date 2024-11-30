@@ -1,6 +1,7 @@
 {% extends "frontpage/base.html" %}
 {% load description_extras %}
 {% load frontpage_extras %}
+{% load components %}
 {% block title %}Description: {{ description.variety.name }}{% endblock %}
 {% block container %}
 
@@ -15,49 +16,58 @@
             <li class="breadcrumb-item active" aria-current="page">{{ description.name }}</li>
         </ol>
     </nav>
-    <p class="display-3">{{ description.variety.name }} <small class="text-muted">{{ description.name }}</small> {% render_edit_icon description_update_metadata_url %}</p>
-    <p class="lead">Reference protocol <a href="{% url 'describe:protocol_detail' description.protocol.id %}">{{ description.protocol.name }}</a> (<i>{{ description.protocol.plantspecies.latin_name }}</i>)</p>
-    <p>
-        <a class="btn btn-secondary" href="{% url 'describe:description_expression_update' description.id %}">Update</a>
-        <a class="btn btn-secondary" href="{% url 'describe:description-find-similar' %}?description_id={{ description.pk }}">Find similar</a>
-        <a class="btn btn-danger" href="{% url 'describe:description_delete' description.id %}">Delete</a>
-    </p>
+    {% url 'describe:description_expression_update' description.id as update_url %}
+    {% url 'describe:description_delete' description.id as delete_url %}
+
+    {% detail_page_header description title=description.variety subtitle=description.name update_url=update_url %}
+    <p class="lead">Compiled according to
+        <a href="{% url 'describe:protocol_detail' description.protocol.id %}">
+            {{ description.protocol.name }}
+        </a></p>
+
+    <div class="my-3">
+        <a class="btn btn-sm btn-outline-secondary" href="{% url 'describe:description-find-similar' %}?description_id={{ description.pk }}">
+            Find Similar
+        </a>
+    </div>
+    <div class="border rounded p-4 my-2">
 
 
-    <table class="table">
+        <table class="table">
 
-        <thead>
-            <th>#</th>
-            <th>Trait</th>
-            <th>Expression</th>
-            <th>Notes</th>
-        </thead>
+            <thead>
+                <th>#</th>
+                <th>Trait</th>
+                <th>Expression</th>
+                <th>Notes</th>
+            </thead>
 
-        {% for trait in description.protocol.traits.all %}
-	        {% with expressions=description.expressions.all|filter_expression_by_trait:trait.id %}
-		        <tr {% if trait.grouping %}class="fw-bold"{% endif %}>
-                    <td rowspan="{{ expressions.count|default:1 }}">
-			            {{ trait.numeric_id }}
-		            </td>
-                    <td rowspan="{{ expressions.count|default:1 }}">
-			            {{ trait.description }}
-		            </td>
-		            {% for expression in expressions %}
-			            <td>{{ expression }}</td>
-			            <td>{{ expression.note }}</td>
-			            {% if not forloop.last %}
-		        </tr>
-		        <tr {% if trait.grouping %}class="fw-bold"{% endif %}>
-			            {% endif %}
-		            {% empty %}
-			            <td></td>
-			            <td></td>
-		            {% endfor %}
-		        </tr>
-	        {% endwith %}
-        {% endfor %}
+            {% for trait in description.protocol.traits.all %}
+	            {% with expressions=description.expressions.all|filter_expression_by_trait:trait.id %}
+		            <tr {% if trait.grouping %}class="fw-bold"{% endif %}>
+                        <td rowspan="{{ expressions.count|default:1 }}">
+			                {{ trait.numeric_id }}
+		                </td>
+                        <td rowspan="{{ expressions.count|default:1 }}">
+			                {{ trait.description }}
+		                </td>
+		                {% for expression in expressions %}
+			                <td>{{ expression }}</td>
+			                <td>{{ expression.note }}</td>
+			                {% if not forloop.last %}
+		            </tr>
+		            <tr {% if trait.grouping %}class="fw-bold"{% endif %}>
+			                {% endif %}
+		                {% empty %}
+			                <td></td>
+			                <td></td>
+		                {% endfor %}
+		            </tr>
+	            {% endwith %}
+            {% endfor %}
 
-    </table>
+        </table>
 
+    </div>
 
 {% endblock %}

@@ -3,24 +3,16 @@
 {% load static %}
 {% load breadcrumbs %}
 {% load description_extras %}
+{% load components %}
 
 {% block title %}Protocol: {{ protocol.name }}{% endblock %}
 {% block container %}
 
     {% render_breadcrumbs %}
 
-    <p class="display-1">{{ protocol.name }} <small class="text-muted">(<i>{{ protocol.plantspecies.latin_name }}</i>)</small></p>
+    {% detail_page_header protocol title=protocol.name subtitle=protocol.plantspecies %}
     <div class="row my-3">
         <div class="col">
-            <p class="h1">
-                Table of characteristics
-                <a href="{% url 'describe:protocol_update' protocol.id %}" class="btn btn-secondary">Update</a>
-                {% if not protocol.descriptions.count %}
-                    <a href="{% url 'describe:protocol_delete' protocol.id %}" class="btn btn-danger">Delete</a>
-                {% else %}
-                    <a href="#" class="btn btn-outline-secondary" data-bs-toggle="tooltip" data-bs-title="Can't delete. There are {{ protocol.descriptions.count }} Descriptions referencing this Protocol">Delete</a>
-                {% endif %}
-            </p>
             <table class="table">
                 <thead>
                     <tr>
@@ -41,10 +33,10 @@
                                 <td>{{ state.description }} </td>
                                 <td><a class="text-decoration-none link-body-emphasis" href="{% url 'describe:state-update' state.pk %}"><i class="bi bi-arrow-left-right"></i></a></td>
                                 {% if not forloop.last %}
-                                    </tr>
+                        </tr>
                                 {% endif %}
                             {% endfor %}
-                        </tr>
+                    </tr>
                     {% endfor %}
                 </tbody>
             </table>

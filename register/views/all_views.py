@@ -120,7 +120,7 @@ class ProtectionDetailView(NavPlantActiveContext, DetailView):
 
 class EntityCreateView(CreateBreadcrumbsMixin, NavDescribeActiveContext, CreateView):
     model = Entity
-    fields = "__all__"
+    fields = ("name", "type", "country", "contact", "email")
     template_name = "frontpage/_create_form.html"
 
     def get_context_data(self, *args, **kwargs):
@@ -141,17 +141,22 @@ def entity_detail(request, pk):
 
 class EntityUpdateView(UpdateBreadcrumbsMixin, NavPlantActiveContext, UpdateView):
     model = Entity
-    fields = "__all__"
+    fields = ("name", "type", "country", "contact", "email")
     template_name = "frontpage/_update_form.html"
+
+
+class EntityDeleteView(DeleteView):
+    model = Entity
+    template_name = "frontpage/confirm_delete.html"
 
 
 @nav_plant_active_context
 def entity_list(request):
     context = {}
-    filter = EntityFilter(request.GET, queryset=Entity.objects.all())
-    table = EntityTable(filter.qs)
+    flt = EntityFilter(request.GET, queryset=Entity.objects.all())
+    table = EntityTable(flt.qs)
     RequestConfig(request, paginate={"per_page": 25}).configure(table)
     context["table"] = table
-    context["filter"] = filter
+    context["filter"] = flt
     context.update(generate_breadcrumbs(request, Entity))
     return TemplateResponse(request, "register/entity_list.html", context)

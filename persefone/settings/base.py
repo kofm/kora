@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-TEMPLATE_DIR = os.path.join(BASE_DIR, "templates")
+TEMPLATE_DIR = Path(BASE_DIR) / "templates"
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -18,7 +18,7 @@ INSTALLED_APPS = [
     "django_htmx",
     "rest_framework",
     "crispy_forms",
-    "crispy_bootstrap4",
+    "crispy_bootstrap5",
     "django_countries",
     "widget_tweaks",
     "register.apps.RegisterConfig",
@@ -84,7 +84,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-# Database configuration. This defaults make sense for use via
+# Database configuration. These defaults make sense for use via
 # `kora-docker` (https://github.com/kofm/kora-docker). Host, port, and
 # password have to be set in the running environment.
 DATABASES = {
@@ -92,18 +92,19 @@ DATABASES = {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": "postgres",
         "USER": "postgres",
-        "PASSWORD": os.getenv("POSTGRES_PASSWORD"),
-        "HOST": os.getenv("DB_HOST"),
-        "PORT": os.getenv("DB_PORT"),
+        "PASSWORD": os.getenv("POSTGRES_PASSWORD", "postgres"),
+        "HOST": os.getenv("DB_HOST", "localhost"),
+        "PORT": os.getenv("DB_PORT", "5432"),
     },
 }
 
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
-# These have to be set in the environment file. With `docker-compose`
-# this is easily achieved with an .env file.
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS").split(" ")
-CSRF_TRUSTED_ORIGINS = os.getenv("CSRF_TRUSTED_ORIGINS").split(" ")
+hosts = os.getenv("ALLOWED_HOSTS", "")
+ALLOWED_HOSTS = hosts.split() if hosts else []
+
+origins = os.getenv("CSRF_TRUSTED_ORIGINS", "")
+CSRF_TRUSTED_ORIGINS = origins.split() if origins else []
 
 # Internationalization
 LANGUAGE_CODE = "en-us"
@@ -114,11 +115,9 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 
-CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap4"
-CRISPY_TEMPLATE_PACK = "bootstrap4"
-DJANGO_TABLES2_TEMPLATE = "django_tables2/bootstrap4.html"
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
+CRISPY_TEMPLATE_PACK = "bootstrap5"
+DJANGO_TABLES2_TEMPLATE = "django_tables2/bootstrap5.html"
 
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
-
-BREADCRUMBS_HOME_LABEL = "Kora"
