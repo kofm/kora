@@ -1,4 +1,3 @@
-from django.db.models import Q
 from django_countries.fields import CountryField
 from django_filters import (
     BooleanFilter,
@@ -6,10 +5,14 @@ from django_filters import (
     Filter,
     FilterSet,
     ModelMultipleChoiceFilter,
+    ChoiceFilter,
 )
-from django import forms
 
-from register.models import PlantSpecies, PlantVariety
+from django import forms
+from django.db.models import Q
+from register.models import PlantSpecies, PlantVariety, Protection, PROTECTION_STATUS_CHOICES
+
+TRIGRAM_SEARCH_THRESHOLD = 7
 
 PBR = "PBR"
 NLI = "NLI"
@@ -34,10 +37,10 @@ PROTECTION_STATUS_CHOICES = [
 
 
 def filter_name_generic(queryset, name, value):
-    lookup_icontains = "__".join([name, "unaccent__icontains"])
-    lookup_trigram = "__".join([name, "unaccent__lower__trigram_similar"])
+    lookup_icontains = f"{name}__unaccent__icontains"
+    lookup_trigram = f"{name}__unaccent__lower__trigram_similar"
     if value:
-        if len(value) < 7:
+        if len(value) < TRIGRAM_SEARCH_THRESHOLD:
             queryset = queryset.filter(**{lookup_icontains: value})
         else:
             queryset = queryset.filter(**{lookup_trigram: value})
@@ -62,11 +65,8 @@ class ProtectionFilterWidget(forms.MultiValueField):
 
     def compress(self, data_list):
         if data_list:
-            return {
-                "protection__status": data_list[0],
-                "protection__type": data_list[1],
-                "protection__country": data_list[2],
-            }
+            status, ptype, country = data_list
+            return {"protection__status": status, "protection__type": ptype, "protection__country": country}
         return None
 
 
@@ -75,7 +75,7 @@ class ProtectionFilter(Filter):
 
     def filter(self, qs, values):
         if values:
-            filters = {k: v for k, v in values.items() if v != ""}
+            filters = {k: v for k, v in values.items() if v != ""}  # Ignore empty values
             return qs.filter(**filters).distinct()
         return qs
 
@@ -84,26 +84,19 @@ class PlantVarietyFilter(FilterSet):
     name = CharFilter(label="Denomination", method="filter_name", field_name="names__name")
     breeder = CharFilter(label="Breeder", method="filter_name", field_name="breeder__name")
     species = ModelMultipleChoiceFilter(label="Species", queryset=PlantSpecies.objects.all())
-    has_descriptions = BooleanFilter(
-        label="Described",
-        field_name="description",
-        method="filter_has_records",
-    )
+    has_descriptions = BooleanFilter(label="Described", field_name="description", method="filter_has_records")
     has_accessions = BooleanFilter(label="Accession", field_name="seedsample", method="filter_has_records")
     protection = ProtectionFilter(label="Protection")
 
     class Meta:
         model = PlantVariety
-        fields = (
-            "name",
-            "breeder",
-        )
+        fields = ("name", "breeder")
 
     def filter_name(self, queryset, name, value):
         return filter_name_generic(queryset, name, value)
 
     def filter_has_records(self, queryset, name, value):
-        lookup = "__".join([name, "isnull"])
+        lookup = f"{name}__isnull"
         if value is not None:
             return queryset.filter(**{lookup: not value}).distinct()
         return queryset
@@ -114,3 +107,16 @@ class EntityFilter(FilterSet):
 
     def filter_name(self, queryset, name, value):
         return filter_name_generic(queryset, name, value)
+
+
+class ProtectionOmniFilter(FilterSet):
+    omni = CharFilter(method="omni_search", label="")
+    type = ChoiceFilter(choices=PROTECTION_TYPE_CHOICES)
+    status = ChoiceFilter(choices=PROTECTION_STATUS_CHOICES)
+    country = ChoiceFilter(choices=CountryField().get_choices())
+
+    def omni_search(self, queryset, name, value):
+        query = Q(variety__names__name__icontains=value)
+        query |= Q(note__icontains=value)
+        query |= Q(reference__icontains=value)
+        return Protection.objects.filter(query)

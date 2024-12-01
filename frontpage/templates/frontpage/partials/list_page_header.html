@@ -6,9 +6,11 @@
     </div>
     <div class="col d-flex justify-content-end align-items-center">
 
-        <a class="btn btn-outline-primary ms-2" href="{{ create_url }}">
-            Create
-        </a>
+        {% if create_url %}
+            <a class="btn btn-outline-primary ms-2" href="{{ create_url }}">
+                Create
+            </a>
+        {% endif %}
 
         {% if menu_items %}
             <div class="dropdown dropup">

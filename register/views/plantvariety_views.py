@@ -23,8 +23,7 @@ from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.urls.base import reverse_lazy
-from django.views.generic import DeleteView
-from frontpage.views_decorators import NavPlantActiveContext
+from frontpage.views_decorators import NavPlantActiveContext, nav_plant_active_context
 from parameters.models import VarietalParameter
 from register.filters import PlantVarietyFilter
 from register.forms import PlantVarietyForm, PlantVarietyNameForm
@@ -48,7 +47,7 @@ class PlantVarietyCreate(NavPlantActiveContext, CrumbsCreateView):
     template_name_suffix = "_create_form"
 
     def get_context_data(self, **kwargs):
-        kwargs.update({"model_name": self.model._meta.verbose_name.title()})  # noqa: SLF001
+        kwargs.update({"model_name": self.model._meta.verbose_name.title()})
         return super().get_context_data(**kwargs)
 
 
@@ -105,7 +104,7 @@ def plantvarietyname_create(request, pk):
     breadcrumbs = [
         list_breadcrumb(PlantVariety),
         detail_breadcrumb(variety),
-        ("Denominations", variety.get_absolute_url()),
+        ("Denominations", f"{variety.get_absolute_url()}#names"),
         ("Create", ""),
     ]
     context["form"] = form
@@ -153,6 +152,7 @@ def plantvarietyname_delete(request, pk):
     return TemplateResponse(request, "register/plantvarietyname_confirm_delete.html", context)
 
 
+@nav_plant_active_context
 def plantvariety_list(request):
     queryset = PlantVariety.objects.all().order_by("-created_at")
     flt = PlantVarietyFilter(request.GET, queryset=queryset)
