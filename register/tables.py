@@ -20,8 +20,15 @@ class ProtectionTable(tables.Table, CountryRenderer):
 
     class Meta:
         model = Protection
-        template_name = "django_tables2/bootstrap4.html"
         exclude = ("id", "variety")
+
+
+class ProtectionListTable(ProtectionTable):
+    variety = tables.Column(linkify=True)
+
+    class Meta:
+        model = Protection
+        exclude = ("id",)
 
 
 class PlantVarietyDescriptionTable(DescriptionTable):

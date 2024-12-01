@@ -1,13 +1,13 @@
-from typing import Any, Dict, List, Optional, Tuple, Type
+from typing import Any
 
 from django.db.models.base import Model
 from django.http import HttpRequest
 from django.urls import reverse
 from register.models import PlantVariety
 
-Breadcrumb = Tuple[str, str]
-BreadcrumbList = List[Breadcrumb]
-BreadcrumbContext = Dict[str, BreadcrumbList]
+Breadcrumb = tuple[str, str]
+BreadcrumbList = list[Breadcrumb]
+BreadcrumbContext = dict[str, BreadcrumbList]
 
 CONTEXT_KEY = "KORA_BREADCRUMBS"
 
@@ -16,19 +16,23 @@ def breadcrumbs_context(breadcrumbs: BreadcrumbList) -> BreadcrumbContext:
     return {CONTEXT_KEY: breadcrumbs}
 
 
-def model_verbose(model: Type[Model]) -> str:
-    return model._meta.verbose_name_plural.title()
+def model_verbose(model: type[Model]) -> str:
+    verbose_name_plural = str(model._meta.verbose_name_plural)
+    return verbose_name_plural.title()
 
 
-def model_name(model: Type[Model]) -> str:
-    return model._meta.verbose_name.replace(" ", "")
+def model_name(model: type[Model]) -> str:
+    verbose_name = model._meta.verbose_name
+    if isinstance(verbose_name, str):
+        return verbose_name.replace(" ", "")
+    return ""
 
 
-def app_label(model: Type[Model]) -> str:
+def app_label(model: type[Model]) -> str:
     return model._meta.app_label
 
 
-def view_url(model: Type[Model], action: str) -> str:
+def view_url(model: type[Model], action: str) -> str:
     url_name = f"{app_label(model)}:{model_name(model)}_{action}"
     if isinstance(model, Model):
         return reverse(url_name, args=[model.pk])
@@ -36,40 +40,46 @@ def view_url(model: Type[Model], action: str) -> str:
 
 
 def get_view_url_name(request: HttpRequest) -> str:
-    return request.resolver_match.url_name
+    if isinstance(request, HttpRequest) and request.resolver_match:
+        url_name = request.resolver_match.url_name
+        if url_name is None:
+            e = "Expected url_name to be a string, got None"
+            raise ValueError(e)
+        return url_name
+    e = "Invalid request: Not an instance of HttpRequest or missing resolver_match"
+    raise ValueError(e)
 
 
-def list_breadcrumb(model: Type[Model]) -> tuple[str, str]:
+def list_breadcrumb(model: type[Model]) -> tuple[str, str]:
     return (model_verbose(model), view_url(model, "list"))
 
 
-def create_breadcrumb(model: Type[Model]) -> tuple[str, str]:
+def create_breadcrumb(model: type[Model]) -> tuple[str, str]:
     return ("Create", view_url(model, "create"))
 
 
-def update_breadcrumb(instance: Model) -> tuple[str, str]:
+def update_breadcrumb(instance: type[Model]) -> tuple[str, str]:
     return ("Update", view_url(instance, "update"))
 
 
-def delete_breadcrumb(instance: Model) -> tuple[str, str]:
+def delete_breadcrumb(instance: type[Model]) -> tuple[str, str]:
     return ("Delete", view_url(instance, "delete"))
 
 
-def detail_breadcrumb(instance: Model) -> tuple[str, str]:
-    if hasattr(instance, "get_absolute_url") and callable(getattr(instance, "get_absolute_url")):
-        view_url = instance.get_absolute_url()
-    else:
-        view_url = view_url(instance)
-    return (instance.__str__(), view_url)
+def detail_breadcrumb(instance: type[Model]) -> tuple[str, str]:
+    url = instance.get_absolute_url() if hasattr(instance, "get_absolute_url") else view_url(instance, "detail")
+    return (str(instance), url)
 
 
-def add_breadcrumbs(context: Dict[str, Any], crumbs: BreadcrumbList) -> Dict[str, Any]:
+def add_breadcrumbs(context: dict[str, Any], crumbs: BreadcrumbList) -> dict[str, Any]:
     context[CONTEXT_KEY] = crumbs
     return context
 
 
 def generate_breadcrumbs(
-    request: HttpRequest, model: Optional[Type[Model]] = None, instance: Optional[Model] = None
+    request: HttpRequest,
+    model: type[Model] | None = None,
+    instance: type[Model] | None = None,
 ) -> BreadcrumbContext:
     breadcrumbs = []
     url_name = get_view_url_name(request)
@@ -92,6 +102,8 @@ def generate_breadcrumbs(
     return breadcrumbs_context(breadcrumbs)
 
 
-def add_plantvariety_breadcrumbs(breadcrumbs: BreadcrumbList, plantvariety_instance: PlantVariety) -> BreadcrumbContext:
+def add_plantvariety_breadcrumbs(
+    breadcrumbs: BreadcrumbContext, plantvariety_instance: type[PlantVariety]
+) -> BreadcrumbContext:
     plantvariety_breadcrumbs = [list_breadcrumb(PlantVariety), detail_breadcrumb(plantvariety_instance)]
     return breadcrumbs_context(plantvariety_breadcrumbs + breadcrumbs[CONTEXT_KEY])

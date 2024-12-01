@@ -8,11 +8,7 @@ class SeedSampleFilter(django_filters.FilterSet):
 
     class Meta:
         model = SeedSample
-        fields = [
-            "query",
-        ]
+        fields = ("query",)
 
     def universal_search(self, queryset, name, value):
-        return SeedSample.objects.filter(
-            Q(variety__names__name__icontains=value) | Q(notes__icontains=value)
-        )
+        return SeedSample.objects.filter(Q(variety__names__name__icontains=value) | Q(notes__icontains=value))

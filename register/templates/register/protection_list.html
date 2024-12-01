@@ -1,0 +1,28 @@
+{% extends "frontpage/base.html" %}
+{% load static %}
+{% load components %}
+{% load crispy_forms_tags %}
+{% load django_tables2 %}
+{% load breadcrumbs %}
+
+{% block javascript %}
+    <link rel="stylesheet" href="{% static 'flags/sprite.css' %}">
+{% endblock %}
+
+{% block title %}{{ protection }}{% endblock %}
+
+{% block container %}
+
+    {% render_breadcrumbs %}
+
+    {% list_page_header "Protections" %}
+
+    <form>
+        {{ filter.form|crispy }}
+        <button class="btn btn-primary" type="submit">Submit</button>
+        <a href="?" class="btn btn-secondary">Reset</a>
+    </form>
+
+    {% render_table table %}
+
+{% endblock %}

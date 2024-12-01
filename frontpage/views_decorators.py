@@ -49,3 +49,4 @@ class NavDescribeActiveContext(NavActive):
 
 
 nav_plant_active_context = nav_active("nav_plants")
+nav_describe_active_context = nav_active("nav_describe")

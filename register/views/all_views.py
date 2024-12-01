@@ -3,23 +3,33 @@ from django_tables2.config import RequestConfig
 from breadcrumbs.generic import (
     CreateBreadcrumbsMixin,
     CrumbsCreateView,
+    DeleteBreadcrumbsMixin,
     UpdateBreadcrumbsMixin,
 )
-from breadcrumbs.utils import detail_breadcrumb, generate_breadcrumbs, list_breadcrumb
+from breadcrumbs.utils import (
+    add_plantvariety_breadcrumbs,
+    detail_breadcrumb,
+    generate_breadcrumbs,
+    list_breadcrumb,
+)
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.urls.base import reverse_lazy
 from django.views.generic import CreateView, DetailView
 from django.views.generic.edit import DeleteView, UpdateView
-from frontpage.views_decorators import NavDescribeActiveContext
-from frontpage.views_decorators import NavPlantActiveContext, nav_plant_active_context
+from frontpage.views_decorators import (
+    NavDescribeActiveContext,
+    NavPlantActiveContext,
+    nav_describe_active_context,
+    nav_plant_active_context,
+)
 from parameters.forms import VarietalParameterForm
 from parameters.models import VarietalParameter
-from register.filters import EntityFilter
+from register.filters import EntityFilter, ProtectionOmniFilter
 from register.forms import ProtectionForm
 from register.models import Entity, PlantVariety, Protection
-from register.tables import EntityTable, PlantVarietyEntityTable
+from register.tables import EntityTable, PlantVarietyEntityTable, ProtectionListTable
 
 
 class PlantVarietyParametersList(NavPlantActiveContext, DetailView):
@@ -55,9 +65,19 @@ class VarietalParameterCreate(NavPlantActiveContext, CrumbsCreateView):
 
 
 @nav_plant_active_context
+def protection_list(request):
+    flt = ProtectionOmniFilter(request.GET, queryset=Protection.objects.all())
+    table = ProtectionListTable(flt.qs)
+    RequestConfig(request).configure(table)
+    context = {"table": table, "filter": flt}
+    context.update(generate_breadcrumbs(request, Protection))
+    return TemplateResponse(request, "register/protection_list.html", context)
+
+
+@nav_plant_active_context
 def protection_create(request, variety_id):
     variety = get_object_or_404(PlantVariety, pk=variety_id)
-    if request.POST:
+    if request.method == "POST":
         form = ProtectionForm(request.POST)
         if form.is_valid():
             instance = form.save(commit=False)
@@ -65,29 +85,27 @@ def protection_create(request, variety_id):
             instance.save()
             form.save_m2m()
             return redirect(instance.get_absolute_url())
-    duplicate_id = request.GET.get("duplicate")
+    to_dupe_pk = request.GET.get("duplicate")
     form = ProtectionForm()
-    if duplicate_id:
+    if to_dupe_pk:
         try:
-            protection_to_duplicate = Protection.objects.get(pk=duplicate_id)
-            initial = {}
-            initial["status"] = protection_to_duplicate.status
-            initial["country"] = protection_to_duplicate.country
-            initial["applicants"] = protection_to_duplicate.applicants.all()
-            initial["maintainers"] = protection_to_duplicate.maintainers.all()
-            initial["date_start"] = protection_to_duplicate.date_start
-            initial["date_end"] = protection_to_duplicate.date_end
+            dupe = Protection.objects.get(pk=to_dupe_pk)
+            initial = {
+                "status": dupe.status,
+                "country": dupe.country,
+                "applicants": dupe.applicants.all(),
+                "maintainers": dupe.maintainers.all(),
+                "date_start": dupe.date_start,
+                "date_end": dupe.date_end,
+            }
             form = ProtectionForm(initial=initial)
         except Protection.DoesNotExist:
             pass
-    return TemplateResponse(
-        request,
-        "register/protection_form.html",
-        {
-            "form": form,
-            "variety": variety,
-        },
-    )
+    context = {"form": form, "variety": variety, "model_name": "Protection"}
+    breadcrumbs = generate_breadcrumbs(request, Protection)
+    breadcrumbs = add_plantvariety_breadcrumbs(breadcrumbs, variety)
+    context.update(breadcrumbs)
+    return TemplateResponse(request, "register/protection_create.html", context)
 
 
 @nav_plant_active_context
@@ -102,20 +120,30 @@ def protection_update(request, pk):
     else:
         form = ProtectionForm(instance=protection)
         context["form"] = form
-        context["protection"] = protection
+        context["object"] = protection
         context["variety"] = protection.variety
-    return TemplateResponse(request, "register/protection_form.html", context)
+    breadcrumbs = generate_breadcrumbs(request, Protection, protection)
+    breadcrumbs = add_plantvariety_breadcrumbs(breadcrumbs, protection.variety)
+    context.update(breadcrumbs)
+    return TemplateResponse(request, "register/protection_update.html", context)
 
 
-class ProtectionDeleteView(DeleteView):
+class ProtectionDeleteView(DeleteBreadcrumbsMixin, NavPlantActiveContext, DeleteView):
+    object: Protection
     model = Protection
 
     def get_success_url(self):
         return reverse_lazy("register:plantvariety_detail", args=[self.object.variety.pk])
 
 
-class ProtectionDetailView(NavPlantActiveContext, DetailView):
-    model = Protection
+@nav_plant_active_context
+def protection_detail(request, pk):
+    instance = get_object_or_404(Protection, pk=pk)
+    context = {"protection": instance}
+    breadcrumbs = generate_breadcrumbs(request, Protection, instance)
+    breadcrumbs = add_plantvariety_breadcrumbs(breadcrumbs, instance.variety)
+    context.update(breadcrumbs)
+    return TemplateResponse(request, "register/protection_detail.html", context)
 
 
 class EntityCreateView(CreateBreadcrumbsMixin, NavDescribeActiveContext, CreateView):
@@ -129,7 +157,7 @@ class EntityCreateView(CreateBreadcrumbsMixin, NavDescribeActiveContext, CreateV
         return context
 
 
-@nav_plant_active_context
+@nav_describe_active_context
 def entity_detail(request, pk):
     entity = get_object_or_404(Entity, pk=pk)
     table = PlantVarietyEntityTable(entity.plantvariety_set.all())
@@ -139,18 +167,19 @@ def entity_detail(request, pk):
     return TemplateResponse(request, "register/entity_detail.html", context)
 
 
-class EntityUpdateView(UpdateBreadcrumbsMixin, NavPlantActiveContext, UpdateView):
+class EntityUpdateView(UpdateBreadcrumbsMixin, NavDescribeActiveContext, UpdateView):
     model = Entity
     fields = ("name", "type", "country", "contact", "email")
     template_name = "frontpage/_update_form.html"
 
 
-class EntityDeleteView(DeleteView):
+class EntityDeleteView(NavDescribeActiveContext, DeleteView):
+    object: Entity
     model = Entity
     template_name = "frontpage/confirm_delete.html"
 
 
-@nav_plant_active_context
+@nav_describe_active_context
 def entity_list(request):
     context = {}
     flt = EntityFilter(request.GET, queryset=Entity.objects.all())

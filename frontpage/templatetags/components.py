@@ -4,12 +4,19 @@ register = template.Library()
 
 
 @register.inclusion_tag("frontpage/partials/list_page_header.html")
-def list_page_header(title, *args, **kwargs):
-    return {"page_title": title, "create_url": kwargs["create_url"]}
+def list_page_header(title, create_url=None):
+    return {"page_title": title, "create_url": create_url}
 
 
 @register.inclusion_tag("frontpage/partials/detail_page_header.html")
-def detail_page_header(instance=None, title="", subtitle="", update_url=None, delete_url=None, **kwargs):
+def detail_page_header(
+    instance=None,
+    title="",
+    subtitle="",
+    update_url=None,
+    delete_url=None,
+    **kwargs,
+):
     if not title and instance:
         title = instance.__str__()
     if not update_url and instance and hasattr(instance, "get_update_url"):

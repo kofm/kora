@@ -1,11 +1,8 @@
-import datetime
-
 from django.contrib.auth.models import User
 from django.db import models, transaction
-from django.db.models.constraints import UniqueConstraint
 from django.db.models.query_utils import Q
 from django.urls import reverse
-from django.utils.timezone import now
+from django.utils import timezone
 from frontpage.generic import ModelIsDeletableMixin
 from register.models import PlantVariety
 
@@ -69,7 +66,7 @@ class StoragePosition(models.Model):
     name = models.CharField(max_length=200)
     storage = models.ForeignKey(Storage, on_delete=models.CASCADE)
 
-    def __str__(self) -> str:
+    def __str__(self):
         return f"{self.storage.name}-{self.name}"
 
     def get_absolute_url(self):
@@ -98,11 +95,6 @@ class SeedSample(ModelIsDeletableMixin, models.Model):
         return reverse("collect:seedsample_delete", kwargs={"pk": self.pk})
 
     @property
-    def growing_season_as_date(self):
-        now = datetime.datetime.now()
-        return datetime.datetime(self.growing_season, now.month, now.day)
-
-    @property
     def germinability(self):
         if self.germinability_set.count() > 0:
             return self.germinability_set.last().germinability
@@ -123,7 +115,7 @@ class Germinability(models.Model):
     seedsample = models.ForeignKey(SeedSample, on_delete=models.CASCADE)
     germinability = models.IntegerField()
     after_days = models.IntegerField(blank=True, null=True)
-    performed_at = models.DateField(default=now, blank=True, null=True)
+    performed_at = models.DateField(default=timezone.now, blank=True, null=True)
 
     class Meta:
         ordering = ("-performed_at",)
@@ -157,20 +149,18 @@ class Cart(models.Model):
 
     objects = CartManager()
 
-    def __str__(self) -> str:
-        return self.name
-
     class Meta:
-        constraints = [
-            UniqueConstraint(
-                fields=[
-                    "user",
-                ],
+        constraints = (
+            models.UniqueConstraint(
+                fields=("user",),
                 condition=Q(active=True),
                 name="unique_user_active",
-            )
-        ]
-        ordering = ["-active", "name"]
+            ),
+        )
+        ordering = ("-active", "name")
+
+    def __str__(self) -> str:
+        return self.name
 
     def get_absolute_url(self):
         return reverse("collect:cart-detail", args=[self.pk])
@@ -184,8 +174,8 @@ class CartItem(models.Model):
     )
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE)
 
+    class Meta:
+        ordering = ("sample__position",)
+
     def __str__(self):
         return self.sample.variety.name
-
-    class Meta:
-        ordering = ["sample__position"]

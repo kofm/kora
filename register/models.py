@@ -4,18 +4,35 @@ from django.urls.base import reverse
 from django_countries.fields import CountryField
 from frontpage.generic import ModelIsDeletableMixin
 
+INDIVIDUAL = "IN"
+PARTNERSHIP = "PA"
+COMPANY = "CO"
+COOPERATIVE = "CP"
+ENTITY_TYPE_CHOICES = (
+    (INDIVIDUAL, "Individual"),
+    (PARTNERSHIP, "Partnership"),
+    (COMPANY, "Company"),
+    (COOPERATIVE, "Cooperative"),
+)
+PBR = "PBR"
+NLI = "NLI"
+CAT = "CAT"
+PROTECTION_TYPE_CHOICES = (
+    (PBR, "Plant Breeders' Rights"),
+    (NLI, "National Listing"),
+    (CAT, "Common Catalogue"),
+)
+PROTECTION_STATUS_CHOICES = (
+    ("G", "Granted"),
+    ("T", "Terminated"),
+    ("A", "Active Application"),
+    ("W", "Withdrawn"),
+    ("R", "Refused"),
+    ("S", "Surrendered"),
+)
+
 
 class Entity(ModelIsDeletableMixin, models.Model):
-    INDIVIDUAL = "IN"
-    PARTNERSHIP = "PA"
-    COMPANY = "CO"
-    COOPERATIVE = "CP"
-    ENTITY_TYPE_CHOICES = (
-        (INDIVIDUAL, "Individual"),
-        (PARTNERSHIP, "Partnership"),
-        (COMPANY, "Company"),
-        (COOPERATIVE, "Cooperative"),
-    )
     name = models.CharField(max_length=200, help_text="Name of the entity. E.g., 'John Doe', 'Doe & Partners', etc.")
     type = models.CharField(
         max_length=2,
@@ -142,23 +159,7 @@ class PlantVarietyName(models.Model):
         return self.variety.names.count() > 1
 
 
-class Protection(models.Model):
-    PBR = "PBR"
-    NLI = "NLI"
-    CAT = "CAT"
-    PROTECTION_TYPE_CHOICES = (
-        (PBR, "Plant Breeders' Right"),
-        (NLI, "National Listing"),
-        (CAT, "Common Catalogue"),
-    )
-    PROTECTION_STATUS_CHOICES = (
-        ("G", "Granted"),
-        ("T", "Terminated"),
-        ("A", "Active Application"),
-        ("W", "Withdrawn"),
-        ("R", "Refused"),
-        ("S", "Surrendered"),
-    )
+class Protection(ModelIsDeletableMixin, models.Model):
     type = models.CharField(max_length=3, choices=PROTECTION_TYPE_CHOICES)
     status = models.CharField(max_length=1, blank=True, default="", choices=PROTECTION_STATUS_CHOICES)
     country = CountryField(null=True)
@@ -174,7 +175,13 @@ class Protection(models.Model):
         ordering = ("-date_start",)
 
     def __str__(self) -> str:
-        return self.get_type_display() + " for " + self.variety.name
+        return f"{self.type} for {self.variety.name}"
 
     def get_absolute_url(self):
-        return reverse("register:protection-detail", kwargs={"pk": self.pk})
+        return reverse("register:protection_detail", args=(self.pk,))
+
+    def get_update_url(self):
+        return reverse("register:protection_update", args=(self.pk,))
+
+    def get_delete_url(self):
+        return reverse("register:protection_delete", args=(self.pk,))
