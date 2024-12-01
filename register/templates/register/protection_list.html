@@ -4,12 +4,13 @@
 {% load crispy_forms_tags %}
 {% load django_tables2 %}
 {% load breadcrumbs %}
+{% load widget_tweaks %}
 
 {% block javascript %}
     <link rel="stylesheet" href="{% static 'flags/sprite.css' %}">
 {% endblock %}
 
-{% block title %}{{ protection }}{% endblock %}
+{% block title %}Protections{% endblock %}
 
 {% block container %}
 
@@ -18,11 +19,52 @@
     {% list_page_header "Protections" %}
 
     <form>
-        {{ filter.form|crispy }}
-        <button class="btn btn-primary" type="submit">Submit</button>
-        <a href="?" class="btn btn-secondary">Reset</a>
+        <div class="row mb-3">
+            <div class="col-4">
+                {% with field=filter.form.omni %}
+                    <div class="form-floating">
+                        {% render_field field class="form-control" placeholder="Search anything" %}
+                        <label for="{{ field.id_for_label }}">Search</label>
+                    </div>
+                {% endwith %}
+            </div>
+            <div class="col">
+                {% with field=filter.form.type %}
+                    <div class="form-floating">
+                        {% render_field field class="form-select" placeholder="Search anything" %}
+                        <label for="{{ field.id_for_label }}">Type</label>
+                    </div>
+                {% endwith %}
+            </div>
+            <div class="col">
+                {% with field=filter.form.status %}
+                    <div class="form-floating">
+                        {% render_field field class="form-select" placeholder="Search anything" %}
+                        <label for="{{ field.id_for_label }}">Status</label>
+                    </div>
+                {% endwith %}
+            </div>
+            <div class="col">
+                {% with field=filter.form.country %}
+                    <div class="form-floating">
+                        {% render_field field class="form-select" placeholder="Search anything" %}
+                        <label for="{{ field.id_for_label }}">Country</label>
+                    </div>
+                {% endwith %}
+            </div>
+        </div>
+        <div class="row my-3">
+            <div class="col">
+                <button class="btn btn-primary" type="submit">Search</button>
+                <a href="?" class="btn btn-secondary">Reset</a>
+            </div>
+        </div>
     </form>
+    <div class="row my-3">
+        <div class="col">
+            {% render_table table %}
+        </div>
+    </div>
 
-    {% render_table table %}
 
 {% endblock %}

@@ -119,9 +119,7 @@ def protection_update(request, pk):
             return redirect(instance.get_absolute_url())
     else:
         form = ProtectionForm(instance=protection)
-        context["form"] = form
-        context["object"] = protection
-        context["variety"] = protection.variety
+    context = {"form": form, "object": protection, "variety": protection.variety}
     breadcrumbs = generate_breadcrumbs(request, Protection, protection)
     breadcrumbs = add_plantvariety_breadcrumbs(breadcrumbs, protection.variety)
     context.update(breadcrumbs)
