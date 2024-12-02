@@ -14,3 +14,4 @@ pandas
 psycopg2
 pyuca
 tablib
+gunicorn
