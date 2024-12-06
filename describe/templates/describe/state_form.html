@@ -1,49 +1,37 @@
-{% extends "frontpage/base.html" %}
+{% extends "frontpage/_update_form.html" %}
+
 {% load widget_tweaks %}
 {% load static %}
 {% load django_tables2 %}
+{% load breadcrumbs %}
 
-{% block javascript %}
+{% block form %}
 
+    <div class="row d-flex justify-content-center">
+        <div class="col-6">
+            {% url 'describe:trait-list' as trait_list_url %}
+
+            {{ form.state }}
+
+            {{ form.protocol.label_tag }}
+            {% render_field form.protocol class+="form-select" autocomplete="off" hx-get=trait_list_url hx-target="#id_trait" hx-include="[name=state]"%}
+
+            {{ form.trait.label_tag }}
+            {% render_field form.trait class+="form-select" autocomplete="off" hx-get=trait_list_url hx-target="#id_related_state" hx-include="[name=state], [name=trait]"%}
+
+            {{ form.related_state.label_tag }}
+            {% render_field form.related_state class+="form-select" autocomplete="off" %}
+
+            <button class="btn btn-primary mt-3" type="submit">Update</button>
+        </div>
+    </div>
 {% endblock %}
 
-{% block title %}
-Relate states to {{ state.trait.description }}: {{ state.description }}
-{% endblock %}
-
-{% block container %}
-<h5>
-  {{ state.trait.description }}
-  <small class="text-muted">{{ state.trait.protocol }}</small>
-</h5>
-<h1 class="display-1">State of expression: {{ state }}</h1>
-<div class="row mt-5">
-  <div class="col">
-    <h2>
-      Related traits
-    </h2>
-    {% render_table table %}
-  </div>
-  <div class="col">
-    <h2>
-      Add related trait
-    </h2>
-    <form method="POST">
-      {% url 'describe:trait-list' as trait_list_url %}
-      {% csrf_token %}
-
-      {{ form.state }}
-
-      {{ form.protocol.label_tag }}
-      {% render_field form.protocol class+="form-select" autocomplete="off" hx-get=trait_list_url hx-target="#id_trait" hx-include="[name=state]"%}
-
-      {{ form.trait.label_tag }}
-      {% render_field form.trait class+="form-select" autocomplete="off" hx-get=trait_list_url hx-target="#id_related_state" hx-include="[name=state], [name=trait]"%}
-
-      {{ form.related_state.label_tag }}
-      {% render_field form.related_state class+="form-select" autocomplete="off" %}
-      <button class="btn btn-primary mt-3" type="submit">Relate</button>
-    </form>
-  </div>
-</div>
+{% block additional_content %}
+    <div class="row my-5">
+        <div class="col">
+            <h3>Related States</h3>
+            {% render_table table %}
+        </div>
+    </div>
 {% endblock %}

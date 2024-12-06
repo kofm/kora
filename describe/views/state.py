@@ -2,8 +2,9 @@
 State views
 """
 
+from breadcrumbs.utils import detail_breadcrumb, generate_breadcrumbs
 from describe.forms import RelatedStateForm
-from describe.models import State
+from describe.models import Protocol, State
 from describe.tables import RelatedStatesTable
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
@@ -19,9 +20,13 @@ def state_update(request, pk):
         if form.is_valid():
             related_state = State.objects.get(pk=form["related_state"].value())
             state.related_states.add(related_state)
-
     table = RelatedStatesTable(state.related_states.all())
-    return TemplateResponse(request, "describe/state_form.html", {"state": state, "table": table, "form": form})
+    context = {"state": state, "object": state, "table": table, "form": form}
+    breadcrumbs = generate_breadcrumbs(
+        request, Protocol, state.trait.protocol, [(state.trait, ""), (state, ""), ("Update", "")]
+    )
+    context.update(breadcrumbs)
+    return TemplateResponse(request, "describe/state_form.html", context)
 
 
 def relatedstate_delete(request, pk):

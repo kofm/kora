@@ -80,6 +80,7 @@ def generate_breadcrumbs(
     request: HttpRequest,
     model: type[Model] | None = None,
     instance: type[Model] | None = None,
+    additional: BreadcrumbList | None = None,
 ) -> BreadcrumbContext:
     breadcrumbs = []
     url_name = get_view_url_name(request)
@@ -98,6 +99,9 @@ def generate_breadcrumbs(
 
     if instance and url_name.endswith("_delete"):
         breadcrumbs.append(delete_breadcrumb(instance))
+
+    if additional:
+        breadcrumbs = breadcrumbs + additional
 
     return breadcrumbs_context(breadcrumbs)
 
