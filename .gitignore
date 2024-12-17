@@ -21,3 +21,7 @@ __pycache__
 .envrc
 /.dir-locals.el
 /wipe-db.sql
+/.mypy_cache/
+/.ruff_cache/
+/venv/
+/kora_backup.sql
