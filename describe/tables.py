@@ -1,7 +1,7 @@
-from django.utils.html import format_html
 import django_tables2 as tables
 
-from describe.models import Description, State
+from describe.models import Description, Protocol, State
+from django.utils.html import format_html
 
 
 class DescriptionTable(tables.Table):
@@ -18,12 +18,7 @@ class DescriptionTable(tables.Table):
             "th": {"class": "text-decoration-none link-body-emphasis"},
         },
     )
-    name = tables.Column(
-        linkify=True,
-        attrs={
-            "a": {"class": "text-decoration-none link-body-emphasis fw-bold"},
-        },
-    )
+    name = tables.Column(linkify=True, attrs={"a": {"class": "text-decoration-none link-body-emphasis fw-bold"}})
     protocol__name = tables.Column(
         "Protocol", linkify=True, attrs={"a": {"class": "text-decoration-none link-body-emphasis"}}
     )
@@ -50,3 +45,14 @@ class RelatedStatesTable(tables.Table):
     class Meta:
         model = State
         fields = ("numeric_id", "description", "trait", "trait__protocol")
+
+
+class ProtocolTable(tables.Table):
+    name = tables.Column(linkify=True)
+
+    def render_url_ref(self, record):
+        return format_html('<i class="bi bi-link-45deg"></i>')
+
+    class Meta:
+        model = Protocol
+        fields = ("name", "plantspecies", "url_ref")

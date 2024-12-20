@@ -1,0 +1,21 @@
+<div class="card mb-4">
+
+    <div class="card-header bg-secondary text-white">
+        {% include "describe/partials/trait_form.html" %}
+    </div>
+
+    <div class="card-body">
+        {% for form in state_forms %}
+            {% include "describe/partials/state_form.html" %}
+        {% endfor %}
+        {% if form.protocol.pk %}
+		    <a href=""
+		       class="text-decoration-none link-body-emphasis"
+		       hx-get="{% url 'describe:state_create' form.instance.pk %}"
+		       hx-swap="beforebegin">
+			    <i class="bi bi-plus-circle"></i>
+		    </a>
+        {% endif %}
+    </div>
+
+</div>

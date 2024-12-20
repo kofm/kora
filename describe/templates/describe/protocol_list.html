@@ -3,6 +3,7 @@
 {% load static %}
 {% load breadcrumbs %}
 {% load components %}
+{% load django_tables2 %}
 
 
 {% block title %}Protocols{% endblock %}
@@ -13,40 +14,8 @@
 
     {% url 'describe:protocol_create' as create_url %}
     {% list_page_header "Protocols" create_url=create_url %}
-    
-    {% if protocols %}
-        <div class="row mt-3">
-            <div class="col">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Protocol Name</th>
-                            <th>Species</th>
-                            <th>Characteristics</th>
-                            <th>Variety descriptions</th>
-                            <th class="col-1"></th>
-                        </tr>
-                        {% for protocol in protocols %}
-                            <tr>
-                                <td><a href="{% url 'describe:protocol_detail' protocol.id %}">{{ protocol.name }}</a></td>
-                                <td><i>{{ protocol.plantspecies.latin_name }}</i></td>
-                                <td>{{ protocol.traits.count }}</td>
-                                <td>{{ protocol.descriptions.count }}</td>
-                                <td>
-                                    <a class="link-body-emphasis" href="{% url 'describe:protocol_detail' protocol.id %}"><i class="bi bi-zoom-in"></i></a>
-                                    <a class="link-body-emphasis" href={% url 'describe:protocol_update' protocol.id  %}><i class="bi-pencil"></i></a>
-                                    {% if protocol.descriptions.count == 0 %}
-                                        <a class="link-body-emphasis" href={% url 'describe:protocol_delete' protocol.id  %}><i class="bi bi-trash"></i></a>
-                                    {% else %}
-                                        <a href="#" class="link-secondary" data-bs-toggle="tooltip" data-bs-title="Can't delete. There are {{ protocol.descriptions.count }} Descriptions referencing this Protocol"><i class="bi bi-trash"></i></a>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </thead>
-                </table></div>
-        </div>
-    {% else %}
-        <p>There are no available protocols, yet.</p>
-    {% endif %}
+
+
+    {% render_table table %}
+
 {% endblock %}

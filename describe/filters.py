@@ -3,6 +3,7 @@ from django.forms import TextInput
 
 from describe.models import Description
 
+
 class DescriptionFilterByName(django_filters.FilterSet):
     variety__names__name = django_filters.CharFilter(
         label="Variety name",
@@ -12,6 +13,4 @@ class DescriptionFilterByName(django_filters.FilterSet):
 
     class Meta:
         model = Description
-        fields = [
-            "variety__names__name",
-        ]
+        fields = ["variety__names__name"]

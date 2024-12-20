@@ -1,0 +1,32 @@
+<h5>General</h5>
+<ul class="nav nav-pills p-1">
+    <li class="nav-item">
+        <a
+           href="#"
+           class="nav-link"
+           hx-get="{% url 'describe:protocol_update_meta' protocol.pk %}"
+           hx-target="#formPanel"
+           >
+            Metadata
+        </a>
+    </li>
+</ul>
+<h5>Descriptors</h5>
+<ul class="nav nav-pills p-1">
+    {% for trait in protocol.traits.all %}
+        <li class="nav-item">
+            <a
+                href="#"
+                class="nav-link {% if trait.pk == current_trait.pk %}active{% endif %}"
+                hx-get="{% url 'describe:trait_update' trait.pk %}"
+                hx-target="#formPanel"
+            >
+                {{ trait }}
+            </a>
+        </li>
+    {% endfor %}
+</ul>
+
+{% if not protocol.traits.all %}
+    <p class="text-muted fs-6">No descriptors, yet.</p>
+{% endif %}

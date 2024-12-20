@@ -1,97 +1,65 @@
 from dynamic_forms import DynamicField, DynamicFormMixin
 
+from describe.models import (
+    Description,
+    DescriptionsUserList,
+    Expression,
+    Protocol,
+    State,
+    Trait,
+)
 from django import forms
 from django.forms import CheckboxSelectMultiple, formset_factory, inlineformset_factory
 from django.forms.formsets import BaseFormSet
-from django.forms.models import BaseInlineFormSet
 from django.utils.html import format_html
 
-from .models import Description, DescriptionsUserList, Expression, Protocol, State, Trait
+
+class NumberingCodeInput(forms.TextInput):
+    def __init__(self, attrs=None):
+        default_attrs = {
+            "class": "form-control",
+            "inputmode": "numeric",
+            "placeholder": "ID",
+        }
+        if attrs:
+            default_attrs.update(attrs)
+        super().__init__(attrs=default_attrs)
 
 
-class TraitForm(forms.Form):
-    numeric_id = forms.IntegerField(required=True)
-    description = forms.CharField(required=True)
-    protocol_id = forms.IntegerField(widget=forms.HiddenInput)
+class DescriptorTextInput(forms.TextInput):
+    def __init__(self, attrs=None):
+        default_attrs = {"class": "form-control"}
+        if attrs:
+            default_attrs.update(attrs)
+        super().__init__(attrs=default_attrs)
+
+
+class TraitForm(forms.ModelForm):
+    class Meta:
+        model = Trait
+        fields = ("numeric_id", "description", "grouping", "protocol")
+        widgets = {
+            "numeric_id": NumberingCodeInput,
+            "description": DescriptorTextInput(
+                attrs={"placeholder": "Description", "aria-describedby": "descriptorHelp"}
+            ),
+            "grouping": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "protocol": forms.HiddenInput,
+        }
 
 
 class StateForm(forms.ModelForm):
     class Meta:
         model = State
-        fields = (
-            "numeric_id",
-            "description",
-        )
-        labels = {
-            "numeric_id": "Note N°",
-            "description": "Note description",
+        fields = ("id", "numeric_id", "description", "trait")
+        widgets = {
+            "numeric_id": NumberingCodeInput(),
+            "description": forms.TextInput(attrs={"class": "form-control", "placeholder": "Descriptor state"}),
+            "trait": forms.HiddenInput(),
         }
 
 
-StateFormset = inlineformset_factory(
-    Trait,
-    State,
-    form=StateForm,
-    extra=1,
-    fields=(
-        "numeric_id",
-        "description",
-    ),
-)
-
-
-class BaseTraitFormSet(BaseInlineFormSet):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.custom_labels = {}
-        self.custom_labels["numeric_id"] = "Characteristic N°"
-        self.custom_labels["description"] = "Characteristic description"
-        for form in self.forms:
-            form.fields["numeric_id"].label = self.custom_labels["numeric_id"]
-            form.fields["description"].label = self.custom_labels["description"]
-
-    def add_fields(self, form, index):
-        form.nested = StateFormset(
-            instance=form.instance,
-            data=form.data if form.is_bound else None,
-            prefix="state-%s-%s" % (form.prefix, StateFormset.get_default_prefix()),
-        )
-        return super().add_fields(form, index)
-
-    def is_valid(self):
-        result = super(BaseTraitFormSet, self).is_valid()
-
-        if self.is_bound:
-            for form in self.forms:
-                if hasattr(form, "nested"):
-                    result = result and form.nested.is_valid()
-
-        return result
-
-    def empty_form(self):
-        form = super().empty_form
-        form.fields["numeric_id"].label = self.custom_labels["numeric_id"]
-        form.fields["description"].label = self.custom_labels["description"]
-        return form
-
-    def save(self, commit=True):
-        result = super(BaseTraitFormSet, self).save(commit=commit)
-
-        for form in self.forms:
-            if hasattr(form, "nested"):
-                if not self._should_delete_form(form):
-                    form.nested.save(commit=commit)
-
-        return result
-
-
-TraitFormSet = inlineformset_factory(
-    Protocol,
-    Trait,
-    formset=BaseTraitFormSet,
-    extra=1,
-    fields=("numeric_id", "description", "grouping"),
-)
+StateFormSet = inlineformset_factory(Trait, State, form=StateForm, extra=1, can_delete=False, can_order=False)
 
 
 class ExpressionUpdateForm(forms.Form):
@@ -124,12 +92,7 @@ class BaseDescriptionFilterFormset(BaseFormSet):
         filter = list()
         for form in self.forms:
             if states := form.cleaned_data["state"]:
-                filter.append(
-                    {
-                        "trait": form.cleaned_data["trait"],
-                        "state": [state.pk for state in states],
-                    }
-                )
+                filter.append({"trait": form.cleaned_data["trait"], "state": [state.pk for state in states]})
         return filter
 
 
@@ -148,10 +111,14 @@ def _choices(form, model, depends_on):
         return model.objects.none()
 
 
-class ProtocolNameForm(forms.ModelForm):
+class ProtocolMetadataForm(forms.ModelForm):
     class Meta:
         model = Protocol
-        fields = ("name",)
+        fields = ("name", "url_ref")
+        widgets = {
+            "name": forms.TextInput(attrs={"class": "form-control"}),
+            "url_ref": forms.URLInput(attrs={"class": "form-control"}),
+        }
 
 
 class RelatedStateForm(DynamicFormMixin, forms.Form):

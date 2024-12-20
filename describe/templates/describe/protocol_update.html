@@ -1,0 +1,30 @@
+{% extends "frontpage/_update_form.html" %}
+
+{% block javascript %}
+    <style>
+     .navbar-example {
+         position: sticky;
+         overflow-y: auto;
+         height: calc(100vh - 200px);
+         top: 50px;
+     }
+    </style>
+{% endblock %}
+
+{% block form_container %}
+
+    <div class="row mb-3">
+        <div class="col-3 navbar-example"
+             _="on init or htmx:afterSettle go to the bottom of .active smoothly"
+        >
+            <div id="traitNavigation">
+                {% include "describe/partials/trait_update_navigation.html" %}
+            </div>
+        </div>
+        <div class="col">
+            <div id="formPanel">
+                {% include "describe/partials/trait_form.html" %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

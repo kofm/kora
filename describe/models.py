@@ -25,10 +25,14 @@ class Protocol(ModelIsDeletableMixin, models.Model):
     plantspecies = models.ForeignKey(
         PlantSpecies,
         on_delete=models.PROTECT,
+        verbose_name="Species",
         help_text="reference to the specie it is meant to use with",
     )
-    url_ref = models.URLField(blank=True, default="", help_text="the URL reference to the protocol")
+    url_ref = models.URLField(verbose_name="URL", blank=True, default="", help_text="the URL reference to the protocol")
     objects = ProtocolManager()
+
+    class Meta:
+        ordering = ("name",)
 
     def __str__(self):
         return f"{self.name} ({self.plantspecies.latin_name})"
@@ -137,21 +141,21 @@ class Trait(models.Model):
     numeric_id = models.IntegerField(
         null=True,
         blank=True,
-        help_text="The characteristic's numeric ID",
+        verbose_name="ID",
+        help_text="Numbering code.",
     )
     description = models.CharField(
         max_length=200,
-        help_text="The characteristic's description",
+        verbose_name="name",
+        help_text="A descriptive, unique, and unambiguous name.",
     )
     protocol = models.ForeignKey(
         Protocol,
         on_delete=models.CASCADE,
-        null=True,
-        blank=True,
         related_name="traits",
         help_text="The reference protocol of the trait",
     )
-    grouping = models.BooleanField(default=False)
+    grouping = models.BooleanField(default=False, help_text="Is this a highly discriminating characteristic?")
 
     class Meta:
         """Trait model Meta class."""
@@ -162,32 +166,34 @@ class Trait(models.Model):
         """Return string representation of a Trait as `ID. DESCRIPTION`."""
         return f"{self.numeric_id}. {self.description}"
 
+    def is_deletable(self):
+        return not Expression.objects.filter(state__in=self.states.all()).exists()
+
+    def get_next_in_protocol(self):
+        return Trait.objects.filter(protocol=self.protocol, numeric_id__gt=self.numeric_id).first()
+
+    def get_previous_in_protocol(self):
+        return Trait.objects.filter(protocol=self.protocol, numeric_id__lt=self.numeric_id).last()
+
 
 class State(models.Model):
     """Store the possible states of expression related to a Trait."""
 
-    numeric_id = models.IntegerField(
-        help_text="the numeric ID of the Note",
-        null=True,
-        blank=True,
-    )
-    description = models.CharField(
-        help_text="A descriptive text about the note",
-        max_length=200,
-        null=False,
-        blank=False,
-    )
+    numeric_id = models.IntegerField(verbose_name="ID", help_text="Numbering code.")
+    description = models.CharField(help_text="A descriptive text about the state.", max_length=200)
     trait = models.ForeignKey(Trait, models.CASCADE, related_name="states")
     related_states = models.ManyToManyField("self")
 
     class Meta:
-        """State model Meta class."""
-
-        ordering = ("numeric_id",)
+        unique_together = ("numeric_id", "trait")
+        ordering = ("trait", "numeric_id")
 
     def __str__(self):
         """Return the string representation of a state as `ID. DESCRIPTION`."""
         return f"{self.numeric_id}. {self.description}"
+
+    def is_deletable(self):
+        return not Expression.objects.filter(state=self).exists()
 
 
 class Expression(models.Model):

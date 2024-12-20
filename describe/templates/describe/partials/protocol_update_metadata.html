@@ -1,0 +1,30 @@
+<div class="card">
+    <form
+        hx-post="{% url 'describe:protocol_update_meta' protocol.pk %}"
+        hx-target="#formPanel"
+    >
+        <div class="card-header">
+            <h5>Metadata</h5>
+        </div>
+        <div class="card-body">
+            <div class="form-floating mb-3">
+                <!-- <input type="email" class="form-control" id="floatingInput" placeholder="name@example.com"> -->
+                {{ form.name }}
+                <label for="{{ form.name.id_for_label }}">Name</label>
+            </div>
+            <div class="form-floating">
+                <!-- <input type="password" class="form-control" id="floatingPassword" placeholder="Password"> -->
+                {{ form.url_ref }}
+                <label for="{{ form.url_ref.id_for_label }}">Reference URL</label>
+            </div>
+        </div>
+        <div class="card-footer d-flex justify-content-end">
+            <button class="btn btn-primary me-2 fw-bold" type="submit">
+                <i class="bi bi-check"></i> Save
+            </button>
+            <button class="btn btn-secondary me-2 fw-bold" type="reset">
+                <i class="bi bi-x"></i> Reset
+            </button>
+        </div>
+    </form>
+</div>

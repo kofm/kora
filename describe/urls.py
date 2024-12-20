@@ -40,11 +40,7 @@ urlpatterns = [
     path("protocols/", views.ProtocolList.as_view(), name="protocol_list"),
     path("protocols/<int:pk>/", views.ProtocolDetail.as_view(), name="protocol_detail"),
     path("protocols/<int:pk>/update", views.protocol_update, name="protocol_update"),
-    path(
-        "protocols/<int:pk>/update_name",
-        views.protocol_update_name_htmx,
-        name="protocol-updatename",
-    ),
+    path("protocols/<int:pk>/update_meta", views.protocol_update_meta, name="protocol_update_meta"),
     path("protocols/create", views.ProtocolCreate.as_view(), name="protocol_create"),
     path(
         "protocols/<int:pk>/delete",
@@ -52,9 +48,16 @@ urlpatterns = [
         name="protocol_delete",
     ),
     # Trait
-    path("traits/", views.related_state_form, name="trait-list"),
+    path("traits/", views.related_state_form, name="trait_list"),
+    path("traits/<int:pk>/update", views.trait_update, name="trait_update"),
+    path("traits/<int:pk>/delete", views.trait_delete, name="trait_delete"),
+    path("protocol/<int:protocol_pk>/trait/create", views.trait_create, name="trait_create"),
     # State
     path("state/<int:pk>/update", views.state_update, name="state-update"),
+    path("state/<int:pk>/delete", views.state_delete, name="state_delete"),
+    path("state/<int:pk>/update2", views.state_update2, name="state_update2"),
+    path("trait/<int:trait_pk>/state/form", views.state_form, name="state_form"),
+    path("state/create", views.state_create, name="state_create"),
     path(
         "state/<int:pk>/related_state/delete",
         views.relatedstate_delete,

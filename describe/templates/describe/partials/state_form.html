@@ -1,0 +1,32 @@
+{{ form.trait }}
+{{ form.id }}
+<div class="row g-2 mb-2">
+    <div class="col-2">
+        {% if forloop.first %}
+            {{ form.numeric_id.label_tag }}
+        {% endif %}
+        {{ form.numeric_id }}
+    </div>
+    <div class="col">
+        {% if forloop.first %}
+            {{ form.description.label_tag }}
+        {% endif %}
+        {{ form.description }}
+    </div>
+    <div class="col-1 d-flex justify-content-end align-items-center">
+        {% if form.instance.pk and form.instance.is_deletable %}
+
+	        <a
+		        href="#"
+                class="text-decoration-none link-body-emphasis {% if forloop.first %}mt-3{% endif %}"
+		        hx-post="{% url 'describe:state_delete' form.instance.pk %}"
+		        hx-target="#formPanel" hx-confirm="Are you sure?"
+                
+                    
+                
+	        >
+		        <i class="bi bi-dash-circle"></i>
+	        </a>
+        {% endif %}
+    </div>
+</div>

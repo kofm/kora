@@ -5,7 +5,12 @@
 {% endblock %}
 
 {% block heading %}
-    Update: <i>{{ object }}</i>
+    {% if title and subtitle %}
+        Update: {{ title }}
+        <small class="text-body-secondary h3">{{ subtitle }}</small>
+    {% else %}
+        Update: <i>{{ object }}</i>
+    {% endif %}
 {% endblock %}
 
 {% block subheading %}
