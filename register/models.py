@@ -1,7 +1,10 @@
 from datetime import date
+
+from django_countries.fields import CountryField
+
 from django.db import models
 from django.urls.base import reverse
-from django_countries.fields import CountryField
+from django.utils.html import format_html
 from frontpage.generic import ModelIsDeletableMixin
 
 INDIVIDUAL = "IN"
@@ -82,7 +85,7 @@ class PlantSpecies(ModelIsDeletableMixin, models.Model):
         verbose_name_plural = "plant species"
 
     def __str__(self):
-        return f"{self.common_name} ({self.latin_name})"
+        return format_html("{} (<i>{}</i>)", self.common_name, self.latin_name)
 
     def get_absolute_url(self):
         return reverse("register:plantspecies_detail", args=[self.pk])
