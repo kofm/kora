@@ -87,7 +87,11 @@
             <span class="navbar-text">
                 {% if user.is_authenticated %}
                     {{ user.username }}
-                    <a href="{% url 'logout' %}"><i class="bi bi-door-closed-fill"></i></a>
+                    <a href="#" _="on click call #logout-form.submit()"><i class="bi bi-door-closed-fill"></i></a>
+
+                    <form id="logout-form" method="post" action="{% url 'logout' %}" style="display: none;">
+                        {% csrf_token %}
+                    </form>
                 {% else %}
                     <a class="text-decoration-none" href="{% url 'login'  %}">
 			            Login <i class="bi bi-door-open-fill"></i>
