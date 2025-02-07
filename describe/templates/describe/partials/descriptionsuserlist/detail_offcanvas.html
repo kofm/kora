@@ -18,7 +18,10 @@
                 {% include 'describe/partials/descriptionsuserlist/select_input.html' %}
             </div>
         {% else %}
-            <p class="text-muted">You must be logged in to access Collections. <a href="{% url 'login' %}">Log In</a></p>
+            <p class="text-muted">
+                You must be logged in to access Collections. <br/>
+                <a href="{% url 'login' %}">Log In</a>
+            </p>
         {% endif %}
 	    {% include 'describe/partials/descriptionsuserlist/detail_ul.html' %}
     </div>
