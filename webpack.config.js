@@ -51,9 +51,8 @@ module.exports = [
         entry: {
             bootstrap: { import: path.resolve("assets/js/bootstrap.js") },
             htmx: { import: path.resolve("assets/js/htmx.js") },
-	        hyperscript: { import: path.resolve("assets/js/hyperscript.js") },
-	        tomselect: {import: path.resolve("assets/js/tomselect.js")},
-        },
+	    hyperscript: { import: path.resolve("assets/js/hyperscript.js") },
+	},
         output: {
             path: path.resolve(__dirname, "frontpage", "static", "frontpage"),
         },
@@ -78,12 +77,6 @@ module.exports = [
             "description-form": {
                 import: path.resolve("assets/js/description-form.js"),
             },
-            "description-import-confirm": {
-                import: path.resolve("assets/js/description-import-confirm.js"),
-            },
-	        "protection-form": {
-	            import: path.resolve("assets/js/protection-form.js")
-	        }
         },
         output: {
             path: path.resolve(__dirname, "describe", "static", "describe"),

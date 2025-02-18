@@ -1,12 +1,3 @@
-import "../scss/tom-select.scss";
-
-window.htmx = require("htmx.org");
-// The following is necessary to load Hyperscript. See https://github.com/bigskysoftware/_hyperscript/issues/162
-window._hyperscript = require('hyperscript.org');
-window._hyperscript.browserInit();
-
-import TomSelect from "tom-select";
-
 const plantspecies = JSON.parse(
   document.getElementById("plantspecies").textContent
 );

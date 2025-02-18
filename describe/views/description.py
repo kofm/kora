@@ -13,7 +13,7 @@ from describe.filters import DescriptionFilterByName
 from describe.forms import (
     DescriptionFilterFormSet,
     DescriptionForm,
-    DescriptionsUserListSelect,
+    WorkspaceSelectForm,
     DescriptionUpdateForm,
     ExpressionForm,
     ProtocolForm,
@@ -123,9 +123,6 @@ def description_list(request):
 
     base_template = "describe/description_list_partial.html" if request.htmx else "describe/description_list_base.html"
 
-    descriptionsuserlist_form = DescriptionsUserListSelect(request=request)
-    descriptionsuserlist = descriptionsuserlist_get_active(request)
-
     context.update(generate_breadcrumbs(request, Description))
 
     context.update(
@@ -135,8 +132,6 @@ def description_list(request):
             "protocol_form": protocol_select_form,
             "page_obj": description_table,
             "page_template": base_template,
-            "descriptionsuserlist_form": descriptionsuserlist_form,
-            "descriptionsuserlist": descriptionsuserlist,
         }
     )
 
@@ -331,5 +326,5 @@ def description_expression_update(request, pk):
     )
 
 
-class DescriptionUserListElementSortableView(SortableView):
+class WorkspaceSortableView(SortableView):
     model = DescriptionsUserListElement

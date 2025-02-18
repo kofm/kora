@@ -14,3 +14,6 @@ document.addEventListener("DOMContentLoaded", function () {
     (tooltipTriggerEl) => new bootstrap.Tooltip(tooltipTriggerEl)
   );
 });
+
+import TomSelect from "tom-select";
+window.TomSelect = TomSelect;

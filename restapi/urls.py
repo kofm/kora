@@ -26,8 +26,8 @@ urlpatterns = [
     path("", include(router.urls)),
     path("<int:cart>/cartitems/", views.CartItemViewSet.as_view({"get": "list"}), name="cartitems"),
     path(
-        "<int:list>/descriptionsuserlists/",
+        "<int:list>/workspaces/",
         views.DescriptionsUserListElementViewSet.as_view({"get": "list"}),
-        name="descriptionslists",
+        name="workspaces",
     ),
 ]

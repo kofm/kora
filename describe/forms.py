@@ -1,3 +1,6 @@
+from crispy_forms.bootstrap import FieldWithButtons, StrictButton
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import Field, Layout
 from dynamic_forms import DynamicField, DynamicFormMixin
 
 from describe.models import (
@@ -11,6 +14,7 @@ from describe.models import (
 from django import forms
 from django.forms import CheckboxSelectMultiple, formset_factory, inlineformset_factory
 from django.forms.formsets import BaseFormSet
+from django.urls import reverse
 from django.utils.html import format_html
 
 
@@ -187,8 +191,8 @@ class ExpressionForm(forms.ModelForm):
             self.fields["state"].queryset = State.objects.filter(trait=trait)
 
 
-class DescriptionsUserListSelect(forms.ModelForm):
-    name = forms.ModelChoiceField(queryset=DescriptionsUserList.objects.none(), label="Description list")
+class WorkspaceSelectForm(forms.ModelForm):
+    name = forms.ModelChoiceField(queryset=DescriptionsUserList.objects.none(), label="Active Workspace")
 
     class Meta:
         model = DescriptionsUserList
@@ -197,6 +201,7 @@ class DescriptionsUserListSelect(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         request = kwargs.pop("request")
         super().__init__(*args, **kwargs)
+        self.label_suffix = ""
         if request.user.is_authenticated:
             self.fields["name"].queryset = DescriptionsUserList.objects.filter(user=request.user)
             active_list = request.user.descriptionsuserlist_set.filter(is_active=True)
@@ -204,10 +209,48 @@ class DescriptionsUserListSelect(forms.ModelForm):
                 self.fields["name"].initial = active_list.first().pk
         else:
             self.fields["name"].disabled = True
-            self.fields["name"].help_text = "You must be logged in to select a list."
+        self.helper = FormHelper(self)
+        self.helper.layout = Layout(
+            Field(
+                "name",
+                css_class="form-control",
+                hx_post=reverse("describe:workspace_activate"),
+                hx_trigger="change",
+                hx_target="#workspaceBody",
+            )
+        )
 
 
-class DescriptionsUserListCreateForm(forms.ModelForm):
+class WorkspaceInputForm(forms.ModelForm):
     class Meta:
         model = DescriptionsUserList
         fields = ("name",)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["name"].label_suffix = ""
+        self.fields["name"].help_text = ""
+        self.helper = FormHelper(self)
+        script = f"""on click from elsewhere wait 100ms then fetch {reverse("describe:workspace_list")}
+        then put the result into #workspaceBody then call htmx.process(#workspaceBody)"""
+        self.helper.attrs = {"hx_post": reverse("describe:workspace_create")}
+        self.helper.layout = Layout(
+            FieldWithButtons(
+                Field("name", script=script),
+                StrictButton("<i class='bi bi-check'></i>", css_class="btn btn-outline-success", type="submit"),
+            )
+        )
+
+
+class WorkspaceCreateForm(WorkspaceInputForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["name"].label = "Create Workspace"
+        self.helper.attrs = {"hx_post": reverse("describe:workspace_create")}
+
+
+class WorkspaceUpdateForm(WorkspaceInputForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["name"].label = "Rename Workspace"
+        self.helper.attrs = {"hx_post": reverse("describe:workspace_update", args=(self.instance.pk,))}

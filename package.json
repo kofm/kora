@@ -8,13 +8,13 @@
     "dependencies": {
         "@popperjs/core": "^2.11.7",
         "apexcharts": "^3.37.1",
-        "bootstrap": "^5.3.2",
+        "bootstrap": "^5.3.3",
         "bootstrap-icons": "^1.10.3",
         "htmx.org": "^1.7.0",
         "hyperscript.org": "^0.9.5",
         "jquery": "^3.6.4",
         "sortablejs": "^1.15.0",
-        "tom-select": "file:~/code/tom-select"
+        "tom-select": "^2.4.3"
     },
     "devDependencies": {
         "autoprefixer": "^10.4.14",

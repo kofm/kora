@@ -1,6 +1,3 @@
-import "../scss/tom-select.scss";
-import TomSelect from "tom-select";
-
 const varietyTomSelect = new TomSelect("#id_variety", {
     maxItems: 1,
     create: false,

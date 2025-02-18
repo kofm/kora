@@ -23,7 +23,7 @@
      }
     </style>
 
-    {% include 'describe/partials/descriptionsuserlist/detail_offcanvas.html' %}
+    {% include 'describe/partials/workspaces/workspace_offcanvas.html' %}
 
     <main id="content">
 	    <div class="row mt-3">
@@ -109,7 +109,7 @@
 		            <div id="table">
                         <div class="d-flex justify-content-between align-items-center">
                             <h2>Results <span class="badge text-bg-secondary">{{ page_obj.data|length }}</span></h2>
-                            <span class="me-2" data-bs-toggle="offcanvas" data-bs-target="#desListOffcanvas" aria-controls="desListOffcanvas">
+                            <span class="me-2" data-bs-toggle="offcanvas" data-bs-target="#workspaceOffcanvas" aria-controls="workspaceOffcanvas">
 		                        <a class="text-decoration-none link-body-emphasis" data-bs-toggle="tooltip" data-bs-title="Show Collection" data-bs-delay="500">
                                     <i class="h1 bi bi-list-stars"></i>
                                 </a>

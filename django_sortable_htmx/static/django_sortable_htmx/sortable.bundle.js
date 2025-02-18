@@ -3921,6 +3921,29 @@ __webpack_require__.r(__webpack_exports__);
 
 window.Sortable = sortablejs__WEBPACK_IMPORTED_MODULE_1__["default"];
 
+document.addEventListener("DOMContentLoaded", function() {
+    initializeSortableElements(document);
+});
+
+document.addEventListener("htmx:afterSwap", function() {
+    initializeSortableElements(document);
+});
+
+function initializeSortableElements(container) {
+    const sortableElements = container.querySelectorAll('.sortable');
+
+    sortableElements.forEach(element => {
+	if (element._sortable) {
+	    element._sortable.destroy();
+	}
+
+	element._sortable = new sortablejs__WEBPACK_IMPORTED_MODULE_1__["default"](element, {
+	    animation: 150,
+	    sort: element.dataset.sortable === 'true'
+	});
+    });
+}
+
 })();
 
 /******/ })()
