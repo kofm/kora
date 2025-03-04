@@ -20,7 +20,7 @@ from describe.forms import (
 )
 from describe.models import (
     Description,
-    DescriptionsUserListElement,
+    WorkspaceElement,
     Expression,
     Protocol,
     State,
@@ -213,7 +213,7 @@ def description_find_similar(request):
 @nav_describe
 def description_compare(request):
     context = {}
-    active_list = request.user.descriptionsuserlist_set.filter(is_active=True).first()
+    active_list = request.user.workspace_set.filter(is_active=True).first()
 
     if not active_list:
         return JsonResponse({"error": "No active description list found."}, status=400)
@@ -327,4 +327,4 @@ def description_expression_update(request, pk):
 
 
 class WorkspaceSortableView(SortableView):
-    model = DescriptionsUserListElement
+    model = WorkspaceElement

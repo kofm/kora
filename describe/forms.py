@@ -5,7 +5,7 @@ from dynamic_forms import DynamicField, DynamicFormMixin
 
 from describe.models import (
     Description,
-    DescriptionsUserList,
+    Workspace,
     Expression,
     Protocol,
     State,
@@ -192,10 +192,10 @@ class ExpressionForm(forms.ModelForm):
 
 
 class WorkspaceSelectForm(forms.ModelForm):
-    name = forms.ModelChoiceField(queryset=DescriptionsUserList.objects.none(), label="Active Workspace")
+    name = forms.ModelChoiceField(queryset=Workspace.objects.none(), label="Active Workspace")
 
     class Meta:
-        model = DescriptionsUserList
+        model = Workspace
         fields = ("name",)
 
     def __init__(self, *args, **kwargs):
@@ -203,8 +203,8 @@ class WorkspaceSelectForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.label_suffix = ""
         if request.user.is_authenticated:
-            self.fields["name"].queryset = DescriptionsUserList.objects.filter(user=request.user)
-            active_list = request.user.descriptionsuserlist_set.filter(is_active=True)
+            self.fields["name"].queryset = Workspace.objects.filter(user=request.user)
+            active_list = request.user.workspace_set.filter(is_active=True)
             if active_list.exists():
                 self.fields["name"].initial = active_list.first().pk
         else:
@@ -223,7 +223,7 @@ class WorkspaceSelectForm(forms.ModelForm):
 
 class WorkspaceInputForm(forms.ModelForm):
     class Meta:
-        model = DescriptionsUserList
+        model = Workspace
         fields = ("name",)
 
     def __init__(self, *args, **kwargs):

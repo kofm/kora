@@ -20,7 +20,7 @@ router.register(r"storages", views.StorageViewSet)
 router.register(r"storagepositions", views.StoragePositionViewSet)
 router.register(r"seedsamples", views.SeedSampleViewSet)
 router.register(r"sampleweights", views.SampleWeightViewSet)
-router.register(r"collections", views.DescriptionsUserListViewSet, basename="DescriptionsUserList")
+router.register(r"workspaces", views.DescriptionsUserListViewSet, basename="Workspace")
 
 urlpatterns = [
     path("", include(router.urls)),

@@ -1,8 +1,8 @@
 from describe.forms import WorkspaceCreateForm, WorkspaceSelectForm, WorkspaceUpdateForm
 from describe.models import (
     Description,
-    DescriptionsUserList,
-    DescriptionsUserListElement,
+    Workspace,
+    WorkspaceElement,
 )
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
@@ -19,11 +19,11 @@ from django.views.decorators.http import require_POST
 def workspace_activate(request):
     workspace_id = request.POST.get("name", None)
     if workspace_id:
-        workspace = get_object_or_404(DescriptionsUserList, pk=int(workspace_id))
+        workspace = get_object_or_404(Workspace, pk=int(workspace_id))
         workspace.is_active = True
         workspace.save()
     else:
-        DescriptionsUserList.objects.all().update(is_active=False)
+        Workspace.objects.all().update(is_active=False)
         workspace = None
 
     form = WorkspaceSelectForm(request=request)
@@ -36,7 +36,7 @@ def workspace_activate(request):
 
 @login_required
 def workspace_list(request):
-    workspace = DescriptionsUserList.objects.filter(user=request.user, is_active=True).first()
+    workspace = Workspace.objects.filter(user=request.user, is_active=True).first()
     form = WorkspaceSelectForm(request=request)
     return render(
         request,
@@ -65,7 +65,7 @@ def workspace_create(request):
 
 @login_required
 def workspace_update(request, pk):
-    instance = get_object_or_404(DescriptionsUserList, pk=pk)
+    instance = get_object_or_404(Workspace, pk=pk)
     if request.method == "POST":
         form = WorkspaceCreateForm(request.POST, instance=instance)
         if form.is_valid():
@@ -83,7 +83,7 @@ def workspace_update(request, pk):
 
 @login_required
 def workspace_delete(request, pk):
-    desc = get_object_or_404(DescriptionsUserList, pk=pk)
+    desc = get_object_or_404(Workspace, pk=pk)
     if request.POST:
         desc.delete()
         return redirect(reverse_lazy("describe:description_list"))
@@ -94,7 +94,7 @@ def workspace_delete(request, pk):
 @require_POST
 def workspace_element_create(request):
     description_id = request.POST.get("description_id", None)
-    workspace = request.user.descriptionsuserlist_set.filter(is_active=True).first()
+    workspace = request.user.workspace_set.filter(is_active=True).first()
 
     if not description_id or not workspace:
         return JsonResponse({"error": "Invalid input or no active description."}, status=400)
@@ -102,7 +102,7 @@ def workspace_element_create(request):
     description = get_object_or_404(Description, pk=description_id)
 
     with transaction.atomic():
-        element, created = DescriptionsUserListElement.objects.get_or_create(
+        element, created = WorkspaceElement.objects.get_or_create(
             description=description, desc_list=workspace
         )
         if not created:
@@ -123,10 +123,10 @@ def workspace_element_create(request):
 
 @login_required
 def workspace_element_delete(request, pk):
-    element = get_object_or_404(DescriptionsUserListElement, pk=pk)
+    element = get_object_or_404(WorkspaceElement, pk=pk)
     if request.user == element.desc_list.user:
         element.delete()
-    workspace = request.user.descriptionsuserlist_set.filter(is_active=True).first()
+    workspace = request.user.workspace_set.filter(is_active=True).first()
     form = WorkspaceSelectForm(request=request)
     return render(
         request,

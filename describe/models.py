@@ -219,7 +219,7 @@ class Expression(models.Model):
         return self.state.trait
 
 
-class DescriptionsUserList(models.Model):
+class Workspace(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=200, help_text="The identificative name of the list")
     is_active = models.BooleanField(default=False)
@@ -229,12 +229,12 @@ class DescriptionsUserList(models.Model):
 
     def save(self, *args, **kwargs):
         if self.is_active:
-            DescriptionsUserList.objects.filter(user=self.user).exclude(pk=self.pk).update(is_active=False)
+            Workspace.objects.filter(user=self.user).exclude(pk=self.pk).update(is_active=False)
         super().save(*args, **kwargs)
 
 
-class DescriptionsUserListElement(models.Model):
-    desc_list = models.ForeignKey(DescriptionsUserList, on_delete=models.CASCADE, related_name="descriptions")
+class WorkspaceElement(models.Model):
+    desc_list = models.ForeignKey(Workspace, on_delete=models.CASCADE, related_name="descriptions")
     description = models.ForeignKey(Description, on_delete=models.CASCADE)
     order = models.PositiveIntegerField(default=0)
 

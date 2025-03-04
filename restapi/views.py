@@ -10,8 +10,8 @@ from collect.models import CartItem, SampleWeight, SeedSample, Storage, StorageP
 from collect.serializers import SampleWeightSerializer
 from describe.models import (
     Description,
-    DescriptionsUserList,
-    DescriptionsUserListElement,
+    Workspace,
+    WorkspaceElement,
     Expression,
     Protocol,
     State,
@@ -165,7 +165,7 @@ class DescriptionsUserListViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        return DescriptionsUserList.objects.filter(user=user)
+        return Workspace.objects.filter(user=user)
 
 
 class DescriptionsUserListElementViewSet(viewsets.ModelViewSet):
@@ -175,4 +175,4 @@ class DescriptionsUserListElementViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         descriptionsuserlist = self.kwargs["list"]
-        return DescriptionsUserListElement.objects.filter(desc_list__user=user, desc_list__pk=descriptionsuserlist)
+        return WorkspaceElement.objects.filter(desc_list__user=user, desc_list__pk=descriptionsuserlist)

@@ -4,8 +4,8 @@ from rest_framework import serializers
 from django_countries.serializers import CountryFieldMixin
 from collect.models import CartItem, SeedSample, StoragePosition, Storage
 from describe.models import (
-    DescriptionsUserList,
-    DescriptionsUserListElement,
+    Workspace,
+    WorkspaceElement,
     Description,
     Expression,
     Protocol,
@@ -167,20 +167,13 @@ class CartSerializer(serializers.ModelSerializer):
 
 class DescriptionsUserListSerializer(serializers.ModelSerializer):
     class Meta:
-        model = DescriptionsUserList
+        model = Workspace
         fields = ("id", "name")
 
 
-# class DescriptionsUserListElementSerializer(serializers.ModelSerializer):
-#     expressions = DescriptionSerializer(source="description")
-
-
-#     class Meta:
-#         model = DescriptionsUserListElement
-#         fields = ("description", "expressions")
 class DescriptionsUserListElementSerializer(serializers.ModelSerializer):
     description = DescriptionSerializer(read_only=True)
 
     class Meta:
-        model = DescriptionsUserListElement
+        model = WorkspaceElement
         fields = ("pk", "description")
