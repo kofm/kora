@@ -22,8 +22,8 @@ from register.models import Entity, PlantSpecies, PlantVariety, Protection
 from restapi.serializers import (
     CartSerializer,
     DescriptionSerializer,
-    DescriptionsUserListElementSerializer,
-    DescriptionsUserListSerializer,
+    WorkspaceElementSerializer,
+    WorkspaceSerializer,
     EntitySerializer,
     ExpressionSerializer,
     PlantSpeciesSerializer,
@@ -160,19 +160,19 @@ class CartItemViewSet(viewsets.ModelViewSet):
         return CartItem.objects.filter(cart__user=user, cart__pk=cart)
 
 
-class DescriptionsUserListViewSet(viewsets.ModelViewSet):
-    serializer_class = DescriptionsUserListSerializer
+class WorkspaceViewSet(viewsets.ModelViewSet):
+    serializer_class = WorkspaceSerializer
 
     def get_queryset(self):
         user = self.request.user
         return Workspace.objects.filter(user=user)
 
 
-class DescriptionsUserListElementViewSet(viewsets.ModelViewSet):
-    serializer_class = DescriptionsUserListElementSerializer
+class WorkspaceElementViewSet(viewsets.ModelViewSet):
+    serializer_class = WorkspaceElementSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         user = self.request.user
-        descriptionsuserlist = self.kwargs["list"]
-        return WorkspaceElement.objects.filter(desc_list__user=user, desc_list__pk=descriptionsuserlist)
+        workspace = self.kwargs["list"]
+        return WorkspaceElement.objects.filter(workspace__user=user, workspace__pk=workspace)

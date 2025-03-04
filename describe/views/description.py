@@ -7,30 +7,28 @@ import contextlib
 
 from django_tables2 import RequestConfig
 
-from breadcrumbs.utils import generate_breadcrumbs
 from breadcrumbs.generic import DeleteBreadcrumbsMixin
+from breadcrumbs.utils import generate_breadcrumbs
 from describe.filters import DescriptionFilterByName
 from describe.forms import (
     DescriptionFilterFormSet,
     DescriptionForm,
-    WorkspaceSelectForm,
     DescriptionUpdateForm,
     ExpressionForm,
     ProtocolForm,
 )
 from describe.models import (
     Description,
-    WorkspaceElement,
     Expression,
     Protocol,
     State,
     Trait,
+    WorkspaceElement,
 )
 from describe.tables import DescriptionTable
 from describe.utils import (
     _filter_descriptions,
     delete_get_param,
-    descriptionsuserlist_get_active,
     merge_unique,
 )
 from describe.views.protocol import NavDescribeActiveContext

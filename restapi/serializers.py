@@ -165,13 +165,13 @@ class CartSerializer(serializers.ModelSerializer):
         fields = ("variety_name", "variety_id", "sample", "storage", "weight")
 
 
-class DescriptionsUserListSerializer(serializers.ModelSerializer):
+class WorkspaceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Workspace
         fields = ("id", "name")
 
 
-class DescriptionsUserListElementSerializer(serializers.ModelSerializer):
+class WorkspaceElementSerializer(serializers.ModelSerializer):
     description = DescriptionSerializer(read_only=True)
 
     class Meta:

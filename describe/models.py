@@ -234,12 +234,12 @@ class Workspace(models.Model):
 
 
 class WorkspaceElement(models.Model):
-    desc_list = models.ForeignKey(Workspace, on_delete=models.CASCADE, related_name="descriptions")
+    workspace = models.ForeignKey(Workspace, on_delete=models.CASCADE, related_name="descriptions")
     description = models.ForeignKey(Description, on_delete=models.CASCADE)
     order = models.PositiveIntegerField(default=0)
 
     class Meta:
-        unique_together = ("description", "desc_list")
+        unique_together = ("description", "workspace")
         ordering = ("order",)
 
     def __str__(self) -> str:

@@ -103,7 +103,7 @@ def workspace_element_create(request):
 
     with transaction.atomic():
         element, created = WorkspaceElement.objects.get_or_create(
-            description=description, desc_list=workspace
+            description=description, workspace=workspace
         )
         if not created:
             return JsonResponse({"error": "Element already exists."}, status=400)
@@ -124,7 +124,7 @@ def workspace_element_create(request):
 @login_required
 def workspace_element_delete(request, pk):
     element = get_object_or_404(WorkspaceElement, pk=pk)
-    if request.user == element.desc_list.user:
+    if request.user == element.workspace.user:
         element.delete()
     workspace = request.user.workspace_set.filter(is_active=True).first()
     form = WorkspaceSelectForm(request=request)
