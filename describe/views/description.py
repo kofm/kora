@@ -5,6 +5,15 @@ List, Detail, Update, Create, Delete
 
 import contextlib
 
+from django.db.models import CharField, Q
+from django.db.models.expressions import F
+from django.db.models.functions import Lower
+from django.http import HttpResponse, JsonResponse
+from django.shortcuts import get_object_or_404, redirect
+from django.template.response import TemplateResponse
+from django.urls import reverse_lazy
+from django.views.decorators.http import require_GET
+from django.views.generic import DeleteView, DetailView
 from django_tables2 import RequestConfig
 
 from breadcrumbs.generic import DeleteBreadcrumbsMixin
@@ -23,7 +32,6 @@ from describe.models import (
     Protocol,
     State,
     Trait,
-    WorkspaceElement,
 )
 from describe.tables import DescriptionTable
 from describe.utils import (
@@ -32,16 +40,6 @@ from describe.utils import (
     merge_unique,
 )
 from describe.views.protocol import NavDescribeActiveContext
-from django.db.models import CharField, Q
-from django.db.models.expressions import F
-from django.db.models.functions import Lower
-from django.http import HttpResponse, JsonResponse
-from django.shortcuts import get_object_or_404, redirect
-from django.template.response import TemplateResponse
-from django.urls import reverse_lazy
-from django.views.decorators.http import require_GET
-from django.views.generic import DeleteView, DetailView
-from django_sortable_htmx.views import SortableView
 from frontpage.views_decorators import nav_active
 from register.models import PlantVariety
 
@@ -322,7 +320,3 @@ def description_expression_update(request, pk):
         "describe/description_expression_update.html",
         context,
     )
-
-
-class WorkspaceSortableView(SortableView):
-    model = WorkspaceElement

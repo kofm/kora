@@ -1,9 +1,3 @@
-from describe.forms import WorkspaceCreateForm, WorkspaceSelectForm, WorkspaceUpdateForm
-from describe.models import (
-    Description,
-    Workspace,
-    WorkspaceElement,
-)
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.db.models import Max
@@ -12,6 +6,10 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.template.response import TemplateResponse
 from django.urls import reverse, reverse_lazy
 from django.views.decorators.http import require_POST
+
+from describe.forms import WorkspaceCreateForm, WorkspaceSelectForm, WorkspaceUpdateForm
+from describe.models import Description, Workspace, WorkspaceElement
+from django_sortable_htmx.views import SortableView
 
 
 @login_required
@@ -102,9 +100,7 @@ def workspace_element_create(request):
     description = get_object_or_404(Description, pk=description_id)
 
     with transaction.atomic():
-        element, created = WorkspaceElement.objects.get_or_create(
-            description=description, workspace=workspace
-        )
+        element, created = WorkspaceElement.objects.get_or_create(description=description, workspace=workspace)
         if not created:
             return JsonResponse({"error": "Element already exists."}, status=400)
 
@@ -133,3 +129,7 @@ def workspace_element_delete(request, pk):
         "describe/partials/workspaces/workspace_detail.html",
         {"workspace": workspace, "workspace_form": form},
     )
+
+
+class WorkspaceSortableView(SortableView):
+    model = WorkspaceElement

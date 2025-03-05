@@ -1,5 +1,12 @@
 """Protocol views."""
 
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404, render
+from django.template.response import TemplateResponse
+from django.urls import reverse
+from django.urls.base import reverse_lazy
+from django.views.generic import DetailView, ListView
+from django.views.generic.edit import CreateView, DeleteView
 from django_tables2 import RequestConfig
 
 from breadcrumbs.generic import (
@@ -12,13 +19,6 @@ from breadcrumbs.utils import generate_breadcrumbs
 from describe.forms import ProtocolMetadataForm, StateFormSet, TraitForm
 from describe.models import Protocol, Trait
 from describe.tables import ProtocolTable
-from django.http import HttpResponse
-from django.shortcuts import get_object_or_404, render
-from django.template.response import TemplateResponse
-from django.urls import reverse
-from django.urls.base import reverse_lazy
-from django.views.generic import DetailView, ListView
-from django.views.generic.edit import CreateView, DeleteView
 from frontpage.views_decorators import (
     NavDescribeActiveContext,
     nav_describe_active_context,
