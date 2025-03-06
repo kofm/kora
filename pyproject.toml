@@ -1,27 +1,55 @@
+[project]
+name = "kora"
+version = "0.1.0"
+description = "An open-source web app to manage plant genetic resources data."
+readme = "README.md"
+authors = [
+    { name = "Gabriele Mongiano", email = "gabriele.mongiano@crea.gov.it" },
+]
+maintainers = [
+    { name = "Gabriele Mongiano", email = "gabriele.mongiano@crea.gov.it" },
+]
+classifiers = [
+    "Framework :: Django",
+    "Programming Language :: Python :: 3",
+]
+
+requires-python = ">=3.12"
+
+[project.urls]
+issues = "https://github.com/kofm/kora/issues"
+homepage = "https://github.com/kofm/kora"
+repository = "https://github.com/kofm/kora"
+
 [tool.ruff]
+
 line-length = 120
+
 target-version = "py311"
-select = [
-    "ALL",
+
+select = ["A", "B", "C4", "E", "F", "I", "DJ", "INP", "TID", "UP", "YTT"]
+ignore = ["INP001"]
+
+# Exclude a variety of commonly ignored directories.
+exclude = [
+    "**/migrations/*.py",
+    ".venv",
+    "venv",
+    ".git",
+    "__pypackages__",
+    "dist",
+    "node_modules",
+    "static",
+    "site-packages",
 ]
-ignore = [
-    "ANN", # flake8-annotations
-    "COM", # flake8-commas
-    "C90", # mccabe complexity
-    "EXE", # flake8-executable
-    "T10", # debugger
-    "TID", # flake8-tidy-imports
-    "E402",   # false positives for local imports
-    "I001",   # import sorting
-    "E501",   # line too long
-    "TRY003", # external messages in exceptions are too verbose
-    "TD002",
-    "TD003",
-    "FIX002", # too verbose descriptions of todos
-    "D10",
-    "INP001",
-    "SLF001",
-]
+
+
+# Allow autofix for all enabled rules (when `--fix`) is provided.
+fixable = ["A", "B", "C4", "E", "F", "I", "TID", "UP"]
+unfixable = []
+
+# Allow unused variables when underscore-prefixed.
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 
 [tool.ruff.lint.pydocstyle]
 convention = "pep257"
