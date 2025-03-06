@@ -1,6 +1,3 @@
-import "../scss/tom-select.scss";
-import TomSelect from "tom-select";
-
 const varietiesData = JSON.parse(
   document.getElementById("varieties-data").textContent
 );

@@ -22,11 +22,3 @@ def delete_get_param(request, parameter):
     copy = request.GET.copy()
     del copy[parameter]
     return copy
-
-
-def descriptionsuserlist_get_active(request):
-    if request.user.is_authenticated:
-        desclist = request.user.descriptionsuserlist_set.filter(is_active=True)
-        if desclist.exists():
-            return desclist.first()
-    return None

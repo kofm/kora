@@ -1,13 +1,10 @@
-<a class="text-decoration-none link-body-emphasis" href="{% url 'describe:description-find-similar' %}?description_id={{record.pk}}">
+<a class="text-decoration-none link-body-emphasis" href="{% url 'describe:description-similar' %}?description_id={{record.pk}}">
     <i class="bi bi-search h5"></i>
 </a>
-<a
-    href="#"
+<a href="#"
     class="text-decoration-none link-body-emphasis"
-    hx-post="{% url 'describe:descriptionsuserlist-add' %}"
+    hx-post="{% url 'describe:workspace_element_create' %}"
     hx-vals='{"description_id": "{{ record.pk }}"}'
-    hx-target="#descriptionsuserlist"
-    hx-swap="beforeend"
->
+    hx-target="#workspaceBody">
     <i class="bi bi-star-fill h5"></i>
 </a>

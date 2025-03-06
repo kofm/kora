@@ -1,24 +1,12 @@
 {% load static %}
 
 <form hx-post="{% url sortable.sort_url %}" hx-trigger="end" hx-swap="none">
-    <div id="{{ sortable.element_id }}" class="{{ sortable.element_class }}">
-        {% for object in sortable.object_list %}
-            {% include sortable.item_template %}
-        {% endfor %}
-        {% if sortable.extra_item %}
-            {% include sortable.extra_item %}
-        {% endif %}
-    </div>
+  <div id="{{ sortable.element_id }}" class="{{ sortable.element_class }} sortable" data-sortable="{{ sortable.is_sortable|yesno:"true,false" }}">
+    {% for object in sortable.object_list %}
+      {% include sortable.item_template %}
+    {% endfor %}
+    {% if sortable.extra_item %}
+      {% include sortable.extra_item %}
+    {% endif %}
+  </div>
 </form>
-
-<script src="{% static 'django_sortable_htmx/sortable.bundle.js' %}"></script>
-
-<script type="text/javascript">
- htmx.onLoad(function (content) {
-     var card = document.getElementById('{{ sortable.element_id }}');
-     new Sortable(card, {
-         animation: 150,
-         sort: {{ sortable.is_sortable| yesno:"true,false" }}
-     });
- });
-</script>

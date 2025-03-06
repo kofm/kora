@@ -38,7 +38,7 @@ class SortableView(View, Generic[T]):
 
         with transaction.atomic():
             for instance in queryset:
-                instance.order = sorted_mapping[instance.pk]
+                instance.order = sorted_mapping[instance.pk] # type: ignore
 
             self.model.objects.bulk_update(queryset, ["order"])
 

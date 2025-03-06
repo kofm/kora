@@ -5,35 +5,6 @@ List, Detail, Update, Create, Delete
 
 import contextlib
 
-from django_tables2 import RequestConfig
-
-from breadcrumbs.utils import generate_breadcrumbs
-from breadcrumbs.generic import DeleteBreadcrumbsMixin
-from describe.filters import DescriptionFilterByName
-from describe.forms import (
-    DescriptionFilterFormSet,
-    DescriptionForm,
-    DescriptionsUserListSelect,
-    DescriptionUpdateForm,
-    ExpressionForm,
-    ProtocolForm,
-)
-from describe.models import (
-    Description,
-    DescriptionsUserListElement,
-    Expression,
-    Protocol,
-    State,
-    Trait,
-)
-from describe.tables import DescriptionTable
-from describe.utils import (
-    _filter_descriptions,
-    delete_get_param,
-    descriptionsuserlist_get_active,
-    merge_unique,
-)
-from describe.views.protocol import NavDescribeActiveContext
 from django.db.models import CharField, Q
 from django.db.models.expressions import F
 from django.db.models.functions import Lower
@@ -43,7 +14,32 @@ from django.template.response import TemplateResponse
 from django.urls import reverse_lazy
 from django.views.decorators.http import require_GET
 from django.views.generic import DeleteView, DetailView
-from django_sortable_htmx.views import SortableView
+from django_tables2 import RequestConfig
+
+from breadcrumbs.generic import DeleteBreadcrumbsMixin
+from breadcrumbs.utils import generate_breadcrumbs
+from describe.filters import DescriptionFilterByName
+from describe.forms import (
+    DescriptionFilterFormSet,
+    DescriptionForm,
+    DescriptionUpdateForm,
+    ExpressionForm,
+    ProtocolForm,
+)
+from describe.models import (
+    Description,
+    Expression,
+    Protocol,
+    State,
+    Trait,
+)
+from describe.tables import DescriptionTable
+from describe.utils import (
+    _filter_descriptions,
+    delete_get_param,
+    merge_unique,
+)
+from describe.views.protocol import NavDescribeActiveContext
 from frontpage.views_decorators import nav_active
 from register.models import PlantVariety
 
@@ -123,9 +119,6 @@ def description_list(request):
 
     base_template = "describe/description_list_partial.html" if request.htmx else "describe/description_list_base.html"
 
-    descriptionsuserlist_form = DescriptionsUserListSelect(request=request)
-    descriptionsuserlist = descriptionsuserlist_get_active(request)
-
     context.update(generate_breadcrumbs(request, Description))
 
     context.update(
@@ -135,8 +128,6 @@ def description_list(request):
             "protocol_form": protocol_select_form,
             "page_obj": description_table,
             "page_template": base_template,
-            "descriptionsuserlist_form": descriptionsuserlist_form,
-            "descriptionsuserlist": descriptionsuserlist,
         }
     )
 
@@ -218,7 +209,7 @@ def description_find_similar(request):
 @nav_describe
 def description_compare(request):
     context = {}
-    active_list = request.user.descriptionsuserlist_set.filter(is_active=True).first()
+    active_list = request.user.workspace_set.filter(is_active=True).first()
 
     if not active_list:
         return JsonResponse({"error": "No active description list found."}, status=400)
@@ -329,7 +320,3 @@ def description_expression_update(request, pk):
         "describe/description_expression_update.html",
         context,
     )
-
-
-class DescriptionUserListElementSortableView(SortableView):
-    model = DescriptionsUserListElement

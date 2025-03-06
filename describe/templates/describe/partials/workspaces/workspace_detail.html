@@ -1,0 +1,50 @@
+{% load crispy_forms_tags %}
+{% load render_sortable %}
+
+<style>
+ .asteriskField {
+    display: none;
+ }
+</style>
+
+<script>
+  document.body.addEventListener('htmx:afterSwap', function(event) {
+      const input = document.querySelector("#id_name"); 
+      if (input && input.type === 'text')
+      {
+	  input.focus();
+	  input.setSelectionRange(0, input.value.length);
+      }
+  });
+</script>
+
+<div class="d-flex align-items-end">
+    <div class="flex-grow-1">
+	{% crispy workspace_form %}
+    </div>
+    <div class="dropdown mb-3">
+        <button class="btn btn-outline-secondary dropdown-toggle ms-1" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-list"></i>
+        </button>
+        <ul class="dropdown-menu" hx-target="#workspaceBody">
+            <li>
+                <a class="dropdown-item" href="#" hx-get="{% url "describe:workspace_create" %}">Create</a>
+            </li>
+                <a class="dropdown-item {% if not workspace %}disabled{% endif %}" {% if not workspace %}aria-disabled="true"{% endif %} href="#" {% if workspace %}hx-get="{% url "describe:workspace_update" workspace.pk %}"{% endif %}>Rename</a>
+	    <li><a class="dropdown-item {% if not workspace %}disabled{% endif %}" {% if not workspace %}aria-disabled="true"{% endif %} href="{% if workspace %}{% url 'describe:description-compare' %}{% endif %}" target="_blank">Compare</a></li>
+	    <li><a class="dropdown-item {% if not workspace %}disabled{% endif %}" {% if not workspace %}aria-disabled="true"{% endif %} href="{% if workspace %}{% url 'restapi:workspaces' workspace.pk %}?format=json{% endif %}" target="_blank">Download</a></li>
+	    <li><a class="dropdown-item {% if not workspace %}disabled{% endif %}" {% if not workspace %}aria-disabled="true"{% endif %} href="{% if workspace %}{% url 'describe:workspace_delete' workspace.pk %}{% endif %}">Delete</a></li>
+        </ul>
+    </div>
+</div>
+{% if workspace.descriptions.all %}
+    {% render_sortable workspace.descriptions.all "workspace" "list-group mt-5" "describe:workspace_sort" "describe/partials/workspaces/detail_list_item.html" %}
+{% elif workspace %}
+    <p class="text-muted mt-5">
+        This collection is currently empty. Add descriptions by clicking the star symbol next to each description in the main pane.
+    </p>
+{% else %}
+    <p class="text-muted mt-5">
+        To start using workspaces, first create a new one or choose an existing workspace from the list.
+    </p>
+{% endif %}
