@@ -9,6 +9,7 @@ django-htmx
 django-tables2
 django-widget-tweaks
 djangorestframework
+drf-redesign
 numpy
 pandas
 psycopg2

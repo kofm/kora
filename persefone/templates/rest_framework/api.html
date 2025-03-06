@@ -1,0 +1,11 @@
+{% extends 'rest_framework/api.html'  %}
+
+{% load rest_framework rest_framework_redesign %}
+
+{% block title %}Kora | {% if name %}{{ name }} - {% endif %}API{% endblock %}
+
+{% block navbar %}
+    <header>
+	{% include 'frontpage/navbar.html' %}
+    </header>
+{% endblock %}

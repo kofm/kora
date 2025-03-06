@@ -16,6 +16,7 @@ INSTALLED_APPS = [
     "django_tables2",
     "django_filters",
     "django_htmx",
+    "drf_redesign",
     "rest_framework",
     "crispy_forms",
     "crispy_bootstrap5",
@@ -121,3 +122,4 @@ DJANGO_TABLES2_TEMPLATE = "django_tables2/bootstrap5.html"
 
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
+print(f"Template dirs: {TEMPLATE_DIR}")

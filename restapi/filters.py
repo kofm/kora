@@ -1,4 +1,5 @@
 import django_filters
+from django_filters.rest_framework import FilterSet
 
 from collect.models import SampleWeight, SeedSample, Storage, StoragePosition
 from describe.models import Description, Protocol
@@ -9,31 +10,31 @@ class NumberInFilter(django_filters.BaseInFilter, django_filters.NumberFilter):
     pass
 
 
-class PlantSpeciesFilter(django_filters.FilterSet):
+class PlantSpeciesFilter(FilterSet):
     class Meta:
         model = PlantSpecies
         fields = ("common_name", "latin_name", "plant_type")
 
 
-class PlantVarietyFilter(django_filters.FilterSet):
+class PlantVarietyFilter(FilterSet):
     class Meta:
         model = PlantVariety
         fields = ("name", "species")
 
 
-class EntityFilter(django_filters.FilterSet):
+class EntityFilter(FilterSet):
     class Meta:
         model = Entity
         fields = ("name",)
 
 
-class ProtectionFilter(django_filters.FilterSet):
+class ProtectionFilter(FilterSet):
     class Meta:
         model = Protection
         fields = ("variety", "type", "status", "reference")
 
 
-class ProtocolFilter(django_filters.FilterSet):
+class ProtocolFilter(FilterSet):
     variety = django_filters.NumberFilter(method="by_variety")
 
     class Meta:
@@ -45,7 +46,7 @@ class ProtocolFilter(django_filters.FilterSet):
         return queryset.filter(plantspecies=variety.species)
 
 
-class DescriptionFilter(django_filters.FilterSet):
+class DescriptionFilter(FilterSet):
     # FIXME: Is this really needed? Can't we just make multiple
     # requests instead of passing a list here?
     description = NumberInFilter(field_name="description", lookup_expr="in", label="Description IDs")
@@ -56,25 +57,25 @@ class DescriptionFilter(django_filters.FilterSet):
         fields = {"name": ["exact", "icontains"]}
 
 
-class StorageFilter(django_filters.FilterSet):
+class StorageFilter(FilterSet):
     class Meta:
         model = Storage
         fields = {"name": ["exact", "icontains"]}
 
 
-class StoragePositionFilter(django_filters.FilterSet):
+class StoragePositionFilter(FilterSet):
     class Meta:
         model = StoragePosition
         fields = ("name", "storage")
 
 
-class SeedSampleFilter(django_filters.FilterSet):
+class SeedSampleFilter(FilterSet):
     class Meta:
         model = SeedSample
         fields = ("sample_id", "variety", "notes", "growing_season", "position")
 
 
-class SampleWeightFilter(django_filters.FilterSet):
+class SampleWeightFilter(FilterSet):
     class Meta:
         model = SampleWeight
         fields = ("seedsample", "weight")
