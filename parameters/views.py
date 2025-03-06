@@ -1,5 +1,3 @@
-from django_tables2 import RequestConfig
-
 from django import forms
 from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, redirect
@@ -8,6 +6,8 @@ from django.urls import reverse_lazy
 from django.urls.base import reverse
 from django.views.generic import CreateView, DeleteView, ListView, UpdateView
 from django.views.generic.detail import DetailView
+from django_tables2 import RequestConfig
+
 from parameters.forms import VarietalParameterForm
 from parameters.tables import (
     ParameterTable,

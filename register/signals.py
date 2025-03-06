@@ -1,6 +1,7 @@
-from register.models import PlantVariety, PlantVarietyName
-from django.db.models.signals import post_save, post_delete
+from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
+
+from register.models import PlantVariety, PlantVarietyName
 
 
 @receiver(post_save, sender=PlantVarietyName)
@@ -17,6 +18,7 @@ def plantvarietyname_delete_handler(sender, instance, **kwargs):
     if other_names.exists():
         related_variety.name = other_names.last().name
         related_variety.save()
+
 
 @receiver(post_save, sender=PlantVariety)
 def plantvariety_handler(sender, instance, created, **kwargs):

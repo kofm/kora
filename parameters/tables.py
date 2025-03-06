@@ -16,6 +16,7 @@ class ParameterTable(tables.Table):
         model = Parameter
         exclude = ("id",)
 
+
 class VarietalParameterTable(tables.Table):
     actions = tables.TemplateColumn(
         template_name="parameters/partials/varietalparameter_table_actions.html",
@@ -23,10 +24,12 @@ class VarietalParameterTable(tables.Table):
         orderable=False,
         attrs={"td": {"class": "text-end"}},
     )
+
     class Meta:
         model = VarietalParameter
         fields = ("variety", "value", "note", "created_at", "updated_at")
         empty_text = "There are no associated parameters."
+
 
 class SpeciesParameterTable(tables.Table):
     class Meta:

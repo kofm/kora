@@ -6,8 +6,9 @@ from django.urls.base import reverse_lazy
 from django.views.decorators.http import require_http_methods
 from django.views.generic import DetailView, ListView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
-from spaces.models import Area, Location
+
 from django_sortable_htmx.views import SortableView
+from spaces.models import Area, Location
 
 from .utils import get_max_order
 

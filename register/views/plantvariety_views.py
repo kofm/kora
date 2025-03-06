@@ -1,5 +1,10 @@
 from typing import TYPE_CHECKING, Any
 
+from django.core.paginator import Paginator
+from django.shortcuts import get_object_or_404, redirect
+from django.template.response import TemplateResponse
+from django.urls import reverse
+from django.urls.base import reverse_lazy
 from django_tables2 import RequestConfig
 
 from breadcrumbs.generic import (
@@ -18,11 +23,6 @@ from breadcrumbs.utils import (
 )
 from collect.models import SeedSample
 from describe.models import Description
-from django.core.paginator import Paginator
-from django.shortcuts import get_object_or_404, redirect
-from django.template.response import TemplateResponse
-from django.urls import reverse
-from django.urls.base import reverse_lazy
 from frontpage.views_decorators import NavPlantActiveContext, nav_plant_active_context
 from parameters.models import VarietalParameter
 from register.filters import PlantVarietyFilter
@@ -36,9 +36,8 @@ from register.tables import (
 )
 
 if TYPE_CHECKING:
-    from django_tables2.tables import Table
-
     from django.models import Model
+    from django_tables2.tables import Table
 
 
 class PlantVarietyCreate(NavPlantActiveContext, CrumbsCreateView):

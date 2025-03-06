@@ -1,21 +1,21 @@
 from crispy_forms.bootstrap import FieldWithButtons, StrictButton
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Field, Layout
-from dynamic_forms import DynamicField, DynamicFormMixin
-
-from describe.models import (
-    Description,
-    Workspace,
-    Expression,
-    Protocol,
-    State,
-    Trait,
-)
 from django import forms
 from django.forms import CheckboxSelectMultiple, formset_factory, inlineformset_factory
 from django.forms.formsets import BaseFormSet
 from django.urls import reverse
 from django.utils.html import format_html
+from dynamic_forms import DynamicField, DynamicFormMixin
+
+from describe.models import (
+    Description,
+    Expression,
+    Protocol,
+    State,
+    Trait,
+    Workspace,
+)
 
 
 class NumberingCodeInput(forms.TextInput):

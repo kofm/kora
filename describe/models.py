@@ -7,6 +7,7 @@ from django.db.models.aggregates import Count
 from django.db.models.functions import Coalesce, Concat
 from django.urls import reverse
 from django.utils.functional import cached_property
+
 from frontpage.generic import ModelIsDeletableMixin
 from register.models import PlantSpecies, PlantVariety
 

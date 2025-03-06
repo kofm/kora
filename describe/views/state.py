@@ -2,15 +2,16 @@
 State views
 """
 
-from breadcrumbs.utils import generate_breadcrumbs
-from describe.forms import RelatedStateForm, StateForm
-from describe.models import Protocol, State, Trait
-from describe.tables import RelatedStatesTable
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.views.decorators.http import require_GET, require_POST
+
+from breadcrumbs.utils import generate_breadcrumbs
+from describe.forms import RelatedStateForm, StateForm
+from describe.models import Protocol, State, Trait
+from describe.tables import RelatedStatesTable
 
 
 @require_POST

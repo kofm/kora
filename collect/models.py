@@ -3,6 +3,7 @@ from django.db import models, transaction
 from django.db.models.query_utils import Q
 from django.urls import reverse
 from django.utils import timezone
+
 from frontpage.generic import ModelIsDeletableMixin
 from register.models import PlantVariety
 

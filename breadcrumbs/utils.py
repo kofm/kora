@@ -3,6 +3,7 @@ from typing import Any
 from django.db.models.base import Model
 from django.http import HttpRequest
 from django.urls import reverse
+
 from register.models import PlantVariety
 
 Breadcrumb = tuple[str, str]

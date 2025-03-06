@@ -1,7 +1,8 @@
 from django.urls import path
 
-from . import views
 from register.views import VarietalParameterCreate
+
+from . import views
 
 app_name = "parameters"
 

@@ -1,8 +1,10 @@
 """
 These are the models related to storage of parameters and field measures
 """
+
 from django.db import models
 from django.urls import reverse
+
 from register.models import PlantSpecies, PlantVariety
 
 
@@ -18,13 +20,9 @@ class Parameter(models.Model):
     stored in ParameterValue objects, that reference one Parameter.
     """
 
-    code = models.CharField(
-        max_length=50, help_text="A code to identify the parameter.", unique=True
-    )
+    code = models.CharField(max_length=50, help_text="A code to identify the parameter.", unique=True)
     name = models.CharField(max_length=200, help_text="The name of the parameter.")
-    description = models.CharField(
-        max_length=200, help_text="The description of the parameter."
-    )
+    description = models.CharField(max_length=200, help_text="The description of the parameter.")
     measure_unit = models.CharField(max_length=50, help_text="The unit of measurement.")
 
     objects = ParameterManager()
@@ -58,9 +56,7 @@ class ParameterValue(models.Model):
     parameter = models.ForeignKey(Parameter, on_delete=models.RESTRICT)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    note = models.CharField(
-        max_length=512, blank=True, help_text="Add any additional information here."
-    )
+    note = models.CharField(max_length=512, blank=True, help_text="Add any additional information here.")
 
     class Meta:
         abstract = True
@@ -74,9 +70,7 @@ class SpeciesParameter(ParameterValue):
     Crop parameters values
     """
 
-    specie = models.ForeignKey(
-        PlantSpecies, on_delete=models.RESTRICT, related_name="parameters"
-    )
+    specie = models.ForeignKey(PlantSpecies, on_delete=models.RESTRICT, related_name="parameters")
 
 
 class VarietalParameter(ParameterValue):
@@ -84,6 +78,4 @@ class VarietalParameter(ParameterValue):
     Varietal parameters values
     """
 
-    variety = models.ForeignKey(
-        PlantVariety, on_delete=models.RESTRICT, related_name="parameters"
-    )
+    variety = models.ForeignKey(PlantVariety, on_delete=models.RESTRICT, related_name="parameters")

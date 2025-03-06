@@ -1,8 +1,7 @@
-from widget_tweaks.templatetags.widget_tweaks import add_class, silence_without_field
-
 from django import template
 from django.core.paginator import Paginator
 from django.utils.html import format_html
+from widget_tweaks.templatetags.widget_tweaks import add_class, silence_without_field
 
 register = template.Library()
 

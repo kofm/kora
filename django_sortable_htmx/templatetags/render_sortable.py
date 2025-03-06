@@ -11,7 +11,7 @@ def render_sortable(
     sort_url,
     item_template="django_sortable_htmx/card.html",
     is_sortable=True,
-    extra_item=None
+    extra_item=None,
 ):
     """
     Renders sortable items.

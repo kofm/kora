@@ -1,11 +1,11 @@
 import django_tables2 as tables
+from django.utils.html import format_html
 from django_tables2 import columns
 
 from collect.models import SeedSample
 from collect.tables import SeedSampleBaseTable
 from describe.models import Description
 from describe.tables import DescriptionTable
-from django.utils.html import format_html
 from parameters.models import ParameterValue
 from register.models import Entity, PlantSpecies, PlantVariety, Protection
 

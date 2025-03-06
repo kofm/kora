@@ -10,20 +10,18 @@ from collect.models import CartItem, SampleWeight, SeedSample, Storage, StorageP
 from collect.serializers import SampleWeightSerializer
 from describe.models import (
     Description,
-    Workspace,
-    WorkspaceElement,
     Expression,
     Protocol,
     State,
     Trait,
+    Workspace,
+    WorkspaceElement,
 )
 from parameters.models import VarietalParameter
 from register.models import Entity, PlantSpecies, PlantVariety, Protection
 from restapi.serializers import (
     CartSerializer,
     DescriptionSerializer,
-    WorkspaceElementSerializer,
-    WorkspaceSerializer,
     EntitySerializer,
     ExpressionSerializer,
     PlantSpeciesSerializer,
@@ -36,6 +34,8 @@ from restapi.serializers import (
     StorageSerializer,
     TraitSerializer,
     VarietalParameterSerializer,
+    WorkspaceElementSerializer,
+    WorkspaceSerializer,
 )
 
 from .filters import (

@@ -1,6 +1,3 @@
-from breadcrumbs.utils import generate_breadcrumbs
-from collect.forms import CartForm, CartItemNewForm, CartItemSetWeightForm
-from collect.models import Cart, CartItem, SampleWeight
 from django.contrib.auth.decorators import login_required
 from django.db.models.query import QuerySet
 from django.http import HttpResponseRedirect
@@ -11,6 +8,10 @@ from django.urls import reverse, reverse_lazy
 from django.utils.html import format_html
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 from django.views.generic import DeleteView
+
+from breadcrumbs.utils import generate_breadcrumbs
+from collect.forms import CartForm, CartItemNewForm, CartItemSetWeightForm
+from collect.models import Cart, CartItem, SampleWeight
 
 
 @login_required

@@ -2,13 +2,14 @@
 Trait
 """
 
-from describe.forms import RelatedStateForm, StateFormSet, TraitForm
-from describe.models import Protocol, Trait
 from django.db.models import Max
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_GET, require_POST
+
+from describe.forms import RelatedStateForm, StateFormSet, TraitForm
+from describe.models import Protocol, Trait
 
 
 @require_GET

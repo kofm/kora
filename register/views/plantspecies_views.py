@@ -1,9 +1,9 @@
-from django_tables2 import RequestConfig, SingleTableView
-
-import breadcrumbs.generic as crumbs
 from django.db.models import Count
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, DeleteView, DetailView, UpdateView
+from django_tables2 import RequestConfig, SingleTableView
+
+import breadcrumbs.generic as crumbs
 from frontpage.views_decorators import NavPlantActiveContext
 from register.models import PlantSpecies
 from register.tables import PlantSpeciesTable, PlantVarietyTable

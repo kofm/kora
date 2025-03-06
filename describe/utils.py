@@ -1,4 +1,5 @@
 from typing import Sequence
+
 from django.db.models import Q, QuerySet
 
 

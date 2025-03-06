@@ -1,10 +1,10 @@
 from datetime import date
 
-from django_countries.fields import CountryField
-
 from django.db import models
 from django.urls.base import reverse
 from django.utils.html import format_html
+from django_countries.fields import CountryField
+
 from frontpage.generic import ModelIsDeletableMixin
 
 INDIVIDUAL = "IN"
