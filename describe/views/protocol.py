@@ -29,6 +29,9 @@ class ProtocolList(ListBreadcrumbsMixin, NavDescribeActiveContext, ListView):
     model = Protocol
     context_object_name = "protocols"
 
+    def get_queryset(self):
+        return Protocol.objects.select_related("plantspecies").all()
+
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
         table = ProtocolTable(self.get_queryset())

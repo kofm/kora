@@ -153,7 +153,20 @@ def plantvarietyname_delete(request, pk):
 
 @nav_plant_active_context
 def plantvariety_list(request):
-    queryset = PlantVariety.objects.all().order_by("-created_at").distinct()
+    queryset = (
+        PlantVariety.objects.prefetch_related(
+            "names",
+            "description_set",
+            "seedsample_set",
+            "parameters",
+            "crop_set",
+            "protection_set",
+        )
+        .select_related("species", "breeder")
+        .all()
+        .order_by("-created_at")
+        .distinct()
+    )
     flt = PlantVarietyFilter(request.GET, queryset=queryset)
     paginator = Paginator(flt.qs, 12)
     page = request.GET.get("page", 1)

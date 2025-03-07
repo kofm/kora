@@ -66,7 +66,8 @@ class VarietalParameterCreate(NavPlantActiveContext, CrumbsCreateView):
 
 @nav_plant_active_context
 def protection_list(request):
-    flt = ProtectionOmniFilter(request.GET, queryset=Protection.objects.all())
+    queryset = Protection.objects.select_related("variety", "variety__species").all()
+    flt = ProtectionOmniFilter(request.GET, queryset=queryset)
     table = ProtectionListTable(flt.qs)
     RequestConfig(request).configure(table)
     context = {"table": table, "filter": flt}

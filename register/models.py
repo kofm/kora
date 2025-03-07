@@ -132,9 +132,6 @@ class PlantVariety(ModelIsDeletableMixin, models.Model):
     def get_delete_url(self):
         return reverse("register:variety_delete", args=[self.pk])
 
-    def other_names(self):
-        return self.names.exclude(name=self.name)
-
     def has_breeder(self):
         return bool(self.breeder)
 
