@@ -16,17 +16,12 @@ class SeedSampleTableMixin:
 
 class SeedSampleBaseTable(tables.Table, SeedSampleTableMixin):
     sample_id = tables.Column(linkify=True, attrs={"td": {"class": "col-1"}})
-    germinability = tables.Column(verbose_name="Germinability")
-    weight = tables.Column(verbose_name="Weight (g)")
     notes = tables.TemplateColumn(template_name="collect/partials/seedsample_table_notes.html")
 
     class Meta:
         model = SeedSample
         fields: tuple = (
             "sample_id",
-            "position",
-            "weight",
-            "germinability",
             "growing_season",
             "notes",
         )
@@ -60,9 +55,9 @@ class SeedSampleTable(SeedSampleBaseTable):
             "variety",
             "variety__species",
             "position",
-            "weight",
-            "germinability",
             "growing_season",
+            "last_weight",
+            # "last_germinability",
             "notes",
             "actions",
         )

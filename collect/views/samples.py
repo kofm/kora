@@ -40,25 +40,13 @@ from register.models import PlantVariety, PlantVarietyName
 
 
 def seedsample_list(request):
-    context = {}
-
     flt = SeedSampleFilter(request.GET)
-    table = SeedSampleTable(flt.qs)
-    RequestConfig(request, paginate={"per_page": 15}).configure(table)
-    context.update(
-        {
-            "table": table,
-            "filter": flt,
-        }
-    )
+    queryset = flt.qs.with_latest_weight()
 
-    if request.user.is_authenticated:
-        cart = request.user.carts.active() or None
-        context["cart"] = cart
-        if cart:
-            context["cartitems"] = cartitems_sort(request, cart.cartitem_set.all())
-        cart_select_form = CartSelectForm(initial={"cart": cart}, user=request.user)
-        context["cart_select_form"] = cart_select_form
+    table = SeedSampleTable(queryset)
+    RequestConfig(request, paginate={"per_page": 15}).configure(table)
+
+    context = {"table": table, "filter": flt}
 
     template_file = "collect/seedsample_list.html"
 

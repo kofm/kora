@@ -1,5 +1,7 @@
 from django.contrib.auth.models import User
 from django.db import models, transaction
+from django.db.models import F, RowRange, Window
+from django.db.models.functions import LastValue
 from django.db.models.query_utils import Q
 from django.urls import reverse
 from django.utils import timezone
@@ -74,6 +76,22 @@ class StoragePosition(models.Model):
         return reverse("collect:storage_detail", args=(self.storage.pk,))
 
 
+class SeedSampleQueryset(models.QuerySet):
+    def with_latest_weight(self):
+        return (
+            self.select_related("variety", "variety__species", "position", "position__storage")
+            .annotate(
+                last_weight=Window(
+                    expression=LastValue("sampleweight__weight"),
+                    partition_by=F("id"),
+                    order_by=F("sampleweight__created_at").desc(),
+                    frame=RowRange(start=None, end=None),
+                ),
+            )
+            .distinct()
+        )
+
+
 class SeedSample(ModelIsDeletableMixin, models.Model):
     sample_id = models.PositiveIntegerField(
         verbose_name="ID", help_text="An unique identificative number of the seed sample", unique=True
@@ -82,6 +100,8 @@ class SeedSample(ModelIsDeletableMixin, models.Model):
     notes = models.CharField(max_length=500, help_text="Notes relative to the seed sample", default="")
     growing_season = models.IntegerField(blank=True, null=True)
     position = models.ForeignKey(StoragePosition, on_delete=models.PROTECT)
+
+    objects = SeedSampleQueryset.as_manager()
 
     class Meta:
         ordering = ("-sample_id",)
