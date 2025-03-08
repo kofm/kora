@@ -79,10 +79,12 @@ class DescriptionFilterForm(forms.Form):
     """
 
     trait = forms.IntegerField(widget=forms.HiddenInput())
-    state = forms.ModelMultipleChoiceField(queryset=None, required=False, widget=CheckboxSelectMultiple)
+    state: forms.ModelMultipleChoiceField = forms.ModelMultipleChoiceField(
+        queryset=None, required=False, widget=CheckboxSelectMultiple
+    )
 
     def __init__(self, *args, **kwargs):
-        super(DescriptionFilterForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         trait = Trait.objects.get(pk=self.initial["trait"])
         self.fields["state"].queryset = State.objects.filter(trait=trait)
         if trait.grouping:
@@ -93,11 +95,11 @@ class DescriptionFilterForm(forms.Form):
 
 class BaseDescriptionFilterFormset(BaseFormSet):
     def save(self):
-        filter = list()
+        flt = []
         for form in self.forms:
             if states := form.cleaned_data["state"]:
-                filter.append({"trait": form.cleaned_data["trait"], "state": [state.pk for state in states]})
-        return filter
+                flt.append({"trait": form.cleaned_data["trait"], "state": [state.pk for state in states]})
+        return flt
 
 
 DescriptionFilterFormSet = formset_factory(DescriptionFilterForm, formset=BaseDescriptionFilterFormset, extra=0)
@@ -254,3 +256,48 @@ class WorkspaceUpdateForm(WorkspaceInputForm):
         super().__init__(*args, **kwargs)
         self.fields["name"].label = "Rename Workspace"
         self.helper.attrs = {"hx_post": reverse("describe:workspace_update", args=(self.instance.pk,))}
+
+
+class TraitStatesForm(forms.Form):
+    trait_id = forms.IntegerField(widget=forms.HiddenInput())
+    selected_states = forms.MultipleChoiceField(
+        choices=[],
+        widget=forms.CheckboxSelectMultiple(),
+        required=False,
+    )
+
+    def __init__(self, *args, **kwargs):
+        state_choices = kwargs.pop("state_choices", [])
+        super().__init__(*args, **kwargs)
+        self.fields["selected_states"].choices = state_choices
+
+
+class BaseTraitStatesFormSet(BaseFormSet):
+    def __init__(self, *args, **kwargs):
+        self.traits = kwargs.pop("traits", None)
+        super().__init__(*args, **kwargs)
+        self.initial = self._get_initial_data()
+
+    def _get_initial_data(self):
+        initial = []
+        for trait in self.traits:
+            initial.append(
+                {
+                    "trait_id": trait.id,
+                    # You could pre-select states here if needed
+                }
+            )
+        return initial
+
+    def get_form_kwargs(self, index):
+        kwargs = super().get_form_kwargs(index)
+        if self.traits and index < len(self.traits):
+            trait = self.traits[index]
+            # Create choices from prefetched states
+            kwargs["state_choices"] = [
+                (state.id, f" {state.numeric_id}. {state.description}") for state in trait.states.all()
+            ]
+        return kwargs
+
+
+TraitStatesFormSet = formset_factory(TraitStatesForm, formset=BaseTraitStatesFormSet, extra=0)

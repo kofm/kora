@@ -3,19 +3,19 @@
 
 <style>
  .asteriskField {
-    display: none;
+     display: none;
  }
 </style>
 
 <script>
-  document.body.addEventListener('htmx:afterSwap', function(event) {
-      const input = document.querySelector("#id_name"); 
-      if (input && input.type === 'text')
-      {
-	  input.focus();
-	  input.setSelectionRange(0, input.value.length);
-      }
-  });
+ document.body.addEventListener('htmx:afterSwap', function(event) {
+     const input = document.querySelector("#id_name");
+     if (input && input.type === 'text')
+     {
+	 input.focus();
+	 input.setSelectionRange(0, input.value.length);
+     }
+ });
 </script>
 
 <div class="d-flex align-items-end">
@@ -26,15 +26,18 @@
         <button class="btn btn-outline-secondary dropdown-toggle ms-1" type="button" data-bs-toggle="dropdown" aria-expanded="false">
             <i class="bi bi-list"></i>
         </button>
-        <ul class="dropdown-menu" hx-target="#workspaceBody">
-            <li>
-                <a class="dropdown-item" href="#" hx-get="{% url "describe:workspace_create" %}">Create</a>
-            </li>
-                <a class="dropdown-item {% if not workspace %}disabled{% endif %}" {% if not workspace %}aria-disabled="true"{% endif %} href="#" {% if workspace %}hx-get="{% url "describe:workspace_update" workspace.pk %}"{% endif %}>Rename</a>
-	    <li><a class="dropdown-item {% if not workspace %}disabled{% endif %}" {% if not workspace %}aria-disabled="true"{% endif %} href="{% if workspace %}{% url 'describe:description-compare' %}{% endif %}" target="_blank">Compare</a></li>
-	    <li><a class="dropdown-item {% if not workspace %}disabled{% endif %}" {% if not workspace %}aria-disabled="true"{% endif %} href="{% if workspace %}{% url 'restapi:workspaces' workspace.pk %}?format=json{% endif %}" target="_blank">Download</a></li>
-	    <li><a class="dropdown-item {% if not workspace %}disabled{% endif %}" {% if not workspace %}aria-disabled="true"{% endif %} href="{% if workspace %}{% url 'describe:workspace_delete' workspace.pk %}{% endif %}">Delete</a></li>
-        </ul>
+        <div class="dropdown-menu" hx-target="#workspaceBody">
+            <a class="dropdown-item" href="#" hx-get="{% url "describe:workspace_create" %}">Create</a>
+            <a class="dropdown-item {% if not workspace %}disabled{% endif %}"
+	       {% if not workspace %}aria-disabled="true"{% endif %}
+	       href="#"
+	       {% if workspace %}hx-get="{% url "describe:workspace_update" workspace.pk %}"{% endif %}>
+		Rename
+	    </a>
+	    <a class="dropdown-item {% if not workspace %}disabled{% endif %}" {% if not workspace %}aria-disabled="true"{% endif %} href="{% if workspace %}{% url 'describe:description-compare' %}{% endif %}" target="_blank">Compare</a>
+	    <a class="dropdown-item {% if not workspace %}disabled{% endif %}" {% if not workspace %}aria-disabled="true"{% endif %} href="{% if workspace %}{% url 'restapi:workspaces' workspace.pk %}?format=json{% endif %}" target="_blank">Download</a>
+	    <a class="dropdown-item {% if not workspace %}disabled{% endif %}" {% if not workspace %}aria-disabled="true"{% endif %} href="{% if workspace %}{% url 'describe:workspace_delete' workspace.pk %}{% endif %}">Delete</a>
+        </div>
     </div>
 </div>
 {% if workspace.descriptions.all %}

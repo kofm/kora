@@ -122,4 +122,3 @@ DJANGO_TABLES2_TEMPLATE = "django_tables2/bootstrap5.html"
 
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
-print(f"Template dirs: {TEMPLATE_DIR}")

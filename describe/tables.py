@@ -33,6 +33,7 @@ class DescriptionTable(tables.Table):
     class Meta:
         model = Description
         fields = ("variety", "name", "protocol__name")
+        template_name = "frontpage/partials/table.html"
 
 
 class RelatedStatesTable(tables.Table):

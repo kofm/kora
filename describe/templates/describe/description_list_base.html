@@ -4,6 +4,25 @@
 {% load breadcrumbs %}
 {% load components %}
 
+{% block javascript %}
+    <style>
+     .loading-indicator {
+         display: none;
+         margin: 88px auto;
+         position: relative;
+         width: 5rem;
+         height: 5rem;
+     }
+     .htmx-request .loading-indicator,
+     .htmx-request.loading-indicator {
+         display: block;
+     }
+     #table.htmx-request {
+         display: none;
+     }
+    </style>
+{% endblock %}
+
 {% block title %}Descriptions{% endblock %}
 
 {% block container %}
@@ -12,8 +31,55 @@
 
     {% url 'describe:description_create' as create_url %}
     {% list_page_header "Descriptions" create_url=create_url %}
-    
-    {% block main %}
-    {% endblock %}
 
+    <main id="content">
+        <div class="row">
+            <!-- Left Column: Search and Filters -->
+            <div class="col">
+                <!-- Header with Search title and dropdown menu -->
+                <div class="row">
+                    <div class="col">
+                        <h2>Search</h2>
+                    </div>
+                    <div class="col d-flex justify-content-end align-items-center">
+                        <div class="dropdown dropstart">
+                            <a href="" class="bi bi-three-dots-vertical h4 ms-3" data-bs-toggle="dropdown" aria-expanded="false"></a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{% url 'describe:description-list-reset' %}">Reset Filters</a></li>
+                                <li><a class="dropdown-item" href="{% url 'describe:description-list-export' %}">Export</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+		<div id="filter" hx-get="{% url 'describe:description_filter' %}" hx-trigger="load">
+		</div>
+
+            </div>
+
+            <!-- Right Column: Results Table -->
+            <div class="col-7">
+                <div class="sticky-top" style="max-height: 100vh;">
+                    <!-- Loading Spinner -->
+                    <div id="spinner" class="spinner-grow loading-indicator" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+		    <div id="table">
+			{% block main %}
+			{% endblock %}
+		    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+         document.body.addEventListener('htmx:beforeRequest', function() {
+             document.getElementsByTagName('main')[0].style.opacity = 0.25;
+         });
+
+         document.body.addEventListener('htmx:afterRequest', function() {
+             document.getElementsByTagName('main')[0].style.opacity = 1.0;
+         });
+        </script>
+    </main>
 {% endblock %}

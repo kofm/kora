@@ -6,7 +6,9 @@ def index(request):
     return render(request, "frontpage/index.html", {"nav_home": "active", "crumbs": None})
 
 
-def darkmode_toggle(request):
-    is_light = request.session.get("is_light", False)
-    request.session["is_light"] = not is_light
+def appearance_set(request):
+    appearance = request.POST.get("appearance", "light")
+    print(request.POST)
+    request.session["appearance"] = appearance
+    print(request.session["appearance"])
     return HttpResponse()

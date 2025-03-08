@@ -2,7 +2,6 @@
 
 from django.contrib.auth.models import User
 from django.db import models
-from django.db.models import QuerySet
 from django.db.models.aggregates import Count
 from django.db.models.functions import Coalesce, Concat
 from django.urls import reverse
@@ -47,35 +46,9 @@ class Protocol(ModelIsDeletableMixin, models.Model):
     def get_delete_url(self):
         return reverse("describe:protocol_delete", args=(self.pk,))
 
-    def traits_list(self):
-        return self.traits.all().order_by("numeric_id").values("pk", "numeric_id", "description")
 
-    def traits_states_list(self):
-        state_description_annotation = {
-            "state_description": Concat(
-                "numeric_id",
-                models.Value(". "),
-                "description",
-                output_field=models.CharField(),
-            )
-        }
-        return [
-            {
-                "pk": trait["pk"],
-                "numeric_id": trait["numeric_id"],
-                "description": trait["description"],
-                "states": list(
-                    State.objects.filter(trait=trait["pk"])
-                    .annotate(**state_description_annotation)
-                    .values("pk", "numeric_id", "state_description")
-                ),
-            }
-            for trait in self.traits_list()
-        ]
-
-
-class DescriptionManager(models.Manager):
-    def filter_by_expressions(self, expressions_filter: list[dict[str, list]]) -> QuerySet:
+class DescriptionQuerySet(models.QuerySet):
+    def filter_by_expressions(self, expressions_filter):
         description_ids = None
         for flt in expressions_filter:
             query_result = self.filter(
@@ -83,7 +56,14 @@ class DescriptionManager(models.Manager):
                 | models.Q(expressions__state__related_states__id__in=flt["state"])
             ).values_list("pk", flat=True)
             description_ids = query_result if description_ids is None else description_ids.intersection(query_result)
-        return self.filter(pk__in=list(description_ids)).select_related("variety").select_related("protocol")
+        return self.filter(pk__in=list(description_ids))
+
+    def with_expressions(self):
+        return (
+            self.select_related("variety", "protocol", "variety__species")
+            .prefetch_related("expressions", "protocol__traits")
+            .all()
+        )
 
 
 class Description(ModelIsDeletableMixin, models.Model):
@@ -106,7 +86,7 @@ class Description(ModelIsDeletableMixin, models.Model):
         help_text="The variety to which the description refers to",
     )
 
-    objects = DescriptionManager()
+    objects = DescriptionQuerySet.as_manager()
 
     class Meta:
         ordering = ("variety__name",)
@@ -220,10 +200,23 @@ class Expression(models.Model):
         return self.state.trait
 
 
+class WorkspaceQueryset(models.QuerySet):
+    def elements(self):
+        return self.prefetch_related(
+            "descriptions",
+            "descriptions__description",
+            "descriptions__description__protocol",
+            "descriptions__description__variety",
+            "descriptions__description__variety__species",
+        )
+
+
 class Workspace(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=200, help_text="The identificative name of the list")
     is_active = models.BooleanField(default=False)
+
+    objects = WorkspaceQueryset.as_manager()
 
     def __str__(self) -> str:
         return self.name

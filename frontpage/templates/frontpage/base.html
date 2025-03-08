@@ -2,19 +2,12 @@
 {% load django_htmx %}
 
 <!DOCTYPE html>
-<html lang="en" data-bs-theme="{{ request.session.is_light|yesno:"light,dark" }}">
+<html lang="en" >
     <head>
 	<script src="{% static 'frontpage/bootstrap.bundle.js' %}"></script>
 	<script src="{% static 'frontpage/htmx.bundle.js' %}" type="text/javascript" defer></script>
 	<script src="{% static 'frontpage/hyperscript.bundle.js' %}" type="text/javascript" defer></script>
 	<script src="{% static 'django_sortable_htmx/sortable.bundle.js' %}" type="text/javascript" defer></script>
-	<script>
-	 function toggleTheme() {
-	     const currentTheme = document.documentElement.getAttribute('data-bs-theme');
-	     const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-	     document.documentElement.setAttribute('data-bs-theme', newTheme);
-	 }
-	</script>
 
 	{% block javascript %}
 	{% endblock %}
@@ -22,7 +15,7 @@
 	<title>Kora - {% block title %}{% endblock %}</title>
     </head>
 
-    <body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+    <body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' data-bs-theme="{{ request.session.appearance|default:"light" }}">
 
         {% include 'frontpage/navbar.html' %}
         <div class="container">
@@ -34,5 +27,29 @@
 
         {% django_htmx_script %}
 
+
+	<div class="offcanvas offcanvas-end p-1 shadow-lg border my-5 bg-body-tertiary rounded"
+	     tabindex="-1"
+	     id="offcanvasWorkspace"
+	     aria-labelledby="offcanvasWorkspaceLabel"
+	     data-bs-backdrop="true">
+	    <div class="offcanvas-header">
+		<h5 class="offcanvas-title">Workspace</h5>
+	    </div>
+	    <div class="offcanvas-body">
+		{% if user.is_authenticated %}
+		    <div id="workspaceBody"
+			 hx-get="{% url 'describe:workspace_list' %}"
+			 hx-trigger="load"
+			 hx-swap="innerHTML">
+		    </div>
+		{% else %}
+		    <p class="text-muted">
+			You must be logged in to access Workspaces. <br/>
+			<a href="{% url 'login' %}">Log In</a>
+		    </p>
+		{% endif %}
+	    </div>
+	</div>
     </body>
 </html>

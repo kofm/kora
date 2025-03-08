@@ -6,5 +6,5 @@ app_name = "front"
 
 urlpatterns = [
     path("", views.index, name="index"),
-    path("darkmode/toggle", views.darkmode_toggle, name="darkmode-toggle"),
+    path("appearance/set", views.appearance_set, name="appearance_set"),
 ]

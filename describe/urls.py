@@ -11,6 +11,7 @@ app_name = "describe"
 
 urlpatterns = [
     path("", dsc.description_list, name="description_list"),
+    path("filter", dsc.description_filter, name="description_filter"),
     path("reset", dsc.description_list_reset, name="description-list-reset"),
     path("find_similar", dsc.description_find_similar, name="description-similar"),
     path("workspace/create", wsp.workspace_create, name="workspace_create"),

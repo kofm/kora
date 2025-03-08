@@ -4,116 +4,14 @@
 <nav class="navbar navbar-expand-lg bg-body-tertiary">
     <div class="container">
         <!-- Logo -->
-	    <a class="navbar-brand" href="{% url 'front:index' %}">
-	        <img alt="Logo" src="{% static 'frontpage/kora-logo.png' %}" width="40" height="40" class="d-inline-block align-text-middle"/>
-	        Kora
-	    </a>
+	<a class="navbar-brand" href="{% url 'front:index' %}">
+	    <img alt="Logo" src="{% static 'frontpage/kora-logo.png' %}" width="40" height="40" class="d-inline-block align-text-middle"/>
+	    Kora
+	</a>
 
-        <!-- Button to toggle navigation with small width displays -->
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
+	{% include "frontpage/partials/navbar_menu.html" %}
 
-        <!-- Menu container -->
-        <div class="collapse navbar-collapse" id="navbarNavDropdown">
-            <ul class="navbar-nav me-auto">
-                <!-- Home -->
-                <li class="nav-item">
-                    <a class="nav-link {% nav_css_class nav_home %}" aria-current="page" href="{% url 'front:index' %}">Home</a>
-                </li>
-
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle {% nav_css_class nav_plants %}" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        Plants
-                    </a>
-                    <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-                        <li>
-                            <a class="dropdown-item" href="{% url 'register:variety_list' %}">Varieties</a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item" href="{% url 'register:plantspecies_list' %}">Species</a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item" href="{% url 'register:protection_list' %}">Protections</a>
-                        </li>
-                    </ul>
-                </li>
-
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle {% nav_css_class nav_describe %}" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        Describe
-                    </a>
-                    <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-                        <li>
-                            <a class="dropdown-item" href="{% url 'describe:description_list' %}">Descriptions</a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item" href="{% url 'describe:protocol_list' %}">Protocols</a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item" href="{% url 'register:entity_list' %}">Entities</a>
-                        </li>
-                    </ul>
-                </li>
-
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle {% nav_css_class nav_collect %}" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">Collect</a>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="{% url 'collect:seedsample_list'  %}">Accessions</a></li>
-                        <li><a class="dropdown-item" href="{% url 'collect:storage_list'  %}">Storage</a></li>
-                    </ul>
-                </li>
-
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle {% nav_css_class nav_plan %}" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        Plan
-                    </a>
-                    <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-                        <li>
-                            <a class="dropdown-item" href="{% url 'spaces:location-list' %}">Zones</a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item" href="{% url 'calculator:crops-statistics' %}">Statistics</a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item" href="{% url 'parameters:parameter_list'  %}">Parameters</a>
-                        </li>
-                    </ul>
-                </li>
-
-
-            </ul>
-
-            <span class="navbar-text">
-                {% if user.is_authenticated %}
-                    {{ user.username }}
-                    <a href="#" _="on click call #logout-form.submit()"><i class="bi bi-door-closed-fill"></i></a>
-
-                    <form id="logout-form" method="post" action="{% url 'logout' %}" style="display: none;">
-                        {% csrf_token %}
-                    </form>
-                {% else %}
-                    <a class="text-decoration-none" href="{% url 'login'  %}">
-			            Login <i class="bi bi-door-open-fill"></i>
-		            </a>
-                {% endif %}
-            </span>
-	        <span class="nav-item py-2 py-lg-1 col-12 col-lg-auto">
-		        <div class="vr d-none d-lg-flex h-100 mx-lg-2 text-white"></div>
-		        <hr class="d-lg-none my-2 text-white-50">
-            </span>
-	        <span class="navbar-text">
-		        <div class="form-check form-switch">
-		            <input class="form-check-input" type="checkbox"
-			               role="switch" id="darkModeSwitch"
-			               hx-get="{% url 'front:darkmode-toggle' %}"
-			               {{ request.session.is_light|yesno:"checked," }}
-			               onclick="document.documentElement.setAttribute('data-bs-theme', document.documentElement.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark')"
-		            >
-		            <label class="form-check-label" for="darkModeSwitch"><i class="bi bi-sun-fill"></i></label>
-		        </div>
-	        </span>
-
+	{% include "frontpage/partials/navbar_tray.html" %}
         </div>
     </div>
 </nav>

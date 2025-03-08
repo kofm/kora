@@ -16,7 +16,9 @@ class SeedSampleTableMixin:
 
 class SeedSampleBaseTable(tables.Table, SeedSampleTableMixin):
     sample_id = tables.Column(linkify=True, attrs={"td": {"class": "col-1"}})
-    notes = tables.TemplateColumn(template_name="collect/partials/seedsample_table_notes.html")
+    notes = tables.Column(
+        attrs={"td": {"class": "text-truncate", "style": "width:10rem; max-width:10rem; min-width:10rem;"}}
+    )
 
     class Meta:
         model = SeedSample
@@ -36,23 +38,43 @@ class SeedSampleTable(SeedSampleBaseTable):
     the selected cart.
     """
 
-    variety = tables.Column(
+    variety__name = tables.Column(
+        "Variety", attrs={"td": {"class": "col-2"}, "a": {"class": "text-decoration-none link-body-emphasis"}}
+    )
+    variety__species = tables.Column(
         attrs={
             "td": {"class": "col-2"},
-            "a": {"class": "text-decoration-none link-body-emphasis"},
+        }
+    )
+    position = tables.Column(
+        attrs={
+            "td": {"class": "col-2"},
+        }
+    )
+    growing_season = tables.Column(
+        attrs={
+            "td": {"class": "col-2"},
+        }
+    )
+    last_weight = tables.Column(
+        attrs={
+            "td": {"class": "col-2"},
         }
     )
     actions = tables.TemplateColumn(
         template_name="collect/partials/cartitem_add_table_action.html",
         verbose_name="",
         orderable=False,
+        attrs={
+            "td": {"class": "col-1"},
+        },
     )
 
     class Meta:
         model = SeedSample
         fields = (
             "sample_id",
-            "variety",
+            "variety__name",
             "variety__species",
             "position",
             "growing_season",

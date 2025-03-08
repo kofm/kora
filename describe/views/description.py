@@ -25,6 +25,7 @@ from describe.forms import (
     DescriptionUpdateForm,
     ExpressionForm,
     ProtocolForm,
+    TraitStatesFormSet,
 )
 from describe.models import (
     Description,
@@ -48,8 +49,54 @@ CharField.register_lookup(Lower)
 nav_describe = nav_active("nav_describe")
 
 
+def process_formset(formset):
+    expressions_filter = []
+
+    for form in formset:
+        if form.is_valid() and form.cleaned_data.get("selected_states"):
+            expressions_filter.append({"state": form.cleaned_data["selected_states"]})
+    return expressions_filter
+
+
 @nav_describe
 def description_list(request):
+    context = {}
+
+    descriptions = Description.objects.with_expressions().all()
+    expressions_filter = None
+    base_template = "describe/description_list_partial.html" if request.htmx else "describe/description_list_base.html"
+
+    context.update(generate_breadcrumbs(request, Description))
+
+    traits = Trait.objects.filter(protocol=7).prefetch_related("states").order_by("pk")[:2]
+
+    if request.method == "POST":
+        formset = TraitStatesFormSet(request.POST, traits=traits)
+        if formset.is_valid():
+            expressions_filter = process_formset(formset)
+
+    if expressions_filter:
+        descriptions = descriptions.filter_by_expressions(expressions_filter)
+
+    table = DescriptionTable(descriptions)
+    RequestConfig(request, paginate={"per_page": 10}).configure(table)
+
+    context.update({"page_obj": table, "page_template": base_template})
+
+    return TemplateResponse(request, "describe/description_list.html", context)
+
+
+def description_filter(request):
+    traits = Trait.objects.filter(protocol=7).prefetch_related("states").order_by("pk")[:2]
+    if request.method == "POST":
+        formset = TraitStatesFormSet(request.POST, traits=traits)
+    else:
+        formset = TraitStatesFormSet(traits=traits)  # type: ignore[call-arg]
+    return TemplateResponse(request, "describe/partials/description_filter.html", {"formset": formset})
+
+
+@nav_describe
+def description_list_old(request):
     """List Descriptions.
 
     Filter descriptions by state of expression(s) according to the
@@ -111,7 +158,9 @@ def description_list(request):
 
     description_filter_by_name = DescriptionFilterByName(request.GET, queryset=queryset)
     # Instantiate the Descriptions table and corresponding pagination
-    description_table = DescriptionTable(description_filter_by_name.qs)
+    description_table = DescriptionTable(
+        description_filter_by_name.qs.select_related("variety", "protocol", "variety__species")
+    )
     RequestConfig(request, paginate={"per_page": 10}).configure(description_table)
 
     # Check if the current request is an htmx request, then render only the
