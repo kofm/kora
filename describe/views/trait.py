@@ -19,7 +19,7 @@ def related_state_form(request):
     If the request contains `trait` send the `related_state` field; otherwise send the `trait` field.
     This allow building a dynamic form via htmx.
     """
-    if request.htmx:
+    if request.headers.get("HX-Request") == "true":
         form = RelatedStateForm(request.GET)
         if request.GET.get("trait", None):
             return HttpResponse(form["related_state"])

@@ -6,6 +6,7 @@ SHELL_PLUS = "ipython"
 
 INSTALLED_APPS = [
     "debug_toolbar",
+    "django_extensions",
 ] + INSTALLED_APPS
 
 INTERNAL_IPS = [
@@ -16,18 +17,3 @@ INTERNAL_IPS = [
 MIDDLEWARE = [
     "debug_toolbar.middleware.DebugToolbarMiddleware",
 ] + MIDDLEWARE
-# LOGGING = {
-#     'version': 1,
-#     'disable_existing_loggers': False,
-#     'handlers': {
-#         'console': {
-#             'class': 'logging.StreamHandler',
-#         },
-#     },
-#     'loggers': {
-#         'django.db.backends': {
-#             'handlers': ['console'],
-#             'level': 'DEBUG',
-#         },
-#     },
-# }

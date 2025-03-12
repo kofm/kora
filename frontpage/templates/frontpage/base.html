@@ -1,5 +1,4 @@
 {% load static %}
-{% load django_htmx %}
 
 <!DOCTYPE html>
 <html lang="en" >
@@ -15,7 +14,11 @@
 	<title>Kora - {% block title %}{% endblock %}</title>
     </head>
 
-    <body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' data-bs-theme="{{ request.session.appearance|default:"light" }}">
+    <body
+	hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+	data-bs-theme="{{ request.session.appearance|default:"light" }}"
+	_="on fetch:beforeRequest(headers) set headers['X-CSRFToken'] to '{{ csrf_token }}'"
+    >
 
         {% include 'frontpage/navbar.html' %}
         <div class="container">
@@ -24,9 +27,6 @@
             {% endblock %}
 
         </div>
-
-        {% django_htmx_script %}
-
 
 	<div class="offcanvas offcanvas-end p-1 shadow-lg border my-5 bg-body-tertiary rounded"
 	     tabindex="-1"

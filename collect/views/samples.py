@@ -50,7 +50,7 @@ def seedsample_list(request):
 
     template_file = "collect/seedsample_list.html"
 
-    if request.htmx:
+    if request.headers.get("HX-Request") == "true":
         template_file = "collect/partials/seedsample_table.html"
 
     context.update(generate_breadcrumbs(request, SeedSample))

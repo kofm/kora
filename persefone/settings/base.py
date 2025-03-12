@@ -15,7 +15,6 @@ INSTALLED_APPS = [
     "django.contrib.postgres",
     "django_tables2",
     "django_filters",
-    "django_htmx",
     "drf_redesign",
     "rest_framework",
     "crispy_forms",
@@ -31,6 +30,7 @@ INSTALLED_APPS = [
     "collect.apps.CollectConfig",
     "django_sortable_htmx",
     "breadcrumbs",
+    "render_block",
 ]
 
 MIDDLEWARE = [
@@ -41,7 +41,6 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "django_htmx.middleware.HtmxMiddleware",
 ]
 
 ROOT_URLCONF = "persefone.urls"

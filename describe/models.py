@@ -48,15 +48,41 @@ class Protocol(ModelIsDeletableMixin, models.Model):
 
 
 class DescriptionQuerySet(models.QuerySet):
-    def filter_by_expressions(self, expressions_filter):
-        description_ids = None
-        for flt in expressions_filter:
-            query_result = self.filter(
-                models.Q(expressions__state__id__in=flt["state"])
-                | models.Q(expressions__state__related_states__id__in=flt["state"])
-            ).values_list("pk", flat=True)
-            description_ids = query_result if description_ids is None else description_ids.intersection(query_result)
-        return self.filter(pk__in=list(description_ids))
+    def filter_by_expressions(self, expressions_filter: list):
+        """Filter Descriptions by Expression.
+
+        Multiple values for the same Trait are considered as
+        alternatives (OR).
+
+        Values referring to different Traits are considered as
+        conjunctions (AND).
+
+        Example:
+
+        For the same trait (e.g., "Stem: length"), multiple values
+        like "short" and "medium" are treated as alternatives (OR) -
+        meaning either "short" OR "medium" will match.
+
+        For different traits (e.g., "Stem: length" AND "Flower:
+        color"), the conditions are treated as conjunctions (AND) -
+        meaning both conditions must be satisfied for a match.
+
+        An empty filter will return zero Description.
+        """
+        if not expressions_filter:
+            return self.none()
+
+        result = (
+            self.prefetch_related("expressions__state")
+            .filter(expressions__state__id__in=expressions_filter[0])
+            .distinct()
+        )
+
+        for expressions in expressions_filter[1:]:
+            query_set = self.filter(expressions__state__id__in=expressions).distinct()
+            result = result.intersection(query_set)
+
+        return result
 
     def with_expressions(self):
         return (

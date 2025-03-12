@@ -2,10 +2,9 @@ from crispy_forms.bootstrap import FieldWithButtons, StrictButton
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Field, Layout
 from django import forms
-from django.forms import CheckboxSelectMultiple, formset_factory, inlineformset_factory
+from django.forms import formset_factory, inlineformset_factory
 from django.forms.formsets import BaseFormSet
 from django.urls import reverse
-from django.utils.html import format_html
 from dynamic_forms import DynamicField, DynamicFormMixin
 
 from describe.models import (
@@ -16,6 +15,7 @@ from describe.models import (
     Trait,
     Workspace,
 )
+from register.models import PlantVariety
 
 
 class NumberingCodeInput(forms.TextInput):
@@ -74,9 +74,9 @@ class ExpressionUpdateForm(forms.Form):
 
 class DescriptionFilterForm(forms.Form):
     variety = forms.CharField(widget=DescriptorTextInput(), required=False)
-    name = forms.ChoiceField(
-        choices=[("", "--------")] + Description.names(),
-        widget=forms.Select(attrs={"class": "form-select"}),
+    name = forms.MultipleChoiceField(
+        choices=[("", "")] + Description.names(),
+        widget=forms.SelectMultiple(attrs={"class": "form-select"}),
         required=False,
     )
 
@@ -135,6 +135,8 @@ class RelatedStateForm(DynamicFormMixin, forms.Form):
 
 class DescriptionForm(forms.ModelForm):
     """Form used to create or update a Description."""
+
+    variety = forms.ModelChoiceField(queryset=PlantVariety.objects.select_related("species").all())
 
     def __init__(self, *args, **kwargs):
         """Initialize a DescriptionForm.
@@ -262,15 +264,35 @@ class ExpressionFilterForm(forms.Form):
 
 
 class BaseExpressionFilterFormSet(BaseFormSet):
-    def __init__(self, *args, **kwargs):
-        self.traits = kwargs.pop("traits", None)
+    """Provides the UI for filtering Descriptions by Expression.
+
+    Args:
+
+        traits (QuerySet): a Trait QuerySet, ideally returned from
+        `get_protocol_traits()`
+
+        expressions (QuerySet, optional): an Expression QuerySet,
+        ideally returned from
+        `get_description_asterisked_expressions()`; this should be the
+        Expressions that pre-populate the filter
+
+    """
+
+    def __init__(self, *args, traits, **kwargs):
+        self.traits = traits
+        self.expressions = kwargs.pop("expressions", [])
         super().__init__(*args, **kwargs)
         self.initial = self._get_initial_data()
 
     def _get_initial_data(self):
         initial = []
         for trait in self.traits:
-            initial.append({"trait_id": trait.id})
+            initial.append(
+                {
+                    "trait_id": trait.pk,
+                    "expressions": [e.state.pk for e in self.expressions if e.state.trait.pk == trait.pk],
+                }
+            )
         return initial
 
     def get_form_kwargs(self, index):
@@ -282,6 +304,16 @@ class BaseExpressionFilterFormSet(BaseFormSet):
             ]
             kwargs["trait"] = f"{trait.numeric_id}. {trait.description}"
         return kwargs
+
+    def get_expression_ids(self) -> list:
+        """Returns a list of Expression ids to be used with
+        `Description.objects.filtery_by_expressions()`
+        """
+        return [
+            form.cleaned_data["expressions"]
+            for form in self
+            if form.is_valid() and form.cleaned_data.get("expressions")
+        ]
 
 
 ExpressionFilterFormSet = formset_factory(ExpressionFilterForm, formset=BaseExpressionFilterFormSet, extra=0)
