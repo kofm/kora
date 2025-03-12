@@ -8,7 +8,5 @@ def index(request):
 
 def appearance_set(request):
     appearance = request.POST.get("appearance", "light")
-    print(request.POST)
     request.session["appearance"] = appearance
-    print(request.session["appearance"])
     return HttpResponse()

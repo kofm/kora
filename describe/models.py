@@ -67,11 +67,6 @@ class DescriptionQuerySet(models.QuerySet):
 
 
 class Description(ModelIsDeletableMixin, models.Model):
-    """Stores the Descriptions.
-
-    A description is a collection of Expressions.
-    """
-
     name = models.CharField(max_length=200, help_text="The identifier of the description")
     protocol = models.ForeignKey(
         Protocol,
@@ -114,11 +109,6 @@ class Description(ModelIsDeletableMixin, models.Model):
 
 
 class Trait(models.Model):
-    """Store the Traits.
-
-    Traits can have multiple states of expression.
-    """
-
     numeric_id = models.IntegerField(
         null=True,
         blank=True,
@@ -139,8 +129,6 @@ class Trait(models.Model):
     grouping = models.BooleanField(default=False, help_text="Is this a highly discriminating characteristic?")
 
     class Meta:
-        """Trait model Meta class."""
-
         ordering = ("numeric_id",)
 
     def __str__(self):

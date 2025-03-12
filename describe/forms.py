@@ -73,40 +73,26 @@ class ExpressionUpdateForm(forms.Form):
 
 
 class DescriptionFilterForm(forms.Form):
-    """
-    This is the single unit of the form to filter descriptions.
-    It needs to be instantiated with a trait id to populate the available states of expression field.
-    """
-
-    trait = forms.IntegerField(widget=forms.HiddenInput())
-    state: forms.ModelMultipleChoiceField = forms.ModelMultipleChoiceField(
-        queryset=None, required=False, widget=CheckboxSelectMultiple
+    variety = forms.CharField(widget=DescriptorTextInput(), required=False)
+    name = forms.ChoiceField(
+        choices=[("", "--------")] + Description.names(),
+        widget=forms.Select(attrs={"class": "form-select"}),
+        required=False,
     )
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        trait = Trait.objects.get(pk=self.initial["trait"])
-        self.fields["state"].queryset = State.objects.filter(trait=trait)
-        if trait.grouping:
-            self.fields["state"].label = format_html(f"<b>{trait.numeric_id}. {trait.description}</b>")
-        else:
-            self.fields["state"].label = format_html(f"{trait.numeric_id}. {trait.description}")
-
-
-class BaseDescriptionFilterFormset(BaseFormSet):
-    def save(self):
-        flt = []
-        for form in self.forms:
-            if states := form.cleaned_data["state"]:
-                flt.append({"trait": form.cleaned_data["trait"], "state": [state.pk for state in states]})
-        return flt
-
-
-DescriptionFilterFormSet = formset_factory(DescriptionFilterForm, formset=BaseDescriptionFilterFormset, extra=0)
 
 
 class ProtocolForm(forms.Form):
-    protocol = forms.ModelChoiceField(queryset=Protocol.objects.all())
+    protocol = forms.ModelChoiceField(
+        queryset=Protocol.objects.select_related("plantspecies").all(),
+        widget=forms.Select(attrs={"class": "form-select", "aria-label": "Select Protocol"}),
+    )
+
+
+class ProtocolStrictSearchForm(forms.Form):
+    strict = forms.BooleanField(
+        widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
+        required=False,
+    )
 
 
 def _choices(form, model, depends_on):
@@ -164,7 +150,7 @@ class DescriptionForm(forms.ModelForm):
         have automatically introduced a validation against the available
         choices, which is not what we want here since the user *can*
         create new `name` values."""
-        super(DescriptionForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.fields["name"].widget = forms.Select(choices=Description.names())
 
     class Meta:
@@ -186,7 +172,8 @@ class ExpressionForm(forms.ModelForm):
         fields = ("description", "state", "note")
         widgets = {"description": forms.HiddenInput()}
 
-    def __init__(self, *args, trait=None, **kwargs) -> None:
+    def __init__(self, *args, **kwargs) -> None:
+        trait = kwargs.pop("trait", None)
         super().__init__(*args, **kwargs)
         self.auto_id = False
         if trait:
@@ -258,9 +245,9 @@ class WorkspaceUpdateForm(WorkspaceInputForm):
         self.helper.attrs = {"hx_post": reverse("describe:workspace_update", args=(self.instance.pk,))}
 
 
-class TraitStatesForm(forms.Form):
+class ExpressionFilterForm(forms.Form):
     trait_id = forms.IntegerField(widget=forms.HiddenInput())
-    selected_states = forms.MultipleChoiceField(
+    expressions = forms.MultipleChoiceField(
         choices=[],
         widget=forms.CheckboxSelectMultiple(),
         required=False,
@@ -268,11 +255,13 @@ class TraitStatesForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         state_choices = kwargs.pop("state_choices", [])
+        trait_description = kwargs.pop("trait", [])
         super().__init__(*args, **kwargs)
-        self.fields["selected_states"].choices = state_choices
+        self.fields["expressions"].label = trait_description
+        self.fields["expressions"].choices = state_choices
 
 
-class BaseTraitStatesFormSet(BaseFormSet):
+class BaseExpressionFilterFormSet(BaseFormSet):
     def __init__(self, *args, **kwargs):
         self.traits = kwargs.pop("traits", None)
         super().__init__(*args, **kwargs)
@@ -281,23 +270,18 @@ class BaseTraitStatesFormSet(BaseFormSet):
     def _get_initial_data(self):
         initial = []
         for trait in self.traits:
-            initial.append(
-                {
-                    "trait_id": trait.id,
-                    # You could pre-select states here if needed
-                }
-            )
+            initial.append({"trait_id": trait.id})
         return initial
 
     def get_form_kwargs(self, index):
         kwargs = super().get_form_kwargs(index)
         if self.traits and index < len(self.traits):
             trait = self.traits[index]
-            # Create choices from prefetched states
             kwargs["state_choices"] = [
                 (state.id, f" {state.numeric_id}. {state.description}") for state in trait.states.all()
             ]
+            kwargs["trait"] = f"{trait.numeric_id}. {trait.description}"
         return kwargs
 
 
-TraitStatesFormSet = formset_factory(TraitStatesForm, formset=BaseTraitStatesFormSet, extra=0)
+ExpressionFilterFormSet = formset_factory(ExpressionFilterForm, formset=BaseExpressionFilterFormSet, extra=0)

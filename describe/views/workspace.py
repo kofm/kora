@@ -92,7 +92,7 @@ def workspace_delete(request, pk):
 @require_POST
 def workspace_element_create(request):
     description_id = request.POST.get("description_id", None)
-    workspace = Workspace.objects.filter(user=request.user, is_active=True).elements().first()
+    workspace = Workspace.objects.filter(user=request.user, is_active=True).first()
 
     if not description_id or not workspace:
         return JsonResponse({"error": "Invalid input or no active description."}, status=400)
@@ -109,12 +109,7 @@ def workspace_element_create(request):
             element.order = order_max + 1
             element.save()
 
-    form = WorkspaceSelectForm(request=request)
-    return render(
-        request,
-        "describe/partials/workspaces/workspace_detail.html",
-        {"workspace": workspace, "workspace_form": form},
-    )
+    return redirect(reverse("describe:workspace_list"))
 
 
 @login_required

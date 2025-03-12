@@ -52,34 +52,41 @@
                     </div>
                 </div>
 
-		<div id="filter" hx-get="{% url 'describe:description_filter' %}" hx-trigger="load">
+		<form id="descriptionForm" hx-post="{% url 'describe:description_list' %}" hx-trigger="change,keyup change delay:500ms" hx-target="#table" hx-include="#filter">
+		    {{ form_description }}
+		</form>
+
+		<form id="protocolSelect" hx-post="{% url 'describe:description_filter' %}" hx-target="#filter" hx-trigger="load,change">
+		    <div class="my-3">
+			<label for="{{ form.protocol.id_for_label }}" class="form-label">{{ form.protocol.label }}</label>
+			{{ form.protocol }}
+		    </div>
+
+		    <script>
+		     const tsProtocol = new TomSelect("#id_protocol", {
+			 create: false,
+		     });
+		    </script>
+
+		</form>
+		<div id="filter">
 		</div>
 
             </div>
 
             <!-- Right Column: Results Table -->
-            <div class="col-7">
+            <div class="col-8">
                 <div class="sticky-top" style="max-height: 100vh;">
                     <!-- Loading Spinner -->
                     <div id="spinner" class="spinner-grow loading-indicator" role="status">
                         <span class="visually-hidden">Loading...</span>
                     </div>
-		    <div id="table">
+		    <div id="table" >
 			{% block main %}
 			{% endblock %}
 		    </div>
                 </div>
             </div>
         </div>
-
-        <script>
-         document.body.addEventListener('htmx:beforeRequest', function() {
-             document.getElementsByTagName('main')[0].style.opacity = 0.25;
-         });
-
-         document.body.addEventListener('htmx:afterRequest', function() {
-             document.getElementsByTagName('main')[0].style.opacity = 1.0;
-         });
-        </script>
     </main>
 {% endblock %}

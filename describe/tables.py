@@ -3,37 +3,21 @@ from django.utils.html import format_html
 
 from describe.models import Description, Protocol, State
 
+link_classes = "text-decoration-none link-body-emphasis"
+
 
 class DescriptionTable(tables.Table):
-    def render_expressions(self, record):
-        expressions = record.expressions.count()
-        traits = record.available_traits.count()
-        color = "success" if expressions == traits else "secondary"
-        return format_html('<span class="badge rounded-pill text-bg-{}">{}/{}</span>', color, expressions, traits)
-
-    variety = tables.Column(
-        linkify=True,
-        attrs={
-            "a": {"class": "text-decoration-none link-body-emphasis"},
-            "th": {"class": "text-decoration-none link-body-emphasis"},
-        },
-    )
-    name = tables.Column(linkify=True, attrs={"a": {"class": "text-decoration-none link-body-emphasis fw-bold"}})
-    protocol__name = tables.Column(
-        "Protocol", linkify=True, attrs={"a": {"class": "text-decoration-none link-body-emphasis"}}
-    )
-    expressions = tables.Column("Expressions", attrs={"td": {"class": "col-1 text-end"}})
+    variety__name = tables.Column("Variety", linkify=True)
     actions = tables.TemplateColumn(
         template_name="describe/partials/description_table_actions.html",
         verbose_name="",
         orderable=False,
-        attrs={"td": {"class": "col-1 text-end"}},
     )
 
     class Meta:
         model = Description
-        fields = ("variety", "name", "protocol__name")
-        template_name = "frontpage/partials/table.html"
+        fields = ("variety__name", "variety__species__latin_name", "name", "protocol__name")
+        template_name = "describe/partials/description_table.html"
 
 
 class RelatedStatesTable(tables.Table):

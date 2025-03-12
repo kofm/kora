@@ -20,12 +20,13 @@ from breadcrumbs.generic import DeleteBreadcrumbsMixin
 from breadcrumbs.utils import generate_breadcrumbs
 from describe.filters import DescriptionFilterByName
 from describe.forms import (
-    DescriptionFilterFormSet,
+    DescriptionFilterForm,
     DescriptionForm,
     DescriptionUpdateForm,
+    ExpressionFilterFormSet,
     ExpressionForm,
     ProtocolForm,
-    TraitStatesFormSet,
+    ProtocolStrictSearchForm,
 )
 from describe.models import (
     Description,
@@ -42,6 +43,7 @@ from describe.utils import (
 )
 from describe.views.protocol import NavDescribeActiveContext
 from frontpage.views_decorators import nav_active
+from register.filters import filter_name_generic
 from register.models import PlantVariety
 
 CharField.register_lookup(Lower)
@@ -53,8 +55,8 @@ def process_formset(formset):
     expressions_filter = []
 
     for form in formset:
-        if form.is_valid() and form.cleaned_data.get("selected_states"):
-            expressions_filter.append({"state": form.cleaned_data["selected_states"]})
+        if form.is_valid() and form.cleaned_data.get("expressions"):
+            expressions_filter.append({"state": form.cleaned_data["expressions"]})
     return expressions_filter
 
 
@@ -64,16 +66,38 @@ def description_list(request):
 
     descriptions = Description.objects.with_expressions().all()
     expressions_filter = None
-    base_template = "describe/description_list_partial.html" if request.htmx else "describe/description_list_base.html"
+    strict_search = False
 
     context.update(generate_breadcrumbs(request, Description))
 
-    traits = Trait.objects.filter(protocol=7).prefetch_related("states").order_by("pk")[:2]
-
     if request.method == "POST":
-        formset = TraitStatesFormSet(request.POST, traits=traits)
-        if formset.is_valid():
-            expressions_filter = process_formset(formset)
+        strict_search_form = ProtocolStrictSearchForm(request.POST)
+        if strict_search_form.is_valid():
+            strict_search = strict_search_form.cleaned_data["strict"]
+
+        form_description = DescriptionFilterForm(request.POST)
+        if form_description.is_valid():
+            description_variety_name = form_description.cleaned_data["variety"]
+            description_name = form_description.cleaned_data["name"]
+            if description_variety_name:
+                descriptions = filter_name_generic(descriptions, "variety__name", description_variety_name)
+            if description_name:
+                descriptions = descriptions.filter(name=description_name)
+
+        form = ProtocolForm(request.POST)
+        if form.is_valid():
+            protocol = form.cleaned_data["protocol"]
+            traits = Trait.objects.filter(protocol=protocol).prefetch_related("states").order_by("pk")
+            formset = ExpressionFilterFormSet(request.POST, traits=traits)
+            if formset.is_valid():
+                expressions_filter = process_formset(formset)
+    else:
+        protocol = Protocol.objects.most_used()
+        form = ProtocolForm(initial={"protocol": protocol.pk})
+        form_description = DescriptionFilterForm()
+
+    if strict_search:
+        descriptions = descriptions.filter(protocol=protocol.pk)
 
     if expressions_filter:
         descriptions = descriptions.filter_by_expressions(expressions_filter)
@@ -81,18 +105,37 @@ def description_list(request):
     table = DescriptionTable(descriptions)
     RequestConfig(request, paginate={"per_page": 10}).configure(table)
 
-    context.update({"page_obj": table, "page_template": base_template})
+    if request.htmx:
+        base_template = "describe/description_list_partial.html"
+    else:
+        base_template = "describe/description_list_base.html"
+
+    context.update(
+        {
+            "page_obj": table,
+            "page_template": base_template,
+            "form": form,
+            "form_description": form_description,
+        }
+    )
 
     return TemplateResponse(request, "describe/description_list.html", context)
 
 
 def description_filter(request):
-    traits = Trait.objects.filter(protocol=7).prefetch_related("states").order_by("pk")[:2]
+    traits = Trait.objects.none()
     if request.method == "POST":
-        formset = TraitStatesFormSet(request.POST, traits=traits)
-    else:
-        formset = TraitStatesFormSet(traits=traits)  # type: ignore[call-arg]
-    return TemplateResponse(request, "describe/partials/description_filter.html", {"formset": formset})
+        form = ProtocolForm(request.POST)
+        if form.is_valid():
+            protocol_id = form.cleaned_data["protocol"]
+            traits = Trait.objects.filter(protocol=protocol_id).prefetch_related("states").order_by("pk")
+    form_strict_search = ProtocolStrictSearchForm()
+    formset = ExpressionFilterFormSet(traits=traits)  # type: ignore[call-arg]
+    return TemplateResponse(
+        request,
+        "describe/partials/description_filter.html",
+        {"form_strict_search": form_strict_search, "formset": formset},
+    )
 
 
 @nav_describe
