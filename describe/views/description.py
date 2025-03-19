@@ -34,6 +34,7 @@ from describe.models import (
     Description,
     Expression,
     Protocol,
+    State,
     Trait,
 )
 from describe.tables import DescriptionTable
@@ -137,6 +138,67 @@ def _get_description_asterisked_expression(description_id):
     )
 
 
+def _render_filter_expression_to_text(filter_expression):
+    states = [state for states in filter_expression for state in states]
+    states = (
+        State.objects.filter(pk__in=states)
+        .select_related("trait")
+        .values("trait__numeric_id", "trait__description", "numeric_id", "description")
+    )
+
+    output = defaultdict(list)
+    for state in states:
+        trait_id = state["trait__numeric_id"]
+        trait = state["trait__description"]
+        state_id = state["numeric_id"]
+        state = state["description"]
+
+        output[f"{trait_id}. {trait}"].append(f"{state_id}. {state}")
+
+    text = []
+    for trait, states in output.items():
+        text.append(trait)
+
+        for state in states:
+            text.append(f"    {state}")
+    return text
+
+
+def _render_export_header(protocol):
+    return [
+        "==========================",
+        "Description Search",
+        "==========================",
+        "",
+        f"Protocol: {protocol.name}",
+        "",
+    ]
+
+
+def _render_description_list(descriptions):
+    header = [
+        "",
+        "=========================",
+        f"Results ({descriptions.count()}):",
+        "=========================",
+        "",
+    ]
+    body = [f"- {description}" for description in descriptions]
+    return header + body
+
+
+def _render_export_file_to_response(protocol, filter_expression, descriptions):
+    text = (
+        _render_export_header(protocol)
+        + _render_filter_expression_to_text(filter_expression)
+        + _render_description_list(descriptions)
+    )
+    curtime = datetime.today().strftime("%Y%m%d%H%M%S")
+    filename = f"description_filter_{curtime}.txt"
+    response = HttpResponse("\n".join(text), content_type="text/plain")
+    response["Content-Disposition"] = f"attachment; filename={filename}"
+
+
 @nav_describe
 def description_list(request):
     context = {}
@@ -156,16 +218,12 @@ def description_list(request):
     if filter_expression:
         descriptions = descriptions.filter_by_expressions(filter_expression)
 
+    if request.method == "POST" and "export" in request.POST:
+        return _render_export_file_to_response(protocol, filter_expression, descriptions)
+
     table = DescriptionTable(descriptions)
     RequestConfig(request, paginate={"per_page": 10}).configure(table)
-
     context.update({"table": table})
-
-    if request.method == "POST" and "export" in request.POST:
-        response = HttpResponse("test", content_type="text/plain")
-        response["Content-Disposition"] = f"attachment; filename='test'"
-
-        return response
 
     if request.headers.get("HX-Request") == "true":
         rendered_block = render_block_to_string(
@@ -203,78 +261,6 @@ def description_filter(request):
         request=request,
     )
     return HttpResponse(content=rendered_block)
-
-
-@require_POST
-def description_filter_export(request):
-    descriptions = Description.objects.with_expressions().all()
-    form_protocol_filter, protocol = get_protocol_form(request)
-    form_description_filter = get_description_form(request)
-    _, filter_strict = get_strict_search_form(request)
-    _, filter_expression = get_expression_filter(request, protocol)
-
-    descriptions = description_filter_name_variety(descriptions, form_description_filter)
-
-    if filter_strict:
-        descriptions = descriptions.filter(protocol=protocol)
-
-    if filter_expression:
-        descriptions = descriptions.filter_by_expressions(filter_expression)
-
-    text = ["There is no filter set, yet."]
-    if filter_expression and protocol:
-        queryset = Description.objects.with_expressions().filter_by_expressions(filter_expression)
-        text = [
-            "==========================",
-            "Description Search",
-            "==========================",
-            "",
-            f"Protocol: {protocol.name}",
-            "",
-        ]
-        for f in filter_expression:
-            text.append(str(f))
-        text.extend(
-            [
-                "",
-                "=========================",
-                f"Results ({queryset.count()}):",
-                "=========================",
-                "",
-            ]
-        )
-        text.extend([f"- {description}" for description in queryset])
-
-    # Create the response with file content
-    with NamedTemporaryFile(mode="w+", delete=False) as file:
-        file.write("\n".join(text))
-        file.seek(0)
-        tempfile = file.name
-        file.close()
-    return HttpResponse(
-        headers={"hx-redirect": f"{reverse('describe:description_filter_export_download')}?tempfile={tempfile}"}
-    )
-
-    # return response
-
-
-def description_filter_export_download(request):
-    """"""
-    tempfile = request.GET.get("tempfile")
-
-    if not tempfile:
-        return HttpResponseNotFound("No filename specified")
-    with open(tempfile) as file:
-        text = file.read()
-    os.remove(tempfile)
-
-    curtime = datetime.today().strftime("%Y%m%d%H%M%S")
-    filename = f"description_filter_{curtime}.txt"
-
-    response = HttpResponse(text, content_type="text/plain")
-    response["Content-Disposition"] = f"attachment; filename={filename}"
-
-    return response
 
 
 def _make_filter_from_expressions(expressions):
