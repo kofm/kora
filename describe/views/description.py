@@ -52,7 +52,7 @@ def get_protocol_traits(protocol_id: int):
     return list(Trait.objects.filter(protocol=protocol_id).prefetch_related("states").order_by("pk"))
 
 
-def get_description_form(request: HttpRequest):
+def _get_description_form(request: HttpRequest):
     """Create (and eventually process) `DescriptionFilterForm`.
 
     Return the form instance
@@ -65,7 +65,7 @@ def get_description_form(request: HttpRequest):
     return form
 
 
-def get_protocol_form(request: HttpRequest, protocol=None) -> tuple[ProtocolForm, Protocol]:
+def _get_protocol_form(request: HttpRequest, protocol=None) -> tuple[ProtocolForm, Protocol]:
     """Create and process `ProtocolForm`.
 
     Returns the form instance and a `Protocol` instance. If the form
@@ -103,7 +103,7 @@ def description_filter_name_variety(descriptions, form_description):
     return descriptions
 
 
-def get_strict_search_form(request: HttpRequest) -> tuple[ProtocolStrictSearchForm, bool]:
+def _get_strict_search_form(request: HttpRequest) -> tuple[ProtocolStrictSearchForm, bool]:
     result = False
     form = ProtocolStrictSearchForm()
     if request.method == "POST":
@@ -113,7 +113,7 @@ def get_strict_search_form(request: HttpRequest) -> tuple[ProtocolStrictSearchFo
     return (form, result)
 
 
-def get_expression_filter(request, protocol):
+def _get_expression_filter(request, protocol):
     """Process `ExpressionFilterFormSet` and return a list of
     expressions to filter by.
 
@@ -138,6 +138,16 @@ def _get_description_asterisked_expression(description_id):
     )
 
 
+def _render_header(string):
+    return [
+        "",
+        "==========================",
+        string,
+        "==========================",
+        "",
+    ]
+
+
 def _render_filter_expression_to_text(filter_expression):
     states = [state for states in filter_expression for state in states]
     states = (
@@ -155,7 +165,7 @@ def _render_filter_expression_to_text(filter_expression):
 
         output[f"{trait_id}. {trait}"].append(f"{state_id}. {state}")
 
-    text = []
+    text = _render_header(f"Expression Filters ({len(filter_expression)})")
     for trait, states in output.items():
         text.append(trait)
 
@@ -164,32 +174,21 @@ def _render_filter_expression_to_text(filter_expression):
     return text
 
 
-def _render_export_header(protocol):
-    return [
-        "==========================",
-        "Description Search",
-        "==========================",
-        "",
+def _render_search_info(protocol):
+    return _render_header("Description Search") + [
         f"Protocol: {protocol.name}",
-        "",
     ]
 
 
 def _render_description_list(descriptions):
-    header = [
-        "",
-        "=========================",
-        f"Results ({descriptions.count()}):",
-        "=========================",
-        "",
-    ]
+    header = _render_header(f"Results ({descriptions.count()}):")
     body = [f"- {description}" for description in descriptions]
     return header + body
 
 
 def _render_export_file_to_response(protocol, filter_expression, descriptions):
     text = (
-        _render_export_header(protocol)
+        _render_search_info(protocol)
         + _render_filter_expression_to_text(filter_expression)
         + _render_description_list(descriptions)
     )
@@ -197,6 +196,7 @@ def _render_export_file_to_response(protocol, filter_expression, descriptions):
     filename = f"description_filter_{curtime}.txt"
     response = HttpResponse("\n".join(text), content_type="text/plain")
     response["Content-Disposition"] = f"attachment; filename={filename}"
+    return response
 
 
 @nav_describe
@@ -205,10 +205,10 @@ def description_list(request):
     template_name = "describe/description_list.html"
 
     descriptions = Description.objects.with_expressions().all()
-    form_protocol_filter, protocol = get_protocol_form(request)
-    form_description = get_description_form(request)
-    form_strict_search, filter_strict = get_strict_search_form(request)
-    formset_expression, filter_expression = get_expression_filter(request, protocol)
+    form_protocol_filter, protocol = _get_protocol_form(request)
+    form_description = _get_description_form(request)
+    form_strict_search, filter_strict = _get_strict_search_form(request)
+    formset_expression, filter_expression = _get_expression_filter(request, protocol)
 
     descriptions = description_filter_name_variety(descriptions, form_description)
 
@@ -249,8 +249,8 @@ def description_list(request):
 
 def description_filter(request):
     template_name = ("describe/description_list.html",)
-    form, protocol = get_protocol_form(request)
-    form_strict_search, _ = get_strict_search_form(request)
+    form, protocol = _get_protocol_form(request)
+    form_strict_search, _ = _get_strict_search_form(request)
     traits = get_protocol_traits(protocol)
     formset = ExpressionFilterFormSet(traits=traits)
     context = {"form_strict_search": form_strict_search, "formset": formset}
@@ -278,8 +278,8 @@ def description_find_similar(request):
     description_id = request.GET.get("description_id")
     description = get_object_or_404(Description, pk=description_id)
 
-    form_protocol_filter, protocol = get_protocol_form(request, description.protocol)
-    form_strict_search, filter_strict = get_strict_search_form(request)
+    form_protocol_filter, protocol = _get_protocol_form(request, description.protocol)
+    form_strict_search, filter_strict = _get_strict_search_form(request)
 
     traits = get_protocol_traits(protocol.pk)
     expressions = _get_description_asterisked_expression(description_id)
@@ -288,7 +288,7 @@ def description_find_similar(request):
 
     formset_expression = ExpressionFilterFormSet(expressions=expressions, traits=traits)
 
-    form_description_filter = get_description_form(request)
+    form_description_filter = _get_description_form(request)
 
     descriptions = Description.objects.with_expressions().filter_by_expressions(filter_expression)
     table = DescriptionTable(descriptions)
