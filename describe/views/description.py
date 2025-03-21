@@ -3,18 +3,17 @@
 List, Detail, Update, Create, Delete
 """
 
-import os
 from collections import defaultdict
 from datetime import datetime
 
-from django.core.files.temp import NamedTemporaryFile
-from django.db.models import CharField, Q
+from django.contrib.auth.decorators import login_required
+from django.db.models import CharField
 from django.db.models.functions import Lower
-from django.http import HttpRequest, HttpResponse, HttpResponseNotFound, JsonResponse
+from django.forms import BaseFormSet
+from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.urls import reverse, reverse_lazy
-from django.views.decorators.http import require_POST
 from django.views.generic import DeleteView, DetailView
 from django_tables2 import RequestConfig
 from render_block import render_block_to_string
@@ -35,10 +34,12 @@ from describe.models import (
     Expression,
     Protocol,
     State,
-    Trait,
+    Workspace,
+    WorkspaceElement,
 )
 from describe.tables import DescriptionTable
 from describe.views.protocol import NavDescribeActiveContext
+from describe.views.utils import make_descriptions_dict, make_protocols_dict
 from frontpage.views_decorators import nav_active
 from register.filters import filter_name_generic
 from register.models import PlantVariety
@@ -46,10 +47,6 @@ from register.models import PlantVariety
 CharField.register_lookup(Lower)
 
 nav_describe = nav_active("nav_describe")
-
-
-def get_protocol_traits(protocol_id: int):
-    return list(Trait.objects.filter(protocol=protocol_id).prefetch_related("states").order_by("pk"))
 
 
 def _get_description_form(request: HttpRequest):
@@ -62,6 +59,8 @@ def _get_description_form(request: HttpRequest):
     else:
         form = DescriptionFilterForm()
 
+    form.fields["variety"].widget.attrs["hx-trigger"] = "keyup delay:500ms"
+    form.fields["variety"].widget.attrs["hx-post"] = reverse("describe:description_list")
     return form
 
 
@@ -96,7 +95,9 @@ def description_filter_name_variety(descriptions, form_description):
     description_name = form_description.cleaned_data["name"]
 
     if description_variety_name:
-        descriptions = filter_name_generic(descriptions, "variety__name", description_variety_name)
+        descriptions = filter_name_generic(
+            descriptions.select_related("variety"), "variety__name", description_variety_name
+        )
     if description_name:
         descriptions = descriptions.filter(name__in=description_name)
 
@@ -113,22 +114,22 @@ def _get_strict_search_form(request: HttpRequest) -> tuple[ProtocolStrictSearchF
     return (form, result)
 
 
-def _get_expression_filter(request, protocol):
+def _get_expression_filter(request: HttpRequest, protocol: Protocol) -> tuple[BaseFormSet, list]:
     """Process `ExpressionFilterFormSet` and return a list of
     expressions to filter by.
 
     The returned list is intended to be used with
     `Description.objects.filter_by_expressions()`.
     """
-    traits = get_protocol_traits(protocol)
-    formset = ExpressionFilterFormSet(traits=traits)
-    result = False
+    traits = protocol.with_traits_and_states()
+    formset = ExpressionFilterFormSet(traits=traits)  # type: ignore[call-arg]
+    result: list = []
     if request.method != "POST":
         return (formset, result)
 
-    formset = ExpressionFilterFormSet(request.POST, traits=traits)
+    formset = ExpressionFilterFormSet(request.POST, traits=traits)  # type: ignore[call-arg]
     if formset.is_valid():
-        result = formset.get_expression_ids()
+        result = formset.get_expression_ids()  # type: ignore[attr-defined]
     return (formset, result)
 
 
@@ -204,7 +205,7 @@ def description_list(request):
     context = {}
     template_name = "describe/description_list.html"
 
-    descriptions = Description.objects.with_expressions().all()
+    descriptions = Description.objects.with_expressions()
     form_protocol_filter, protocol = _get_protocol_form(request)
     form_description = _get_description_form(request)
     form_strict_search, filter_strict = _get_strict_search_form(request)
@@ -251,7 +252,7 @@ def description_filter(request):
     template_name = ("describe/description_list.html",)
     form, protocol = _get_protocol_form(request)
     form_strict_search, _ = _get_strict_search_form(request)
-    traits = get_protocol_traits(protocol)
+    traits = protocol.with_traits_and_states()
     formset = ExpressionFilterFormSet(traits=traits)
     context = {"form_strict_search": form_strict_search, "formset": formset}
     rendered_block = render_block_to_string(
@@ -281,7 +282,7 @@ def description_find_similar(request):
     form_protocol_filter, protocol = _get_protocol_form(request, description.protocol)
     form_strict_search, filter_strict = _get_strict_search_form(request)
 
-    traits = get_protocol_traits(protocol.pk)
+    traits = protocol.with_traits_and_states()
     expressions = _get_description_asterisked_expression(description_id)
 
     filter_expression = _make_filter_from_expressions(expressions)
@@ -329,51 +330,37 @@ def description_find_similar(request):
 
 
 @nav_describe
+@login_required
 def description_compare(request):
-    context = {}
-    active_list = request.user.workspace_set.filter(is_active=True).first()
+    wsp = Workspace.objects.filter(user=request.user, is_active=True).first()
+    elems = WorkspaceElement.objects.select_related("description__variety__species").filter(workspace=wsp)
+    names = elems.order_by("description__name").values_list("description__name", flat=True).distinct()
+    varieties = elems.order_by("description__variety__id").values_list("description__variety__id", flat=True).distinct()
 
-    if not active_list:
-        return JsonResponse({"error": "No active description list found."}, status=400)
+    # Get all the available Descriptions for any of the Variety-Name
+    # combinations present in the workspace.
+    # This includes descriptions from other protocols, too.
+    descriptions = (
+        Description.objects.select_related("variety__species")
+        .select_related("protocol__plantspecies")
+        .prefetch_related("expressions")
+        .filter(variety__in=varieties, name__in=names)
+    )
 
-    elements = active_list.descriptions.select_related("description").all()
-    descriptions = [element.description for element in elements]
+    protocols = (
+        Protocol.objects.select_related("plantspecies")
+        .prefetch_related("traits__states")
+        .filter(descriptions__in=descriptions)
+    )
 
-    if not descriptions:
-        context.update({"comparison_table_header": [], "comparison_table": []})
-        return TemplateResponse(request, "describe/description_compare.html", context)
+    descriptions_dictionary = make_descriptions_dict(descriptions)
+    compare_table = make_protocols_dict(protocols, descriptions_dictionary)
 
-    protocols = Protocol.objects.filter(descriptions__in=descriptions).distinct()
-
-    comparison_table = [{"protocol": protocol.name, "rows": []} for protocol in protocols]
-    comparison_table_header = [f"{description.variety.name} - {description.name}" for description in descriptions]
-
-    for protocol_index, protocol in enumerate(protocols):
-        for trait in protocol.traits.all():
-            row = [f"{trait.numeric_id}. {trait.description}"]
-            expression_ids = []
-
-            for description in descriptions:
-                expressions = description.expressions.filter(
-                    Q(state__trait=trait) | Q(state__related_states__trait=trait)
-                )
-
-                if expressions.exists():
-                    expression = expressions.last()
-                    expression_id = expression.state.numeric_id
-                    row.append(f"{expression_id}. {expression.state.description}")
-                    expression_ids.append(expression_id)
-                else:
-                    row.append("")
-
-            rows_equal = (
-                all(expression_id == expression_ids[0] for expression_id in expression_ids) if expression_ids else False
-            )
-            comparison_table[protocol_index]["rows"].append({"values": row, "equal": rows_equal})
-
-    context.update({"comparison_table_header": comparison_table_header, "comparison_table": comparison_table})
-
-    return TemplateResponse(request, "describe/description_compare.html", context)
+    return TemplateResponse(
+        request,
+        "describe/description_compare.html",
+        {"compare_table": compare_table, "workspace": wsp},
+    )
 
 
 class DescriptionDetail(NavDescribeActiveContext, DetailView):

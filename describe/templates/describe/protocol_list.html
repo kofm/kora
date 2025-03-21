@@ -4,6 +4,7 @@
 {% load breadcrumbs %}
 {% load components %}
 {% load django_tables2 %}
+{% load render_sortable %}
 
 
 {% block title %}Protocols{% endblock %}
@@ -15,7 +16,10 @@
     {% url 'describe:protocol_create' as create_url %}
     {% list_page_header "Protocols" create_url=create_url %}
 
-
-    {% render_table table %}
+    <div class="row">
+	    <div class="col">
+            {% render_sortable object_list "protocol" "row" "describe:protocol_sort" "describe/partials/protocol_card.html" %}
+	    </div>
+    </div>
 
 {% endblock %}

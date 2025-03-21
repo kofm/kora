@@ -29,10 +29,11 @@ class Protocol(ModelIsDeletableMixin, models.Model):
         help_text="reference to the specie it is meant to use with",
     )
     url_ref = models.URLField(verbose_name="URL", blank=True, default="", help_text="the URL reference to the protocol")
+    order = models.PositiveIntegerField(default=0)
     objects = ProtocolManager()
 
     class Meta:
-        ordering = ("name",)
+        ordering = ("order", "name")
 
     def __str__(self):
         return f"{self.name} ({self.plantspecies.latin_name})"
@@ -45,6 +46,9 @@ class Protocol(ModelIsDeletableMixin, models.Model):
 
     def get_delete_url(self):
         return reverse("describe:protocol_delete", args=(self.pk,))
+
+    def with_traits_and_states(self):
+        return Trait.objects.filter(protocol=self.id).prefetch_related("states").order_by("numeric_id")
 
 
 class DescriptionQuerySet(models.QuerySet):

@@ -30,14 +30,3 @@ class RelatedStatesTable(tables.Table):
     class Meta:
         model = State
         fields = ("numeric_id", "description", "trait", "trait__protocol")
-
-
-class ProtocolTable(tables.Table):
-    name = tables.Column(linkify=True)
-
-    def render_url_ref(self, record):
-        return format_html('<i class="bi bi-link-45deg"></i>')
-
-    class Meta:
-        model = Protocol
-        fields = ("name", "plantspecies", "url_ref")

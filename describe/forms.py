@@ -1,3 +1,5 @@
+from typing import Any
+
 from crispy_forms.bootstrap import FieldWithButtons, StrictButton
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Field, Layout
@@ -106,10 +108,11 @@ def _choices(form, model, depends_on):
 class ProtocolMetadataForm(forms.ModelForm):
     class Meta:
         model = Protocol
-        fields = ("name", "url_ref")
+        fields = ("name", "url_ref", "order")
         widgets = {
             "name": forms.TextInput(attrs={"class": "form-control"}),
             "url_ref": forms.URLInput(attrs={"class": "form-control"}),
+            "order": forms.NumberInput(attrs={"class": "form-control"}),
         }
 
 
@@ -278,7 +281,10 @@ class BaseExpressionFilterFormSet(BaseFormSet):
 
     """
 
-    def __init__(self, *args, traits, **kwargs):
+    traits: Any
+    expressions: Any
+
+    def __init__(self, *args, traits: Any, **kwargs):
         self.traits = traits
         self.expressions = kwargs.pop("expressions", [])
         super().__init__(*args, **kwargs)

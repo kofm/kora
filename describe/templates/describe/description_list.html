@@ -40,7 +40,7 @@
 	<form id="descriptionForm"
 	  method="post" action="."
 	  hx-post="{% url 'describe:description_list' %}"
-	  hx-trigger="change, keyup delay:500ms"
+	  hx-trigger="change from:select"
 	  hx-target="#table"
 	  hx-indicator="#spinner, #table">
 	  <!-- Prevents Return key presses while input fields are focused to submit the form with the 'export' button -->

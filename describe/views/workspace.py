@@ -95,7 +95,7 @@ def workspace_element_create(request):
     workspace = Workspace.objects.filter(user=request.user, is_active=True).first()
 
     if not description_id or not workspace:
-        return JsonResponse({"error": "Invalid input or no active description."}, status=400)
+        return JsonResponse({"error": "Invalid input or no active description."}, status=409)
 
     description = get_object_or_404(Description, pk=description_id)
 
