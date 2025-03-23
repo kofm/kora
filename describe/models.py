@@ -2,11 +2,11 @@
 
 from django.contrib.auth.models import User
 from django.db import models
+from django.db.models import F
 from django.db.models.aggregates import Count
-from django.db.models.functions import Coalesce, Concat
+from django.db.models.functions import Coalesce
 from django.urls import reverse
 from django.utils.functional import cached_property
-
 from frontpage.generic import ModelIsDeletableMixin
 from register.models import PlantSpecies, PlantVariety
 
@@ -93,6 +93,29 @@ class DescriptionQuerySet(models.QuerySet):
             self.select_related("variety", "protocol", "variety__species")
             .prefetch_related("expressions", "protocol__traits")
             .all()
+        )
+
+    def annotated(self):
+        return (
+            self.select_related("variety__species")
+            .select_related("protocol__plantspecies")
+            .prefetch_related("expressions")
+            .values(
+                "variety__id",
+                "variety__name",
+                "name",
+                species_id=F("protocol__plantspecies__id"),
+                species_name=F("protocol__plantspecies__common_name"),
+                state_id=F("expressions__state__id"),
+                note=F("expressions__note"),
+            )
+            .order_by(
+                "species_id",
+                "species_name",
+                "variety__id",
+                "variety__name",
+                "name",
+            )
         )
 
 

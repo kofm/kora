@@ -84,14 +84,14 @@
 		<td class="table-secondary"  colspan="{{ species_data.descriptions|length }}"></td>
 	      </tr>
 	      {% for trait, expression_data in trait_data.items %}
-		<tr {% if not expression_data.all_equal %}class="table-info"{% endif %}>
-		  <td>
-		    {{ trait.0 }}. {{ trait.1 }}
+		  <tr class="{{ expression_data.all_equal|yesno:",table-info" }}{{ trait.2|yesno:" fw-bold," }}">
+		    <td>
+		      {{ trait.0 }}. {{ trait.1 }} {% if trait.2 %}&#10033;{% endif %}
 		  </td>
 		  {% for description_expressions in expression_data.expressions %}
 		    <td>
 		      {% for expression in description_expressions %}
-			{% if not forloop.first %}<br/>{% endif %}{{ expression }}
+			{% if not forloop.first %}<br/>{% endif %}{{ expression.0 }}
 		      {% empty %}
 			&mdash;
 		      {% endfor %}

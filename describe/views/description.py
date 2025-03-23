@@ -19,7 +19,7 @@ from django_tables2 import RequestConfig
 from render_block import render_block_to_string
 
 from breadcrumbs.generic import DeleteBreadcrumbsMixin
-from breadcrumbs.utils import generate_breadcrumbs
+from breadcrumbs.utils import add_plantvariety_breadcrumbs, generate_breadcrumbs
 from describe.forms import (
     DescriptionFilterForm,
     DescriptionForm,
@@ -39,7 +39,12 @@ from describe.models import (
 )
 from describe.tables import DescriptionTable
 from describe.views.protocol import NavDescribeActiveContext
-from describe.views.utils import make_descriptions_dict, make_protocols_dict
+from describe.views.utils import (
+    make_descriptions_dict,
+    make_species_descriptions_dict,
+    make_species_protocols_dict,
+    make_traits_expressions_dict,
+)
 from frontpage.views_decorators import nav_active
 from register.filters import filter_name_generic
 from register.models import PlantVariety
@@ -340,12 +345,7 @@ def description_compare(request):
     # Get all the available Descriptions for any of the Variety-Name
     # combinations present in the workspace.
     # This includes descriptions from other protocols, too.
-    descriptions = (
-        Description.objects.select_related("variety__species")
-        .select_related("protocol__plantspecies")
-        .prefetch_related("expressions")
-        .filter(variety__in=varieties, name__in=names)
-    )
+    descriptions = Description.objects.filter(variety__in=varieties, name__in=names)
 
     protocols = (
         Protocol.objects.select_related("plantspecies")
@@ -353,8 +353,8 @@ def description_compare(request):
         .filter(descriptions__in=descriptions)
     )
 
-    descriptions_dictionary = make_descriptions_dict(descriptions)
-    compare_table = make_protocols_dict(protocols, descriptions_dictionary)
+    descriptions_dictionary = make_species_descriptions_dict(descriptions)
+    compare_table = make_species_protocols_dict(protocols, descriptions_dictionary)
 
     return TemplateResponse(
         request,
@@ -366,6 +366,24 @@ def description_compare(request):
 class DescriptionDetail(NavDescribeActiveContext, DetailView):
     model = Description
     context_object_name = "description"
+
+
+def description_detail(request, pk):
+    description = Description.objects.select_related("variety", "protocol").get(pk=pk)
+
+    description_annotated = Description.objects.annotated().filter(pk=pk)
+    description_dict = make_descriptions_dict(description_annotated)
+    protocol = Protocol.objects.get(descriptions=pk)
+    traits = protocol.with_traits_and_states()
+    table = make_traits_expressions_dict(traits, description_dict)
+
+    context = {"description": description, "table": table}
+    breadcrumbs = generate_breadcrumbs(request, Description, description)
+    breadcrumbs = add_plantvariety_breadcrumbs(breadcrumbs, description.variety)
+
+    context.update(breadcrumbs)
+
+    return TemplateResponse(request, "describe/description_detail.html", context)
 
 
 @nav_describe
