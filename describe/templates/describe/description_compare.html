@@ -1,6 +1,8 @@
 {% extends "frontpage/base.html" %}
 {% load crispy_forms_tags %}
 {% load static %}
+{% load breadcrumbs %}
+
 {% block title %}
   Compare descriptions
 {% endblock %}
@@ -41,14 +43,7 @@
    }
   </style>
 
-  <nav aria-label="breadcrumb">
-    <ol class="breadcrumb">
-      <li class="breadcrumb-item">
-	<a href="{% url 'describe:description_list' %}">Descriptions</a>
-      </li>
-      <li class="breadcrumb-item"><i>Compare</i></li>
-    </ol>
-  </nav>
+  {% render_breadcrumbs %}
 
   <h1 class="mb-3">
     {{ workspace }}

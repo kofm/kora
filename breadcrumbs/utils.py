@@ -2,7 +2,7 @@ from typing import Any
 
 from django.db.models.base import Model
 from django.http import HttpRequest
-from django.urls import reverse
+from django.urls import NoReverseMatch, reverse
 
 from register.models import PlantVariety
 
@@ -35,9 +35,14 @@ def app_label(model: type[Model]) -> str:
 
 def view_url(model: type[Model], action: str) -> str:
     url_name = f"{app_label(model)}:{model_name(model)}_{action}"
-    if isinstance(model, Model):
-        return reverse(url_name, args=[model.pk])
-    return reverse(url_name)
+    try:
+        if isinstance(model, Model):
+            url = reverse(url_name, args=[model.pk])
+        else:
+            url = reverse(url_name)
+        return url
+    except NoReverseMatch:
+        return ""
 
 
 def get_view_url_name(request: HttpRequest) -> str:
@@ -68,7 +73,10 @@ def delete_breadcrumb(instance: type[Model]) -> tuple[str, str]:
 
 
 def detail_breadcrumb(instance: type[Model]) -> tuple[str, str]:
-    url = instance.get_absolute_url() if hasattr(instance, "get_absolute_url") else view_url(instance, "detail")
+    if hasattr(instance, "get_absolute_url"):
+        url = instance.get_absolute_url()
+    else:
+        url = view_url(instance, "detail")
     return (str(instance), url)
 
 

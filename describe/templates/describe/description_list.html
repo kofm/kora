@@ -40,11 +40,14 @@
 	<form id="descriptionForm"
 	  method="post" action="."
 	  hx-post="{% url 'describe:description_list' %}"
-	  hx-trigger="change from:select"
+	  hx-trigger="input delay:500ms"
 	  hx-target="#table"
 	  hx-indicator="#spinner, #table">
-	  <!-- Prevents Return key presses while input fields are focused to submit the form with the 'export' button -->
+
+	  <!-- Prevent Return key presses while input fields are
+	  focused to submit the form with the 'export' button -->
 	  <button type="submit" style="display:none;"></button>
+
 	  {% csrf_token %}
 
           <!-- Header with Search title and action buttons -->

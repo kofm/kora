@@ -64,8 +64,8 @@ def _get_description_form(request: HttpRequest):
     else:
         form = DescriptionFilterForm()
 
-    form.fields["variety"].widget.attrs["hx-trigger"] = "keyup delay:500ms"
-    form.fields["variety"].widget.attrs["hx-post"] = reverse("describe:description_list")
+    # form.fields["variety"].widget.attrs["hx-trigger"] = "keyup delay:500ms"
+    # form.fields["variety"].widget.attrs["hx-post"] = reverse("describe:description_list")
     return form
 
 
@@ -356,10 +356,13 @@ def description_compare(request):
     descriptions_dictionary = make_species_descriptions_dict(descriptions)
     compare_table = make_species_protocols_dict(protocols, descriptions_dictionary)
 
+    context = {"compare_table": compare_table, "workspace": wsp}
+    context.update(generate_breadcrumbs(request, Workspace, wsp))
+
     return TemplateResponse(
         request,
         "describe/description_compare.html",
-        {"compare_table": compare_table, "workspace": wsp},
+        context,
     )
 
 

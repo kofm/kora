@@ -225,7 +225,7 @@ class WorkspaceInputForm(forms.ModelForm):
         self.fields["name"].label_suffix = ""
         self.fields["name"].help_text = ""
         self.helper = FormHelper(self)
-        script = f"""on click from elsewhere wait 100ms then fetch {reverse("describe:workspace_list")}
+        script = f"""on click from elsewhere wait 100ms then fetch {reverse("describe:workspace_detail")}
         then put the result into #workspaceBody then call htmx.process(#workspaceBody)"""
         self.helper.attrs = {"hx_post": reverse("describe:workspace_create")}
         self.helper.layout = Layout(

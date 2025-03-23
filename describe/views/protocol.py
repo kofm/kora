@@ -5,13 +5,11 @@ from django.shortcuts import get_object_or_404, render
 from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.urls.base import reverse_lazy
-from django.views.generic import DetailView
 from django.views.generic.edit import CreateView, DeleteView
 
 from breadcrumbs.generic import (
     CreateBreadcrumbsMixin,
     DeleteBreadcrumbsMixin,
-    DetailBreadcrumbsMixin,
 )
 from breadcrumbs.utils import generate_breadcrumbs
 from describe.forms import ProtocolMetadataForm, StateFormSet, TraitForm
@@ -34,8 +32,11 @@ class ProtocolSortView(SortableView):
     model = Protocol
 
 
-class ProtocolDetail(DetailBreadcrumbsMixin, NavDescribeActiveContext, DetailView):
-    model = Protocol
+def protocol_detail(request, pk):
+    instance = Protocol.objects.select_related("plantspecies").prefetch_related("traits__states").get(pk=pk)
+    context = {"protocol": instance}
+    context.update(generate_breadcrumbs(request, Protocol, instance))
+    return TemplateResponse(request, "describe/protocol_detail.html", context)
 
 
 @nav_describe_active_context

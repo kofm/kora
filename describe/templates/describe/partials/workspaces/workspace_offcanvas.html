@@ -15,7 +15,7 @@
     <div class="offcanvas-body">
         {% if user.is_authenticated %}
             <div id="workspaceBody"
-                 hx-get="{% url 'describe:workspace_list' %}"
+                 hx-get="{% url 'describe:workspace_detail' %}"
                  hx-trigger="load"
                  hx-swap="innerHTML">
                 <div class="spinner-border" role="status">

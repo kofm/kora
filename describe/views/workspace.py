@@ -33,7 +33,7 @@ def workspace_activate(request):
 
 
 @login_required
-def workspace_list(request):
+def workspace_detail(request):
     workspace = Workspace.objects.filter(user=request.user, is_active=True).elements().first()
     form = WorkspaceSelectForm(request=request)
     return render(
@@ -53,7 +53,7 @@ def workspace_create(request):
             instance.user = request.user
             instance.is_active = True
             instance.save()
-            return redirect(reverse("describe:workspace_list"))
+            return redirect(reverse("describe:workspace_detail"))
     return render(
         request,
         "describe/partials/workspaces/workspace_detail.html",
@@ -70,7 +70,7 @@ def workspace_update(request, pk):
             instance = form.save(commit=False)
             instance.user = request.user
             instance.save()
-            return redirect(reverse("describe:workspace_list"))
+            return redirect(reverse("describe:workspace_detail"))
     form = WorkspaceUpdateForm(instance=instance)
     return render(
         request,
@@ -109,7 +109,7 @@ def workspace_element_create(request):
             element.order = order_max + 1
             element.save()
 
-    return redirect(reverse("describe:workspace_list"))
+    return redirect(reverse("describe:workspace_detail"))
 
 
 @login_required

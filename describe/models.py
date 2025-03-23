@@ -267,6 +267,9 @@ class Workspace(models.Model):
             Workspace.objects.filter(user=self.user).exclude(pk=self.pk).update(is_active=False)
         super().save(*args, **kwargs)
 
+    def get_absolute_url(self):
+        return reverse("describe:description_compare")
+
 
 class WorkspaceElement(models.Model):
     workspace = models.ForeignKey(Workspace, on_delete=models.CASCADE, related_name="descriptions")
