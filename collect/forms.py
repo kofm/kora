@@ -1,10 +1,11 @@
+from crispy_forms.bootstrap import FieldWithButtons, StrictButton
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Submit
+from crispy_forms.layout import Field, Layout, Submit
 from django import forms
 from django.core.validators import MinValueValidator
-from django.db import transaction
 from django.forms.widgets import HiddenInput
 from django.shortcuts import get_object_or_404
+from django.urls import reverse
 
 from collect.models import (
     Cart,
@@ -13,7 +14,6 @@ from collect.models import (
     SampleWeight,
     SeedSample,
     Storage,
-    StoragePosition,
 )
 
 
@@ -91,15 +91,26 @@ class SeedSampleYearForm(forms.Form):
 class CartSelectForm(forms.Form):
     def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["cart"].empty_label = None
-        self.fields["cart"].queryset = Cart.objects.filter(user=user)
+        self.user = user
+        carts = Cart.objects.filter(user=self.user)
+        self.fields["cart"].queryset = carts
+        self.helper = FormHelper(self)
+        self.helper.layout = Layout(
+            Field(
+                "cart",
+                css_class="form-select",
+                hx_post=reverse("collect:cart_activate"),
+                hx_trigger="change",
+                hx_target="#cartBody",
+            ),
+        )
 
-    cart = forms.ModelChoiceField(queryset=Cart.objects.none())
+    cart = forms.ModelChoiceField(queryset=Cart.objects.none(), label="Active Cart")
 
     def save(self):
         data = self.cleaned_data
         cart = data["cart"]
-        cart.active = True
+        cart.is_active = True
         cart.save()
         return cart
 
@@ -153,27 +164,132 @@ class CartItemNewForm(forms.Form):
 
 class CartItemSetWeightForm(forms.Form):
     cartitem = forms.IntegerField(widget=forms.HiddenInput)
-    weight = forms.FloatField(required=True)
+    weight = forms.FloatField(required=False)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        cartitem_id = self.initial["cartitem"]
+        url = reverse("collect:cartitem_set_weight", args=(cartitem_id,))
+        target_id = f"#weight_{cartitem_id}"
+        self.helper = FormHelper(self)
+        self.helper.action = url
+        form_attrs = {
+            "hx_post": url,
+            "hx_trigger": "change, blur, keyup[key=='Enter']",
+            "hx_target": target_id,
+            "hx_swap": "outerHTML",
+            "hx_include": "#id_cartitem",
+        }
+        self.helper.attrs = form_attrs
+        self.helper.layout = Layout(
+            Field("cartitem"),
+            FieldWithButtons(
+                Field("weight", css_class="form-control"),
+                StrictButton(
+                    "<i class='bi bi-x'></i>",
+                    css_class="btn btn-outline-secondary",
+                    hx_get=url,
+                    hx_trigger="click",
+                    hx_vals='{"cancel": "true"}',
+                ),
+                StrictButton(
+                    "<i class='bi bi-check'></i>",
+                    css_class="btn btn-outline-success",
+                ),
+            ),
+        )
+
+    # FieldWithButtons(
+    #                 Field("name", script=script),
+    #                 StrictButton(
+    #                     "<i class='bi bi-check'></i>",
+    #                     css_class="btn btn-outline-success",
+    #                     type="submit",
+    #                 ),
+    #             )
 
     def clean(self):
         cleaned_data = super().clean()
-        self.object = get_object_or_404(CartItem, pk=cleaned_data.get("cartitem"))
+        cartitem_id = cleaned_data.get("cartitem")
         weight = cleaned_data.get("weight")
+
+        self.object = CartItem.objects.select_related("sample").get(pk=cartitem_id)
         if weight and weight > self.object.sample.weight:
             e = f"There is only {self.object.sample.weight} grams available of {self.object.sample}."
             raise forms.ValidationError(e)
         return cleaned_data
 
     def save(self):
-        self.object.weight = self.cleaned_data.get("weight")
-        self.object.save()
+        weight = self.cleaned_data.get("weight", None)
+        if weight:
+            self.object.weight = weight
+            self.object.save()
         return self.object
 
 
-class CartForm(forms.ModelForm):
+class CartInputForm(forms.ModelForm):
     class Meta:
         model = Cart
         fields = ("name",)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["name"].label_suffix = ""
+        self.fields["name"].help_text = ""
+        self.helper = FormHelper(self)
+        script = f"""
+        on click from elsewhere wait 100ms then fetch
+        {reverse("collect:cart_detail")} then put the result into
+        #cartBody then call htmx.process(#cartBody)
+        """
+        self.helper.layout = Layout(
+            FieldWithButtons(
+                Field("name", script=script),
+                StrictButton(
+                    "<i class='bi bi-check'></i>",
+                    css_class="btn btn-outline-success",
+                    type="submit",
+                ),
+            )
+        )
+
+
+class CartCreateForm(CartInputForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["name"].label = "Create Cart"
+        self.helper.attrs = {"hx_post": reverse("collect:cart_create")}
+
+
+class CartUpdateForm(CartInputForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["name"].label = "Rename Cart"
+        self.helper.attrs = {"hx_post": reverse("collect:cart_update", args=(self.instance.pk,))}
+
+
+class CartDefaultWeightForm(forms.ModelForm):
+    class Meta:
+        model = Cart
+        fields = ("default_weight",)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.attrs = {
+            "hx_post": reverse("collect:cart_set_default_weight", args=(self.instance.pk,)),
+            "hx_swap": "none",
+        }
+        self.helper.layout = Layout(
+            FieldWithButtons(
+                Field("default_weight"),
+                StrictButton(
+                    "<i class='bi bi-check'></i>",
+                    css_class="btn btn-outline-success",
+                    type="submit",
+                ),
+            )
+        )
 
 
 class StorageCreateForm(forms.ModelForm):

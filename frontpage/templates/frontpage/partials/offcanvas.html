@@ -1,0 +1,12 @@
+<div class="offcanvas offcanvas-end p-1 shadow-lg border my-5 bg-body-tertiary rounded"
+  tabindex="-1"
+  id="offcanvas{{ offcanvas.id|capfirst }}"
+  aria-labelledby="offcanvas{{ offcanvas.id|capfirst }}Label"
+  data-bs-backdrop="true">
+  <div class="offcanvas-header">
+    <h5 class="offcanvas-title">{{ offcanvas.title }}</h5>
+  </div>
+  <div class="offcanvas-body">
+    {% include offcanvas.template_file %}
+  </div>
+</div>

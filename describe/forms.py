@@ -207,7 +207,7 @@ class WorkspaceSelectForm(forms.ModelForm):
         self.helper.layout = Layout(
             Field(
                 "name",
-                css_class="form-control",
+                css_class="form-select",
                 hx_post=reverse("describe:workspace_activate"),
                 hx_trigger="change",
                 hx_target="#workspaceBody",
@@ -225,13 +225,19 @@ class WorkspaceInputForm(forms.ModelForm):
         self.fields["name"].label_suffix = ""
         self.fields["name"].help_text = ""
         self.helper = FormHelper(self)
-        script = f"""on click from elsewhere wait 100ms then fetch {reverse("describe:workspace_detail")}
-        then put the result into #workspaceBody then call htmx.process(#workspaceBody)"""
-        self.helper.attrs = {"hx_post": reverse("describe:workspace_create")}
+        script = f"""
+        on click from elsewhere wait 100ms then fetch
+        {reverse("describe:workspace_detail")} then put the result
+        into #workspaceBody then call htmx.process(#workspaceBody)
+        """
         self.helper.layout = Layout(
             FieldWithButtons(
                 Field("name", script=script),
-                StrictButton("<i class='bi bi-check'></i>", css_class="btn btn-outline-success", type="submit"),
+                StrictButton(
+                    "<i class='bi bi-check'></i>",
+                    css_class="btn btn-outline-success",
+                    type="submit",
+                ),
             )
         )
 

@@ -34,7 +34,6 @@ from collect.tables import (
     SeedSampleInStorageTable,
     SeedSampleTable,
 )
-from collect.views.carts import cartitems_sort
 from django_sortable_htmx.views import SortableView
 from register.models import PlantVariety, PlantVarietyName
 
@@ -56,17 +55,6 @@ def seedsample_list(request):
     context.update(generate_breadcrumbs(request, SeedSample))
 
     return TemplateResponse(request, template_file, context)
-
-
-@require_POST
-@login_required
-def cart_change(request):
-    form = CartSelectForm(request.POST, user=request.user)
-    if form.is_valid():
-        cart = form.save()
-        cartitems = cartitems_sort(request, cart.cartitem_set.all())
-        return TemplateResponse(request, "collect/partials/cart_offcanvas.html", {"cart": cart, "cartitems": cartitems})
-    return HttpResponseBadRequest()
 
 
 def seedsample_detail(request, pk):

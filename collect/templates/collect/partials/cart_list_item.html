@@ -1,0 +1,34 @@
+<div class="list-group-item listgroup-item-action flex-column align-item-start">
+
+  <div class="d-flex w-100 justify-content-between">
+
+    <h6>
+      <a class="text-decoration-none link-body-emphasis"
+		href="{{ object.sample.get_absolute_url }}">
+	{{ object.sample.variety.name }} ({{ object.sample.variety.species.common_name }})
+      </a>
+      <small class="text-muted">{{ object.sample.position }}</small>
+    </h6>
+
+
+    <small>
+      <a class="text-decoration-none link-body-emphasis"
+		href=""
+		hx-get="{% url 'collect:cartitem_delete' object.pk %}"
+		hx-target="closest .list-group-item"
+		hx-swap="delete"
+      >
+	<i class="bi bi-x-lg"></i>
+      </a>
+    </small>
+    <input type="hidden" name="order" value="{{ object.pk }}">
+
+  </div>
+    {% block weight %}
+      <div hx-on::after-request="if(event.detail.successful) document.getElementById('id_weight').focus()" id="weight_{{ object.pk }}">
+	<small class="text-muted" hx-get="{% url 'collect:cartitem_set_weight' object.pk %}" hx-target="#weight_{{ object.pk }}" hx-swap="innerHTML">
+	  {{ object.weight }} grams
+	</small>
+      </div>
+    {% endblock %}
+</div>

@@ -64,8 +64,8 @@ def _get_description_form(request: HttpRequest):
     else:
         form = DescriptionFilterForm()
 
-    # form.fields["variety"].widget.attrs["hx-trigger"] = "keyup delay:500ms"
-    # form.fields["variety"].widget.attrs["hx-post"] = reverse("describe:description_list")
+    form.fields["variety"].widget.attrs["hx-trigger"] = "keyup changed delay:500ms"
+    form.fields["variety"].widget.attrs["hx-post"] = reverse("describe:description_list")
     return form
 
 

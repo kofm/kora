@@ -31,14 +31,41 @@ class ProtectionListTable(ProtectionTable):
         exclude = ("id",)
 
 
-class PlantVarietyDescriptionTable(DescriptionTable):
+class PlantVarietyDescriptionTable(tables.Table):
+    actions = tables.TemplateColumn(
+        template_name="register/partials/description_table_actions.html",
+        verbose_name="",
+        orderable=False,
+    )
+
     class Meta:
         model = Description
-        exclude = ("id", "variety")
+        fields = ("name", "protocol__name")
+        template_name = "describe/partials/description_table.html"
 
 
-class PlantVarietyAccessionTable(SeedSampleBaseTable):
-    pass
+class PlantVarietySampleTable(SeedSampleBaseTable):
+    position = tables.Column(attrs={"td": {"class": "col-2"}})
+    growing_season = tables.Column(attrs={"td": {"class": "col-2"}})
+    last_weight = tables.Column("Weight", attrs={"td": {"class": "col-2"}})
+    notes = tables.Column(attrs={"td": {"style": "width:40rem"}})
+    actions = tables.TemplateColumn(
+        template_name="collect/partials/seedsample_table_actions.html",
+        verbose_name="",
+        orderable=False,
+        attrs={"td": {"class": "col-1"}},
+    )
+
+    class Meta:
+        model = SeedSample
+        fields = (
+            "sample_id",
+            "position",
+            "growing_season",
+            "last_weight",
+            "notes",
+            "actions",
+        )
 
 
 class EntityTable(tables.Table, CountryRenderer):

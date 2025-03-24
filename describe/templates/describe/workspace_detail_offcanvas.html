@@ -1,7 +1,7 @@
 {% if user.is_authenticated %}
-  <div id="cartBody"
-    hx-get="{% url 'collect:cart_detail' %}"
-    hx-trigger="click from:#offcanvasCartToggle once"
+  <div id="workspaceBody"
+    hx-get="{% url 'describe:workspace_detail' %}"
+    hx-trigger="click from:#offcanvasWorkspaceToggle once"
     hx-swap="innerHTML">
   </div>
 {% else %}

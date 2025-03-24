@@ -1,4 +1,5 @@
 from django import template
+from django.utils.safestring import mark_safe
 
 register = template.Library()
 
@@ -44,3 +45,40 @@ def list_group_item(value, label, url="#", time=""):
 @register.inclusion_tag("frontpage/partials/card_col_rows.html")
 def card_col_rows(title, label, url="#", time=""):
     return {"title": title, "label": label, "url": url, "time": time}
+
+
+@register.inclusion_tag("frontpage/partials/offcanvas.html", takes_context=True)
+def offcanvas(context, offcanvas_id, title, template_file):
+    return {
+        "user": context["user"],
+        "offcanvas": {
+            "id": offcanvas_id,
+            "title": title,
+            "template_file": template_file,
+        },
+    }
+
+
+@register.simple_tag
+def offcanvas_toggle(offcanvas_id: str, content: str):
+    """
+    Creates a Bootstrap offcanvas toggle button.
+
+    Usage:
+    {% load components %}
+    {% offcanvas_toggle "offcanvasWorkspace" "<i class='bi bi-collection'></i>" %}
+
+    Parameters:
+    - offcanvas_id: The ID of the offcanvas element (without the '#' prefix)
+    - content: Optional HTML content for the toggle. Defaults to a collection icon.
+    """
+
+    cap_id = offcanvas_id.capitalize()
+
+    # Build the HTML string
+    html = f"""<a id="offcanvas{cap_id}Toggle" data-bs-toggle="offcanvas" href="#offcanvas{cap_id}"
+       role="button" aria-controls="offcanvas{cap_id}">
+    {content}
+</a>"""
+
+    return mark_safe(html)

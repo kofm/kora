@@ -62,7 +62,7 @@ class SeedSampleTable(SeedSampleBaseTable):
         }
     )
     actions = tables.TemplateColumn(
-        template_name="collect/partials/cartitem_add_table_action.html",
+        template_name="collect/partials/seedsample_table_actions.html",
         verbose_name="",
         orderable=False,
         attrs={

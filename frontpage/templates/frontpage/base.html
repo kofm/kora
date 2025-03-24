@@ -1,4 +1,5 @@
 {% load static %}
+{% load components %}
 
 <!DOCTYPE html>
 <html lang="en" >
@@ -28,28 +29,7 @@
 
         </div>
 
-	<div class="offcanvas offcanvas-end p-1 shadow-lg border my-5 bg-body-tertiary rounded"
-	     tabindex="-1"
-	     id="offcanvasWorkspace"
-	     aria-labelledby="offcanvasWorkspaceLabel"
-	     data-bs-backdrop="true">
-	    <div class="offcanvas-header">
-		<h5 class="offcanvas-title">Workspace</h5>
-	    </div>
-	    <div class="offcanvas-body">
-		{% if user.is_authenticated %}
-		    <div id="workspaceBody"
-			 hx-get="{% url 'describe:workspace_detail' %}"
-			 hx-trigger="load"
-			 hx-swap="innerHTML">
-		    </div>
-		{% else %}
-		    <p class="text-muted">
-			You must be logged in to access Workspaces. <br/>
-			<a href="{% url 'login' %}">Log In</a>
-		    </p>
-		{% endif %}
-	    </div>
-	</div>
+	{% offcanvas "workspace" "Workspace" "describe/workspace_detail_offcanvas.html" %}
+	{% offcanvas "cart" "Cart" "collect/partials/cart_offcanvas.html" %}
     </body>
 </html>

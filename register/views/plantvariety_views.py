@@ -29,7 +29,7 @@ from register.filters import PlantVarietyFilter
 from register.forms import PlantVarietyForm, PlantVarietyNameForm
 from register.models import PlantVariety, PlantVarietyName, Protection
 from register.tables import (
-    PlantVarietyAccessionTable,
+    PlantVarietySampleTable,
     PlantVarietyDescriptionTable,
     ProtectionTable,
     VarietalParameterTable,
@@ -59,15 +59,24 @@ class PlantVarietyDetail(NavPlantActiveContext, CrumbsDetailView):
         # The tables to display
 
         table_data: dict[str, dict[str, Table | Model]] = {
-            "description_table": {"table": PlantVarietyDescriptionTable, "model": Description},
-            "seedsample_table": {"table": PlantVarietyAccessionTable, "model": SeedSample},
+            "description_table": {
+                "table": PlantVarietyDescriptionTable,
+                "queryset": Description.objects.with_expressions().filter(variety=self.object.pk),
+            },
+            "seedsample_table": {
+                "table": PlantVarietySampleTable,
+                "queryset": SeedSample.objects.with_latest_weight().filter(variety=self.object.pk),
+            },
             "protection_table": {"table": ProtectionTable, "model": Protection},
             "parameters_table": {"table": VarietalParameterTable, "model": VarietalParameter},
         }
 
         # Display the tables
         for key, value in table_data.items():
-            table = value["table"](value["model"].objects.filter(variety=self.object.pk))
+            if "queryset" in value:
+                table = value["table"](value["queryset"])
+            else:
+                table = value["table"](value["model"].objects.filter(variety=self.object.pk))
             RequestConfig(self.request, paginate={"per_page": 10}).configure(table)
             context[key] = table
 

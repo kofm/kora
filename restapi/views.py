@@ -157,7 +157,10 @@ class CartItemViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         cart = self.kwargs["cart"]
-        return CartItem.objects.filter(cart__user=user, cart__pk=cart)
+        # FIXME: weight retrieval is inefficient!
+        return CartItem.objects.select_related("sample__variety", "sample__position").filter(
+            cart__user=user, cart__pk=cart
+        )
 
 
 class WorkspaceViewSet(viewsets.ModelViewSet):
