@@ -42,6 +42,7 @@
 	  hx-post="{% url 'describe:description_list' %}"
 	  hx-trigger="change"
 	  hx-target="#table"
+	  hx-push-url="true"
 	  hx-indicator="#spinner, #table">
 	  <!-- Prevents Return key presses while input fields are focused to submit the form with the 'export' button -->
 	  <button type="submit" style="display:none;"></button>
