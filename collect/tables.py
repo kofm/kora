@@ -39,27 +39,24 @@ class SeedSampleTable(SeedSampleBaseTable):
     """
 
     variety__name = tables.Column(
-        "Variety", attrs={"td": {"class": "col-2"}, "a": {"class": "text-decoration-none link-body-emphasis"}}
-    )
-    variety__species = tables.Column(
+        "Variety",
         attrs={
             "td": {"class": "col-2"},
-        }
+            "a": {"class": "text-decoration-none link-body-emphasis"},
+        },
     )
-    position = tables.Column(
-        attrs={
-            "td": {"class": "col-2"},
-        }
-    )
+    variety__species__common_name = tables.Column(attrs={"td": {"class": "col-2"}})
+    position = tables.Column(attrs={"td": {"class": "col-2"}})
     growing_season = tables.Column(
         attrs={
             "td": {"class": "col-2"},
         }
     )
     last_weight = tables.Column(
+        "Weight (g)",
         attrs={
             "td": {"class": "col-2"},
-        }
+        },
     )
     actions = tables.TemplateColumn(
         template_name="collect/partials/seedsample_table_actions.html",
@@ -75,7 +72,7 @@ class SeedSampleTable(SeedSampleBaseTable):
         fields = (
             "sample_id",
             "variety__name",
-            "variety__species",
+            "variety__species__common_name",
             "position",
             "growing_season",
             "last_weight",

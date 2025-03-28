@@ -14,7 +14,7 @@ def unique_cart_active(sender, instance, **kwargs):
 
 @receiver(post_delete, sender=Cart)
 def set_new_active_cart(sender, instance, **kwargs):
-    if instance.active:
+    if instance.is_active:
         cart = Cart.objects.filter(user=instance.user_id).exclude(pk=instance.pk).first()
         if cart:
             cart.is_active = True

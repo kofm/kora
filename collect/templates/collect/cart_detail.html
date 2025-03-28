@@ -47,16 +47,15 @@
 
       <a class="dropdown-item {% if not cart %}disabled{% endif %}"
 		{% if not cart %}aria-disabled="true"{% endif %}
-		href="#"
-		{% if cart %}hx-get="{% url "collect:cart_retrieve" cart.pk %}"{% endif %}>
+		{% if cart %}href="{% url "collect:cart_retrieve" cart.pk %}"{% endif %}>
 	Retrieve
       </a>
 
       <a
 	class="dropdown-item {% if not cart %}disabled{% endif %}"
-	{% if not cart %}aria-disabled="true"{% endif %}
-	href="{% if cart %}{% url 'restapi:cartitems' cart.pk %}?format=json{% endif %}"
-	target="_blank">
+	       {% if not cart %}aria-disabled="true"{% endif %}
+	       href="{% if cart %}{% url 'restapi:cartitems' cart.pk %}?format=json{% endif %}"
+	       target="_blank">
 	Download
       </a>
 
@@ -71,7 +70,9 @@
 </div>
 
 <div>
-  {% crispy default_weight_form %}
+  {% if default_weight_form %}
+    {% crispy default_weight_form %}
+  {% endif %}
 </div>
 
 <div class="d-flex gap-2 me-2 my-2 h6 justify-content-end" hx-target="#cartBody">
