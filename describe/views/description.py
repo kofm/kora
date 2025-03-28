@@ -366,11 +366,6 @@ def description_compare(request):
     )
 
 
-class DescriptionDetail(NavDescribeActiveContext, DetailView):
-    model = Description
-    context_object_name = "description"
-
-
 def description_detail(request, pk):
     description = Description.objects.select_related("variety", "protocol").get(pk=pk)
 
