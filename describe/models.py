@@ -5,13 +5,13 @@ from django.db import models
 from django.db.models import F
 from django.db.models.aggregates import Count
 from django.db.models.functions import Coalesce
+from django.db.models.query_utils import Q
 from django.db.utils import OperationalError, ProgrammingError
 from django.urls import reverse
 from django.utils.functional import cached_property
 
 from frontpage.generic import ModelIsDeletableMixin
 from register.models import PlantSpecies, PlantVariety
-from django.db.models.query_utils import Q
 
 
 class ProtocolManager(models.Manager):

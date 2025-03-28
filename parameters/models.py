@@ -48,11 +48,7 @@ class ParameterValue(models.Model):
     """
 
     value = models.FloatField()
-    url_ref = models.URLField(
-        help_text="a url reference for the source of the parameter",
-        blank=True,
-        null=True,
-    )
+    url_ref = models.URLField(help_text="a url reference for the source of the parameter", blank=True, default="")
     parameter = models.ForeignKey(Parameter, on_delete=models.RESTRICT)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

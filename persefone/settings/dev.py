@@ -19,6 +19,6 @@ MIDDLEWARE = [
 ] + MIDDLEWARE
 
 DEBUG_TOOLBAR_CONFIG = {
-    "SHOW_TOOLBAR_CALLBACK": lambda r: False,  # disables it
+    "SHOW_TOOLBAR_CALLBACK": lambda r: True,  # disables it
     # '...
 }

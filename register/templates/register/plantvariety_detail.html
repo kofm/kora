@@ -18,8 +18,8 @@
 
     {% render_breadcrumbs %}
 
-    {% url 'register:variety_update' object.pk as update_url %}
-    {% detail_page_header object title=object.name subtitle=object.species.common_name update_url=update_url %}
+    {% url 'register:variety_update' variety.pk as update_url %}
+    {% detail_page_header variety title=variety.name subtitle=variety.species.common_name update_url=update_url %}
 
     {% if variety.has_breeder %}
         <p class="lead">
@@ -36,7 +36,7 @@
                 <a class="btn btn-sm btn-secondary" href="{% url 'describe:description_create' %}?variety_id={{ variety.pk }}" >Create</a>
             </h2>
 
-	    {% render_table description_table %}
+	    {% render_table tables.description %}
         </div>
     </div>
 
@@ -44,7 +44,7 @@
         <div class="col">
             <h2 id="accessions">Accessions <a href="{% url 'collect:seedsample_create' %}?variety_id={{ variety.pk }}" class="btn btn-secondary btn-sm">Create</a></h2>
             {% if variety.seedsample_set.count %}
-                {% render_table seedsample_table %}
+                {% render_table tables.seedsample %}
             {% else %}
                 <p class="text-muted">There are no seed samples of this variety.</p>
             {% endif %}
@@ -82,14 +82,14 @@
     <div class="row mt-5">
         <div class="col">
             <h2 id="protections">Protections<a class="btn btn-sm btn-secondary ms-2" href="{% url 'register:protection-create' variety.pk %}">Create</a></h2>
-            {% render_table protection_table %}
+            {% render_table tables.protection %}
         </div>
     </div>
 
     <div class="row mt-5">
         <div class="col">
             <h2 id="parameters">Parameters <a class="btn btn-secondary btn-sm" href="{% url 'parameters:varietalparameter_create' variety.id %}">Create</a></h2>
-	        {% render_table parameters_table %}
+	        {% render_table tables.parameter %}
 	    </div>
     </div>
 
