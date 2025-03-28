@@ -5,10 +5,13 @@ from django.db import models
 from django.db.models import F
 from django.db.models.aggregates import Count
 from django.db.models.functions import Coalesce
+from django.db.utils import OperationalError, ProgrammingError
 from django.urls import reverse
 from django.utils.functional import cached_property
+
 from frontpage.generic import ModelIsDeletableMixin
 from register.models import PlantSpecies, PlantVariety
+from django.db.models.query_utils import Q
 
 
 class ProtocolManager(models.Manager):
@@ -76,14 +79,19 @@ class DescriptionQuerySet(models.QuerySet):
         if not expressions_filter:
             return self.none()
 
-        result = (
-            self.prefetch_related("expressions__state")
-            .filter(expressions__state__id__in=expressions_filter[0])
-            .distinct()
-        )
+        def get_filter_query(expressions: list) -> Q:
+            query = Q(expressions__state__id__in=expressions)
+            query |= Q(expressions__state__related_states__id__in=expressions)
+
+            return query
+
+        query = get_filter_query(expressions_filter[0])
+
+        result = self.prefetch_related("expressions__state").filter(query).distinct()
 
         for expressions in expressions_filter[1:]:
-            query_set = self.filter(expressions__state__id__in=expressions).distinct()
+            query = get_filter_query(expressions)
+            query_set = self.filter(query).distinct()
             result = result.intersection(query_set)
 
         return result
@@ -153,8 +161,11 @@ class Description(ModelIsDeletableMixin, models.Model):
 
     @classmethod
     def names(cls):
-        queryset = cls.objects.all().order_by("name").values_list("name", flat=True).distinct("name")
-        return [(name, name) for name in queryset]
+        try:
+            queryset = cls.objects.order_by("name").values_list("name", flat=True).distinct()
+            return [(name, name) for name in queryset]
+        except (ProgrammingError, OperationalError) as e:
+            return []
 
     @cached_property
     def available_traits(self):
