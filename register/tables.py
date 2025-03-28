@@ -32,6 +32,7 @@ class ProtectionListTable(ProtectionTable):
 
 
 class PlantVarietyDescriptionTable(tables.Table):
+    name = tables.Column(linkify=True)
     actions = tables.TemplateColumn(
         template_name="register/partials/description_table_actions.html",
         verbose_name="",
