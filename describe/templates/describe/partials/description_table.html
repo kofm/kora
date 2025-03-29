@@ -9,8 +9,7 @@
                 {% for column in table.columns %}
                     <th {{ column.attrs.th.as_html }}
       {% if column.orderable %}
-      hx-post="{% querystring table.prefixed_order_by_field=column.order_by_alias.next %}"
-      hx-target="#table" hx-include="#descriptionForm"
+      hx-get="{% querystring table.prefixed_order_by_field=column.order_by_alias.next %}"
       style="cursor: pointer;"
       {% endif %}
                     >
@@ -24,8 +23,7 @@
 
 {% block pagination.previous %}
     <li class="previous page-item">
-        <div hx-post="{% querystring table.prefixed_page_field=table.page.previous_page_number %}"
-	     hx-target="#table" hx-include="#descriptionForm"
+        <div hx-get="{% querystring table.prefixed_page_field=table.page.previous_page_number %}"
              class="page-link">
             <span aria-hidden="true">&laquo;</span>
         </div>
@@ -36,7 +34,7 @@
     {% for p in table.page|table_page_range:table.paginator %}
         <li class="page-item{% if table.page.number == p %} active{% endif %}">
             <div class="page-link"
-                 {% if p != '...' %}hx-post="{% querystring table.prefixed_page_field=p %}" hx-target="#table" hx-include="#descriptionForm"{% endif %}>
+                 {% if p != '...' %}hx-get="{% querystring table.prefixed_page_field=p %}" {% endif %}>
                 {{ p }}
             </div>
         </li>
@@ -45,8 +43,7 @@
 
 {% block pagination.next %}
     <li class="next page-item">
-        <div hx-post="{% querystring table.prefixed_page_field=table.page.next_page_number %}"
-	     hx-target="#table" hx-include="#descriptionForm"
+        <div hx-get="{% querystring table.prefixed_page_field=table.page.next_page_number %}"
              class="page-link">
             <span aria-hidden="true">&raquo;</span>
         </div>

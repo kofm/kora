@@ -4,6 +4,7 @@ from crispy_forms.bootstrap import FieldWithButtons, StrictButton
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Field, Layout
 from django import forms
+from django.db.models import QuerySet
 from django.forms import formset_factory, inlineformset_factory
 from django.forms.formsets import BaseFormSet
 from django.urls import reverse
@@ -75,7 +76,7 @@ class ExpressionUpdateForm(forms.Form):
 
 
 class DescriptionFilterForm(forms.Form):
-    variety = forms.CharField(widget=DescriptorTextInput(), required=False)
+    # variety = forms.CharField(widget=DescriptorTextInput(), required=False)
     name = forms.MultipleChoiceField(
         choices=[("", "")] + Description.names(),
         widget=forms.SelectMultiple(attrs={"class": "form-select"}),
@@ -86,7 +87,12 @@ class DescriptionFilterForm(forms.Form):
 class ProtocolForm(forms.Form):
     protocol = forms.ModelChoiceField(
         queryset=Protocol.objects.select_related("plantspecies").all(),
-        widget=forms.Select(attrs={"class": "form-select", "aria-label": "Select Protocol"}),
+        widget=forms.Select(
+            attrs={
+                "class": "form-select",
+                "aria-label": "Select Protocol",
+            }
+        ),
     )
 
 
@@ -117,7 +123,7 @@ class ProtocolMetadataForm(forms.ModelForm):
 
 
 class RelatedStateForm(DynamicFormMixin, forms.Form):
-    def protocol_choices(form):
+    def protocol_choices(self, form):
         state = form["state"].value()
         state = State.objects.get(pk=state)
         protocol = state.trait.protocol
@@ -182,7 +188,7 @@ class ExpressionForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.auto_id = False
         if trait:
-            self.fields["state"].queryset = State.objects.filter(trait=trait)
+            self.fields["state"].queryset = State.objects.filter(trait=trait)  # type: ignore[attr-defined]
 
 
 class WorkspaceSelectForm(forms.ModelForm):
@@ -257,12 +263,8 @@ class WorkspaceUpdateForm(WorkspaceInputForm):
 
 
 class ExpressionFilterForm(forms.Form):
-    trait_id = forms.IntegerField(widget=forms.HiddenInput())
-    expressions = forms.MultipleChoiceField(
-        choices=[],
-        widget=forms.CheckboxSelectMultiple(),
-        required=False,
-    )
+    trait = forms.IntegerField(widget=forms.HiddenInput())
+    expressions = forms.MultipleChoiceField(choices=[], widget=forms.CheckboxSelectMultiple(), required=False)
 
     def __init__(self, *args, **kwargs):
         state_choices = kwargs.pop("state_choices", [])
@@ -280,52 +282,45 @@ class BaseExpressionFilterFormSet(BaseFormSet):
         traits (QuerySet): a Trait QuerySet, ideally returned from
         `get_protocol_traits()`
 
-        expressions (QuerySet, optional): an Expression QuerySet,
-        ideally returned from
-        `get_description_asterisked_expressions()`; this should be the
-        Expressions that pre-populate the filter
+        expressions (dict, optional): a dict[str, list] of expressions
 
     """
 
-    traits: Any
-    expressions: Any
-
     def __init__(self, *args, traits: Any, **kwargs):
-        self.traits = traits
-        self.expressions = kwargs.pop("expressions", [])
+        self.traits: QuerySet[Trait] = traits
+        self.expressions: dict[str, list] = kwargs.pop("expressions", {})
         super().__init__(*args, **kwargs)
         self.initial = self._get_initial_data()
 
     def _get_initial_data(self):
         initial = []
         for trait in self.traits:
-            initial.append(
-                {
-                    "trait_id": trait.pk,
-                    "expressions": [e.state.pk for e in self.expressions if e.state.trait.pk == trait.pk],
-                }
-            )
+            initial.append({"trait": trait.pk, "expressions": self.expressions.get(str(trait.pk), [])})
         return initial
+
+    def _render_choices(self, state: State):
+        return (state.pk, f" {state.numeric_id}. {state.description}")
+
+    def _render_label(self, trait: Trait):
+        return f"{trait.numeric_id}. {trait.description}"
 
     def get_form_kwargs(self, index):
         kwargs = super().get_form_kwargs(index)
         if self.traits and index < len(self.traits):
             trait = self.traits[index]
-            kwargs["state_choices"] = [
-                (state.id, f" {state.numeric_id}. {state.description}") for state in trait.states.all()
-            ]
-            kwargs["trait"] = f"{trait.numeric_id}. {trait.description}"
+            kwargs["state_choices"] = [self._render_choices(state) for state in trait.states.all()]
+            kwargs["trait"] = self._render_label(trait)
         return kwargs
 
-    def get_expression_ids(self) -> list:
+    def get_expression_ids(self) -> dict:
         """Returns a list of Expression ids to be used with
         `Description.objects.filtery_by_expressions()`
         """
-        return [
-            form.cleaned_data["expressions"]
+        return {
+            form.cleaned_data["trait"]: form.cleaned_data["expressions"]
             for form in self
             if form.is_valid() and form.cleaned_data.get("expressions")
-        ]
+        }
 
 
 ExpressionFilterFormSet = formset_factory(ExpressionFilterForm, formset=BaseExpressionFilterFormSet, extra=0)

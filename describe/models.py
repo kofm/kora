@@ -55,7 +55,7 @@ class Protocol(ModelIsDeletableMixin, models.Model):
 
 
 class DescriptionQuerySet(models.QuerySet):
-    def filter_by_expressions(self, expressions_filter: list):
+    def filter_by_expressions(self, expressions_filter: dict):
         """Filter Descriptions by Expression.
 
         Multiple values for the same Trait are considered as
@@ -79,17 +79,19 @@ class DescriptionQuerySet(models.QuerySet):
         if not expressions_filter:
             return self.none()
 
+        expressions_list = [val for key, val in expressions_filter.items()]
+
         def get_filter_query(expressions: list) -> Q:
             query = Q(expressions__state__id__in=expressions)
             query |= Q(expressions__state__related_states__id__in=expressions)
 
             return query
 
-        query = get_filter_query(expressions_filter[0])
+        query = get_filter_query(expressions_list[0])
 
         result = self.prefetch_related("expressions__state").filter(query).distinct()
 
-        for expressions in expressions_filter[1:]:
+        for expressions in expressions_list[1:]:
             query = get_filter_query(expressions)
             query_set = self.filter(query).distinct()
             result = result.intersection(query_set)
@@ -172,6 +174,11 @@ class Description(ModelIsDeletableMixin, models.Model):
         return self.protocol.traits.all()
 
 
+class TraitQuerySet(models.QuerySet):
+    def with_states(self):
+        return self.prefetch_related("states").order_by("numeric_id")
+
+
 class Trait(models.Model):
     numeric_id = models.IntegerField(
         null=True,
@@ -191,6 +198,8 @@ class Trait(models.Model):
         help_text="The reference protocol of the trait",
     )
     grouping = models.BooleanField(default=False, help_text="Is this a highly discriminating characteristic?")
+
+    objects = TraitQuerySet.as_manager()
 
     class Meta:
         ordering = ("numeric_id",)
