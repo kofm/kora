@@ -10,10 +10,8 @@ from django.urls import reverse
 from describe.forms import (
     DescriptionFilterForm,
     ExpressionFilterFormSet,
-    ProtocolForm,
-    ProtocolStrictSearchForm,
 )
-from describe.models import Expression, Protocol, State
+from describe.models import Protocol, State
 from register.filters import filter_name_generic
 
 
@@ -111,96 +109,6 @@ def make_traits_expressions_dict(
     return res
 
 
-def get_description_form(request: HttpRequest):
-    """Create (and eventually process) `DescriptionFilterForm`.
-
-    Return the form instance
-    """
-    if request.method == "POST":
-        form = DescriptionFilterForm(request.POST)
-    else:
-        form = DescriptionFilterForm()
-
-    form.fields["variety"].widget.attrs["hx-trigger"] = "keyup changed delay:500ms"
-    form.fields["variety"].widget.attrs["hx-post"] = reverse("describe:description_list")
-    return form
-
-
-def get_protocol_form(request: HttpRequest) -> tuple[ProtocolForm, Protocol]:
-    """Create and process `ProtocolForm`.
-
-    Returns the form instance and a `Protocol` instance. If the form
-    wasn't submitted, return the most used protocol as default.
-    """
-    protocol = protocol or Protocol.objects.most_used()
-
-    if request.method == "POST":
-        form = ProtocolForm(request.POST)
-        if form.is_valid():
-            protocol = form.cleaned_data.get("protocol")
-    else:
-        form = ProtocolForm(initial={"protocol": protocol})
-    return (form, protocol)
-
-
-def description_filter_name_variety(descriptions, form_description):
-    """Applies filter according to `DescriptionFilterForm` to the
-    input Description QuerySet.
-
-    Returns the (eventually) filtered QuerySet.
-    """
-
-    if not form_description.is_valid():
-        return descriptions
-
-    description_variety_name = form_description.cleaned_data["variety"]
-    description_name = form_description.cleaned_data["name"]
-
-    if description_variety_name:
-        descriptions = filter_name_generic(
-            descriptions.select_related("variety"), "variety__name", description_variety_name
-        )
-    if description_name:
-        descriptions = descriptions.filter(name__in=description_name)
-
-    return descriptions
-
-
-def get_strict_search_form(request: HttpRequest) -> tuple[ProtocolStrictSearchForm, bool]:
-    result = False
-    form = ProtocolStrictSearchForm()
-    if request.method == "POST":
-        form = ProtocolStrictSearchForm(request.POST)
-        if form.is_valid():
-            result = form.cleaned_data.get("strict")  # type: ignore
-    return (form, result)
-
-
-def get_expression_filter(request: HttpRequest, protocol: Protocol) -> tuple[BaseFormSet, list]:
-    """Process `ExpressionFilterFormSet` and return a list of
-    expressions to filter by.
-
-    The returned list is intended to be used with
-    `Description.objects.filter_by_expressions()`.
-    """
-    traits = protocol.with_traits_and_states()
-    formset = ExpressionFilterFormSet(traits=traits)  # type: ignore[call-arg]
-    result: list = []
-    if request.method != "POST":
-        return (formset, result)
-
-    formset = ExpressionFilterFormSet(request.POST, traits=traits)  # type: ignore[call-arg]
-    if formset.is_valid():
-        result = formset.get_expression_ids()  # type: ignore[attr-defined]
-    return (formset, result)
-
-
-def get_description_asterisked_expression(description_id):
-    return Expression.objects.prefetch_related("state__trait").filter(
-        description=description_id, state__trait__grouping=True
-    )
-
-
 def render_header(string):
     return [
         "",
@@ -271,3 +179,14 @@ def init_description_filter(request: HttpRequest):
             "expressions": {},
         }
     return request.session["description_filter"]
+
+
+def reset_description_filter(request):
+    if "description_filter" in request.session:
+        del request.session["description_filter"]
+
+
+def update_description_filter(request, **kwargs):
+    for key, value in kwargs.items():
+        request.session["description_filter"][key] = value
+    request.session.modified = True

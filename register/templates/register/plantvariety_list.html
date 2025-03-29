@@ -6,7 +6,6 @@
 {% load components %}
 
 {% block javascript %}
-    <script type="text/javascript" src="{% static 'frontpage/tomselect.bundle.js' %}"></script>
     <script type="text/javascript">
      document.addEventListener('DOMContentLoaded', function() {
          const species = new TomSelect("#id_species", {})

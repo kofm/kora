@@ -7,20 +7,27 @@
 
 {% block javascript %}
   <style>
-   .loading-indicator {
+   .htmx-indicator {
      display: none;
+     opacity:0;
+     transition: opacity 500ms ease-in;
      margin: 88px auto;
      position: absolute;
      top: 50%;
      left: 50%;
-     transform: translate(-50%, -50%);
-     z-index: 10;
    }
-   .htmx-request .loading-indicator {
+   .htmx-request .htmx-indicator {
      display: block;
+     opacity: 1;
    }
-   .htmx-request #table-content {
-     opacity: 0.5;
+   .htmx-request.htmx-indicator {
+     display: block;
+     opacity: 1;
+   }
+
+   .htmx-request #table {
+     opacity:0.5;
+     transition: opacity 500ms ease-in;
    }
   </style>
 {% endblock %}
@@ -42,17 +49,20 @@
 	<h2>Search</h2>
 	<div id="buttons" class="d-flex justify-content-end"></div>
 
-	<form
-	  id="protocolForm"
-	  hx-get="{% url 'describe:description_form' %}"
-	  hx-trigger="change" hx-target="#expression_filter"
-	  hx-on::after-request="htmx.ajax('GET', '{% url 'describe:description_list' %}', {target: '#table', indicator: '#spinner'})"
-	>
-	  {{ form_protocol }}
-	</form>
+	{% block protocol_filter %}
+	  <form
+	    id="protocolForm"
+	    hx-get="{% url 'describe:description_form' %}"
+	    hx-trigger="change" hx-target="#expression_filter"
+	    hx-swap-oob="true"
+	    hx-on::after-request="htmx.ajax('GET', '{% url 'describe:description_list' %}', {target: '#table', indicator: '#spinner'})"
+	  >
+	    {{ form_protocol }}
+	  </form>
+	{% endblock %}
 
 	<form id="strictForm" hx-post="{% url 'describe:filter_update_strict' %}"
-	  hx-trigger="change" hx-target="#table">
+	  hx-trigger="change" hx-target="#table" hx-indicator="#spinner">
 	  <div class="form-check my-2">
 	    {{ form_strict.strict }}
 	    <label class="form-check-label" for="{{ form_strict.strict.id_for_label }}">
@@ -63,7 +73,7 @@
 
 	<form id="nameForm"
 	  hx-post="{% url 'describe:filter_update_name' %}"
-	  hx-trigger="change" hx-target="#table"
+	  hx-trigger="change" hx-target="#table" hx-indicator="#spinner"
 	>
 	  {{ form_name }}
 	</form>
@@ -71,16 +81,46 @@
 	 new TomSelect('#id_name', {create: false})
 	</script>
 
-	<div id="expression_filter" class="my-2">
+	<div id="expression_filter" class="my-2" hx-swap-oob="true">
 	  {% block expression_filter %}
 	    {% url 'describe:filter_update_expressions' as formset_url %}
 	    <form
 	      hx-post="{{ formset_url }}" hx-trigger="change" hx-target="#table"
 	      hx-indicator="#spinner">
 	      {{ formset.management_form }}
-	      {% for form in formset %}
-		{% crispy form %}
-	      {% endfor %}
+	      <div class="accordion">
+
+		{% for form in formset %}
+		  {% with value=form.expressions.value %}
+		    <div class="accordion-item">
+		      {{ form.trait }}
+		      <h2 class="accordion-header">
+			<button
+			  class="accordion-button {{ value|yesno:",collapsed" }}"
+			  type="button"
+			  data-bs-toggle="collapse"
+			  data-bs-target="#collapse{{ forloop.counter }}"
+			  aria-expanded="{{ value|yesno:"true,false" }}" aria-controls="collapse{{ forloop.counter }}">
+			  {{ form.expressions.label }}
+			</button>
+		      </h2>
+
+		      <div id="collapse{{ forloop.counter }}" class="accordion-collapse collapse {{ value|yesno:"show," }}">
+			<div class="accordion-body">
+			  {% for checkbox in form.expressions %}
+			    <div class="form-check">
+			      <span class="form-checkbox-input">{{ checkbox.tag }}</span>
+			      <label class="form-check-label" for="{{ checkbox.id_for_label }}">
+				{{ checkbox.choice_label }}
+			      </label>
+			    </div>
+			  {% endfor %}
+			</div>
+		      </div>
+		    </div>
+		  {% endwith %}
+		{% endfor %}
+	      </div>
 	    </form>
 	  {% endblock %}
 	</div>
@@ -90,16 +130,12 @@
       <!-- Right Column: Results Table -->
       <div class="col-8">
         <div class="sticky-top" style="max-height: 100vh;">
-          <!-- Loading Spinner -->
-          <div id="spinner" class="spinner-grow loading-indicator" role="status">
-            <span class="visually-hidden">Loading...</span>
-          </div>
 	  {% block description_table %}
-	    <div id="table">
+	    <div id="table" hx-target="#table">
 	      <div class="d-flex justify-content-between align-items-center">
 		<h2>Results <span class="badge rounded-pill shadow-sm text-bg-secondary">{{ table.data|length }}</span></h2>
 	      </div>
-	      <div id="spinner" class="spinner-grow loading-indicator" role="status">
+	      <div id="spinner" class="spinner-grow htmx-indicator" role="status">
 		<span class="visually-hidden">Loading...</span>
 	      </div>
 	      <div id="table-content">

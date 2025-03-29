@@ -28,18 +28,17 @@ from describe.forms import (
     ProtocolForm,
     ProtocolStrictSearchForm,
 )
-from describe.models import Description, Protocol, Trait, Workspace, WorkspaceElement
+from describe.models import Description, Expression, Protocol, Trait, Workspace, WorkspaceElement
 from describe.tables import DescriptionTable
 from describe.views.protocol import NavDescribeActiveContext
 from describe.views.utils import (
-    get_description_asterisked_expression,
-    get_protocol_form,
-    get_strict_search_form,
     init_description_filter,
     make_descriptions_dict,
     make_species_descriptions_dict,
     make_species_protocols_dict,
     make_traits_expressions_dict,
+    reset_description_filter,
+    update_description_filter,
 )
 from frontpage.views_decorators import nav_active
 from register.models import PlantVariety
@@ -49,17 +48,12 @@ CharField.register_lookup(Lower)
 nav_describe = nav_active("nav_describe")
 
 
-def reset_filters(request):
-    if "description_filter" in request.session:
-        del request.session["description_filter"]
-
-
 @nav_describe
 def description_list(request):
     context = {}
 
     if not request.headers.get("HX-Request") == "true":
-        reset_filters(request)
+        reset_description_filter(request)
 
     template_name = "describe/description_list.html"
 
@@ -70,12 +64,6 @@ def description_list(request):
     expression_filter = description_filter["expressions"]
     name_filter = description_filter["name"]
     strict_filter = description_filter["strict"]
-
-    form_protocol = ProtocolForm(initial={"protocol": protocol_id})
-    form_name = DescriptionFilterForm(initial={"name": name_filter})
-    form_strict = ProtocolStrictSearchForm(initial={"strict": strict_filter})
-    traits = Trait.objects.filter(protocol=protocol_id).with_states()
-    formset = ExpressionFilterFormSet(traits=traits, expressions=expression_filter)
 
     if strict_filter:
         descriptions = descriptions.filter(protocol_id=protocol_id)
@@ -88,6 +76,22 @@ def description_list(request):
 
     table = DescriptionTable(descriptions)
     RequestConfig(request, paginate={"per_page": 10}).configure(table)
+
+    if request.headers.get("HX-Request") == "true":
+        table_block = render_block_to_string(
+            template_name,
+            "description_table",
+            {"table": table},
+            request,
+        )
+        return HttpResponse(table_block)
+
+    form_protocol = ProtocolForm(initial={"protocol": protocol_id})
+    form_name = DescriptionFilterForm(initial={"name": name_filter})
+    form_strict = ProtocolStrictSearchForm(initial={"strict": strict_filter})
+    traits = Trait.objects.filter(protocol=protocol_id).with_states()
+    formset = ExpressionFilterFormSet(traits=traits, expressions=expression_filter)
+
     context.update(
         {
             "table": table,
@@ -100,22 +104,7 @@ def description_list(request):
 
     context.update(generate_breadcrumbs(request, Description))
 
-    if request.headers.get("HX-Request") == "true":
-        rendered_block = render_block_to_string(
-            template_name,
-            "description_table",
-            context,
-            request,
-        )
-        return HttpResponse(rendered_block)
-
     return TemplateResponse(request, template_name, context)
-
-
-def update_filter(request, **kwargs):
-    for key, value in kwargs.items():
-        request.session["description_filter"][key] = value
-    request.session.modified = True
 
 
 @require_POST
@@ -126,7 +115,7 @@ def description_filter_update_expression(request):
     formset = ExpressionFilterFormSet(request.POST, traits=traits)
     if formset.is_valid():
         expressions = formset.get_expression_ids()  # type: ignore[attr-defined]
-        update_filter(request, expressions=expressions)
+        update_description_filter(request, expressions=expressions)
     return redirect(reverse("describe:description_list"))
 
 
@@ -135,7 +124,7 @@ def description_filter_update_name(request):
     form = DescriptionFilterForm(request.POST)
     if form.is_valid():
         names = form.cleaned_data["name"]
-        update_filter(request, name=names)
+        update_description_filter(request, name=names)
     return redirect(reverse("describe:description_list"))
 
 
@@ -144,7 +133,7 @@ def description_filter_update_strict(request):
     form = ProtocolStrictSearchForm(request.POST)
     if form.is_valid():
         strict = form.cleaned_data["strict"]
-        update_filter(request, strict=strict)
+        update_description_filter(request, strict=strict)
     return redirect(reverse("describe:description_list"))
 
 
@@ -155,7 +144,7 @@ def description_form(request):
 
     template_name = "describe/description_list.html"
 
-    update_filter(
+    update_description_filter(
         request,
         expressions={},
         protocol=protocol_id,
@@ -172,14 +161,7 @@ def description_form(request):
         context=context,
         request=request,
     )
-    return HttpResponse(content=rendered_block)
-
-
-def make_filter_from_expressions(expressions):
-    filter_expression = defaultdict(list)
-    for e in expressions:
-        filter_expression[e.state.trait.pk].append(e.state.pk)
-    return list(filter_expression.values())
+    return HttpResponse(rendered_block)
 
 
 def description_find_similar(request):
@@ -190,54 +172,39 @@ def description_find_similar(request):
     description_id = request.GET.get("description_id")
     description = get_object_or_404(Description, pk=description_id)
 
-    form_protocol_filter, protocol = get_protocol_form(request, description.protocol)
-    form_strict_search, filter_strict = get_strict_search_form(request)
+    protocol_id = description.protocol.pk
 
-    traits = protocol.with_traits_and_states()
-    expressions = get_description_asterisked_expression(description_id)
+    expressions = Expression.objects.prefetch_related("state__trait").filter(
+        description=description_id, state__trait__grouping=True
+    )
 
-    filter_expression = make_filter_from_expressions(expressions)
+    filter_expression = defaultdict(list)
+    for expression in expressions:
+        filter_expression[str(expression.state.trait.pk)].append(expression.state.pk)
 
-    formset_expression = ExpressionFilterFormSet(expressions=expressions, traits=traits)
+    update_description_filter(request, expressions=dict(filter_expression), protocol=protocol_id)
 
-    form_description_filter = description_form(request)
+    if not request.headers.get("HX-Request") == "true":
+        return redirect(reverse("describe:description_list"))
 
-    descriptions = Description.objects.with_expressions().filter_by_expressions(filter_expression)
-    table = DescriptionTable(descriptions)
-    RequestConfig(request, paginate={"per_page": 10}).configure(table)
+    traits = Trait.objects.filter(protocol=protocol_id).prefetch_related("states").order_by("numeric_id")
+    form = ProtocolForm(initial={"protocol": protocol_id})
+    formset = ExpressionFilterFormSet(traits=traits, expressions=dict(filter_expression))
 
-    if request.headers.get("HX-Request") == "true":
-        protocol_response = render_block_to_string(
-            template_name,
-            "protocol_select",
-            {"form": form_protocol_filter},
-            request=request,
-        )
-        table_response = render_block_to_string(
-            template_name,
-            "description_table",
-            {"table": table},
-            request=request,
-        )
+    expression_block = render_block_to_string(
+        template_name,
+        block_name="expression_filter",
+        context={"formset": formset},
+        request=request,
+    )
+    protocol_block = render_block_to_string(
+        template_name,
+        block_name="protocol_filter",
+        context={"form_protocol": form},
+        request=request,
+    )
 
-        filter_response = render_block_to_string(
-            template_name,
-            "expression_filter",
-            {"form_strict_search": form_strict_search, "formset": formset_expression},
-            request=request,
-        )
-        return HttpResponse(filter_response + protocol_response + table_response)
-
-    context = {
-        "table": table,
-        "form": form_protocol_filter,
-        "form_description": form_description_filter,
-        "formset": formset_expression,
-        "form_strict_search": form_strict_search,
-    }
-    context.update(generate_breadcrumbs(request, Description))
-
-    return TemplateResponse(request, "describe/description_list.html", context)
+    return HttpResponse(expression_block + protocol_block)
 
 
 @nav_describe
