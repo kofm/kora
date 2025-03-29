@@ -1,13 +1,10 @@
-from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.db.models import F, IntegerField, Q, Value
 from django.db.models.functions import Cast, Concat
-from django.http import HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.urls import reverse, reverse_lazy
 from django.utils.timezone import now
-from django.views.decorators.http import require_POST
 from django.views.generic import DetailView, ListView
 from django.views.generic.edit import CreateView, DeleteView
 from django_tables2 import RequestConfig
@@ -21,7 +18,6 @@ from breadcrumbs.generic import (
 from breadcrumbs.utils import add_plantvariety_breadcrumbs, generate_breadcrumbs
 from collect.filters import SeedSampleFilter
 from collect.forms import (
-    CartSelectForm,
     GerminabilityForm,
     SampleWeightForm,
     SeedSampleForm,

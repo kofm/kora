@@ -1,104 +1,6 @@
 from itertools import groupby
-from typing import Any
 
 from django.db.models import QuerySet
-
-from describe.models import Trait
-
-
-def _state_to_str(state):
-    return f"{state['states__numeric_id']}. {state['states__description']}"
-
-
-def _get_protocol_traits_states_dict(protocols_queryset: QuerySet):
-    queryset = (
-        Trait.objects.filter(protocol_id__in=protocols_queryset)
-        .select_related("protocol__species")
-        .prefetch_related("states")
-        .values(
-            "protocol__name",
-            "protocol__plantspecies__id",
-            "protocol__plantspecies__common_name",
-            "pk",
-            "numeric_id",
-            "description",
-            "states__pk",
-            "states__numeric_id",
-            "states__description",
-        )
-        .order_by(
-            "protocol__plantspecies__id",
-            "protocol__name",
-            "numeric_id",
-            "states__numeric_id",
-        )
-    )
-
-    result: dict[Any, Any] = {}
-    grouped_species = groupby(
-        queryset, lambda x: (x["protocol__plantspecies__id"], x["protocol__plantspecies__common_name"])
-    )
-    for species, protocols in grouped_species:
-        result[species] = {}
-        grouped_protocol = groupby(protocols, lambda x: x["protocol__name"])
-        for protocol, traits in grouped_protocol:
-            result[species][protocol] = {}
-            for trait, states in groupby(traits, lambda x: (x["numeric_id"], x["description"])):
-                states = {state["states__pk"]: _state_to_str(state) for state in list(states)}  # type: ignore[assignment]
-                result[species][protocol][trait] = {"states": states}
-
-    return result
-
-
-def _get_descriptions_compare_dict(protocol_traits_states_dict, descriptions: QuerySet):
-    for species in protocol_traits_states_dict.keys():
-        descriptions_dict = (
-            descriptions.select_related("variety__species")
-            .prefetch_related("expressions")
-            .filter(variety__species=species[0])
-            .order_by(
-                "variety__pk",
-                "name",
-            )
-            .values(
-                "variety__pk",
-                "variety__name",
-                "name",
-                "expressions__state",
-            )
-        )
-
-        descs = {}
-        grouped_descriptions = groupby(
-            descriptions_dict,
-            lambda x: (x["variety__pk"], x["variety__name"], x["name"]),
-        )
-        for description, description_expressions in grouped_descriptions:
-            descs[description] = [e["expressions__state"] for e in list(description_expressions)]
-        protocol_traits_states_dict[species]["descriptions"] = descs
-
-        for protocol, traits in protocol_traits_states_dict[species].items():
-            if protocol == "descriptions":
-                continue
-
-            for trait, states in traits.items():
-                expressions = []
-                for _, expression_states in descs.items():
-                    desc_expressions = []
-                    for state_id, state_desc in states["states"].items():
-                        if state_id in expression_states:
-                            desc_expressions.append(state_desc)
-                    expressions.append(desc_expressions)
-                protocol_traits_states_dict[species][protocol][trait]["expressions"] = expressions
-                non_empty_expressions = [expr for expr in expressions if expr]
-                if non_empty_expressions:
-                    comparable_expressions = [tuple(sorted(exp)) for exp in non_empty_expressions]
-                    protocol_traits_states_dict[species][protocol][trait]["all_equal"] = (
-                        len(set(comparable_expressions)) == 1
-                    )
-                else:
-                    protocol_traits_states_dict[species][protocol][trait]["all_equal"] = True
-    return descs, protocol_traits_states_dict
 
 
 def join_description_expressions(
@@ -141,11 +43,7 @@ def make_descriptions_dict(description_values):
     result = {}
     grouped_descriptions = groupby(
         description_values,
-        lambda x: (
-            x["variety__id"],
-            x["variety__name"],
-            x["name"],
-        ),
+        lambda x: (x["variety__id"], x["variety__name"], x["name"]),
     )
 
     for description_key, expressions in grouped_descriptions:

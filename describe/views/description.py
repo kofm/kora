@@ -14,7 +14,7 @@ from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.urls import reverse, reverse_lazy
-from django.views.generic import DeleteView, DetailView
+from django.views.generic import DeleteView
 from django_tables2 import RequestConfig
 from render_block import render_block_to_string
 
@@ -388,17 +388,13 @@ def description_detail(request, pk):
 def description_update(request, pk):
     description = get_object_or_404(Description, pk=pk)
     form = DescriptionUpdateForm(request.POST or None, instance=description)
-
     if form.is_valid():
         description = form.save()
         return redirect(description.get_absolute_url())
+
     context = {"form": form, "object": description, "description": description}
     context.update(generate_breadcrumbs(request, Description, description))
-    return TemplateResponse(
-        request,
-        "describe/description_update.html",
-        context,
-    )
+    return TemplateResponse(request, "describe/description_update.html", context)
 
 
 @nav_describe
@@ -442,8 +438,4 @@ def description_expression_update(request, pk):
         formset.append({"trait": trait, "forms": forms})
     context = {"description": description, "formset": formset}
     context.update(generate_breadcrumbs(request, Description, description))
-    return TemplateResponse(
-        request,
-        "describe/description_expression_update.html",
-        context,
-    )
+    return TemplateResponse(request, "describe/description_expression_update.html", context)
