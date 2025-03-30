@@ -98,6 +98,14 @@
     </a>
 
   </div>
-{% endif %}
 
 {% render_sortable items "cart" "list-group" "collect:cartitem_sort" "collect/partials/cart_list_item.html" %}
+{% elif cart %}
+  <p class="text-muted mt-5">
+    This cart is currently empty. Add descriptions by clicking the plus symbol next to each sample in the main pane.
+  </p>
+{% else %}
+  <p class="text-muted mt-5">
+    To start using carts, first create a new one or choose an existing cart from the list.
+  </p>
+{% endif %}
