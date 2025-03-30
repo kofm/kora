@@ -55,20 +55,15 @@
 	</div>
 
 	{% block protocol_filter %}
-	  <form
-	    id="protocolForm"
-	    hx-get="{% url 'describe:description_form' %}"
-	    hx-trigger="change" hx-target="#expression_filter"
-	    hx-swap-oob="true"
-	    autocomplete="off"
+	  <form id="protocolForm" autocomplete="off"
+	    hx-get="{% url 'describe:description_form' %}" hx-trigger="change" hx-target="#expression_filter" hx-swap-oob="true"
 	    hx-on::after-request="htmx.ajax('GET', '{% url 'describe:description_list' %}', {target: '#table', indicator: '#spinner'})"
 	  >
 	    {{ form_protocol }}
 	  </form>
 	{% endblock %}
 
-	<form id="strictForm" hx-post="{% url 'describe:filter_update_strict' %}"
-	  autocomplete="off"
+	<form id="strictForm" hx-post="." autocomplete="off" hx-vals='{"strict_changed": "true"}'
 	  hx-trigger="change" hx-target="#table" hx-indicator="#spinner">
 	  <div class="form-check my-2">
 	    {{ form_strict.strict }}
@@ -80,7 +75,7 @@
 
 	<form id="nameForm"
 	  autocomplete="off"
-	  hx-post="{% url 'describe:filter_update_name' %}"
+	  hx-post="."
 	  hx-trigger="change" hx-target="#table" hx-indicator="#spinner"
 	>
 	  {{ form_name }}
@@ -91,11 +86,9 @@
 
 	<div id="expression_filter" class="my-2" hx-swap-oob="true">
 	  {% block expression_filter %}
-	    {% url 'describe:filter_update_expressions' as formset_url %}
-	    <form
-	      autocomplete="off"
-	      hx-post="{{ formset_url }}" hx-trigger="change" hx-target="#table"
-	      hx-indicator="#spinner">
+	    <form autocomplete="off"
+	      hx-post="." hx-trigger="change" hx-target="#table" hx-indicator="#spinner"
+	    >
 	      {{ formset.management_form }}
 	      <div class="accordion">
 

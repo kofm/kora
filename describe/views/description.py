@@ -8,7 +8,7 @@ from collections import defaultdict
 from django.contrib.auth.decorators import login_required
 from django.db.models import CharField
 from django.db.models.functions import Lower
-from django.http import HttpResponse, HttpResponseBadRequest
+from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.urls import reverse, reverse_lazy
@@ -53,16 +53,34 @@ nav_describe = nav_active("nav_describe")
 
 @nav_describe
 def description_list(request):
-    context = {}
-
     reset = request.GET.get("reset") != "false"
     if not request.headers.get("HX-Request") == "true" and reset:
         reset_description_filter(request)
 
-    template_name = "describe/description_list.html"
-
     description_filter = init_description_filter(request)
     protocol_id = description_filter["protocol"]
+
+    if request.method == "POST":
+        if "name" in request.POST:
+            form = DescriptionFilterForm(request.POST)
+            if form.is_valid():
+                names = form.cleaned_data["name"]
+                update_description_filter(request, name=names)
+        if "strict_changed" in request.POST:
+            form = ProtocolStrictSearchForm(request.POST)
+            if form.is_valid():
+                strict = form.cleaned_data["strict"]
+                update_description_filter(request, strict=strict)
+        if "form-TOTAL_FORMS" in request.POST:
+            traits = Trait.objects.filter(protocol=protocol_id).with_states()
+            formset = ExpressionFilterFormSet(request.POST, traits=traits)
+            if formset.is_valid():
+                expressions = formset.get_expression_ids()  # type: ignore[attr-defined]
+                update_description_filter(request, expressions=expressions)
+        return HttpResponseRedirect("")
+
+    template_name = "describe/description_list.html"
+    context = {}
 
     descriptions = process_description_filter(Description.objects.with_expressions(), description_filter)
 
@@ -96,36 +114,6 @@ def description_list(request):
     return TemplateResponse(request, template_name, context)
 
 
-@require_POST
-def description_filter_update_expression(request):
-    description_filter = init_description_filter(request)
-    protocol_id = description_filter["protocol"]
-    traits = Trait.objects.filter(protocol=protocol_id).with_states()
-    formset = ExpressionFilterFormSet(request.POST, traits=traits)
-    if formset.is_valid():
-        expressions = formset.get_expression_ids()  # type: ignore[attr-defined]
-        update_description_filter(request, expressions=expressions)
-    return redirect(reverse("describe:description_list"))
-
-
-@require_POST
-def description_filter_update_name(request):
-    form = DescriptionFilterForm(request.POST)
-    if form.is_valid():
-        names = form.cleaned_data["name"]
-        update_description_filter(request, name=names)
-    return redirect(reverse("describe:description_list"))
-
-
-@require_POST
-def description_filter_update_strict(request):
-    form = ProtocolStrictSearchForm(request.POST)
-    if form.is_valid():
-        strict = form.cleaned_data["strict"]
-        update_description_filter(request, strict=strict)
-    return redirect(reverse("describe:description_list"))
-
-
 def description_form(request):
     protocol_id = request.GET.get("protocol", None)
     if not protocol_id:
@@ -133,11 +121,7 @@ def description_form(request):
 
     template_name = "describe/description_list.html"
 
-    update_description_filter(
-        request,
-        expressions={},
-        protocol=protocol_id,
-    )
+    update_description_filter(request, expressions={}, protocol=protocol_id)
 
     traits = Trait.objects.filter(protocol=protocol_id).prefetch_related("states").order_by("numeric_id")
     formset = ExpressionFilterFormSet(traits=traits)
