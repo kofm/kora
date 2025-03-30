@@ -53,10 +53,6 @@ nav_describe = nav_active("nav_describe")
 
 @nav_describe
 def description_list(request):
-    reset = request.GET.get("reset") != "false"
-    if not request.headers.get("HX-Request") == "true" and reset:
-        reset_description_filter(request)
-
     description_filter = init_description_filter(request)
     protocol_id = description_filter["protocol"]
 

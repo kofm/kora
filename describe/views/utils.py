@@ -166,6 +166,10 @@ def render_export_file_to_response(protocol, filter_expression, descriptions):
 
 
 def init_description_filter(request: HttpRequest):
+    reset = request.GET.get("reset") != "false"
+    if not request.headers.get("HX-Request") == "true" and reset:
+        reset_description_filter(request)
+
     if "description_filter" not in request.session:
         request.session["description_filter"] = {
             "protocol": Protocol.objects.most_used().pk,
