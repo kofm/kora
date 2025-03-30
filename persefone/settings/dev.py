@@ -4,21 +4,12 @@ DEBUG = True
 STATIC_ROOT = "static/"
 SHELL_PLUS = "ipython"
 
-INSTALLED_APPS = [
-    "debug_toolbar",
-    "django_extensions",
-] + INSTALLED_APPS
 
-INTERNAL_IPS = [
-    "127.0.0.1",
-    "localhost",
-]
+INSTALLED_APPS = ["debug_toolbar", "django_extensions", *INSTALLED_APPS]
 
-MIDDLEWARE = [
-    "debug_toolbar.middleware.DebugToolbarMiddleware",
-] + MIDDLEWARE
+INTERNAL_IPS = ["127.0.0.1", "localhost"]
 
-DEBUG_TOOLBAR_CONFIG = {
-    "SHOW_TOOLBAR_CALLBACK": lambda r: True,  # disables it
-    # '...
-}
+MIDDLEWARE = ["debug_toolbar.middleware.DebugToolbarMiddleware", *MIDDLEWARE]
+
+DEBUG_TOOLBAR_ENABLED = True
+DEBUG_TOOLBAR_CONFIG = {"SHOW_TOOLBAR_CALLBACK": lambda r: True}
