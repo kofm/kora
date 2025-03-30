@@ -31,17 +31,22 @@ CART_SORTING = {
 
 @login_required
 def cart_detail(request):
+    context = {}
     user = request.user
-    cart = Cart.objects.get(user=user, is_active=True)
-    items = CartItem.objects.select_related("sample__position__storage", "sample__variety__species").filter(
-        cart_id=cart.pk
-    )
-    sorting = request.session.get("cart_sorting", None)
-    if sorting:
-        items = items.order_by(sorting)
-    cart_form = CartSelectForm(user=user, initial={"cart": cart})
-    default_weight_form = CartDefaultWeightForm(instance=cart)
-    context = {"cart": cart, "items": items, "cart_form": cart_form, "default_weight_form": default_weight_form}
+    queryset = Cart.objects.filter(user=user, is_active=True)
+    if queryset.exists():
+        cart = queryset.first()
+        items = CartItem.objects.select_related("sample__position__storage", "sample__variety__species").filter(
+            cart_id=cart.pk
+        )
+        sorting = request.session.get("cart_sorting", None)
+        if sorting:
+            items = items.order_by(sorting)
+        default_weight_form = CartDefaultWeightForm(instance=cart)
+        context.update({"cart": cart, "items": items, "default_weight_form": default_weight_form})
+        context["cart_form"] = CartSelectForm(user=user, initial={"cart": cart})
+    else:
+        context["cart_form"] = CartSelectForm(user=user)
     return TemplateResponse(request, "collect/cart_detail.html", context)
 
 

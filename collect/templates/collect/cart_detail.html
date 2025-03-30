@@ -53,9 +53,9 @@
 
       <a
 	class="dropdown-item {% if not cart %}disabled{% endif %}"
-	       {% if not cart %}aria-disabled="true"{% endif %}
-	       href="{% if cart %}{% url 'restapi:cartitems' cart.pk %}?format=json{% endif %}"
-	       target="_blank">
+	{% if not cart %}aria-disabled="true"{% endif %}
+	href="{% if cart %}{% url 'restapi:cartitems' cart.pk %}?format=json{% endif %}"
+	target="_blank">
 	Download
       </a>
 
@@ -75,27 +75,29 @@
   {% endif %}
 </div>
 
-<div class="d-flex gap-2 me-2 my-2 h6 justify-content-end" hx-target="#cartBody">
-  {% url 'collect:cartitem_set_sorting' as sorting_url %}
+{% if items %}
+  <div class="d-flex gap-2 me-2 my-2 h6 justify-content-end" hx-target="#cartBody">
+    {% url 'collect:cartitem_set_sorting' as sorting_url %}
 
-  <small class="text-muted">Sort</small>
+    <small class="text-muted">Sort</small>
 
-  <a class="link-body-emphasis text-decoration-none" href="#">
-    <i class="bi bi-sort-alpha-down" hx-get="{{ sorting_url }}" hx-vals='{"sort": "variety"}'></i>
-  </a>
+    <a class="link-body-emphasis text-decoration-none" href="#">
+      <i class="bi bi-sort-alpha-down" hx-get="{{ sorting_url }}" hx-vals='{"sort": "variety"}'></i>
+    </a>
 
-  <a class="link-body-emphasis text-decoration-none" href="#">
-    <i class="bi bi-sort-down" hx-get="{{ sorting_url }}" hx-vals='{"sort": "position"}'></i>
-  </a>
+    <a class="link-body-emphasis text-decoration-none" href="#">
+      <i class="bi bi-sort-down" hx-get="{{ sorting_url }}" hx-vals='{"sort": "position"}'></i>
+    </a>
 
-  <a class="link-body-emphasis text-decoration-none" href="#">
-    <i class="bi bi-sort-numeric-down-alt" hx-get="{{ sorting_url }}" hx-vals='{"sort": "growing_season"}'></i>
-  </a>
+    <a class="link-body-emphasis text-decoration-none" href="#">
+      <i class="bi bi-sort-numeric-down-alt" hx-get="{{ sorting_url }}" hx-vals='{"sort": "growing_season"}'></i>
+    </a>
 
-  <a class="link-body-emphasis text-decoration-none" href="#">
-    <i class="bi bi-list-ol" hx-get="{{ sorting_url }}" hx-vals='{"sort": "manual"}'></i>
-  </a>
+    <a class="link-body-emphasis text-decoration-none" href="#">
+      <i class="bi bi-list-ol" hx-get="{{ sorting_url }}" hx-vals='{"sort": "manual"}'></i>
+    </a>
 
-</div>
+  </div>
+{% endif %}
 
 {% render_sortable items "cart" "list-group" "collect:cartitem_sort" "collect/partials/cart_list_item.html" %}
