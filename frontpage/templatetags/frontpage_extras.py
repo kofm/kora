@@ -20,11 +20,6 @@ def get_proper_elided_page_range(p, number, on_each_side=3, on_ends=2):
     return paginator.get_elided_page_range(number=number, on_each_side=on_each_side, on_ends=on_ends)
 
 
-@register.inclusion_tag("frontpage/partials/edit_icon.html")
-def render_edit_icon(url):
-    return {"url": url}
-
-
 @register.filter("add_valid_class")
 @silence_without_field
 def add_valid_class(field, css_class):
