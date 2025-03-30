@@ -1,0 +1,12 @@
+{% if user.is_authenticated %}
+  <div id="workspaceBody"
+    hx-get="{% url 'describe:workspace_detail' %}"
+    hx-trigger="click from:#offcanvasWorkspaceToggle once"
+    hx-swap="innerHTML">
+  </div>
+{% else %}
+  <p class="text-muted">
+    You must be logged in to access Workspaces. <br/>
+    <a href="{% url 'login' %}">Log In</a>
+  </p>
+{% endif %}

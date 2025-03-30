@@ -1,5 +1,3 @@
-from typing import TYPE_CHECKING, Any
-
 from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
@@ -10,7 +8,6 @@ from django_tables2 import RequestConfig
 from breadcrumbs.generic import (
     CrumbsCreateView,
     CrumbsDeleteView,
-    CrumbsDetailView,
     CrumbsUpdateView,
 )
 from breadcrumbs.utils import (
@@ -29,15 +26,11 @@ from register.filters import PlantVarietyFilter
 from register.forms import PlantVarietyForm, PlantVarietyNameForm
 from register.models import PlantVariety, PlantVarietyName, Protection
 from register.tables import (
-    PlantVarietyAccessionTable,
     PlantVarietyDescriptionTable,
+    PlantVarietySampleTable,
     ProtectionTable,
     VarietalParameterTable,
 )
-
-if TYPE_CHECKING:
-    from django.models import Model
-    from django_tables2.tables import Table
 
 
 class PlantVarietyCreate(NavPlantActiveContext, CrumbsCreateView):
@@ -50,28 +43,27 @@ class PlantVarietyCreate(NavPlantActiveContext, CrumbsCreateView):
         return super().get_context_data(**kwargs)
 
 
-class PlantVarietyDetail(NavPlantActiveContext, CrumbsDetailView):
-    model = PlantVariety
-    context_object_name = "variety"
+@nav_plant_active_context
+def plantvariety_detail(request, pk):
+    variety = PlantVariety.objects.select_related("species").get(pk=pk)
+    context = {"variety": variety}
 
-    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
-        context = super().get_context_data(**kwargs)
-        # The tables to display
+    tables = {}
+    descriptions = Description.objects.with_expressions().filter(variety=pk)
+    tables["description"] = PlantVarietyDescriptionTable(descriptions)
+    samples = SeedSample.objects.with_latest_weight().filter(variety=pk)
+    tables["seedsample"] = PlantVarietySampleTable(samples)
+    protections = Protection.objects.filter(variety=pk)
+    tables["protection"] = ProtectionTable(protections)
+    parameters = VarietalParameter.objects.select_related("parameter").filter(variety=pk)
+    tables["parameter"] = VarietalParameterTable(parameters)
 
-        table_data: dict[str, dict[str, Table | Model]] = {
-            "description_table": {"table": PlantVarietyDescriptionTable, "model": Description},
-            "seedsample_table": {"table": PlantVarietyAccessionTable, "model": SeedSample},
-            "protection_table": {"table": ProtectionTable, "model": Protection},
-            "parameters_table": {"table": VarietalParameterTable, "model": VarietalParameter},
-        }
+    for key in tables:
+        RequestConfig(request, paginate={"per_page": 10}).configure(tables[key])
 
-        # Display the tables
-        for key, value in table_data.items():
-            table = value["table"](value["model"].objects.filter(variety=self.object.pk))
-            RequestConfig(self.request, paginate={"per_page": 10}).configure(table)
-            context[key] = table
-
-        return context
+    context["tables"] = tables
+    context.update(generate_breadcrumbs(request, PlantVariety, variety))
+    return TemplateResponse(request, "register/plantvariety_detail.html", context)
 
 
 class PlantVarietyUpdateView(NavPlantActiveContext, CrumbsUpdateView):

@@ -1,20 +1,13 @@
 {% load static %}
-{% load django_htmx %}
+{% load components %}
 
 <!DOCTYPE html>
-<html lang="en" data-bs-theme="{{ request.session.is_light|yesno:"light,dark" }}">
+<html lang="en" >
     <head>
 	<script src="{% static 'frontpage/bootstrap.bundle.js' %}"></script>
 	<script src="{% static 'frontpage/htmx.bundle.js' %}" type="text/javascript" defer></script>
 	<script src="{% static 'frontpage/hyperscript.bundle.js' %}" type="text/javascript" defer></script>
 	<script src="{% static 'django_sortable_htmx/sortable.bundle.js' %}" type="text/javascript" defer></script>
-	<script>
-	 function toggleTheme() {
-	     const currentTheme = document.documentElement.getAttribute('data-bs-theme');
-	     const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-	     document.documentElement.setAttribute('data-bs-theme', newTheme);
-	 }
-	</script>
 
 	{% block javascript %}
 	{% endblock %}
@@ -22,7 +15,11 @@
 	<title>Kora - {% block title %}{% endblock %}</title>
     </head>
 
-    <body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+    <body
+	hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+	data-bs-theme="{{ request.session.appearance|default:"light" }}"
+	_="on fetch:beforeRequest(headers) set headers['X-CSRFToken'] to '{{ csrf_token }}'"
+    >
 
         {% include 'frontpage/navbar.html' %}
         <div class="container">
@@ -32,7 +29,7 @@
 
         </div>
 
-        {% django_htmx_script %}
-
+	{% offcanvas "workspace" "Workspace" "describe/workspace_detail_offcanvas.html" %}
+	{% offcanvas "cart" "Cart" "collect/partials/cart_offcanvas.html" %}
     </body>
 </html>

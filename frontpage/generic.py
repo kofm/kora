@@ -1,4 +1,8 @@
+from django.utils.functional import cached_property
+
+
 class ModelIsDeletableMixin:
+    @cached_property
     def is_deletable(self):
         for field in self._meta.get_fields():
             try:

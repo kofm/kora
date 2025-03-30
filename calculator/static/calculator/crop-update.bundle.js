@@ -36,7 +36,7 @@ const tsSpecies = new TomSelect("#id_species", {
 
 const tsVariety = new TomSelect("#id_variety", {
     options: [],
-    valueField: "id",
+    valueField: "pk",
     labelField: "name",
     searchField: ["name"],
     maxItems: 1,

@@ -1,5 +1,7 @@
 from django.contrib.auth.models import User
 from django.db import models, transaction
+from django.db.models import F, RowRange, Window
+from django.db.models.functions import LastValue
 from django.db.models.query_utils import Q
 from django.urls import reverse
 from django.utils import timezone
@@ -74,14 +76,32 @@ class StoragePosition(models.Model):
         return reverse("collect:storage_detail", args=(self.storage.pk,))
 
 
+class SeedSampleQueryset(models.QuerySet):
+    def with_latest_weight(self):
+        return (
+            self.select_related("variety", "variety__species", "position", "position__storage")
+            .annotate(
+                last_weight=Window(
+                    expression=LastValue("sampleweight__weight"),
+                    partition_by=F("id"),
+                    order_by=F("sampleweight__created_at").desc(),
+                    frame=RowRange(start=None, end=None),
+                ),
+            )
+            .distinct()
+        )
+
+
 class SeedSample(ModelIsDeletableMixin, models.Model):
     sample_id = models.PositiveIntegerField(
         verbose_name="ID", help_text="An unique identificative number of the seed sample", unique=True
     )
     variety = models.ForeignKey(PlantVariety, on_delete=models.PROTECT)
-    notes = models.CharField(max_length=500, help_text="Notes relative to the seed sample", default="")
+    notes = models.CharField(max_length=500, help_text="Notes relative to the seed sample", default="", blank=True)
     growing_season = models.IntegerField(blank=True, null=True)
     position = models.ForeignKey(StoragePosition, on_delete=models.PROTECT)
+
+    objects = SeedSampleQueryset.as_manager()
 
     class Meta:
         ordering = ("-sample_id",)
@@ -139,14 +159,15 @@ class SampleWeight(models.Model):
 
 class CartManager(models.Manager):
     def active(self):
-        return self.filter(active=True).last()
+        return self.filter(is_active=True).last()
 
 
 class Cart(models.Model):
     name = models.CharField(help_text="An identificative name for your cart", max_length=100, default="Cart")
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="carts")
-    active = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=False)
     created_at = models.DateField(auto_now_add=True)
+    default_weight = models.FloatField(help_text="Default quantity to retrieve (g)", default=10)
 
     objects = CartManager()
 
@@ -154,11 +175,11 @@ class Cart(models.Model):
         constraints = (
             models.UniqueConstraint(
                 fields=("user",),
-                condition=Q(active=True),
+                condition=Q(is_active=True),
                 name="unique_user_active",
             ),
         )
-        ordering = ("-active", "name")
+        ordering = ("-is_active", "name")
 
     def __str__(self) -> str:
         return self.name
@@ -169,11 +190,9 @@ class Cart(models.Model):
 
 class CartItem(models.Model):
     sample = models.ForeignKey(SeedSample, on_delete=models.CASCADE)
-    weight = models.FloatField(
-        "quantity retrieved (g)",
-        default=0,
-    )
+    weight = models.FloatField("quantity retrieved (g)", default=0)
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE)
+    order = models.PositiveIntegerField(default=0)
 
     class Meta:
         ordering = ("sample__position",)

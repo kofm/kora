@@ -1,13 +1,10 @@
-from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.db.models import F, IntegerField, Q, Value
 from django.db.models.functions import Cast, Concat
-from django.http import HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.urls import reverse, reverse_lazy
 from django.utils.timezone import now
-from django.views.decorators.http import require_POST
 from django.views.generic import DetailView, ListView
 from django.views.generic.edit import CreateView, DeleteView
 from django_tables2 import RequestConfig
@@ -21,7 +18,6 @@ from breadcrumbs.generic import (
 from breadcrumbs.utils import add_plantvariety_breadcrumbs, generate_breadcrumbs
 from collect.filters import SeedSampleFilter
 from collect.forms import (
-    CartSelectForm,
     GerminabilityForm,
     SampleWeightForm,
     SeedSampleForm,
@@ -34,51 +30,27 @@ from collect.tables import (
     SeedSampleInStorageTable,
     SeedSampleTable,
 )
-from collect.views.carts import cartitems_sort
 from django_sortable_htmx.views import SortableView
 from register.models import PlantVariety, PlantVarietyName
 
 
 def seedsample_list(request):
-    context = {}
-
     flt = SeedSampleFilter(request.GET)
-    table = SeedSampleTable(flt.qs)
-    RequestConfig(request, paginate={"per_page": 15}).configure(table)
-    context.update(
-        {
-            "table": table,
-            "filter": flt,
-        }
-    )
+    queryset = flt.qs.with_latest_weight()
 
-    if request.user.is_authenticated:
-        cart = request.user.carts.active() or None
-        context["cart"] = cart
-        if cart:
-            context["cartitems"] = cartitems_sort(request, cart.cartitem_set.all())
-        cart_select_form = CartSelectForm(initial={"cart": cart}, user=request.user)
-        context["cart_select_form"] = cart_select_form
+    table = SeedSampleTable(queryset)
+    RequestConfig(request, paginate={"per_page": 15}).configure(table)
+
+    context = {"table": table, "filter": flt}
 
     template_file = "collect/seedsample_list.html"
 
-    if request.htmx:
+    if request.headers.get("HX-Request") == "true":
         template_file = "collect/partials/seedsample_table.html"
 
     context.update(generate_breadcrumbs(request, SeedSample))
 
     return TemplateResponse(request, template_file, context)
-
-
-@require_POST
-@login_required
-def cart_change(request):
-    form = CartSelectForm(request.POST, user=request.user)
-    if form.is_valid():
-        cart = form.save()
-        cartitems = cartitems_sort(request, cart.cartitem_set.all())
-        return TemplateResponse(request, "collect/partials/cart_offcanvas.html", {"cart": cart, "cartitems": cartitems})
-    return HttpResponseBadRequest()
 
 
 def seedsample_detail(request, pk):

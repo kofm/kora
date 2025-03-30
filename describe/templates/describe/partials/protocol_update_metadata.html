@@ -8,14 +8,16 @@
         </div>
         <div class="card-body">
             <div class="form-floating mb-3">
-                <!-- <input type="email" class="form-control" id="floatingInput" placeholder="name@example.com"> -->
                 {{ form.name }}
                 <label for="{{ form.name.id_for_label }}">Name</label>
             </div>
-            <div class="form-floating">
-                <!-- <input type="password" class="form-control" id="floatingPassword" placeholder="Password"> -->
+            <div class="form-floating mb-3">
                 {{ form.url_ref }}
                 <label for="{{ form.url_ref.id_for_label }}">Reference URL</label>
+            </div>
+            <div class="form-floating">
+                {{ form.order }}
+                <label for="{{ form.order.id_for_label }}">Order</label>
             </div>
         </div>
         <div class="card-footer d-flex justify-content-end">

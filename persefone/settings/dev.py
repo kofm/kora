@@ -3,21 +3,22 @@ from .base import *
 DEBUG = True
 STATIC_ROOT = "static/"
 SHELL_PLUS = "ipython"
+
+INSTALLED_APPS = [
+    "debug_toolbar",
+    "django_extensions",
+] + INSTALLED_APPS
+
 INTERNAL_IPS = [
     "127.0.0.1",
+    "localhost",
 ]
-# LOGGING = {
-#     'version': 1,
-#     'disable_existing_loggers': False,
-#     'handlers': {
-#         'console': {
-#             'class': 'logging.StreamHandler',
-#         },
-#     },
-#     'loggers': {
-#         'django.db.backends': {
-#             'handlers': ['console'],
-#             'level': 'DEBUG',
-#         },
-#     },
-# }
+
+MIDDLEWARE = [
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
+] + MIDDLEWARE
+
+DEBUG_TOOLBAR_CONFIG = {
+    "SHOW_TOOLBAR_CALLBACK": lambda r: True,  # disables it
+    # '...
+}

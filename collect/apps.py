@@ -7,8 +7,8 @@ class CollectConfig(AppConfig):
     name = "collect"
 
     def ready(self):
-        from . import signals
+        from collect import signals
 
-        # Signal to make inactive, i.e. active=False, all the other user's Cart
+        # Signal to make inactive, i.e. is_active=False, all the other user's Cart
         # instances when selecting a new Cart instance
         pre_save.connect(signals.unique_cart_active, sender="collect.Cart")

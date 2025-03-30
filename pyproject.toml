@@ -23,14 +23,8 @@ repository = "https://github.com/kofm/kora"
 
 [tool.ruff]
 
-line-length = 120
-
 target-version = "py311"
-
-select = ["A", "B", "C4", "E", "F", "I", "DJ", "INP", "TID", "UP", "YTT"]
-ignore = ["INP001"]
-
-# Exclude a variety of commonly ignored directories.
+line-length = 120
 exclude = [
     "**/migrations/*.py",
     ".venv",
@@ -43,13 +37,17 @@ exclude = [
     "site-packages",
 ]
 
+[tool.ruff.lint]
 
-# Allow autofix for all enabled rules (when `--fix`) is provided.
+select = ["A", "B", "C4", "E", "F", "I", "DJ", "INP", "TID", "UP", "YTT"]
+ignore = ["INP001"]
 fixable = ["A", "B", "C4", "E", "F", "I", "TID", "UP"]
 unfixable = []
-
-# Allow unused variables when underscore-prefixed.
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 
 [tool.ruff.lint.pydocstyle]
 convention = "pep257"
+
+[tool.pylsp.plugins.ruff]
+enabled = true
+format = ["I"]

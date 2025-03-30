@@ -25,8 +25,11 @@
                 <tbody>
                     {% for trait in protocol.traits.all %}
                         <tr>
-                            <td rowspan="{{ trait.states.count|default:1 }}">{{ trait.numeric_id }}</td>
-                            <td rowspan="{{ trait.states.count|default:1 }}" {% if trait.grouping %}class="text-decoration-underline"{% endif %}>{{ trait.description }}</td>
+                            <td rowspan="{{ trait.states.all|length|default:1 }}">{{ trait.numeric_id }}</td>
+                            <td rowspan="{{ trait.states.all|length|default:1 }}" {% if trait.grouping %}class="fw-bold"{% endif %}>
+			      {{ trait.description }}
+			      {% if trait.grouping %}&#10033;{% endif %}
+			    </td>
 
                             {% for state in trait.states.all %}
                                 <td>{{ state.numeric_id }}</td>
