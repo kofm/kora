@@ -21,9 +21,10 @@ from render_block import render_block_to_string
 from breadcrumbs.generic import DeleteBreadcrumbsMixin
 from breadcrumbs.utils import add_plantvariety_breadcrumbs, generate_breadcrumbs
 from describe.forms import (
-    DescriptionFilterForm,
+    DescriptionNameForm,
     DescriptionForm,
     DescriptionUpdateForm,
+    DescriptionVarietyForm,
     ExpressionFilterFormSet,
     ExpressionForm,
     ProtocolForm,
@@ -44,6 +45,7 @@ from describe.views.utils import (
     update_description_filter,
 )
 from frontpage.views_decorators import nav_active
+from register.filters import filter_name_generic
 from register.models import PlantVariety
 
 CharField.register_lookup(Lower)
@@ -58,7 +60,7 @@ def description_list(request):
 
     if request.method == "POST":
         if "name" in request.POST:
-            form = DescriptionFilterForm(request.POST)
+            form = DescriptionNameForm(request.POST)
             if form.is_valid():
                 names = form.cleaned_data["name"]
                 update_description_filter(request, name=names)
@@ -80,7 +82,13 @@ def description_list(request):
 
     descriptions = process_description_filter(Description.objects.with_expressions(), description_filter)
 
-    if request.GET.get("export") == "true":
+    if "variety" in request.GET:
+        form = DescriptionVarietyForm(request.GET)
+        if form.is_valid():
+            variety_name = form.cleaned_data["variety"]
+            descriptions = filter_name_generic(descriptions, "variety__name", variety_name)
+
+    if "export" in request.GET:
         return render_export_file_to_response(
             protocol_id,
             description_filter["expressions"],
@@ -100,9 +108,10 @@ def description_list(request):
         return HttpResponse(table_block)
 
     traits = Trait.objects.filter(protocol=protocol_id).with_states()
+    context["form_variety"] = DescriptionVarietyForm()
     context["form_protocol"] = ProtocolForm(initial={"protocol": protocol_id})
     context["form_strict"] = ProtocolStrictSearchForm(initial={"strict": description_filter["strict"]})
-    context["form_name"] = DescriptionFilterForm(initial={"name": description_filter["name"]})
+    context["form_name"] = DescriptionNameForm(initial={"name": description_filter["name"]})
     context["formset"] = ExpressionFilterFormSet(traits=traits, expressions=description_filter["expressions"])
     context["table"] = table
     context.update(generate_breadcrumbs(request, Description))

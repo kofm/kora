@@ -141,9 +141,7 @@ def render_filter_expression_to_text(filter_expression):
 
 def render_search_info(protocol_id):
     protocol = Protocol.objects.get(id=protocol_id)
-    return render_header("Description Search") + [
-        f"Protocol: {protocol.name}",
-    ]
+    return render_header("Description Search") + [f"Protocol: {protocol.name}"]
 
 
 def render_description_list(descriptions):
@@ -172,7 +170,7 @@ def init_description_filter(request: HttpRequest):
 
     if "description_filter" not in request.session:
         request.session["description_filter"] = {
-            "protocol": Protocol.objects.most_used().pk,
+            "protocol": Protocol.objects.first().pk,
             "strict": False,
             "name": [],
             "expressions": {},

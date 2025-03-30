@@ -75,13 +75,16 @@ class ExpressionUpdateForm(forms.Form):
     note = forms.CharField(required=False)
 
 
-class DescriptionFilterForm(forms.Form):
-    # variety = forms.CharField(widget=DescriptorTextInput(), required=False)
+class DescriptionNameForm(forms.Form):
     name = forms.MultipleChoiceField(
         choices=[("", "")] + Description.names(),
         widget=forms.SelectMultiple(attrs={"class": "form-select"}),
         required=False,
     )
+
+
+class DescriptionVarietyForm(forms.Form):
+    variety = forms.CharField(widget=DescriptorTextInput(), required=False)
 
 
 class ProtocolForm(forms.Form):
