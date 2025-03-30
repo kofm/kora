@@ -47,7 +47,12 @@
       <div class="col">
 
 	<h2>Search</h2>
-	<div id="buttons" class="d-flex justify-content-end"></div>
+	<div id="buttons" class="d-flex justify-content-start gap-2 my-2">
+	  <a href="{% querystring reset='false' export='true' %}" class="btn btn-sm btn-outline-secondary">
+	    <i class="bi bi-download me-1"></i>
+	    Export
+	  </a>
+	</div>
 
 	{% block protocol_filter %}
 	  <form
@@ -55,6 +60,7 @@
 	    hx-get="{% url 'describe:description_form' %}"
 	    hx-trigger="change" hx-target="#expression_filter"
 	    hx-swap-oob="true"
+	    autocomplete="off"
 	    hx-on::after-request="htmx.ajax('GET', '{% url 'describe:description_list' %}', {target: '#table', indicator: '#spinner'})"
 	  >
 	    {{ form_protocol }}
@@ -62,6 +68,7 @@
 	{% endblock %}
 
 	<form id="strictForm" hx-post="{% url 'describe:filter_update_strict' %}"
+	  autocomplete="off"
 	  hx-trigger="change" hx-target="#table" hx-indicator="#spinner">
 	  <div class="form-check my-2">
 	    {{ form_strict.strict }}
@@ -72,6 +79,7 @@
 	</form>
 
 	<form id="nameForm"
+	  autocomplete="off"
 	  hx-post="{% url 'describe:filter_update_name' %}"
 	  hx-trigger="change" hx-target="#table" hx-indicator="#spinner"
 	>
@@ -85,6 +93,7 @@
 	  {% block expression_filter %}
 	    {% url 'describe:filter_update_expressions' as formset_url %}
 	    <form
+	      autocomplete="off"
 	      hx-post="{{ formset_url }}" hx-trigger="change" hx-target="#table"
 	      hx-indicator="#spinner">
 	      {{ formset.management_form }}

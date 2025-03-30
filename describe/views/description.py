@@ -12,6 +12,7 @@ from django.http import HttpResponse, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.urls import reverse, reverse_lazy
+from django.utils.http import urlencode
 from django.views.decorators.http import require_POST
 from django.views.generic import DeleteView
 from django_tables2 import RequestConfig
@@ -37,6 +38,8 @@ from describe.views.utils import (
     make_species_descriptions_dict,
     make_species_protocols_dict,
     make_traits_expressions_dict,
+    process_description_filter,
+    render_export_file_to_response,
     reset_description_filter,
     update_description_filter,
 )
@@ -52,27 +55,23 @@ nav_describe = nav_active("nav_describe")
 def description_list(request):
     context = {}
 
-    if not request.headers.get("HX-Request") == "true":
+    reset = request.GET.get("reset") != "false"
+    if not request.headers.get("HX-Request") == "true" and reset:
         reset_description_filter(request)
 
     template_name = "describe/description_list.html"
 
-    descriptions = Description.objects.with_expressions()
-
     description_filter = init_description_filter(request)
     protocol_id = description_filter["protocol"]
-    expression_filter = description_filter["expressions"]
-    name_filter = description_filter["name"]
-    strict_filter = description_filter["strict"]
 
-    if strict_filter:
-        descriptions = descriptions.filter(protocol_id=protocol_id)
+    descriptions = process_description_filter(Description.objects.with_expressions(), description_filter)
 
-    if name_filter:
-        descriptions = descriptions.filter(name__in=name_filter)
-
-    if expression_filter:
-        descriptions = descriptions.filter_by_expressions(expression_filter)
+    if request.GET.get("export") == "true":
+        return render_export_file_to_response(
+            protocol_id,
+            description_filter["expressions"],
+            descriptions,
+        )
 
     table = DescriptionTable(descriptions)
     RequestConfig(request, paginate={"per_page": 10}).configure(table)
@@ -86,22 +85,12 @@ def description_list(request):
         )
         return HttpResponse(table_block)
 
-    form_protocol = ProtocolForm(initial={"protocol": protocol_id})
-    form_name = DescriptionFilterForm(initial={"name": name_filter})
-    form_strict = ProtocolStrictSearchForm(initial={"strict": strict_filter})
     traits = Trait.objects.filter(protocol=protocol_id).with_states()
-    formset = ExpressionFilterFormSet(traits=traits, expressions=expression_filter)
-
-    context.update(
-        {
-            "table": table,
-            "form_protocol": form_protocol,
-            "formset": formset,
-            "form_name": form_name,
-            "form_strict": form_strict,
-        }
-    )
-
+    context["form_protocol"] = ProtocolForm(initial={"protocol": protocol_id})
+    context["form_strict"] = ProtocolStrictSearchForm(initial={"strict": description_filter["strict"]})
+    context["form_name"] = DescriptionFilterForm(initial={"name": description_filter["name"]})
+    context["formset"] = ExpressionFilterFormSet(traits=traits, expressions=description_filter["expressions"])
+    context["table"] = table
     context.update(generate_breadcrumbs(request, Description))
 
     return TemplateResponse(request, template_name, context)
@@ -185,7 +174,9 @@ def description_find_similar(request):
     update_description_filter(request, expressions=dict(filter_expression), protocol=protocol_id)
 
     if not request.headers.get("HX-Request") == "true":
-        return redirect(reverse("describe:description_list"))
+        url = reverse("describe:description_list")
+        query_string = urlencode({"reset": "false"})
+        return redirect(f"{url}?{query_string}")
 
     traits = Trait.objects.filter(protocol=protocol_id).prefetch_related("states").order_by("numeric_id")
     form = ProtocolForm(initial={"protocol": protocol_id})

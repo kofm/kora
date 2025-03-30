@@ -24,7 +24,7 @@
     </a></p>
 
   <div class="my-3">
-    <a class="btn btn-sm btn-outline-secondary" href="{% url 'describe:description_find_similar' %}?description_id={{ description.pk }}">
+    <a class="btn btn-sm btn-outline-secondary" href="{% url 'describe:description_find_similar' %}{% querystring description_id=description.pk %}">
       <i class="bi bi-search"></i>
       Find Similar
     </a>

@@ -1,5 +1,5 @@
 <a href="#"
-  class="btn btn-sm btn-outline-secondary"
+  class="btn btn-sm btn-outline-secondary rounded-circle"
   hx-get="{% url 'describe:description_find_similar' %}"
   hx-target="#expression_filter"
   hx-vals='{"description_id": "{{ record.pk }}"}'
@@ -8,7 +8,7 @@
   <i class="bi bi-search"></i>
 </a>
 <a href="#"
-  class="btn btn-sm btn-outline-secondary"
+  class="btn btn-sm btn-outline-secondary rounded-circle"
   hx-post="{% url 'describe:workspace_element_create' %}"
   hx-vals='{"description_id": "{{ record.pk }}"}'
   hx-target="#workspaceBody">

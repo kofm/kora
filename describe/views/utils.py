@@ -3,15 +3,9 @@ from datetime import datetime
 from itertools import groupby
 
 from django.db.models import QuerySet
-from django.forms import BaseFormSet
 from django.http import HttpRequest, HttpResponse
-from django.urls import reverse
 
-from describe.forms import (
-    DescriptionFilterForm,
-    ExpressionFilterFormSet,
-)
-from describe.models import Protocol, State
+from describe.models import Description, Protocol, State
 from register.filters import filter_name_generic
 
 
@@ -120,7 +114,7 @@ def render_header(string):
 
 
 def render_filter_expression_to_text(filter_expression):
-    states = [state for states in filter_expression for state in states]
+    states = [state for _, states in filter_expression.items() for state in states]
     states = (
         State.objects.filter(pk__in=states)
         .select_related("trait")
@@ -145,7 +139,8 @@ def render_filter_expression_to_text(filter_expression):
     return text
 
 
-def render_search_info(protocol):
+def render_search_info(protocol_id):
+    protocol = Protocol.objects.get(id=protocol_id)
     return render_header("Description Search") + [
         f"Protocol: {protocol.name}",
     ]
@@ -190,3 +185,21 @@ def update_description_filter(request, **kwargs):
     for key, value in kwargs.items():
         request.session["description_filter"][key] = value
     request.session.modified = True
+
+
+def process_description_filter(descriptions: QuerySet[Description], description_filter: dict) -> QuerySet[Description]:
+    protocol_id = description_filter["protocol"]
+    expression_filter = description_filter["expressions"]
+    name_filter = description_filter["name"]
+    strict_filter = description_filter["strict"]
+
+    if strict_filter:
+        descriptions = descriptions.filter(protocol_id=protocol_id)
+
+    if name_filter:
+        descriptions = descriptions.filter(name__in=name_filter)
+
+    if expression_filter:
+        descriptions = descriptions.filter_by_expressions(expression_filter)
+
+    return descriptions
