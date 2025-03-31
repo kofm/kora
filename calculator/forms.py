@@ -31,10 +31,7 @@ class CropParameterForm(DynamicFormMixin, forms.ModelForm):
     class Meta:
         model = CropParameter
         fields = ("value", "parameter", "crop")
-        widgets = {
-            "crop": HiddenInput(),
-            "value": NumberInput()
-        }
+        widgets = {"crop": HiddenInput(), "value": NumberInput()}
 
     def save(self, commit: bool = ...) -> Model:
         parameter = self.cleaned_data["parameter"]
@@ -49,9 +46,7 @@ class CropParameterForm(DynamicFormMixin, forms.ModelForm):
         forms.CharField,
         # initial = lambda form: form["parameter"].value(),
         initial=get_parameter_value,
-        widget=lambda _: forms.TextInput(
-            attrs={"class": "form-control my-3", "type": "numeric"}
-        ),
+        widget=lambda _: forms.TextInput(attrs={"class": "form-control my-3", "type": "numeric"}),
     )
 
 
@@ -87,12 +82,8 @@ class CropManagementForm(forms.ModelForm):
 class CropModelForm(forms.ModelForm):
     # species = forms.CharField(label="Species")
     # variety = forms.CharField(label="Variety", required=False)
-    sowing = forms.DateField(
-        label="Sowing", required=False, widget=DateInput(attrs={"type": "date"})
-    )
-    harvest = forms.DateField(
-        label="Harvest", required=False, widget=DateInput(attrs={"type": "date"})
-    )
+    sowing = forms.DateField(label="Sowing", required=False, widget=DateInput(attrs={"type": "date"}))
+    harvest = forms.DateField(label="Harvest", required=False, widget=DateInput(attrs={"type": "date"}))
 
     class Meta:
         fields = ["species", "variety", "area", "notes"]
@@ -129,8 +120,6 @@ class CartItemWeightForm(forms.ModelForm):
         weight = cleaned_data.get("weight")
         if weight > self.instance.sample.weight:
             raise ValidationError(
-                "Quantity retrieved cannot exceed the sample weight ("
-                + self.instance.sample.variety.name
-                + ")"
+                "Quantity retrieved cannot exceed the sample weight (" + self.instance.sample.variety.name + ")"
             )
         return cleaned_data

@@ -1,16 +1,16 @@
+from django import forms
+from django.db.models import Q
 from django_countries.fields import CountryField
 from django_filters import (
     BooleanFilter,
     CharFilter,
+    ChoiceFilter,
     Filter,
     FilterSet,
     ModelMultipleChoiceFilter,
-    ChoiceFilter,
 )
 
-from django import forms
-from django.db.models import Q
-from register.models import PlantSpecies, PlantVariety, Protection, PROTECTION_STATUS_CHOICES
+from register.models import PROTECTION_STATUS_CHOICES, PlantSpecies, PlantVariety, Protection
 
 TRIGRAM_SEARCH_THRESHOLD = 7
 

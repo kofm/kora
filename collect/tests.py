@@ -1,4 +1,5 @@
 from django.test import TestCase
+
 from collect.models import Germinability, SeedSample, Storage, StoragePosition
 from collect.tables import SeedSampleTableMixin
 from register.models import Entity, PlantSpecies, PlantVariety
@@ -32,6 +33,7 @@ class SeedSampleTestCase(TestCase):
 
 from django.test import TestCase
 from django.urls import reverse
+
 from .models import Storage, StoragePosition
 
 

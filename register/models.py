@@ -1,10 +1,10 @@
 from datetime import date
 
-from django_countries.fields import CountryField
-
 from django.db import models
 from django.urls.base import reverse
 from django.utils.html import format_html
+from django_countries.fields import CountryField
+
 from frontpage.generic import ModelIsDeletableMixin
 
 INDIVIDUAL = "IN"
@@ -131,9 +131,6 @@ class PlantVariety(ModelIsDeletableMixin, models.Model):
 
     def get_delete_url(self):
         return reverse("register:variety_delete", args=[self.pk])
-
-    def other_names(self):
-        return self.names.exclude(name=self.name)
 
     def has_breeder(self):
         return bool(self.breeder)

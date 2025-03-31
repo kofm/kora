@@ -1,10 +1,11 @@
-from typing import List
-
-from calculator.models import Crop
-import time
 import datetime
 import os
+import time
+from typing import List
+
 import pandas as pd
+
+from calculator.models import Crop
 
 
 class CropModel:
@@ -21,17 +22,13 @@ class CropModel:
         self.area = self.object.area
 
     def can_run(self):
-        available_params = list(
-            self.object.parameters.values_list("parameter__code", flat=True)
-        )
+        available_params = list(self.object.parameters.values_list("parameter__code", flat=True))
         available_params = available_params + list(
             self.object.species.parameters.values_list("parameter__code", flat=True)
         )
         if self.object.has_variety():
             available_params = available_params + list(
-                self.object.variety.species.parameters.values_list(
-                    "parameter__code", flat=True
-                )
+                self.object.variety.species.parameters.values_list("parameter__code", flat=True)
             )
         return all(x in available_params for x in set(self.inputs))
 
@@ -52,13 +49,11 @@ class CropModel:
             # Read CSV data. This will change in the future e.g. with a method
             # to retrieve the weather data associated with the Location. This
             # should be in the abstract class
-            weather_data = pd.read_csv(
-                "raw_data/weather.csv", index_col="date", parse_dates=True
-            )
+            weather_data = pd.read_csv("raw_data/weather.csv", index_col="date", parse_dates=True)
             # Filter only necessary columns, and only selected year
-            weather_data = pd.DataFrame(
-                weather_data, columns=["tave", "tmin", "tmax", "rad"]
-            )[weather_data.index.year == self.year]
+            weather_data = pd.DataFrame(weather_data, columns=["tave", "tmin", "tmax", "rad"])[
+                weather_data.index.year == self.year
+            ]
             return weather_data
         else:
             return None
@@ -81,6 +76,7 @@ class CropModel:
         context["model_name"] = self.model_name
         context["measure_unit"] = self.measure_unit
         return context
+
 
 class ModelBasePlots:
     def __init__(self, year: int):

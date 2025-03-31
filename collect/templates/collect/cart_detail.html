@@ -1,87 +1,111 @@
-{% extends "frontpage/base.html" %}
+{% load render_sortable %}
+{% load crispy_forms_tags %}
 
-{% load static %}
+<style>
+ .asteriskField {
+   display: none;
+ }
+</style>
 
-{% block javascript %}
+<script>
+ document.body.addEventListener('htmx:afterSwap', function(event) {
+   const input = document.querySelector("#id_name");
+   if (input && input.type === 'text')
+   {
+     input.focus();
+     input.setSelectionRange(0, input.value.length);
+   }
+ });
+</script>
 
-{% endblock %}
-
-{% block title %}
-{{ object.name }}
-{% endblock %}
-
-{% block container %}
-<!-- NavBar -->
-<nav aria-label="breadcrumb">
-  <ol class="breadcrumb">
-    <li class="breadcrumb-item"><a href="{% url 'collect:seedsample_list' %}">Accessions</a></li>
-    <li class="breadcrumb-item active" aria-current="page">{{ cart.name }}</li>
-  </ol>
-</nav>
-
-<p class="display-1">{{ cart.name }}</p>
-<div id="alert-box" class="alert alert-danger" role="alert" style="display:none">
-</div>
-<script src="{% static 'collect/cart.bundle.js' %}"></script>
-<div class="row">
-  <div class="col">
-    <div class="btn-group" role="group" aria-label="Toolbar">
-      <a class="btn btn-outline-primary" href="{% url 'collect:cart-delete' cart.pk %}">Clear</a>
-      <a class="btn btn-outline-primary" href="{% url 'collect:cart-labels' cart.pk %}">Labels</a>
-      <a class="btn btn-outline-primary" href="{% url 'collect:cart-retrieve' %}">Retrieve</a>
-    </div>
+<div class="d-flex align-items-end">
+  <div class="flex-grow-1">
+    {% crispy cart_form %}
   </div>
-  <div class="col-3">
-    <div class="input-group mb-3">
-      <button
-        class="btn btn-outline-secondary"
-        type="submit"
-        id="button-set-selected"
-        hx-post="{% url 'collect:cartitem-update-sel-hx' %}"
-        hx-trigger="click"
-        hx-include="#weight_selected, #cartitem_pk"
-        hx-swap="none"
-        >
-        Selected
-      </button>
-      <input id="weight_selected" name="weight_selected" type="number" class="form-control" placeholder="Set amount" aria-label="Amount" aria-describedby="basic-addon2">
-      <span class="input-group-text" id="basic-addon2">g</span>
-    </div>
-  </div>
-  <div class="col-3">
-    <form method="post">
-      {% csrf_token %}
-      <div class="input-group mb-3">
-        <button class="btn btn-outline-secondary" type="submit" id="button-addon1">All</button>
-        <input name="weight" type="number" class="form-control" placeholder="Set amount" aria-label="Amount" aria-describedby="basic-addon2">
-        <span class="input-group-text" id="basic-addon2">g</span>
-      </div>
-    </form>
-  </div>
-  <div class="col">
-    <form id="search-form">
-      {% csrf_token %}
-        <input _="on keyup if the event's key is 'Escape' set my value to '' trigger keyup" hx-include="#search-form" hx-get="{% url 'collect:cart-detail-hx' cart.pk %}" hx-target="#cartitem-table" hx-trigger="keyup changed delay:100ms" id="search" name="search" type="text" class="form-control" placeholder="Search" aria-label="Search samples" aria-describedby="button-addon2">
-    </form>
-  </div>
-</div>
-{% if cartitem_weight_errors %}
-<div class="row my-3">
-  <div class="col">
-    <div class="alert alert-warning alert-dismissible fade show" role="alert">
-      Some items could not be set to the desired quantity.
-      They have been set to the maximum amount available, i.e.:
-      {% for error in cartitem_weight_errors %}
-      <li>{{ error }}</li>
-      {% endfor %}
-      </ul>
-      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  <div class="dropdown mb-3">
+
+    <button
+      class="btn btn-outline-secondary dropdown-toggle ms-1"
+      type="button"
+      data-bs-toggle="dropdown"
+      aria-expanded="false">
+
+      <i class="bi bi-list"></i>
+
+    </button>
+
+    <div class="dropdown-menu" hx-target="#cartBody">
+
+      <a class="dropdown-item" href="#" hx-get="{% url "collect:cart_create" %}">Create</a>
+
+      <a class="dropdown-item {% if not cart %}disabled{% endif %}"
+		{% if not cart %}aria-disabled="true"{% endif %}
+		href="#"
+		{% if cart %}hx-get="{% url "collect:cart_update" cart.pk %}"{% endif %}>
+	Rename
+      </a>
+
+      <a class="dropdown-item {% if not cart %}disabled{% endif %}"
+		{% if not cart %}aria-disabled="true"{% endif %}
+		{% if cart %}href="{% url "collect:cart_retrieve" cart.pk %}"{% endif %}>
+	Retrieve
+      </a>
+
+      <a
+	class="dropdown-item {% if not cart %}disabled{% endif %}"
+	{% if not cart %}aria-disabled="true"{% endif %}
+	href="{% if cart %}{% url 'restapi:cartitems' cart.pk %}?format=json{% endif %}"
+	target="_blank">
+	Download
+      </a>
+
+      <a class="dropdown-item {{ cart|yesno:",disabled" }}"
+		{% if not cart %}aria-disabled="true"{% endif %}
+		href="{% if cart %}{% url 'collect:cart_delete' cart.pk %}{% endif %}">
+	Delete
+      </a>
+
     </div>
   </div>
 </div>
+
+<div>
+  {% if default_weight_form %}
+    {% crispy default_weight_form %}
+  {% endif %}
+</div>
+
+{% if items %}
+  <div class="d-flex gap-2 me-2 my-2 h6 justify-content-end" hx-target="#cartBody">
+    {% url 'collect:cartitem_set_sorting' as sorting_url %}
+
+    <small class="text-muted">Sort</small>
+
+    <a class="link-body-emphasis text-decoration-none" href="#">
+      <i class="bi bi-sort-alpha-down" hx-get="{{ sorting_url }}" hx-vals='{"sort": "variety"}'></i>
+    </a>
+
+    <a class="link-body-emphasis text-decoration-none" href="#">
+      <i class="bi bi-sort-down" hx-get="{{ sorting_url }}" hx-vals='{"sort": "position"}'></i>
+    </a>
+
+    <a class="link-body-emphasis text-decoration-none" href="#">
+      <i class="bi bi-sort-numeric-down-alt" hx-get="{{ sorting_url }}" hx-vals='{"sort": "growing_season"}'></i>
+    </a>
+
+    <a class="link-body-emphasis text-decoration-none" href="#">
+      <i class="bi bi-list-ol" hx-get="{{ sorting_url }}" hx-vals='{"sort": "manual"}'></i>
+    </a>
+
+  </div>
+
+{% render_sortable items "cart" "list-group" "collect:cartitem_sort" "collect/partials/cart_list_item.html" %}
+{% elif cart %}
+  <p class="text-muted mt-5">
+    This cart is currently empty. Add descriptions by clicking the plus symbol next to each sample in the main pane.
+  </p>
+{% else %}
+  <p class="text-muted mt-5">
+    To start using carts, first create a new one or choose an existing cart from the list.
+  </p>
 {% endif %}
-<div class="row mt-3">
-  <div id="cartitem-table" class="col" hx-get="{% url 'collect:cart-detail-hx' cart.pk  %}" hx-target="this" hx-swap="innerHTML" hx-trigger="load">
-  </div>
-</div>
-{% endblock %}

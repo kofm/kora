@@ -2,11 +2,14 @@
 
 from django.contrib.auth.models import User
 from django.db import models
-from django.db.models import QuerySet
+from django.db.models import F
 from django.db.models.aggregates import Count
-from django.db.models.functions import Coalesce, Concat
+from django.db.models.functions import Coalesce
+from django.db.models.query_utils import Q
+from django.db.utils import OperationalError, ProgrammingError
 from django.urls import reverse
 from django.utils.functional import cached_property
+
 from frontpage.generic import ModelIsDeletableMixin
 from register.models import PlantSpecies, PlantVariety
 
@@ -29,10 +32,11 @@ class Protocol(ModelIsDeletableMixin, models.Model):
         help_text="reference to the specie it is meant to use with",
     )
     url_ref = models.URLField(verbose_name="URL", blank=True, default="", help_text="the URL reference to the protocol")
+    order = models.PositiveIntegerField(default=0)
     objects = ProtocolManager()
 
     class Meta:
-        ordering = ("name",)
+        ordering = ("order", "name")
 
     def __str__(self):
         return f"{self.name} ({self.plantspecies.latin_name})"
@@ -46,51 +50,86 @@ class Protocol(ModelIsDeletableMixin, models.Model):
     def get_delete_url(self):
         return reverse("describe:protocol_delete", args=(self.pk,))
 
-    def traits_list(self):
-        return self.traits.all().order_by("numeric_id").values("pk", "numeric_id", "description")
+    def with_traits_and_states(self):
+        return Trait.objects.filter(protocol=self.id).prefetch_related("states").order_by("numeric_id")
 
-    def traits_states_list(self):
-        state_description_annotation = {
-            "state_description": Concat(
-                "numeric_id",
-                models.Value(". "),
-                "description",
-                output_field=models.CharField(),
+
+class DescriptionQuerySet(models.QuerySet):
+    def filter_by_expressions(self, expressions_filter: dict):
+        """Filter Descriptions by Expression.
+
+        Multiple values for the same Trait are considered as
+        alternatives (OR).
+
+        Values referring to different Traits are considered as
+        conjunctions (AND).
+
+        Example:
+
+        For the same trait (e.g., "Stem: length"), multiple values
+        like "short" and "medium" are treated as alternatives (OR) -
+        meaning either "short" OR "medium" will match.
+
+        For different traits (e.g., "Stem: length" AND "Flower:
+        color"), the conditions are treated as conjunctions (AND) -
+        meaning both conditions must be satisfied for a match.
+
+        An empty filter will return zero Description.
+        """
+        if not expressions_filter:
+            return self.none()
+
+        expressions_list = [val for key, val in expressions_filter.items()]
+
+        def get_filter_query(expressions: list) -> Q:
+            query = Q(expressions__state__id__in=expressions)
+            query |= Q(expressions__state__related_states__id__in=expressions)
+
+            return query
+
+        query = get_filter_query(expressions_list[0])
+
+        result = self.prefetch_related("expressions__state").filter(query).distinct()
+
+        for expressions in expressions_list[1:]:
+            query = get_filter_query(expressions)
+            query_set = self.filter(query).distinct()
+            result = result.intersection(query_set)
+
+        return result
+
+    def with_expressions(self):
+        return (
+            self.select_related("variety", "protocol", "variety__species")
+            .prefetch_related("expressions", "protocol__traits")
+            .all()
+        )
+
+    def annotated(self):
+        return (
+            self.select_related("variety__species")
+            .select_related("protocol__plantspecies")
+            .prefetch_related("expressions")
+            .values(
+                "variety__id",
+                "variety__name",
+                "name",
+                species_id=F("protocol__plantspecies__id"),
+                species_name=F("protocol__plantspecies__common_name"),
+                state_id=F("expressions__state__id"),
+                note=F("expressions__note"),
             )
-        }
-        return [
-            {
-                "pk": trait["pk"],
-                "numeric_id": trait["numeric_id"],
-                "description": trait["description"],
-                "states": list(
-                    State.objects.filter(trait=trait["pk"])
-                    .annotate(**state_description_annotation)
-                    .values("pk", "numeric_id", "state_description")
-                ),
-            }
-            for trait in self.traits_list()
-        ]
-
-
-class DescriptionManager(models.Manager):
-    def filter_by_expressions(self, expressions_filter: list[dict[str, list]]) -> QuerySet:
-        description_ids = None
-        for flt in expressions_filter:
-            query_result = self.filter(
-                models.Q(expressions__state__id__in=flt["state"])
-                | models.Q(expressions__state__related_states__id__in=flt["state"])
-            ).values_list("pk", flat=True)
-            description_ids = query_result if description_ids is None else description_ids.intersection(query_result)
-        return self.filter(pk__in=list(description_ids)).select_related("variety").select_related("protocol")
+            .order_by(
+                "species_id",
+                "species_name",
+                "variety__id",
+                "variety__name",
+                "name",
+            )
+        )
 
 
 class Description(ModelIsDeletableMixin, models.Model):
-    """Stores the Descriptions.
-
-    A description is a collection of Expressions.
-    """
-
     name = models.CharField(max_length=200, help_text="The identifier of the description")
     protocol = models.ForeignKey(
         Protocol,
@@ -105,7 +144,7 @@ class Description(ModelIsDeletableMixin, models.Model):
         help_text="The variety to which the description refers to",
     )
 
-    objects = DescriptionManager()
+    objects = DescriptionQuerySet.as_manager()
 
     class Meta:
         ordering = ("variety__name",)
@@ -124,20 +163,23 @@ class Description(ModelIsDeletableMixin, models.Model):
 
     @classmethod
     def names(cls):
-        queryset = cls.objects.all().order_by("name").values_list("name", flat=True).distinct("name")
-        return [(name, name) for name in queryset]
+        try:
+            queryset = cls.objects.order_by("name").values_list("name", flat=True).distinct()
+            return [(name, name) for name in queryset]
+        except (ProgrammingError, OperationalError) as e:
+            return []
 
     @cached_property
     def available_traits(self):
         return self.protocol.traits.all()
 
 
+class TraitQuerySet(models.QuerySet):
+    def with_states(self):
+        return self.prefetch_related("states").order_by("numeric_id")
+
+
 class Trait(models.Model):
-    """Store the Traits.
-
-    Traits can have multiple states of expression.
-    """
-
     numeric_id = models.IntegerField(
         null=True,
         blank=True,
@@ -157,9 +199,9 @@ class Trait(models.Model):
     )
     grouping = models.BooleanField(default=False, help_text="Is this a highly discriminating characteristic?")
 
-    class Meta:
-        """Trait model Meta class."""
+    objects = TraitQuerySet.as_manager()
 
+    class Meta:
         ordering = ("numeric_id",)
 
     def __str__(self):
@@ -219,10 +261,23 @@ class Expression(models.Model):
         return self.state.trait
 
 
+class WorkspaceQueryset(models.QuerySet):
+    def elements(self):
+        return self.prefetch_related(
+            "descriptions",
+            "descriptions__description",
+            "descriptions__description__protocol",
+            "descriptions__description__variety",
+            "descriptions__description__variety__species",
+        )
+
+
 class Workspace(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=200, help_text="The identificative name of the list")
     is_active = models.BooleanField(default=False)
+
+    objects = WorkspaceQueryset.as_manager()
 
     def __str__(self) -> str:
         return self.name
@@ -231,6 +286,9 @@ class Workspace(models.Model):
         if self.is_active:
             Workspace.objects.filter(user=self.user).exclude(pk=self.pk).update(is_active=False)
         super().save(*args, **kwargs)
+
+    def get_absolute_url(self):
+        return reverse("describe:description_compare")
 
 
 class WorkspaceElement(models.Model):

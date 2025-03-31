@@ -1,9 +1,8 @@
-from describe.models import Protocol, Description
-from describe.forms import DescriptionForm
-from register.models import PlantVariety, PlantSpecies
 from django.test import TestCase
 
-from register.models import Entity
+from describe.forms import DescriptionForm
+from describe.models import Description, Protocol
+from register.models import Entity, PlantSpecies, PlantVariety
 
 
 class PlantVarietyModelTests(TestCase):

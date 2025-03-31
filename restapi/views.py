@@ -10,20 +10,18 @@ from collect.models import CartItem, SampleWeight, SeedSample, Storage, StorageP
 from collect.serializers import SampleWeightSerializer
 from describe.models import (
     Description,
-    Workspace,
-    WorkspaceElement,
     Expression,
     Protocol,
     State,
     Trait,
+    Workspace,
+    WorkspaceElement,
 )
 from parameters.models import VarietalParameter
 from register.models import Entity, PlantSpecies, PlantVariety, Protection
 from restapi.serializers import (
     CartSerializer,
     DescriptionSerializer,
-    WorkspaceElementSerializer,
-    WorkspaceSerializer,
     EntitySerializer,
     ExpressionSerializer,
     PlantSpeciesSerializer,
@@ -36,6 +34,8 @@ from restapi.serializers import (
     StorageSerializer,
     TraitSerializer,
     VarietalParameterSerializer,
+    WorkspaceElementSerializer,
+    WorkspaceSerializer,
 )
 
 from .filters import (
@@ -157,7 +157,10 @@ class CartItemViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         cart = self.kwargs["cart"]
-        return CartItem.objects.filter(cart__user=user, cart__pk=cart)
+        # FIXME: weight retrieval is inefficient!
+        return CartItem.objects.select_related("sample__variety", "sample__position").filter(
+            cart__user=user, cart__pk=cart
+        )
 
 
 class WorkspaceViewSet(viewsets.ModelViewSet):

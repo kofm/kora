@@ -1,7 +1,7 @@
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.db.models import Max
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.response import TemplateResponse
 from django.urls import reverse, reverse_lazy
@@ -17,7 +17,7 @@ from django_sortable_htmx.views import SortableView
 def workspace_activate(request):
     workspace_id = request.POST.get("name", None)
     if workspace_id:
-        workspace = get_object_or_404(Workspace, pk=int(workspace_id))
+        workspace = Workspace.objects.elements().filter(pk=int(workspace_id)).first()
         workspace.is_active = True
         workspace.save()
     else:
@@ -33,8 +33,8 @@ def workspace_activate(request):
 
 
 @login_required
-def workspace_list(request):
-    workspace = Workspace.objects.filter(user=request.user, is_active=True).first()
+def workspace_detail(request):
+    workspace = Workspace.objects.filter(user=request.user, is_active=True).elements().first()
     form = WorkspaceSelectForm(request=request)
     return render(
         request,
@@ -53,7 +53,7 @@ def workspace_create(request):
             instance.user = request.user
             instance.is_active = True
             instance.save()
-            return redirect(reverse("describe:workspace_list"))
+            return redirect(reverse("describe:workspace_detail"))
     return render(
         request,
         "describe/partials/workspaces/workspace_detail.html",
@@ -70,7 +70,7 @@ def workspace_update(request, pk):
             instance = form.save(commit=False)
             instance.user = request.user
             instance.save()
-            return redirect(reverse("describe:workspace_list"))
+            return redirect(reverse("describe:workspace_detail"))
     form = WorkspaceUpdateForm(instance=instance)
     return render(
         request,
@@ -92,10 +92,10 @@ def workspace_delete(request, pk):
 @require_POST
 def workspace_element_create(request):
     description_id = request.POST.get("description_id", None)
-    workspace = request.user.workspace_set.filter(is_active=True).first()
+    workspace = Workspace.objects.filter(user=request.user, is_active=True).first()
 
     if not description_id or not workspace:
-        return JsonResponse({"error": "Invalid input or no active description."}, status=400)
+        return JsonResponse({"error": "Invalid input or no active description."}, status=409)
 
     description = get_object_or_404(Description, pk=description_id)
 
@@ -109,12 +109,7 @@ def workspace_element_create(request):
             element.order = order_max + 1
             element.save()
 
-    form = WorkspaceSelectForm(request=request)
-    return render(
-        request,
-        "describe/partials/workspaces/workspace_detail.html",
-        {"workspace": workspace, "workspace_form": form},
-    )
+    return redirect(reverse("describe:workspace_detail"))
 
 
 @login_required
@@ -122,13 +117,7 @@ def workspace_element_delete(request, pk):
     element = get_object_or_404(WorkspaceElement, pk=pk)
     if request.user == element.workspace.user:
         element.delete()
-    workspace = request.user.workspace_set.filter(is_active=True).first()
-    form = WorkspaceSelectForm(request=request)
-    return render(
-        request,
-        "describe/partials/workspaces/workspace_detail.html",
-        {"workspace": workspace, "workspace_form": form},
-    )
+    return HttpResponse()
 
 
 class WorkspaceSortableView(SortableView):

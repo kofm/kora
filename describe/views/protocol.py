@@ -5,47 +5,45 @@ from django.shortcuts import get_object_or_404, render
 from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.urls.base import reverse_lazy
-from django.views.generic import DetailView, ListView
 from django.views.generic.edit import CreateView, DeleteView
-from django_tables2 import RequestConfig
 
 from breadcrumbs.generic import (
     CreateBreadcrumbsMixin,
     DeleteBreadcrumbsMixin,
-    DetailBreadcrumbsMixin,
-    ListBreadcrumbsMixin,
 )
 from breadcrumbs.utils import generate_breadcrumbs
 from describe.forms import ProtocolMetadataForm, StateFormSet, TraitForm
-from describe.models import Protocol, Trait
-from describe.tables import ProtocolTable
+from describe.models import Protocol
+from django_sortable_htmx.views import SortableView
 from frontpage.views_decorators import (
     NavDescribeActiveContext,
     nav_describe_active_context,
 )
 
 
-class ProtocolList(ListBreadcrumbsMixin, NavDescribeActiveContext, ListView):
+def protocol_list(request):
+    context = {}
+    context["object_list"] = Protocol.objects.select_related("plantspecies").all()
+    context.update(generate_breadcrumbs(request, Protocol))
+    return TemplateResponse(request, "describe/protocol_list.html", context)
+
+
+class ProtocolSortView(SortableView):
     model = Protocol
-    context_object_name = "protocols"
-
-    def get_context_data(self, *args, **kwargs):
-        context = super().get_context_data(*args, **kwargs)
-        table = ProtocolTable(self.get_queryset())
-        RequestConfig(self.request, paginate={"per_page": 15}).configure(table)
-        context["table"] = table
-        return context
 
 
-class ProtocolDetail(DetailBreadcrumbsMixin, NavDescribeActiveContext, DetailView):
-    model = Protocol
+def protocol_detail(request, pk):
+    instance = Protocol.objects.select_related("plantspecies").prefetch_related("traits__states").get(pk=pk)
+    context = {"protocol": instance}
+    context.update(generate_breadcrumbs(request, Protocol, instance))
+    return TemplateResponse(request, "describe/protocol_detail.html", context)
 
 
 @nav_describe_active_context
 def protocol_update(request, pk):
     context = {}
     protocol = get_object_or_404(Protocol, pk=pk)
-    trait: Trait = protocol.traits.first()
+    trait = protocol.traits.first()
     if trait:
         context["trait_next"] = trait.get_next_in_protocol()
         context["trait_prev"] = trait.get_previous_in_protocol()

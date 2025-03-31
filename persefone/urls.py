@@ -13,12 +13,14 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+
 from django.contrib import admin
 from django.urls import include, path
+from persefone import settings
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path('accounts/', include('django.contrib.auth.urls')),
+    path("accounts/", include("django.contrib.auth.urls")),
     path("", include("frontpage.urls")),
     path("", include("register.urls")),
     path("descriptions/", include("describe.urls")),
@@ -27,4 +29,9 @@ urlpatterns = [
     path("spaces/", include("spaces.urls")),
     path("collect/", include("collect.urls")),
     path("plan/", include("calculator.urls")),
-]  # + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+]
+
+if settings.DEBUG and settings.DEBUG_TOOLBAR_ENABLED:
+    from debug_toolbar.toolbar import debug_toolbar_urls
+
+    urlpatterns = urlpatterns + debug_toolbar_urls()

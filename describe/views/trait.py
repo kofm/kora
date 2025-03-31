@@ -2,13 +2,14 @@
 Trait
 """
 
-from describe.forms import RelatedStateForm, StateFormSet, TraitForm
-from describe.models import Protocol, Trait
 from django.db.models import Max
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_GET, require_POST
+
+from describe.forms import RelatedStateForm, StateFormSet, TraitForm
+from describe.models import Protocol, Trait
 
 
 @require_GET
@@ -18,7 +19,7 @@ def related_state_form(request):
     If the request contains `trait` send the `related_state` field; otherwise send the `trait` field.
     This allow building a dynamic form via htmx.
     """
-    if request.htmx:
+    if request.headers.get("HX-Request") == "true":
         form = RelatedStateForm(request.GET)
         if request.GET.get("trait", None):
             return HttpResponse(form["related_state"])

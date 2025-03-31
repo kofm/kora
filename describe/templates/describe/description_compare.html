@@ -1,48 +1,104 @@
 {% extends "frontpage/base.html" %}
 {% load crispy_forms_tags %}
 {% load static %}
+{% load breadcrumbs %}
+
 {% block title %}
-    Compare descriptions
+  Compare descriptions
 {% endblock %}
 
 {% block container %}
 
-    <style>
-     .header{
-         position:sticky;
-         top: 0 ;
-     }
-    </style>
+  <style>
 
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{% url 'describe:description_list' %}">Descriptions</a></li>
-            <li class="breadcrumb-item"><i>Compare</i></li>
-        </ol>
-    </nav>
+   .table-container {
+     height: 70vh; /* 70% of the viewport height */
+     overflow-y: auto;
+     overflow-x: auto;
+     position: relative;
+   }
 
-    <h1 class="display-1">Compare descriptions</h1>
+   table {
+     position: relative;
+     width: 100%;
+   }
 
-    {% for protocol in comparison_table %}
-        <h1>{{ protocol.protocol }}</h1>
-        <table class="table">
-            <thead class="table-dark" style="position: sticky;top: 0">
-                <th class="header" scope="col"></th>
-                {% for th in comparison_table_header %}
-                    <th class="header" scope="col">{{ th }}</th>
-                {% endfor %}
-            </thead>
-            <tbody>
-                {% for row in protocol.rows %}
-                    <tr {% if not row.equal %}class="table-warning"{% endif %}>
-                        {% for cell in row.values %}
-                            <td>{{cell}}</td>
-                        {% endfor %}
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    {% empty %}
-        The selected list is empty. Please, <a href="{% url 'describe:description_list' %}">go back</a> and select some descriptions or another list.
-    {% endfor %}
+   thead {
+     position: sticky;
+     top: 0;
+     z-index: 3;
+   }
+
+   thead th:first-child,
+   tbody td:first-child {
+     position: sticky;
+     left: 0;
+     z-index: 2;
+     width: 18rem;
+   }
+
+   td:not(:first-child),
+   th:not(:first-child) {
+     width: 8rem;
+   }
+  </style>
+
+  {% render_breadcrumbs %}
+
+  <h1 class="mb-3">
+    {{ workspace }}
+    <small class="text-muted">Compare Workspace</small>
+  </h1>
+
+
+  {% for species, species_data in compare_table.items %}
+
+    {% if compare_table|length > 1 %}
+      <h2 class="mb-2">{{ species.1 }}</h2>
+    {% endif %}
+
+    {% with id_for_table=species.1|slugify|capfirst  %}
+
+      <div id="table{{ id_for_table }}" class="table-container my-3" style="overflow-x: auto;">
+
+	<table class="table" style="table-layout: fixed;">
+	  <thead>
+	    <tr>
+	      <th></th>
+	      {% for desc in species_data.descriptions %}
+		<th>{{ desc.1 }}<br/>{{ desc.2 }}</th>
+	      {% endfor %}
+	    </tr>
+	  </thead>
+	  <tbody>
+	    {% for protocol, trait_data in species_data.protocols.items %}
+	      <tr>
+		<td class="table-secondary">
+		  <h3>{{ protocol }}</h6>
+		</td>
+		<td class="table-secondary"  colspan="{{ species_data.descriptions|length }}"></td>
+	      </tr>
+	      {% for trait, expression_data in trait_data.items %}
+		  <tr class="{{ expression_data.all_equal|yesno:",table-info" }}{{ trait.2|yesno:" fw-bold," }}">
+		    <td>
+		      {{ trait.0 }}. {{ trait.1 }} {% if trait.2 %}&#10033;{% endif %}
+		  </td>
+		  {% for description_expressions in expression_data.expressions %}
+		    <td>
+		      {% for expression in description_expressions %}
+			{% if not forloop.first %}<br/>{% endif %}{{ expression.0 }}
+		      {% empty %}
+			&mdash;
+		      {% endfor %}
+		    </td>
+		  {% endfor %}
+		</tr>
+	      {% endfor %}
+	    {% endfor %}
+	  </tbody>
+	</table>
+      </div>
+    {% endwith %}
+  {% endfor %}
+
 {% endblock %}

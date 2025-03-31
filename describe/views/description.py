@@ -3,44 +3,49 @@
 List, Detail, Update, Create, Delete
 """
 
-import contextlib
+from collections import defaultdict
 
-from django.db.models import CharField, Q
-from django.db.models.expressions import F
+from django.contrib.auth.decorators import login_required
+from django.db.models import CharField
 from django.db.models.functions import Lower
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
-from django.urls import reverse_lazy
-from django.views.decorators.http import require_GET
-from django.views.generic import DeleteView, DetailView
+from django.urls import reverse, reverse_lazy
+from django.utils.http import urlencode
+from django.views.decorators.http import require_POST
+from django.views.generic import DeleteView
 from django_tables2 import RequestConfig
+from render_block import render_block_to_string
 
 from breadcrumbs.generic import DeleteBreadcrumbsMixin
-from breadcrumbs.utils import generate_breadcrumbs
-from describe.filters import DescriptionFilterByName
+from breadcrumbs.utils import add_plantvariety_breadcrumbs, generate_breadcrumbs
 from describe.forms import (
-    DescriptionFilterFormSet,
+    DescriptionNameForm,
     DescriptionForm,
     DescriptionUpdateForm,
+    DescriptionVarietyForm,
+    ExpressionFilterFormSet,
     ExpressionForm,
     ProtocolForm,
+    ProtocolStrictSearchForm,
 )
-from describe.models import (
-    Description,
-    Expression,
-    Protocol,
-    State,
-    Trait,
-)
+from describe.models import Description, Expression, Protocol, Trait, Workspace, WorkspaceElement
 from describe.tables import DescriptionTable
-from describe.utils import (
-    _filter_descriptions,
-    delete_get_param,
-    merge_unique,
-)
 from describe.views.protocol import NavDescribeActiveContext
+from describe.views.utils import (
+    init_description_filter,
+    make_descriptions_dict,
+    make_species_descriptions_dict,
+    make_species_protocols_dict,
+    make_traits_expressions_dict,
+    process_description_filter,
+    render_export_file_to_response,
+    reset_description_filter,
+    update_description_filter,
+)
 from frontpage.views_decorators import nav_active
+from register.filters import filter_name_generic
 from register.models import PlantVariety
 
 CharField.register_lookup(Lower)
@@ -50,228 +55,199 @@ nav_describe = nav_active("nav_describe")
 
 @nav_describe
 def description_list(request):
-    """List Descriptions.
+    description_filter = init_description_filter(request)
+    protocol_id = description_filter["protocol"]
 
-    Filter descriptions by state of expression(s) according to the
-    selected reference protocol."""
+    if request.method == "POST":
+        if "name" in request.POST:
+            form = DescriptionNameForm(request.POST)
+            if form.is_valid():
+                names = form.cleaned_data["name"]
+                update_description_filter(request, name=names)
+        if "strict_changed" in request.POST:
+            form = ProtocolStrictSearchForm(request.POST)
+            if form.is_valid():
+                strict = form.cleaned_data["strict"]
+                update_description_filter(request, strict=strict)
+        if "form-TOTAL_FORMS" in request.POST:
+            traits = Trait.objects.filter(protocol=protocol_id).with_states()
+            formset = ExpressionFilterFormSet(request.POST, traits=traits)
+            if formset.is_valid():
+                expressions = formset.get_expression_ids()  # type: ignore[attr-defined]
+                update_description_filter(request, expressions=expressions)
+        return HttpResponseRedirect("")
+
+    template_name = "describe/description_list.html"
     context = {}
 
-    # Check if the protocol has changed; if yes, set the session variable and
-    # reset the filter to operate with the newly selected protocol.
-    protocol_set = request.GET.get("protocol", None)
-    if protocol_set:
-        request.session["protocol"] = protocol_set
-        reset_description_filter(request)
-        request.GET = delete_get_param(request, "protocol")
+    descriptions = process_description_filter(Description.objects.with_expressions(), description_filter)
 
-    # Check if the protocol session variable is set, otherwise set it to the
-    # most used Protocol
-    protocol_id = request.session.get("protocol", None)
-    if not protocol_id:
-        most_used_protocol = Protocol.objects.most_used()
-        if most_used_protocol:
-            protocol_id = most_used_protocol.pk
-            request.session["protocol"] = protocol_id
+    if "variety" in request.GET:
+        form = DescriptionVarietyForm(request.GET)
+        if form.is_valid():
+            variety_name = form.cleaned_data["variety"]
+            descriptions = filter_name_generic(descriptions, "variety__name", variety_name)
 
-    protocol_select_form = ProtocolForm()
-    traits = Trait.objects.all()
-
-    if request.session and "protocol" in request.session:
-        # Get the selected/default Protocol
-        protocol = get_object_or_404(Protocol, pk=protocol_id)
-        # Instantiate the Protocol selection form
-        protocol_select_form = ProtocolForm(initial={"protocol": protocol})
-
-        # Get all the Traits associated with that Protocol
-        traits = Trait.objects.filter(protocol=protocol).values(trait=F("pk"))
-
-        # If the Description filter has been submitted via post, validate the
-        # formset and assign the returned filter to the appropriate session
-        # variable
-    if request.POST:
-        formset = DescriptionFilterFormSet(request.POST, initial=traits)
-        if formset.is_valid():
-            request.session["description_filter"] = formset.save()
-
-    if request.session.get("description_filter", None):
-        # If a Description filter session variable exists, get the matching
-        # Descriptions and instantiate the formset with the corresponding data
-        queryset = Description.objects.filter_by_expressions(request.session.get("description_filter"))
-        # Merge unique is needed here because we need all the available traits
-        # merged with the actual filter. If we pass description_filter alone
-        # the formset will be instantiated with only the filtered traits
-        formset = DescriptionFilterFormSet(
-            initial=merge_unique(traits, request.session.get("description_filter"), "trait")
+    if "export" in request.GET:
+        return render_export_file_to_response(
+            protocol_id,
+            description_filter["expressions"],
+            descriptions,
         )
-    else:
-        # Otherwise return all the available descriptions and instantiate an empty
-        # Description filter formset
-        queryset = Description.objects.filter().prefetch_related("expressions")
-        formset = DescriptionFilterFormSet(initial=traits)
 
-    description_filter_by_name = DescriptionFilterByName(request.GET, queryset=queryset)
-    # Instantiate the Descriptions table and corresponding pagination
-    description_table = DescriptionTable(description_filter_by_name.qs)
-    RequestConfig(request, paginate={"per_page": 10}).configure(description_table)
+    table = DescriptionTable(descriptions)
+    RequestConfig(request, paginate={"per_page": 10}).configure(table)
 
-    # Check if the current request is an htmx request, then render only the
-    # relevant part of the page; otherwise return the full page
+    if request.headers.get("HX-Request") == "true":
+        table_block = render_block_to_string(
+            template_name,
+            "description_table",
+            {"table": table},
+            request,
+        )
+        return HttpResponse(table_block)
 
-    base_template = "describe/description_list_partial.html" if request.htmx else "describe/description_list_base.html"
-
+    traits = Trait.objects.filter(protocol=protocol_id).with_states()
+    context["form_variety"] = DescriptionVarietyForm()
+    context["form_protocol"] = ProtocolForm(initial={"protocol": protocol_id})
+    context["form_strict"] = ProtocolStrictSearchForm(initial={"strict": description_filter["strict"]})
+    context["form_name"] = DescriptionNameForm(initial={"name": description_filter["name"]})
+    context["formset"] = ExpressionFilterFormSet(traits=traits, expressions=description_filter["expressions"])
+    context["table"] = table
     context.update(generate_breadcrumbs(request, Description))
 
-    context.update(
-        {
-            "description_filter_by_name": description_filter_by_name,
-            "formset": formset,
-            "protocol_form": protocol_select_form,
-            "page_obj": description_table,
-            "page_template": base_template,
-        }
+    return TemplateResponse(request, template_name, context)
+
+
+def description_form(request):
+    protocol_id = request.GET.get("protocol", None)
+    if not protocol_id:
+        return HttpResponseBadRequest()
+
+    template_name = "describe/description_list.html"
+
+    update_description_filter(request, expressions={}, protocol=protocol_id)
+
+    traits = Trait.objects.filter(protocol=protocol_id).prefetch_related("states").order_by("numeric_id")
+    formset = ExpressionFilterFormSet(traits=traits)
+
+    context = {"formset": formset}
+
+    rendered_block = render_block_to_string(
+        template_name,
+        block_name="expression_filter",
+        context=context,
+        request=request,
     )
-
-    return TemplateResponse(request, "describe/description_list.html", context)
-
-
-def reset_description_filter(request):
-    with contextlib.suppress(KeyError):
-        del request.session["description_filter"]
-
-
-def description_filter_export(request):
-    """Export current filter and the matching descriptions as plain text."""
-    from datetime import datetime
-
-    description_filter = request.session.get("description_filter", None)
-    protocol = request.session.get("protocol", None)
-    curtime = datetime.today().strftime("%Y%m%d%H%M%S")
-    filename = f"description_filter_{curtime}.txt"
-    text = [
-        "There is no filter set, yet.",
-    ]
-
-    if description_filter and protocol:
-        queryset = Description.objects.all().prefetch_related("expressions")
-        text = list()
-        text.append("==========================")
-        text.append("Description Search")
-        text.append("==========================")
-        text.append("")
-        text.append(f"Protocol: {Protocol.objects.get(pk=protocol)}")
-        text.append("")
-        for f in description_filter:
-            text.append(Trait.objects.get(pk=f["trait"]).__str__())
-            text.extend([f"\t {State.objects.get(pk=s)}" for s in f["state"]])
-            queryset = _filter_descriptions(queryset, f["state"])
-        text.append("")
-        text.append("=========================")
-        text.append(f"Results ({queryset.count()}):")
-        text.append("=========================")
-        text.append("")
-        text.extend([f"- {description}" for description in queryset])
-
-    response = HttpResponse("\n".join(text), content_type="text/plain; charset=utf-8")
-    response["Content-Disposition"] = f"attachment; filename={filename}"
-    return response
-
-
-@require_GET
-def description_list_reset(request):
-    reset_description_filter(request)
-    return redirect(reverse_lazy("describe:description_list"))
+    return HttpResponse(rendered_block)
 
 
 def description_find_similar(request):
-    """Find similar Descriptions according to the 'grouping' criteria.
+    """Populate filter form with similar traits based on a reference description."""
 
-    Get a description_id as input and set the description filter with
-    the grouping characteristics of the description."""
-    description_id = request.GET.get("description_id", None)
+    template_name = "describe/description_list.html"
 
-    if description_id:
-        description_filter = Expression.objects.filter(
-            description__pk=description_id, state__trait__grouping=True
-        ).values(trait=F("state__trait"), states=F("state"))
-        # Transform the filter to ease querying with __in
-        request.session["description_filter"] = [
-            {
-                "trait": filt["trait"],
-                "state": [
-                    filt["states"],
-                ],
-            }
-            for filt in list(description_filter)
-        ]
-    return redirect(reverse_lazy("describe:description_list"))
+    description_id = request.GET.get("description_id")
+    description = get_object_or_404(Description, pk=description_id)
+
+    protocol_id = description.protocol.pk
+
+    expressions = Expression.objects.prefetch_related("state__trait").filter(
+        description=description_id, state__trait__grouping=True
+    )
+
+    filter_expression = defaultdict(list)
+    for expression in expressions:
+        filter_expression[str(expression.state.trait.pk)].append(expression.state.pk)
+
+    update_description_filter(request, expressions=dict(filter_expression), protocol=protocol_id)
+
+    if not request.headers.get("HX-Request") == "true":
+        url = reverse("describe:description_list")
+        query_string = urlencode({"reset": "false"})
+        return redirect(f"{url}?{query_string}")
+
+    traits = Trait.objects.filter(protocol=protocol_id).prefetch_related("states").order_by("numeric_id")
+    form = ProtocolForm(initial={"protocol": protocol_id})
+    formset = ExpressionFilterFormSet(traits=traits, expressions=dict(filter_expression))
+
+    expression_block = render_block_to_string(
+        template_name,
+        block_name="expression_filter",
+        context={"formset": formset},
+        request=request,
+    )
+    protocol_block = render_block_to_string(
+        template_name,
+        block_name="protocol_filter",
+        context={"form_protocol": form},
+        request=request,
+    )
+
+    return HttpResponse(expression_block + protocol_block)
 
 
 @nav_describe
+@login_required
 def description_compare(request):
-    context = {}
-    active_list = request.user.workspace_set.filter(is_active=True).first()
+    wsp = Workspace.objects.filter(user=request.user, is_active=True).first()
+    elems = WorkspaceElement.objects.select_related("description__variety__species").filter(workspace=wsp)
+    names = elems.order_by("description__name").values_list("description__name", flat=True).distinct()
+    varieties = elems.order_by("description__variety__id").values_list("description__variety__id", flat=True).distinct()
 
-    if not active_list:
-        return JsonResponse({"error": "No active description list found."}, status=400)
+    # Get all the available Descriptions for any of the Variety-Name
+    # combinations present in the workspace.
+    # This includes descriptions from other protocols, too.
+    descriptions = Description.objects.filter(variety__in=varieties, name__in=names)
 
-    elements = active_list.descriptions.select_related("description").all()
-    descriptions = [element.description for element in elements]
+    protocols = (
+        Protocol.objects.select_related("plantspecies")
+        .prefetch_related("traits__states")
+        .filter(descriptions__in=descriptions)
+    )
 
-    if not descriptions:
-        context.update({"comparison_table_header": [], "comparison_table": []})
-        return TemplateResponse(request, "describe/description_compare.html", context)
+    descriptions_dictionary = make_species_descriptions_dict(descriptions)
+    compare_table = make_species_protocols_dict(protocols, descriptions_dictionary)
 
-    protocols = Protocol.objects.filter(descriptions__in=descriptions).distinct()
+    context = {"compare_table": compare_table, "workspace": wsp}
+    context.update(generate_breadcrumbs(request, Workspace, wsp))
 
-    comparison_table = [{"protocol": protocol.name, "rows": []} for protocol in protocols]
-    comparison_table_header = [f"{description.variety.name} - {description.name}" for description in descriptions]
-
-    for protocol_index, protocol in enumerate(protocols):
-        for trait in protocol.traits.all():
-            row = [f"{trait.numeric_id}. {trait.description}"]
-            expression_ids = []
-
-            for description in descriptions:
-                expressions = description.expressions.filter(
-                    Q(state__trait=trait) | Q(state__related_states__trait=trait)
-                )
-
-                if expressions.exists():
-                    expression = expressions.last()
-                    expression_id = expression.state.numeric_id
-                    row.append(f"{expression_id}. {expression.state.description}")
-                    expression_ids.append(expression_id)
-                else:
-                    row.append("")
-
-            rows_equal = all([id == expression_ids[0] for id in expression_ids]) if expression_ids else False
-            comparison_table[protocol_index]["rows"].append({"values": row, "equal": rows_equal})
-
-    context.update({"comparison_table_header": comparison_table_header, "comparison_table": comparison_table})
-
-    return TemplateResponse(request, "describe/description_compare.html", context)
+    return TemplateResponse(
+        request,
+        "describe/description_compare.html",
+        context,
+    )
 
 
-class DescriptionDetail(NavDescribeActiveContext, DetailView):
-    model = Description
-    context_object_name = "description"
+def description_detail(request, pk):
+    description = Description.objects.select_related("variety", "protocol").get(pk=pk)
+
+    description_annotated = Description.objects.annotated().filter(pk=pk)
+    description_dict = make_descriptions_dict(description_annotated)
+    protocol = Protocol.objects.get(descriptions=pk)
+    traits = protocol.with_traits_and_states()
+    table = make_traits_expressions_dict(traits, description_dict)
+
+    context = {"description": description, "table": table}
+    breadcrumbs = generate_breadcrumbs(request, Description, description)
+    breadcrumbs = add_plantvariety_breadcrumbs(breadcrumbs, description.variety)
+
+    context.update(breadcrumbs)
+
+    return TemplateResponse(request, "describe/description_detail.html", context)
 
 
 @nav_describe
 def description_update(request, pk):
     description = get_object_or_404(Description, pk=pk)
     form = DescriptionUpdateForm(request.POST or None, instance=description)
-
     if form.is_valid():
         description = form.save()
         return redirect(description.get_absolute_url())
+
     context = {"form": form, "object": description, "description": description}
     context.update(generate_breadcrumbs(request, Description, description))
-    return TemplateResponse(
-        request,
-        "describe/description_update.html",
-        context,
-    )
+    return TemplateResponse(request, "describe/description_update.html", context)
 
 
 @nav_describe
@@ -315,8 +291,4 @@ def description_expression_update(request, pk):
         formset.append({"trait": trait, "forms": forms})
     context = {"description": description, "formset": formset}
     context.update(generate_breadcrumbs(request, Description, description))
-    return TemplateResponse(
-        request,
-        "describe/description_expression_update.html",
-        context,
-    )
+    return TemplateResponse(request, "describe/description_expression_update.html", context)

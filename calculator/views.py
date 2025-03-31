@@ -5,18 +5,19 @@ from django.urls.base import reverse_lazy
 from django.views.decorators.http import require_http_methods
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, DeleteView
+from django_tables2 import Column
 from django_tables2.config import RequestConfig
+from django_tables2.export.export import TableExport
+
 from calculator.filters import CropFilter
 from calculator.forms import CropModelForm, CropParameterForm, ManagementForm
 from calculator.models import Crop, Management
+from calculator.tables import CropStatisticsTable
 from calculator.utils import crop_statistics_calc, get_crop_params_list, get_cropmodels
 from register.models import PlantSpecies
-from calculator.tables import CropStatisticsTable
-from django_tables2 import Column
-from django_tables2.export.export import TableExport
 
 try:
-    from cropmodels.init import STATISTICS_MODELS, AVAILABLE_CROP_MODELS
+    from cropmodels.init import AVAILABLE_CROP_MODELS, STATISTICS_MODELS
 except ImportError:
     AVAILABLE_CROP_MODELS = []
     STATISTICS_MODELS = []

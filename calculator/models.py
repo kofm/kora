@@ -3,11 +3,12 @@ Models to store informations relative to a user crop.
 
 They consist of a reference Area, a Specie/Variety combination
 """
+
 from django.db import models
 from django.utils.timezone import now
+
 from parameters.models import ParameterValue
 from register.models import PlantSpecies, PlantVariety
-
 from spaces.models import Area
 
 
@@ -17,9 +18,7 @@ class Crop(models.Model):
     PlantSpecies or PlantVarieties.
     """
 
-    notes = models.CharField(
-        max_length=500, help_text="Notes relative to the Crop", blank=True, null=True
-    )
+    notes = models.CharField(max_length=500, help_text="Notes relative to the Crop", blank=True, null=True)
     species = models.ForeignKey(PlantSpecies, null=True, blank=True, on_delete=models.CASCADE)
     variety = models.ForeignKey(PlantVariety, null=True, blank=True, on_delete=models.CASCADE)
     area = models.ForeignKey(
@@ -56,7 +55,6 @@ class Crop(models.Model):
         else:
             return TypeError
         self.save()
-
 
     @property
     def sowing(self):
@@ -146,4 +144,4 @@ class CropParameter(ParameterValue):
     crop = models.ForeignKey(Crop, on_delete=models.CASCADE, related_name="parameters")
 
     class Meta:
-        ordering = ['parameter__code']
+        ordering = ["parameter__code"]

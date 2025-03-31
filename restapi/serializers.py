@@ -1,18 +1,18 @@
 import math
 
-from rest_framework import serializers
 from django_countries.serializers import CountryFieldMixin
-from collect.models import CartItem, SeedSample, StoragePosition, Storage
+from rest_framework import serializers
+
+from collect.models import CartItem, SeedSample, Storage, StoragePosition
 from describe.models import (
-    Workspace,
-    WorkspaceElement,
     Description,
     Expression,
     Protocol,
-    Trait,
     State,
+    Trait,
+    Workspace,
+    WorkspaceElement,
 )
-
 from parameters.models import VarietalParameter
 from register.models import Entity, PlantSpecies, PlantVariety, PlantVarietyName, Protection
 

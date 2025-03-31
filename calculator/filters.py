@@ -1,14 +1,14 @@
 import django_filters
 from django_filters.widgets import RangeWidget
+
 from calculator.models import Crop
 from register.models import PlantSpecies
 from spaces.models import Area
 
+
 class CropFilter(django_filters.FilterSet):
     area = django_filters.ModelMultipleChoiceFilter(queryset=Area.objects.all())
-    species = django_filters.ModelMultipleChoiceFilter(
-        queryset=PlantSpecies.objects.all()
-    )
+    species = django_filters.ModelMultipleChoiceFilter(queryset=PlantSpecies.objects.all())
     sowing = django_filters.DateFromToRangeFilter(
         label="Sowing range",
         widget=RangeWidget(attrs={"type": "date"}),

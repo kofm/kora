@@ -1,21 +1,24 @@
+from typing import Any
+
 from crispy_forms.bootstrap import FieldWithButtons, StrictButton
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Field, Layout
+from django import forms
+from django.db.models import QuerySet
+from django.forms import formset_factory, inlineformset_factory
+from django.forms.formsets import BaseFormSet
+from django.urls import reverse
 from dynamic_forms import DynamicField, DynamicFormMixin
 
 from describe.models import (
     Description,
-    Workspace,
     Expression,
     Protocol,
     State,
     Trait,
+    Workspace,
 )
-from django import forms
-from django.forms import CheckboxSelectMultiple, formset_factory, inlineformset_factory
-from django.forms.formsets import BaseFormSet
-from django.urls import reverse
-from django.utils.html import format_html
+from register.models import PlantVariety
 
 
 class NumberingCodeInput(forms.TextInput):
@@ -72,39 +75,35 @@ class ExpressionUpdateForm(forms.Form):
     note = forms.CharField(required=False)
 
 
-class DescriptionFilterForm(forms.Form):
-    """
-    This is the single unit of the form to filter descriptions.
-    It needs to be instantiated with a trait id to populate the available states of expression field.
-    """
-
-    trait = forms.IntegerField(widget=forms.HiddenInput())
-    state = forms.ModelMultipleChoiceField(queryset=None, required=False, widget=CheckboxSelectMultiple)
-
-    def __init__(self, *args, **kwargs):
-        super(DescriptionFilterForm, self).__init__(*args, **kwargs)
-        trait = Trait.objects.get(pk=self.initial["trait"])
-        self.fields["state"].queryset = State.objects.filter(trait=trait)
-        if trait.grouping:
-            self.fields["state"].label = format_html(f"<b>{trait.numeric_id}. {trait.description}</b>")
-        else:
-            self.fields["state"].label = format_html(f"{trait.numeric_id}. {trait.description}")
+class DescriptionNameForm(forms.Form):
+    name = forms.MultipleChoiceField(
+        choices=[("", "")] + Description.names(),
+        widget=forms.SelectMultiple(attrs={"class": "form-select"}),
+        required=False,
+    )
 
 
-class BaseDescriptionFilterFormset(BaseFormSet):
-    def save(self):
-        filter = list()
-        for form in self.forms:
-            if states := form.cleaned_data["state"]:
-                filter.append({"trait": form.cleaned_data["trait"], "state": [state.pk for state in states]})
-        return filter
-
-
-DescriptionFilterFormSet = formset_factory(DescriptionFilterForm, formset=BaseDescriptionFilterFormset, extra=0)
+class DescriptionVarietyForm(forms.Form):
+    variety = forms.CharField(widget=DescriptorTextInput(), required=False)
 
 
 class ProtocolForm(forms.Form):
-    protocol = forms.ModelChoiceField(queryset=Protocol.objects.all())
+    protocol = forms.ModelChoiceField(
+        queryset=Protocol.objects.select_related("plantspecies").all(),
+        widget=forms.Select(
+            attrs={
+                "class": "form-select",
+                "aria-label": "Select Protocol",
+            }
+        ),
+    )
+
+
+class ProtocolStrictSearchForm(forms.Form):
+    strict = forms.BooleanField(
+        widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
+        required=False,
+    )
 
 
 def _choices(form, model, depends_on):
@@ -118,15 +117,16 @@ def _choices(form, model, depends_on):
 class ProtocolMetadataForm(forms.ModelForm):
     class Meta:
         model = Protocol
-        fields = ("name", "url_ref")
+        fields = ("name", "url_ref", "order")
         widgets = {
             "name": forms.TextInput(attrs={"class": "form-control"}),
             "url_ref": forms.URLInput(attrs={"class": "form-control"}),
+            "order": forms.NumberInput(attrs={"class": "form-control"}),
         }
 
 
 class RelatedStateForm(DynamicFormMixin, forms.Form):
-    def protocol_choices(form):
+    def protocol_choices(self, form):
         state = form["state"].value()
         state = State.objects.get(pk=state)
         protocol = state.trait.protocol
@@ -148,6 +148,8 @@ class RelatedStateForm(DynamicFormMixin, forms.Form):
 class DescriptionForm(forms.ModelForm):
     """Form used to create or update a Description."""
 
+    variety = forms.ModelChoiceField(queryset=PlantVariety.objects.select_related("species").all())
+
     def __init__(self, *args, **kwargs):
         """Initialize a DescriptionForm.
 
@@ -162,7 +164,7 @@ class DescriptionForm(forms.ModelForm):
         have automatically introduced a validation against the available
         choices, which is not what we want here since the user *can*
         create new `name` values."""
-        super(DescriptionForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.fields["name"].widget = forms.Select(choices=Description.names())
 
     class Meta:
@@ -184,11 +186,12 @@ class ExpressionForm(forms.ModelForm):
         fields = ("description", "state", "note")
         widgets = {"description": forms.HiddenInput()}
 
-    def __init__(self, *args, trait=None, **kwargs) -> None:
+    def __init__(self, *args, **kwargs) -> None:
+        trait = kwargs.pop("trait", None)
         super().__init__(*args, **kwargs)
         self.auto_id = False
         if trait:
-            self.fields["state"].queryset = State.objects.filter(trait=trait)
+            self.fields["state"].queryset = State.objects.filter(trait=trait)  # type: ignore[attr-defined]
 
 
 class WorkspaceSelectForm(forms.ModelForm):
@@ -213,7 +216,7 @@ class WorkspaceSelectForm(forms.ModelForm):
         self.helper.layout = Layout(
             Field(
                 "name",
-                css_class="form-control",
+                css_class="form-select",
                 hx_post=reverse("describe:workspace_activate"),
                 hx_trigger="change",
                 hx_target="#workspaceBody",
@@ -231,13 +234,19 @@ class WorkspaceInputForm(forms.ModelForm):
         self.fields["name"].label_suffix = ""
         self.fields["name"].help_text = ""
         self.helper = FormHelper(self)
-        script = f"""on click from elsewhere wait 100ms then fetch {reverse("describe:workspace_list")}
-        then put the result into #workspaceBody then call htmx.process(#workspaceBody)"""
-        self.helper.attrs = {"hx_post": reverse("describe:workspace_create")}
+        script = f"""
+        on click from elsewhere wait 100ms then fetch
+        {reverse("describe:workspace_detail")} then put the result
+        into #workspaceBody then call htmx.process(#workspaceBody)
+        """
         self.helper.layout = Layout(
             FieldWithButtons(
                 Field("name", script=script),
-                StrictButton("<i class='bi bi-check'></i>", css_class="btn btn-outline-success", type="submit"),
+                StrictButton(
+                    "<i class='bi bi-check'></i>",
+                    css_class="btn btn-outline-success",
+                    type="submit",
+                ),
             )
         )
 
@@ -254,3 +263,67 @@ class WorkspaceUpdateForm(WorkspaceInputForm):
         super().__init__(*args, **kwargs)
         self.fields["name"].label = "Rename Workspace"
         self.helper.attrs = {"hx_post": reverse("describe:workspace_update", args=(self.instance.pk,))}
+
+
+class ExpressionFilterForm(forms.Form):
+    trait = forms.IntegerField(widget=forms.HiddenInput())
+    expressions = forms.MultipleChoiceField(choices=[], widget=forms.CheckboxSelectMultiple(), required=False)
+
+    def __init__(self, *args, **kwargs):
+        state_choices = kwargs.pop("state_choices", [])
+        trait_description = kwargs.pop("trait", [])
+        super().__init__(*args, **kwargs)
+        self.fields["expressions"].label = trait_description
+        self.fields["expressions"].choices = state_choices
+
+
+class BaseExpressionFilterFormSet(BaseFormSet):
+    """Provides the UI for filtering Descriptions by Expression.
+
+    Args:
+
+        traits (QuerySet): a Trait QuerySet, ideally returned from
+        `get_protocol_traits()`
+
+        expressions (dict, optional): a dict[str, list] of expressions
+
+    """
+
+    def __init__(self, *args, traits: Any, **kwargs):
+        self.traits: QuerySet[Trait] = traits
+        self.expressions: dict[str, list] = kwargs.pop("expressions", {})
+        super().__init__(*args, **kwargs)
+        self.initial = self._get_initial_data()
+
+    def _get_initial_data(self):
+        initial = []
+        for trait in self.traits:
+            initial.append({"trait": trait.pk, "expressions": self.expressions.get(str(trait.pk), [])})
+        return initial
+
+    def _render_choices(self, state: State):
+        return (state.pk, f" {state.numeric_id}. {state.description}")
+
+    def _render_label(self, trait: Trait):
+        return f"{trait.numeric_id}. {trait.description}"
+
+    def get_form_kwargs(self, index):
+        kwargs = super().get_form_kwargs(index)
+        if self.traits and index < len(self.traits):
+            trait = self.traits[index]
+            kwargs["state_choices"] = [self._render_choices(state) for state in trait.states.all()]
+            kwargs["trait"] = self._render_label(trait)
+        return kwargs
+
+    def get_expression_ids(self) -> dict:
+        """Returns a list of Expression ids to be used with
+        `Description.objects.filtery_by_expressions()`
+        """
+        return {
+            form.cleaned_data["trait"]: form.cleaned_data["expressions"]
+            for form in self
+            if form.is_valid() and form.cleaned_data.get("expressions")
+        }
+
+
+ExpressionFilterFormSet = formset_factory(ExpressionFilterForm, formset=BaseExpressionFilterFormSet, extra=0)

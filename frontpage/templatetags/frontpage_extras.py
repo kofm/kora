@@ -1,8 +1,7 @@
-from widget_tweaks.templatetags.widget_tweaks import add_class, silence_without_field
-
 from django import template
 from django.core.paginator import Paginator
 from django.utils.html import format_html
+from widget_tweaks.templatetags.widget_tweaks import add_class, silence_without_field
 
 register = template.Library()
 
@@ -19,11 +18,6 @@ def nav_css_class(page_class):
 def get_proper_elided_page_range(p, number, on_each_side=3, on_ends=2):
     paginator = Paginator(p.object_list, p.per_page)
     return paginator.get_elided_page_range(number=number, on_each_side=on_each_side, on_ends=on_ends)
-
-
-@register.inclusion_tag("frontpage/partials/edit_icon.html")
-def render_edit_icon(url):
-    return {"url": url}
 
 
 @register.filter("add_valid_class")

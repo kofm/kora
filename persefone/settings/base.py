@@ -11,11 +11,9 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "django_extensions",
     "django.contrib.postgres",
     "django_tables2",
     "django_filters",
-    "django_htmx",
     "drf_redesign",
     "rest_framework",
     "crispy_forms",
@@ -31,6 +29,7 @@ INSTALLED_APPS = [
     "collect.apps.CollectConfig",
     "django_sortable_htmx",
     "breadcrumbs",
+    "render_block",
 ]
 
 MIDDLEWARE = [
@@ -41,7 +40,6 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "django_htmx.middleware.HtmxMiddleware",
 ]
 
 ROOT_URLCONF = "persefone.urls"
@@ -108,11 +106,14 @@ origins = os.getenv("CSRF_TRUSTED_ORIGINS", "")
 CSRF_TRUSTED_ORIGINS = origins.split() if origins else []
 
 # Internationalization
-LANGUAGE_CODE = "en-us"
+LANGUAGE_CODE = "en-GB"
 TIME_ZONE = "UTC"
 USE_I18N = True
 USE_L10N = True
-USE_TZ = True
+USE_TZ = False
+FORMAT_MODULE_PATH = [
+    "formats",
+]  # <project>/formats, because this has global effect
 
 STATIC_URL = "static/"
 
@@ -122,4 +123,3 @@ DJANGO_TABLES2_TEMPLATE = "django_tables2/bootstrap5.html"
 
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
-print(f"Template dirs: {TEMPLATE_DIR}")

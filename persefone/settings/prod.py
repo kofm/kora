@@ -1,4 +1,5 @@
 from .base import *
 
-DEBUG = True
+DEBUG = False
+DEBUG_TOOLBAR_ENABLED = False
 STATIC_ROOT = "/var/www/static/"

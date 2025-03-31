@@ -1,11 +1,10 @@
 from typing import Union
 
-from django.db.models.query import QuerySet
-from calculator.models import Crop, CropParameter
-
-from parameters.models import SpeciesParameter, VarietalParameter
-
 import pandas as pd
+from django.db.models.query import QuerySet
+
+from calculator.models import Crop, CropParameter
+from parameters.models import SpeciesParameter, VarietalParameter
 
 
 def get_available_params(queryset: QuerySet) -> set:

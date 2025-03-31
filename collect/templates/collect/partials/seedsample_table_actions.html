@@ -1,0 +1,10 @@
+<div class="d-flex justify-content-end gap-2">
+  <a
+    class="btn btn-sm btn-outline-secondary rounded-circle"
+    hx-post="{% url "collect:cartitem_create" %}"
+    hx-vals='{"sample_id": "{{ record.pk }}"}'
+    hx-target="#cartBody"
+    href="#">
+    <i class="bi bi-plus-lg"></i>
+  </a>
+</div>

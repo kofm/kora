@@ -1,3 +1,9 @@
+from django.shortcuts import get_object_or_404, redirect
+from django.template.response import TemplateResponse
+from django.urls import reverse
+from django.urls.base import reverse_lazy
+from django.views.generic import CreateView, DetailView
+from django.views.generic.edit import DeleteView, UpdateView
 from django_tables2.config import RequestConfig
 
 from breadcrumbs.generic import (
@@ -12,12 +18,6 @@ from breadcrumbs.utils import (
     generate_breadcrumbs,
     list_breadcrumb,
 )
-from django.shortcuts import get_object_or_404, redirect
-from django.template.response import TemplateResponse
-from django.urls import reverse
-from django.urls.base import reverse_lazy
-from django.views.generic import CreateView, DetailView
-from django.views.generic.edit import DeleteView, UpdateView
 from frontpage.views_decorators import (
     NavDescribeActiveContext,
     NavPlantActiveContext,
@@ -66,7 +66,8 @@ class VarietalParameterCreate(NavPlantActiveContext, CrumbsCreateView):
 
 @nav_plant_active_context
 def protection_list(request):
-    flt = ProtectionOmniFilter(request.GET, queryset=Protection.objects.all())
+    queryset = Protection.objects.select_related("variety", "variety__species").all()
+    flt = ProtectionOmniFilter(request.GET, queryset=queryset)
     table = ProtectionListTable(flt.qs)
     RequestConfig(request).configure(table)
     context = {"table": table, "filter": flt}

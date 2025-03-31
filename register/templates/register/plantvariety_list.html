@@ -6,7 +6,6 @@
 {% load components %}
 
 {% block javascript %}
-    <script type="text/javascript" src="{% static 'frontpage/tomselect.bundle.js' %}"></script>
     <script type="text/javascript">
      document.addEventListener('DOMContentLoaded', function() {
          const species = new TomSelect("#id_species", {})
@@ -84,14 +83,14 @@
                                     </a>
                                 </h5>
 
-                                <h6 class="card-subtitle link-secondary text-truncate p-1">
-                                    {% for name in variety.other_names %}
+                                <small class="card-subtitle link-secondary text-truncate p-1">
+                                    {% for name in variety.names.all %}
                                         {{ forloop.first|yesno:",-" }}
-                                        {{ name }}
+					{% if not name == variety.name %}{{ name }}{% endif %}
                                     {% empty %}
                                         &nbsp;
                                     {% endfor %}
-                                </h6>
+                                </small>
                                 <p class="card-text p-2">
                                     {% with descriptions=variety.description_set.count %}
                                         <a
