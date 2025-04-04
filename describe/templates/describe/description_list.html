@@ -54,9 +54,17 @@
 	  </a>
 	</div>
 
-	<form id="varietyForm" hx-get=".{% querystring reset='true' %}" hx-trigger="keyup delay:500ms" hx-target="#table"
-	_="on change from #expressionForm or change from #protocolForm or change from #strictForm reset() the #varietyForm">
-	  {{ form_variety }}
+	<form id="varietyForm"
+	  class="mb-2"
+	  hx-get=".{% querystring reset='true' %}"
+	  hx-trigger="keyup delay:500ms"
+	  hx-target="#table"
+		  _="on change from #expressionForm or change from #protocolForm or change from #strictForm reset() the #varietyForm"
+	>
+	  <label class="form-label" for="{{ form_variety.variety.id_for_label }}">
+	    {{ form_variety.variety.label }}:
+	  </label>
+	  {{ form_variety.variety }}
 	</form>
 
 	{% block protocol_filter %}
@@ -64,70 +72,80 @@
 	    hx-get="{% url 'describe:description_form' %}" hx-trigger="change" hx-target="#expression_filter" hx-swap-oob="true"
 	    hx-on::after-request="htmx.ajax('GET', '{% url 'describe:description_list' %}', {target: '#table', indicator: '#spinner'})"
 	  >
-	    {{ form_protocol }}
+	    <label class="form-label" for="{{ form_protocol.protocol.id_for_label }}">
+	      {{ form_protocol.protocol.label }}:
+	    </label>
+	    {{ form_protocol.protocol }}
 	  </form>
 	{% endblock %}
 
 	<form id="strictForm" hx-post="." autocomplete="off" hx-vals='{"strict_changed": "true"}'
+	  class="mb-2"
 	  hx-trigger="change" hx-target="#table" hx-indicator="#spinner">
-	  <div class="form-check my-2">
+	  <div class="form-check mt-1">
 	    {{ form_strict.strict }}
 	    <label class="form-check-label" for="{{ form_strict.strict.id_for_label }}">
-	      Strict Search
+	      Strict Search:
 	    </label>
 	  </div>
 	</form>
 
 	<form id="nameForm"
+	  class="mb-2"
 	  autocomplete="off"
 	  hx-post="."
 	  hx-trigger="change" hx-target="#table" hx-indicator="#spinner"
 	>
-	  {{ form_name }}
+	  <label class="form-label" for="{{ form_name.name.id_for_label }}">
+	    {{ form_name.name.label }}:
+	  </label>
+	  {{ form_name.name }}
 	</form>
 	<script>
 	 new TomSelect('#id_name', {create: false})
 	</script>
 
-	<div id="expression_filter" class="my-2" hx-swap-oob="true">
+	<div id="expression_filter" hx-swap-oob="true">
 	  {% block expression_filter %}
 	    <form id="expressionForm" autocomplete="off"
 	      hx-post="." hx-trigger="change" hx-target="#table" hx-indicator="#spinner"
 	    >
 	      {{ formset.management_form }}
-	      <div class="accordion">
+	      <fieldset>
+		<label class="form-label">Expressions:</label>
+		<div class="accordion">
+		  {% for form in formset %}
+		    {% with value=form.expressions.value %}
+		      <div class="accordion-item">
+			{{ form.trait }}
+			<h2 class="accordion-header">
+			  <button
+			    class="accordion-button {{ value|yesno:",collapsed" }}"
+			    type="button"
+			    data-bs-toggle="collapse"
+			    data-bs-target="#collapse{{ forloop.counter }}"
+			    aria-expanded="{{ value|yesno:"true,false" }}" aria-controls="collapse{{ forloop.counter }}">
+			    {{ form.expressions.label }}
+			  </button>
+			</h2>
 
-		{% for form in formset %}
-		  {% with value=form.expressions.value %}
-		    <div class="accordion-item">
-		      {{ form.trait }}
-		      <h2 class="accordion-header">
-			<button
-			  class="accordion-button {{ value|yesno:",collapsed" }}"
-			  type="button"
-			  data-bs-toggle="collapse"
-			  data-bs-target="#collapse{{ forloop.counter }}"
-			  aria-expanded="{{ value|yesno:"true,false" }}" aria-controls="collapse{{ forloop.counter }}">
-			  {{ form.expressions.label }}
-			</button>
-		      </h2>
-
-		      <div id="collapse{{ forloop.counter }}" class="accordion-collapse collapse {{ value|yesno:"show," }}">
-			<div class="accordion-body">
-			  {% for checkbox in form.expressions %}
-			    <div class="form-check">
-			      <span class="form-checkbox-input">{{ checkbox.tag }}</span>
-			      <label class="form-check-label" for="{{ checkbox.id_for_label }}">
-				{{ checkbox.choice_label }}
-			      </label>
-			    </div>
-			  {% endfor %}
+			<div id="collapse{{ forloop.counter }}" class="accordion-collapse collapse {{ value|yesno:"show," }}">
+			  <div class="accordion-body">
+			    {% for checkbox in form.expressions %}
+			      <div class="form-check">
+				<span class="form-checkbox-input">{{ checkbox.tag }}</span>
+				<label class="form-check-label" for="{{ checkbox.id_for_label }}">
+				  {{ checkbox.choice_label }}
+				</label>
+			      </div>
+			    {% endfor %}
+			  </div>
 			</div>
 		      </div>
-		    </div>
-		  {% endwith %}
-		{% endfor %}
-	      </div>
+		    {% endwith %}
+		  {% endfor %}
+		</div>
+	      </fieldset>
 	    </form>
 	  {% endblock %}
 	</div>
