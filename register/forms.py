@@ -14,7 +14,7 @@ class PlantVarietyForm(forms.ModelForm):
 class PlantVarietyNameForm(forms.ModelForm):
     class Meta:
         model = PlantVarietyName
-        fields = ["name"]
+        fields = ["name", "change_date"]
 
 
 class ProtectionForm(forms.ModelForm):

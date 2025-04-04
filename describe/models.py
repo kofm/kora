@@ -51,7 +51,7 @@ class Protocol(ModelIsDeletableMixin, models.Model):
         return reverse("describe:protocol_delete", args=(self.pk,))
 
     def with_traits_and_states(self):
-        return Trait.objects.filter(protocol=self.id).prefetch_related("states").order_by("numeric_id")
+        return Trait.objects.filter(protocol=self.pk).prefetch_related("states").order_by("numeric_id")
 
 
 class DescriptionQuerySet(models.QuerySet):
@@ -130,7 +130,7 @@ class DescriptionQuerySet(models.QuerySet):
 
 
 class Description(ModelIsDeletableMixin, models.Model):
-    name = models.CharField(max_length=200, help_text="The identifier of the description")
+    name = models.CharField(verbose_name="tag", max_length=200, help_text="The identifier of the description")
     protocol = models.ForeignKey(
         Protocol,
         on_delete=models.PROTECT,

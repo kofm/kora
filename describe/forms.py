@@ -77,6 +77,7 @@ class ExpressionUpdateForm(forms.Form):
 
 class DescriptionNameForm(forms.Form):
     name = forms.MultipleChoiceField(
+        label="Tag",
         choices=[("", "")] + Description.names(),
         widget=forms.SelectMultiple(attrs={"class": "form-select"}),
         required=False,
