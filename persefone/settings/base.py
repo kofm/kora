@@ -113,13 +113,21 @@ USE_L10N = True
 USE_TZ = False
 FORMAT_MODULE_PATH = [
     "formats",
-]  # <project>/formats, because this has global effect
+]
 
 STATIC_URL = "static/"
 
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = "bootstrap5"
 DJANGO_TABLES2_TEMPLATE = "django_tables2/bootstrap5.html"
+
+REST_FRAMEWORK = {
+    "DEFAULT_PAGINATION_CLASS": "restapi.pagination.OptionalPagination",
+    "PAGE_SIZE": 10,
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticated",
+    ],
+}
 
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"

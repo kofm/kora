@@ -38,7 +38,7 @@
       </a>
 
       <a class="dropdown-item {% if not workspace %}disabled{% endif %}" {% if not workspace %}aria-disabled="true"{% endif %} href="{% if workspace %}{% url 'describe:description_compare' %}{% endif %}" target="_blank">Compare</a>
-      <a class="dropdown-item {% if not workspace %}disabled{% endif %}" {% if not workspace %}aria-disabled="true"{% endif %} href="{% if workspace %}{% url 'restapi:workspaces' workspace.pk %}?format=json{% endif %}" target="_blank">Download</a>
+      <a class="dropdown-item {% if not workspace %}disabled{% endif %}" {% if not workspace %}aria-disabled="true"{% endif %} href="{% if workspace %}{% url 'restapi:workspaces' workspace.pk %}?no_pagination=1&format=json{% endif %}" target="_blank">Download</a>
 
       <a class="dropdown-item {% if not workspace %}disabled{% endif %}" {% if not workspace %}aria-disabled="true"{% endif %} href="{% if workspace %}{% url 'describe:workspace_delete' workspace.pk %}{% endif %}">Delete</a>
     </div>

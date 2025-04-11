@@ -2,12 +2,10 @@ import django_filters
 from django_filters.rest_framework import FilterSet
 
 from collect.models import SampleWeight, SeedSample, Storage, StoragePosition
-from describe.models import Description, Protocol
+from describe.models import Description, Protocol, Trait
+from parameters.models import Parameter, VarietalParameter
+from register.filters import filter_name_generic
 from register.models import Entity, PlantSpecies, PlantVariety, Protection
-
-
-class NumberInFilter(django_filters.BaseInFilter, django_filters.NumberFilter):
-    pass
 
 
 class PlantSpeciesFilter(FilterSet):
@@ -25,36 +23,63 @@ class PlantVarietyFilter(FilterSet):
 class EntityFilter(FilterSet):
     class Meta:
         model = Entity
-        fields = ("name",)
+        fields = (
+            "name",
+            "type",
+            "country",
+        )
 
 
 class ProtectionFilter(FilterSet):
     class Meta:
         model = Protection
-        fields = ("variety", "type", "status", "reference")
+        fields = (
+            "type",
+            "reference",
+            "status",
+            "country",
+            "variety",
+            "applicants",
+            "maintainers",
+        )
 
 
 class ProtocolFilter(FilterSet):
-    variety = django_filters.NumberFilter(method="by_variety")
+    variety = django_filters.NumberFilter(label="Variety", method="by_variety")
 
     class Meta:
         model = Protocol
         fields = ("name", "plantspecies")
 
     def by_variety(self, queryset, name, value):
+        """Narrow protocols by a variety's species.
+
+        This method is used by the description_create and
+        description_update view to narrow the list of available
+        protocols depending on the selected variety.
+
+        FIXME: I don't like this. I'd rather rely on htmx to retrieve
+        the updated select input instead of hitting the API.
+        """
         variety = PlantVariety.objects.get(pk=value)
         return queryset.filter(plantspecies=variety.species)
 
 
+class TraitFilter(FilterSet):
+    class Meta:
+        model = Trait
+        fields = ("numeric_id", "protocol")
+
+
 class DescriptionFilter(FilterSet):
-    # FIXME: Is this really needed? Can't we just make multiple
-    # requests instead of passing a list here?
-    description = NumberInFilter(field_name="description", lookup_expr="in", label="Description IDs")
-    variety = NumberInFilter(field_name="variety__pk", lookup_expr="in", label="Variety IDs")
+    variety_name = django_filters.CharFilter(label="Variety Name", method="filter_variety_name")
 
     class Meta:
         model = Description
-        fields = {"name": ["exact", "icontains"]}
+        fields = ("name", "protocol")
+
+    def filter_variety_name(self, queryset, name, value):
+        return filter_name_generic(queryset, "variety__name", value)
 
 
 class StorageFilter(FilterSet):
@@ -79,3 +104,15 @@ class SampleWeightFilter(FilterSet):
     class Meta:
         model = SampleWeight
         fields = ("seedsample", "weight")
+
+
+class ParameterFilter(FilterSet):
+    class Meta:
+        model = Parameter
+        fields = ("code",)
+
+
+class VarietalParameterFilter(FilterSet):
+    class Meta:
+        model = VarietalParameter
+        fields = ("parameter",)

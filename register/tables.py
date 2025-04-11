@@ -3,7 +3,7 @@ from django.utils.html import format_html
 from django_tables2 import columns
 
 from collect.models import SeedSample
-from collect.tables import SeedSampleBaseTable
+from collect.tables import SeedSampleBaseTable, SeedSampleTablePositionMixin
 from describe.models import Description
 from describe.tables import DescriptionTable
 from parameters.models import ParameterValue
@@ -33,6 +33,7 @@ class ProtectionListTable(ProtectionTable):
 
 class PlantVarietyDescriptionTable(tables.Table):
     name = tables.Column(linkify=True)
+    protocol__name = tables.Column("Protocol")
     actions = tables.TemplateColumn(
         template_name="register/partials/description_table_actions.html",
         verbose_name="",
@@ -45,7 +46,7 @@ class PlantVarietyDescriptionTable(tables.Table):
         template_name = "describe/partials/description_table.html"
 
 
-class PlantVarietySampleTable(SeedSampleBaseTable):
+class PlantVarietySampleTable(SeedSampleTablePositionMixin, SeedSampleBaseTable):
     position = tables.Column(attrs={"td": {"class": "col-2"}})
     growing_season = tables.Column(attrs={"td": {"class": "col-2"}})
     last_weight = tables.Column("Weight", attrs={"td": {"class": "col-2"}})

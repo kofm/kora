@@ -33,7 +33,7 @@
     <div class="col">
       <h2 id="descriptions">
         Descriptions
-        <a class="btn btn-sm btn-secondary" href="{% url 'describe:description_create' %}?variety_id={{ variety.pk }}" >Create</a>
+        <a class="btn btn-sm btn-outline-primary" href="{% url 'describe:description_create' %}?variety_id={{ variety.pk }}" >Create</a>
       </h2>
 
       {% render_table tables.description %}
@@ -42,7 +42,7 @@
 
   <div class="row mt-5">
     <div class="col">
-      <h2 id="accessions">Accessions <a href="{% url 'collect:seedsample_create' %}?variety_id={{ variety.pk }}" class="btn btn-secondary btn-sm">Create</a></h2>
+      <h2 id="accessions">Accessions <a href="{% url 'collect:seedsample_create' %}?variety_id={{ variety.pk }}" class="btn btn-sm btn-outline-primary">Create</a></h2>
       {% if variety.seedsample_set.count %}
         {% render_table tables.seedsample %}
       {% else %}
@@ -54,7 +54,7 @@
   <div class="row mt-5">
     <div class="col">
       <h2 id="names">
-	Names <a class="btn btn-secondary btn-sm" href="{% url 'register:denomination_create' variety.pk %}">Create</a>
+	Names <a class="btn btn-sm btn-outline-primary" href="{% url 'register:denomination_create' variety.pk %}">Create</a>
       </h2>
       <table class="table">
         <thead>
@@ -81,14 +81,14 @@
 
   <div class="row mt-5">
     <div class="col">
-      <h2 id="protections">Protections<a class="btn btn-sm btn-secondary ms-2" href="{% url 'register:protection-create' variety.pk %}">Create</a></h2>
+      <h2 id="protections">Protections<a class="btn btn-sm btn-outline-primary ms-2" href="{% url 'register:protection-create' variety.pk %}">Create</a></h2>
       {% render_table tables.protection %}
     </div>
   </div>
 
   <div class="row mt-5">
     <div class="col">
-      <h2 id="parameters">Parameters <a class="btn btn-secondary btn-sm" href="{% url 'parameters:varietalparameter_create' variety.id %}">Create</a></h2>
+      <h2 id="parameters">Parameters <a class="btn btn-sm btn-outline-primary" href="{% url 'parameters:varietalparameter_create' variety.id %}">Create</a></h2>
       {% render_table tables.parameter %}
     </div>
   </div>

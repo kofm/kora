@@ -54,7 +54,7 @@
       <a
 	class="dropdown-item {% if not cart %}disabled{% endif %}"
 	{% if not cart %}aria-disabled="true"{% endif %}
-	href="{% if cart %}{% url 'restapi:cartitems' cart.pk %}?format=json{% endif %}"
+	href="{% if cart %}{% url 'restapi:cartitems' cart.pk %}?no_pagination=1&format=json{% endif %}"
 	target="_blank">
 	Download
       </a>

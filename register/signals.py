@@ -6,17 +6,22 @@ from register.models import PlantVariety, PlantVarietyName
 
 @receiver(post_save, sender=PlantVarietyName)
 def plantvarietyname_handler(sender, instance, **kwargs):
-    related_variety = PlantVariety.objects.get(pk=instance.variety.pk)
-    related_variety.name = instance.name
-    related_variety.save()
+    # Check if there's any newer name for this variety
+    newer_name_exists = PlantVarietyName.objects.filter(
+        variety=instance.variety, change_date__gt=instance.change_date
+    ).exists()
+
+    if not newer_name_exists:
+        instance.variety.name = instance.name
+        instance.variety.save()
 
 
 @receiver(post_delete, sender=PlantVarietyName)
 def plantvarietyname_delete_handler(sender, instance, **kwargs):
     related_variety = instance.variety
-    other_names = related_variety.names.all()
-    if other_names.exists():
-        related_variety.name = other_names.last().name
+    if related_variety.names.exists():
+        newest_name = related_variety.names.order_by("-change_date").first()
+        related_variety.name = newest_name.name
         related_variety.save()
 
 

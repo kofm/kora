@@ -57,6 +57,7 @@ def seedsample_detail(request, pk):
     context = {}
     seedsample = get_object_or_404(SeedSample, pk=pk)
     context["seedsample"] = seedsample
+    context["position"] = f"{seedsample.position.storage}-{seedsample.position}"
     context["duplicates_table"] = SeedSampleDuplicatesTable(seedsample.duplicate_samples)
     crumbs = generate_breadcrumbs(request, SeedSample, seedsample)
     crumbs = add_plantvariety_breadcrumbs(crumbs, seedsample.variety)

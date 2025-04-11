@@ -2,34 +2,34 @@
 Kora API
 """
 
+from django import views
+from django.db.models.query import Prefetch
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import viewsets
+from rest_framework import status, viewsets
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 
-from collect.models import CartItem, SampleWeight, SeedSample, Storage, StoragePosition
+from collect.models import Cart, CartItem, SampleWeight, SeedSample, Storage, StoragePosition
 from collect.serializers import SampleWeightSerializer
 from describe.models import (
     Description,
-    Expression,
     Protocol,
-    State,
     Trait,
     Workspace,
     WorkspaceElement,
 )
-from parameters.models import VarietalParameter
+from parameters.models import Parameter, VarietalParameter
 from register.models import Entity, PlantSpecies, PlantVariety, Protection
 from restapi.serializers import (
-    CartSerializer,
+    CartItemSerializer,
     DescriptionSerializer,
     EntitySerializer,
-    ExpressionSerializer,
+    ParameterSerializer,
     PlantSpeciesSerializer,
     PlantVarietySerializer,
     ProtectionSerializer,
     ProtocolSerializer,
     SeedSampleSerializer,
-    StateSerializer,
     StoragePositionSerializer,
     StorageSerializer,
     TraitSerializer,
@@ -46,9 +46,10 @@ from .filters import (
     ProtectionFilter,
     ProtocolFilter,
     SampleWeightFilter,
-    SeedSampleFilter,
     StorageFilter,
     StoragePositionFilter,
+    TraitFilter,
+    VarietalParameterFilter,
 )
 
 
@@ -64,10 +65,11 @@ class PlantSpeciesViewSet(viewsets.ModelViewSet):
 
 
 class PlantVarietyViewSet(viewsets.ModelViewSet):
-    queryset = PlantVariety.objects.all()
+    queryset = PlantVariety.objects.all().prefetch_related("names").order_by("created_at")
     serializer_class = PlantVarietySerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = PlantVarietyFilter
+    permission_classes = [IsAuthenticated]
 
 
 class EntityViewSet(viewsets.ModelViewSet):
@@ -78,48 +80,54 @@ class EntityViewSet(viewsets.ModelViewSet):
 
 
 class ProtectionViewSet(viewsets.ModelViewSet):
-    queryset = Protection.objects.all()
     serializer_class = ProtectionSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = ProtectionFilter
 
+    def get_queryset(self):
+        entity_qs = Entity.objects.all().order_by("name")
+        return (
+            Protection.objects.select_related("variety__species")
+            .prefetch_related(Prefetch("applicants", queryset=entity_qs), Prefetch("maintainers", queryset=entity_qs))
+            .select_related("variety__species")
+        )
+
 
 class ProtocolViewSet(viewsets.ModelViewSet):
-    queryset = Protocol.objects.all()
+    queryset = Protocol.objects.select_related("plantspecies").all()
     serializer_class = ProtocolSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = ProtocolFilter
 
 
-class StateViewSet(viewsets.ModelViewSet):
-    queryset = State.objects.all()
-    serializer_class = StateSerializer
-    filter_backends = [DjangoFilterBackend]
-    filterset_fields = ["trait"]
-
-
 class TraitViewSet(viewsets.ModelViewSet):
-    queryset = Trait.objects.all()
+    queryset = Trait.objects.select_related("protocol").prefetch_related("states").all()
     serializer_class = TraitSerializer
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ["protocol"]
+    filterset_class = TraitFilter
 
 
 class DescriptionViewSet(viewsets.ModelViewSet):
     serializer_class = DescriptionSerializer
-    queryset = Description.objects.all()
+    queryset = (
+        Description.objects.select_related("variety__species", "protocol")
+        .prefetch_related("expressions__state__trait")
+        .all()
+    )
     filter_backends = [DjangoFilterBackend]
     filterset_class = DescriptionFilter
 
 
-class ExpressionViewSet(viewsets.ModelViewSet):
-    serializer_class = ExpressionSerializer
-    queryset = Expression.objects.all()
+class ParameterViewSet(viewsets.ModelViewSet):
+    queryset = Parameter.objects.all()
+    serializer_class = ParameterSerializer
 
 
 class VarietalParameterViewSet(viewsets.ModelViewSet):
-    queryset = VarietalParameter.objects.all()
+    queryset = VarietalParameter.objects.select_related("parameter").all()
     serializer_class = VarietalParameterSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = VarietalParameterFilter
 
 
 class StorageViewSet(viewsets.ModelViewSet):
@@ -137,30 +145,40 @@ class StoragePositionViewSet(viewsets.ModelViewSet):
 
 
 class SeedSampleViewSet(viewsets.ModelViewSet):
-    queryset = SeedSample.objects.all()
+    queryset = SeedSample.objects.with_latest_weight()
     serializer_class = SeedSampleSerializer
-    filter_backends = [DjangoFilterBackend]
-    filterset_class = SeedSampleFilter
 
 
 class SampleWeightViewSet(viewsets.ModelViewSet):
-    queryset = SampleWeight.objects.all()
+    queryset = SampleWeight.objects.select_related("variety").all()
     serializer_class = SampleWeightSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = SampleWeightFilter
 
 
 class CartItemViewSet(viewsets.ModelViewSet):
-    serializer_class = CartSerializer
+    serializer_class = CartItemSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         user = self.request.user
         cart = self.kwargs["cart"]
-        # FIXME: weight retrieval is inefficient!
-        return CartItem.objects.select_related("sample__variety", "sample__position").filter(
+        return CartItem.objects.select_related("sample__variety__species", "sample__position__storage").filter(
             cart__user=user, cart__pk=cart
         )
+
+    def create(self, request, *args, **kwargs):
+        user = request.user
+        cart_id = self.kwargs["cart"]
+        try:
+            cart = Cart.objects.get(pk=cart_id, user=user)
+        except Cart.DoesNotExist:
+            return Response({"detail": "Cart not found."}, status=status.HTTP_404_NOT_FOUND)
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(cart=cart)  # Associate the cart with the new CartItem
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
 
 class WorkspaceViewSet(viewsets.ModelViewSet):
@@ -177,5 +195,9 @@ class WorkspaceElementViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        workspace = self.kwargs["list"]
-        return WorkspaceElement.objects.filter(workspace__user=user, workspace__pk=workspace)
+        workspace = self.kwargs["workspace"]
+        return (
+            WorkspaceElement.objects.select_related("description__variety__species", "description__protocol")
+            .prefetch_related("description__expressions__state__trait")
+            .filter(workspace__user=user, workspace__pk=workspace)
+        )

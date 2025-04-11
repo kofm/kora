@@ -1,23 +1,28 @@
 import django_tables2 as tables
 
 from collect.models import SampleWeight, SeedSample
+from frontpage.utils import smart_truncate_string
 
 
 class SeedSampleTableMixin:
     def render_germinability(self, record):
         return str(record.germinability) + "%"
 
-    def render_weight(self, record):
-        # record.weight == record.weight is just a smart way to check if it's NAN
-        # TODO: this should be removed when we can make sure that no
-        # NaN values are stored in the db
-        return int(record.weight) if record.weight == record.weight else None
+
+class SeedSampleTablePositionMixin:
+    def render_position(self, record):
+        return f"{record.position.storage.name}-{record.position.name}"
 
 
 class SeedSampleBaseTable(tables.Table, SeedSampleTableMixin):
     sample_id = tables.Column(linkify=True, attrs={"td": {"class": "col-1"}})
     notes = tables.Column(
-        attrs={"td": {"class": "text-truncate", "style": "width:10rem; max-width:10rem; min-width:10rem;"}}
+        attrs={
+            "td": {
+                "class": "text-truncate",
+                "style": "width:10rem; max-width:10rem; min-width:10rem;",
+            }
+        }
     )
 
     class Meta:
@@ -29,8 +34,12 @@ class SeedSampleBaseTable(tables.Table, SeedSampleTableMixin):
         )
         empty_text = "There are no corresponding seed samples to be displayed."
 
+    def render_notes(self, record):
+        notes = smart_truncate_string(record.notes)
+        return f"{notes}"
 
-class SeedSampleTable(SeedSampleBaseTable):
+
+class SeedSampleTable(SeedSampleTablePositionMixin, SeedSampleBaseTable):
     """Extension of the SeedSampleBaseTable for the Accession List.
 
     It uses HTMX for dynamic content display. See the template for
@@ -76,15 +85,14 @@ class SeedSampleTable(SeedSampleBaseTable):
             "position",
             "growing_season",
             "last_weight",
-            # "last_germinability",
             "notes",
             "actions",
         )
         template_name = "collect/partials/seedsample_table.html"
 
 
-class SeedSampleDuplicatesTable(SeedSampleBaseTable):
-    orderable = False
+class SeedSampleDuplicatesTable(SeedSampleTablePositionMixin, SeedSampleBaseTable):
+    orderable: bool = False
 
     class Meta(SeedSampleBaseTable.Meta):
         fields = (
@@ -101,8 +109,8 @@ class SeedSampleDuplicatesTable(SeedSampleBaseTable):
 class SeedSampleInStorageTable(SeedSampleBaseTable):
     class Meta(SeedSampleBaseTable.Meta):
         fields = (
-            "sample_id",
             "position",
+            "sample_id",
             "variety",
             "weight",
             "germinability",

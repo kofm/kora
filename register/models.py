@@ -121,7 +121,7 @@ class PlantVariety(ModelIsDeletableMixin, models.Model):
         verbose_name_plural = "varieties"
 
     def __str__(self):
-        return f"{self.name} ({self.species.common_name})"
+        return f"{self.name}"
 
     def get_absolute_url(self):
         return reverse("register:plantvariety_detail", args=[self.pk])
