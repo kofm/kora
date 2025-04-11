@@ -7,7 +7,7 @@
 		href="{{ object.sample.get_absolute_url }}">
 	{{ object.sample.variety.name }} ({{ object.sample.variety.species.common_name }})
       </a>
-      <small class="text-muted">{{ object.sample.position }}</small>
+      <small class="text-muted">{{ object.sample.position.storage }}-{{ object.sample.position }}</small>
     </h6>
 
 
