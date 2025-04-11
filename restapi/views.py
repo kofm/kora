@@ -150,7 +150,7 @@ class SeedSampleViewSet(viewsets.ModelViewSet):
 
 
 class SampleWeightViewSet(viewsets.ModelViewSet):
-    queryset = SampleWeight.objects.select_related("variety").all()
+    queryset = SampleWeight.objects.select_related("seedsample").all()
     serializer_class = SampleWeightSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = SampleWeightFilter
