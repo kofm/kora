@@ -13,52 +13,70 @@ from describe.models import (
     Workspace,
     WorkspaceElement,
 )
-from parameters.models import VarietalParameter
+from parameters.models import Parameter, VarietalParameter
 from register.models import Entity, PlantSpecies, PlantVariety, PlantVarietyName, Protection
 
 
-class PlantSpeciesSerializer(serializers.ModelSerializer):
+class PlantSpeciesSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = PlantSpecies
-        fields = ["pk", "common_name", "latin_name", "plant_type"]
+        fields = ["pk", "common_name", "latin_name", "plant_type", "url"]
+        extra_kwargs = {"url": {"view_name": "register:plantspecies_detail"}}
 
 
 class PlantVarietyNameSerializer(serializers.ModelSerializer):
     class Meta:
         model = PlantVarietyName
-        fields = ["name"]
+        fields = ["name", "change_date"]
 
 
-class PlantVarietySerializer(serializers.ModelSerializer):
+class PlantVarietySerializer(serializers.HyperlinkedModelSerializer):
     names = PlantVarietyNameSerializer(many=True, read_only=True)
 
     class Meta:
         model = PlantVariety
-        fields = ["pk", "name", "species", "breeder", "names"]
+        fields = [
+            "pk",
+            "name",
+            "species",
+            "species_id",
+            "names",
+            "url",
+        ]
+        extra_kwargs = {
+            "url": {"view_name": "register:plantvariety_detail"},
+            "species": {"view_name": "register:plantspecies_detail"},
+        }
 
 
-class EntitySerializer(CountryFieldMixin, serializers.ModelSerializer):
+class EntitySerializer(CountryFieldMixin, serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Entity
-        fields = ["pk", "name", "type", "country", "contact", "email"]
+        fields = (
+            "pk",
+            "name",
+            "type",
+            "country",
+            "contact",
+            "email",
+            "url",
+        )
+        extra_kwargs = {"url": {"view_name": "register:entity_detail"}}
 
 
 class ProtectionSerializer(CountryFieldMixin, serializers.ModelSerializer):
     class Meta:
         model = Protection
-        fields = [
+        fields = (
             "pk",
             "type",
+            "reference",
             "status",
             "country",
             "variety",
-            "reference",
             "applicants",
             "maintainers",
-            "date_start",
-            "date_end",
-            "note",
-        ]
+        )
 
 
 class ProtocolSerializer(serializers.ModelSerializer):
@@ -74,18 +92,22 @@ class StateSerializer(serializers.ModelSerializer):
 
 
 class TraitSerializer(serializers.ModelSerializer):
+    states = StateSerializer(many=True, read_only=True)
+
     class Meta:
         model = Trait
-        fields = ("pk", "numeric_id", "description", "protocol")
+        fields = ("pk", "numeric_id", "description", "protocol", "states")
 
 
 class DescriptionExpressionSerializer(serializers.ModelSerializer):
     trait = serializers.StringRelatedField(many=False, source="state.trait", read_only=True)
+    trait_id = serializers.IntegerField(source="state.trait.numeric_id")
+    state_id = serializers.IntegerField(source="state.numeric_id")
     state_description = serializers.StringRelatedField(many=False, source="state", read_only=True)
 
     class Meta:
         model = Expression
-        fields = ("state", "trait", "state_description", "note")
+        fields = ("state", "state_id", "trait", "trait_id", "state_description", "note")
 
 
 class DescriptionSerializer(serializers.ModelSerializer):
@@ -96,7 +118,16 @@ class DescriptionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Description
-        fields = ("pk", "name", "variety", "variety_name", "species", "protocol", "protocol_name", "expressions")
+        fields = (
+            "pk",
+            "name",
+            "variety",
+            "variety_name",
+            "species",
+            "protocol",
+            "protocol_name",
+            "expressions",
+        )
 
 
 class ExpressionSerializer(serializers.ModelSerializer):
@@ -105,13 +136,26 @@ class ExpressionSerializer(serializers.ModelSerializer):
         fields = ("description", "state", "note")
 
 
+class ParameterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Parameter
+        fields = ("pk", "code", "name", "description", "measure_unit")
+
+
 class VarietalParameterSerializer(serializers.ModelSerializer):
-    variety_name = serializers.StringRelatedField(many=False, source="variety", read_only=True)
     parameter_code = serializers.StringRelatedField(many=False, source="parameter", read_only=True)
 
     class Meta:
         model = VarietalParameter
-        fields = "__all__"
+        fields = (
+            "value",
+            "variety",
+            "parameter_code",
+            "created_at",
+            "updated_at",
+            "note",
+            "url_ref",
+        )
 
 
 class StorageSerializer(serializers.ModelSerializer):
@@ -121,6 +165,8 @@ class StorageSerializer(serializers.ModelSerializer):
 
 
 class StoragePositionSerializer(serializers.ModelSerializer):
+    storage = serializers.StringRelatedField(many=False, read_only=True)
+
     class Meta:
         model = StoragePosition
         fields = ("pk", "name", "storage")
@@ -130,8 +176,10 @@ class StoragePositionSerializer(serializers.ModelSerializer):
 
 
 class SeedSampleSerializer(serializers.ModelSerializer):
-    germinability = serializers.SerializerMethodField(read_only=True)
-    weight = serializers.SerializerMethodField(read_only=True)
+    storage = serializers.StringRelatedField(many=False, read_only=True, source="position.storage")
+    position_name = serializers.StringRelatedField(many=False, source="position.name")
+    last_weight = serializers.FloatField(read_only=True)
+    last_germinability = serializers.FloatField(read_only=True)
 
     class Meta:
         model = SeedSample
@@ -141,28 +189,35 @@ class SeedSampleSerializer(serializers.ModelSerializer):
             "variety",
             "notes",
             "growing_season",
+            "storage",
             "position",
-            "germinability",
-            "weight",
+            "position_name",
+            "last_weight",
+            "last_germinability",
         )
 
-    def get_germinability(self, obj):
-        germinability = obj.germinability
-        return 0.0 if germinability is None or math.isnan(germinability) else germinability
 
-    def get_weight(self, obj):
-        weight = obj.weight
-        return 0.0 if weight is None or math.isnan(weight) else weight
-
-
-class CartSerializer(serializers.ModelSerializer):
+class CartItemSerializer(serializers.ModelSerializer):
+    sample_id = serializers.IntegerField(source="sample.sample_id", read_only=True)
     variety_name = serializers.CharField(source="sample.variety.name", read_only=True)
+    species = serializers.CharField(source="sample.variety.species.common_name", read_only=True)
     variety_id = serializers.IntegerField(source="sample.variety.pk", read_only=True)
-    storage = serializers.CharField(source="sample.position")
+    storage = serializers.CharField(source="sample.position.storage", read_only=True)
+    position = serializers.CharField(source="sample.position.name", read_only=True)
 
     class Meta:
         model = CartItem
-        fields = ("variety_name", "variety_id", "sample", "storage", "weight")
+        fields = (
+            "variety_id",
+            "variety_name",
+            "species",
+            "sample",
+            "sample_id",
+            "storage",
+            "position",
+            "weight",
+            "order",
+        )
 
 
 class WorkspaceSerializer(serializers.ModelSerializer):

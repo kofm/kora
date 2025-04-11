@@ -25,7 +25,7 @@
         {% card_col_rows seedsample.variety "Variety" variety_url %}
 
         {% url 'collect:storage_detail' seedsample.position.storage.pk as storage_url %}
-        {% card_col_rows seedsample.position "Storage Location" storage_url %}
+        {% card_col_rows position "Storage Location" storage_url %}
 
         {% card_col_rows seedsample.growing_season "Growing Season" %}
 

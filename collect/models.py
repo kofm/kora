@@ -70,7 +70,7 @@ class StoragePosition(models.Model):
     storage = models.ForeignKey(Storage, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f"{self.storage.name}-{self.name}"
+        return f"{self.name}"
 
     def get_absolute_url(self):
         return reverse("collect:storage_detail", args=(self.storage.pk,))
@@ -85,6 +85,12 @@ class SeedSampleQueryset(models.QuerySet):
                     expression=LastValue("sampleweight__weight"),
                     partition_by=F("id"),
                     order_by=F("sampleweight__created_at").desc(),
+                    frame=RowRange(start=None, end=None),
+                ),
+                last_germinability=Window(
+                    expression=LastValue("germinability__germinability"),
+                    partition_by=F("id"),
+                    order_by=F("germinability__performed_at").desc(),
                     frame=RowRange(start=None, end=None),
                 ),
             )
@@ -154,7 +160,7 @@ class SampleWeight(models.Model):
         ordering = ("created_at",)
 
     def __str__(self):
-        return f"{self.seedsample} ({self.created_at}): {self.weight}g"
+        return f"{self.weight}g"
 
 
 class CartManager(models.Manager):

@@ -6,7 +6,7 @@ List, Detail, Update, Create, Delete
 from collections import defaultdict
 
 from django.contrib.auth.decorators import login_required
-from django.db.models import CharField
+from django.db.models import CharField, Q
 from django.db.models.functions import Lower
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
@@ -21,8 +21,8 @@ from render_block import render_block_to_string
 from breadcrumbs.generic import DeleteBreadcrumbsMixin
 from breadcrumbs.utils import add_plantvariety_breadcrumbs, generate_breadcrumbs
 from describe.forms import (
-    DescriptionNameForm,
     DescriptionForm,
+    DescriptionNameForm,
     DescriptionUpdateForm,
     DescriptionVarietyForm,
     ExpressionFilterFormSet,
@@ -148,6 +148,10 @@ def description_find_similar(request):
     template_name = "describe/description_list.html"
 
     description_id = request.GET.get("description_id")
+
+    if not description_id:
+        return redirect(reverse("describe:description_list"))
+
     description = get_object_or_404(Description, pk=description_id)
 
     protocol_id = description.protocol.pk
@@ -192,13 +196,15 @@ def description_find_similar(request):
 def description_compare(request):
     wsp = Workspace.objects.filter(user=request.user, is_active=True).first()
     elems = WorkspaceElement.objects.select_related("description__variety__species").filter(workspace=wsp)
-    names = elems.order_by("description__name").values_list("description__name", flat=True).distinct()
-    varieties = elems.order_by("description__variety__id").values_list("description__variety__id", flat=True).distinct()
 
     # Get all the available Descriptions for any of the Variety-Name
     # combinations present in the workspace.
     # This includes descriptions from other protocols, too.
-    descriptions = Description.objects.filter(variety__in=varieties, name__in=names)
+    pairs = elems.values_list("description__variety_id", "description__name").distinct()
+    q = Q()
+    for variety_id, name in pairs:
+        q |= Q(variety_id=variety_id, name=name)
+    descriptions = Description.objects.filter(q)
 
     protocols = (
         Protocol.objects.select_related("plantspecies")

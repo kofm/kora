@@ -39,7 +39,7 @@ class Protocol(ModelIsDeletableMixin, models.Model):
         ordering = ("order", "name")
 
     def __str__(self):
-        return f"{self.name} ({self.plantspecies.latin_name})"
+        return f"{self.name}"
 
     def get_absolute_url(self):
         return reverse("describe:protocol_detail", kwargs={"pk": self.pk})

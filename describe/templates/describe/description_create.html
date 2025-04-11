@@ -6,7 +6,7 @@
 
 {% block javascript %}
     <script type="text/javascript">
-     let url = "{% url 'restapi:protocols-list' %}?format=json";
+     let url = "{% url 'restapi:protocols-list' %}?no_pagination=1&format=json";
     </script>
 {% endblock %}
 
