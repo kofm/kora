@@ -3,33 +3,44 @@
 
 <!DOCTYPE html>
 <html lang="en" >
-    <head>
-	<script src="{% static 'frontpage/bootstrap.bundle.js' %}"></script>
-	<script src="{% static 'frontpage/htmx.bundle.js' %}" type="text/javascript" defer></script>
-	<script src="{% static 'frontpage/hyperscript.bundle.js' %}" type="text/javascript" defer></script>
-	<script src="{% static 'django_sortable_htmx/sortable.bundle.js' %}" type="text/javascript" defer></script>
+  <head>
+    <script src="{% static 'frontpage/bootstrap.bundle.js' %}"></script>
+    <script src="{% static 'frontpage/htmx.bundle.js' %}" type="text/javascript" defer></script>
+    <script src="{% static 'frontpage/hyperscript.bundle.js' %}" type="text/javascript" defer></script>
+    <script src="{% static 'django_sortable_htmx/sortable.bundle.js' %}" type="text/javascript" defer></script>
 
-	{% block javascript %}
-	{% endblock %}
-	<meta charset="UTF-8">
-	<title>Kora - {% block title %}{% endblock %}</title>
-    </head>
+    {% block javascript %}
+    {% endblock %}
+    <meta charset="UTF-8">
+    <title>Kora - {% block title %}{% endblock %}</title>
+  </head>
 
-    <body
-	hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
-	data-bs-theme="{{ request.session.appearance|default:"light" }}"
-	_="on fetch:beforeRequest(headers) set headers['X-CSRFToken'] to '{{ csrf_token }}'"
-    >
+  <body
+    hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+		data-bs-theme="{{ request.session.appearance|default:"light" }}"
+		_="on fetch:beforeRequest(headers) set headers['X-CSRFToken'] to '{{ csrf_token }}'"
+  >
 
-        {% include 'frontpage/navbar.html' %}
-        <div class="container">
+    {% include 'frontpage/navbar.html' %}
+    <div class="container">
 
-            {% block container %}
-            {% endblock %}
+      {% block container %}
+      {% endblock %}
 
-        </div>
+    </div>
 
-	{% offcanvas "workspace" "Workspace" "describe/workspace_detail_offcanvas.html" %}
-	{% offcanvas "cart" "Cart" "collect/partials/cart_offcanvas.html" %}
-    </body>
+    {% offcanvas "workspace" "Workspace" "describe/workspace_detail_offcanvas.html" %}
+    {% offcanvas "cart" "Cart" "collect/partials/cart_offcanvas.html" %}
+
+
+    <div id="cartModal"
+      class="modal fade"
+      aria-hidden="true"
+      tabindex="-1">
+      <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+	<div class="modal-content"></div>
+      </div>
+    </div>
+
+  </body>
 </html>

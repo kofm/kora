@@ -109,6 +109,15 @@ def cart_retrieve(request, pk):
     return TemplateResponse(request, "collect/cart_confirm_retrieve.html", context)
 
 
+def cart_empty(request, pk):
+    cart = get_object_or_404(Cart, pk=pk)
+    context = {"cart": cart}
+    if request.method == "POST":
+        cart.cartitem_set.all().delete()
+        return redirect(reverse("collect:cart_detail"))
+    return TemplateResponse(request, "collect/cart_empty.html", context)
+
+
 def cart_delete(request, pk):
     instance = get_object_or_404(Cart, pk=pk)
     if request.method == "POST":

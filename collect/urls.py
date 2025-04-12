@@ -22,6 +22,7 @@ urlpatterns = [
     path("cart/<int:pk>/update", views.cart_update, name="cart_update"),
     path("cart/<int:pk>/delete", views.cart_delete, name="cart_delete"),
     path("cart/<int:pk>/retrieve", views.cart_retrieve, name="cart_retrieve"),
+    path("cart/<int:pk>/empty", views.cart_empty, name="cart_empty"),
     path("cart/<int:pk>/set_default_weight", views.cart_set_default_weight, name="cart_set_default_weight"),
     path("cartitem/create", views.cartitem_create, name="cartitem_create"),
     path("cartitem/sort/set", views.cartitem_set_sorting, name="cartitem_set_sorting"),
