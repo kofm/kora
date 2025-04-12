@@ -1,30 +1,19 @@
-{% extends "frontpage/base.html" %}
-{% load crispy_forms_tags %}
-{% load static %}
-{% block title %}Are you sure?{% endblock %}
-{% block container %}
-<h5 class="display-5">Are you sure?</h5>
-<div class="my-3">
+{% extends "frontpage/modal_content.html" %}
 
-  <p>You are about to <span class="mark">retrieve all the samples in
-    your cart <b>{{ cart.name }}</b></span>.</p>
+{% block title %}
+  Retrieve Cart
+{% endblock %}
 
-  <p>This means that the quantities listed will be subtracted from the
-  quantities recorded within your samples list. The operation cannot
-  be undone.</p>
+{% block body %}
+  <p>You are about to <span class="mark">retrieve all samples</span> from <b>{{ cart.name }}</b>.</p>
+  <p>This will deduct the listed quantities from your sample records, update each sample’s weight log, and <span class="mark">permanently delete the cart</span>.</p>
+<p><b>Note:</b> This action cannot be undone.</p>
+{% endblock %}
 
-  <p>The cart consists of the following:</p>
-
-  <ul>
-    {% for cartitem in cartitems  %}
-    <li><b>{{ cartitem.sample.variety.name }}</b> (#{{ cartitem.sample.sample_id }} - {{ cartitem.sample.position.storage }}-{{ cartitem.sample.position }}) {{ cartitem.sample.growing_season }} - {{ cartitem.weight }}g</li>
-    {% endfor %}
-  </ul>
-
-  <form method="post">
-    {% csrf_token %}
-    <button name="btn-save" type="submit" class="btn btn-outline-primary mt-3">Confirm</button>
-    <a class="btn btn-outline-secondary mt-3" type="submit" href="{% url 'collect:seedsample_list' %}">Cancel</a>
-  </form>
-</div>
+{% block footer %}
+  <button type="button" class="btn btn-primary" data-bs-dismiss="modal"
+    hx-post="{% url 'collect:cart_retrieve' cart.pk %}" hx-target="#cartBody">
+    Retrieve
+  </button>
+  {{ block.super }}
 {% endblock %}

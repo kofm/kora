@@ -51,7 +51,7 @@ def plantvariety_detail(request, pk):
     tables = {}
     descriptions = Description.objects.with_expressions().filter(variety=pk)
     tables["description"] = PlantVarietyDescriptionTable(descriptions)
-    samples = SeedSample.objects.with_latest_weight().filter(variety=pk)
+    samples = SeedSample.objects.with_weight().filter(variety=pk)
     tables["seedsample"] = PlantVarietySampleTable(samples)
     protections = Protection.objects.filter(variety=pk)
     tables["protection"] = ProtectionTable(protections)

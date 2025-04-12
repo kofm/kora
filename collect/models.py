@@ -77,20 +77,28 @@ class StoragePosition(models.Model):
 
 
 class SeedSampleQueryset(models.QuerySet):
-    def with_latest_weight(self):
+    def with_weight(self):
         return (
             self.select_related("variety", "variety__species", "position", "position__storage")
             .annotate(
                 last_weight=Window(
                     expression=LastValue("sampleweight__weight"),
                     partition_by=F("id"),
-                    order_by=F("sampleweight__created_at").desc(),
+                    order_by=F("sampleweight__created_at").asc(),
                     frame=RowRange(start=None, end=None),
                 ),
+            )
+            .distinct()
+        )
+
+    def with_germination(self):
+        return (
+            self.select_related("variety", "variety__species", "position", "position__storage")
+            .annotate(
                 last_germinability=Window(
                     expression=LastValue("germinability__germinability"),
                     partition_by=F("id"),
-                    order_by=F("germinability__performed_at").desc(),
+                    order_by=F("germinability__performed_at").asc(),
                     frame=RowRange(start=None, end=None),
                 ),
             )

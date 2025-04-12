@@ -1,23 +1,18 @@
-{% extends "frontpage/base.html" %}
-{% load crispy_forms_tags %}
-{% load static %}
-{% block title %}Are you sure?{% endblock %}
-{% block container %}
-    <h5 class="display-5">Are you sure?</h5>
-    <p>You are about to delete the cart "{{ object.name }}".
-        {% if object.cartitem_set.all %}
-            The cart contains the following samples:</p>
-            <div style="height: 80vh; overflow-y: scroll;">
-                {% for cartitem in object.cartitem_set.all  %}
-                    <p>{{ cartitem.sample }} {{ cartitem.sample.growing_season }}</p>
-                {% endfor %}
-            </div>
-        {% else %}
-          The cart is empty.
-        {% endif %}
-        <form method="post">
-            {% csrf_token %}
-            <button name="btn-save" type="submit" class="btn btn-outline-primary mt-3">Confirm</button>
-            <a class="btn btn-outline-secondary mt-3" type="submit" href="{% url 'collect:seedsample_list' %}">Cancel</a>
-        </form>
+{% extends "frontpage/modal_content.html" %}
+
+{% block title %}
+  Delete Cart
+{% endblock %}
+
+{% block body %}
+  <p>Do you really want to <b>delete</b> the cart?</p>
+{% endblock %}
+
+{% block footer %}
+  <button type="button" class="btn btn-danger" data-bs-dismiss="modal"
+    hx-post="{% url 'collect:cart_delete' cart.pk %}"
+    hx-target="#cartBody">
+    Delete
+  </button>
+  {{ block.super }}
 {% endblock %}

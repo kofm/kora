@@ -8,14 +8,14 @@
 {% load components %}
 
 {% block title %}
-    Accessions
+    Samples
 {% endblock %}
 
 {% block container %}
 
     {% render_breadcrumbs %}
     {% url 'collect:seedsample_create' as create_url %}
-    {% list_page_header "Accessions" create_url=create_url %}
+    {% list_page_header "Samples" create_url=create_url %}
 
     <div class="row">
 	<div class="col">

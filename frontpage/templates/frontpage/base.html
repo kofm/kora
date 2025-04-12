@@ -33,14 +33,7 @@
     {% offcanvas "cart" "Cart" "collect/partials/cart_offcanvas.html" %}
 
 
-    <div id="cartModal"
-      class="modal fade"
-      aria-hidden="true"
-      tabindex="-1">
-      <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
-	<div class="modal-content"></div>
-      </div>
-    </div>
+    {% include "frontpage/modal.html" %}
 
   </body>
 </html>

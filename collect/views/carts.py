@@ -18,7 +18,7 @@ from collect.forms import (
     CartSelectForm,
     CartUpdateForm,
 )
-from collect.models import Cart, CartItem, SampleWeight
+from collect.models import Cart, CartItem, SampleWeight, SeedSample
 from django_sortable_htmx.views import SortableView
 
 CART_SORTING = {
@@ -92,21 +92,36 @@ def cart_update(request, pk):
 def cart_retrieve(request, pk):
     context = {}
     cart = get_object_or_404(Cart, pk=pk, user=request.user)
-    cartitems = cart.cartitem_set.select_related(
-        "sample__variety__species",
-        "sample__position__storage",
-    ).all()
-    if not cartitems.exists():
-        return HttpResponseRedirect(reverse("collect:seedsample_list"))
-    if request.POST:
-        for cartitem in cartitems:
-            weight = cartitem.sample.weight - cartitem.weight
-            seedsample_weight = SampleWeight(seedsample=cartitem.sample, weight=weight)
-            seedsample_weight.save()
+    if request.method == "POST":
+        cartitems = list(cart.cartitem_set.all())
+
+        sample_ids = [item.sample_id for item in cartitems]
+        related_samples_qs = (
+            SeedSample.objects.with_weight().with_germination().filter(pk__in=sample_ids).values("pk", "last_weight")
+        )
+        samples = {item["pk"]: item["last_weight"] for item in related_samples_qs}
+        sampleweights = []
+        for item in cartitems:
+            sample_id = item.sample_id
+            if sample_id not in samples:
+                raise ValueError(f"Sample with ID {sample_id} not found in SeedSample queryset.")
+
+            new_weight = samples[sample_id] - item.weight
+            if new_weight < 0:
+                raise ValueError(
+                    f"Calculated negative weight for sample {sample_id}: "
+                    f"{samples[sample_id]} - {item['weight']} = {new_weight}"
+                )
+
+            sampleweight = SampleWeight(seedsample_id=sample_id, weight=new_weight)
+            sampleweights.append(sampleweight)
+
+        SampleWeight.objects.bulk_create(sampleweights)
         cart.delete()
-        return HttpResponseRedirect(reverse("collect:seedsample_list"))
-    context = {"cart": cart, "cartitems": cartitems}
-    return TemplateResponse(request, "collect/cart_confirm_retrieve.html", context)
+        return redirect(reverse("collect:cart_detail"))
+
+    context = {"cart": cart}
+    return render(request, "collect/cart_confirm_retrieve.html", context)
 
 
 def cart_empty(request, pk):
@@ -115,16 +130,16 @@ def cart_empty(request, pk):
     if request.method == "POST":
         cart.cartitem_set.all().delete()
         return redirect(reverse("collect:cart_detail"))
-    return TemplateResponse(request, "collect/cart_empty.html", context)
+    return render(request, "collect/cart_empty.html", context)
 
 
 def cart_delete(request, pk):
-    instance = get_object_or_404(Cart, pk=pk)
+    cart = get_object_or_404(Cart, pk=pk)
     if request.method == "POST":
-        instance.delete()
-        return redirect(reverse_lazy("collect:seedsample_list"))
-    context = {"cart": instance}
-    return TemplateResponse(request, "frontpage/confirm_delete.html", context)
+        cart.delete()
+        return redirect(reverse("collect:cart_detail"))
+    context = {"cart": cart}
+    return render(request, "collect/cart_confirm_delete.html", context)
 
 
 @require_POST

@@ -36,7 +36,7 @@ from register.models import PlantVariety, PlantVarietyName
 
 def seedsample_list(request):
     flt = SeedSampleFilter(request.GET)
-    queryset = flt.qs.with_latest_weight()
+    queryset = flt.qs.with_weight().with_germination()
 
     table = SeedSampleTable(queryset)
     RequestConfig(request, paginate={"per_page": 15}).configure(table)

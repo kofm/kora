@@ -145,7 +145,7 @@ class StoragePositionViewSet(viewsets.ModelViewSet):
 
 
 class SeedSampleViewSet(viewsets.ModelViewSet):
-    queryset = SeedSample.objects.with_latest_weight()
+    queryset = SeedSample.objects.with_weight().with_germination()
     serializer_class = SeedSampleSerializer
 
 

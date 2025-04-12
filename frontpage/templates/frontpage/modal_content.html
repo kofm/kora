@@ -1,0 +1,22 @@
+<div class="modal-dialog modal-dialog-centered">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h1 class="modal-title">
+	{% block title %}
+	  Modal Title
+	{% endblock %}
+      </h1>
+      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    </div>
+    <div class="modal-body">
+      {% block body %}
+	<p>Are you sure?</p>
+      {% endblock %}
+    </div>
+    <div class="modal-footer">
+      {% block footer %}
+	<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+      {% endblock %}
+    </div>
+  </div>
+</div>
