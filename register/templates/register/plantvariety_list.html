@@ -102,10 +102,10 @@
                                     {% endwith %}
                                     {% with accessions=variety.seedsample_set.count %}
                                         <a
-                                            href="{{ variety_detail_url }}#accessions"
+                                            href="{{ variety_detail_url }}#samples"
                                             class="mx-1 bi bi-box-seam {{ accessions|yesno:"link-primary,text-muted" }}"
                                             data-bs-toggle="tooltip"
-                                            data-bs-title="{{ accessions|yesno:"Accessions present,No accessions" }}"
+                                            data-bs-title="{{ accessions|yesno:"Samples present,No samples" }}"
                                         ></a>
                                     {% endwith %}
                                     {% with protections=variety.protection_set.count %}

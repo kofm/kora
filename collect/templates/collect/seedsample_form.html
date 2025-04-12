@@ -5,14 +5,14 @@
 {% load breadcrumbs %}
 
 {% block title %}
-    {% if object %}Update {{ object.sample_id }}: {{ object.variety.name }}{% else %}Create Accession{% endif %}
+    {% if object %}Update {{ object.sample_id }}: {{ object.variety.name }}{% else %}Create Sample{% endif %}
 {% endblock %}
 
 {% block container %}
 
     {% render_breadcrumbs %}
 
-    <h5 class="display-3">{% if object %}Update: <small class="text-muted">{{ object }}{% else %}Create Accession{% endif %}</small></h1>
+    <h5 class="display-3">{% if object %}Update: <small class="text-muted">{{ object }}{% else %}Create Sample{% endif %}</small></h1>
 
         {{ varieties|json_script:"varieties-data" }}
         {{ positions|json_script:"positions-data" }}

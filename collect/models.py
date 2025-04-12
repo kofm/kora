@@ -119,6 +119,7 @@ class SeedSample(ModelIsDeletableMixin, models.Model):
 
     class Meta:
         ordering = ("-sample_id",)
+        verbose_name = "sample"
 
     def __str__(self):
         return f"#{self.sample_id}"
