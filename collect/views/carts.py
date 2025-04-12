@@ -92,7 +92,10 @@ def cart_update(request, pk):
 def cart_retrieve(request, pk):
     context = {}
     cart = get_object_or_404(Cart, pk=pk, user=request.user)
-    cartitems = cart.cartitem_set.all()
+    cartitems = cart.cartitem_set.select_related(
+        "sample__variety__species",
+        "sample__position__storage",
+    ).all()
     if not cartitems.exists():
         return HttpResponseRedirect(reverse("collect:seedsample_list"))
     if request.POST:
@@ -102,7 +105,7 @@ def cart_retrieve(request, pk):
             seedsample_weight.save()
         cart.delete()
         return HttpResponseRedirect(reverse("collect:seedsample_list"))
-    context["cart"] = cart
+    context = {"cart": cart, "cartitems": cartitems}
     return TemplateResponse(request, "collect/cart_confirm_retrieve.html", context)
 
 

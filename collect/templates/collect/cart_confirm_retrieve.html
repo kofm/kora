@@ -16,8 +16,8 @@
   <p>The cart consists of the following:</p>
 
   <ul>
-    {% for cartitem in cart.cartitem_set.all  %}
-    <li><b>{{ cartitem.sample.variety.name }}</b> (#{{ cartitem.sample.sample_id }} - {{ cartitem.sample.position }}) {{ cartitem.sample.growing_season }} - {{ cartitem.weight }}g</li>
+    {% for cartitem in cartitems  %}
+    <li><b>{{ cartitem.sample.variety.name }}</b> (#{{ cartitem.sample.sample_id }} - {{ cartitem.sample.position.storage }}-{{ cartitem.sample.position }}) {{ cartitem.sample.growing_season }} - {{ cartitem.weight }}g</li>
     {% endfor %}
   </ul>
 
