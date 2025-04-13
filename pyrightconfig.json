@@ -1,9 +1,0 @@
-{
-  "typeCheckingMode": "basic",
-  "reportPrivateUsage": false,
-  "reportMissingModuleSource": false,
-  "reportUnnecessaryIsInstance": false,
-  "reportIncompatibleMethodOverride": false,
-  "reportGeneralTypeIssues": false,
-  "reportOptionalMemberAccess": false
-}
