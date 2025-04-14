@@ -49,7 +49,7 @@
                 <h2 class="display-5 mb-3">Log</h2>
                 <div class="list-group">
                     {% for item in log %}
-                        {% if item.weight %}
+                        {% if item.weight is not None %}
                             {% list_group_item item.weight|add_suffix:" g" "Weight" time=item.date %}
                         {% elif item.germinability %}
                             {% list_group_item item.germinability|add_suffix:"%" "Germination rate" time=item.date %}
