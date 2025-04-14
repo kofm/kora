@@ -27,18 +27,18 @@ def workspace_activate(request):
     form = WorkspaceSelectForm(request=request)
     return render(
         request,
-        "describe/partials/workspaces/workspace_detail.html",
+        "describe/partials/workspace_detail.html",
         {"workspace": workspace, "workspace_form": form},
     )
 
 
 @login_required
 def workspace_detail(request):
-    workspace = Workspace.objects.filter(user=request.user, is_active=True).elements().first()
+    workspace = Workspace.objects.elements().filter(user=request.user, is_active=True).first()
     form = WorkspaceSelectForm(request=request)
     return render(
         request,
-        "describe/partials/workspaces/workspace_detail.html",
+        "describe/partials/workspace_detail.html",
         {"workspace": workspace, "workspace_form": form},
     )
 
@@ -56,7 +56,7 @@ def workspace_create(request):
             return redirect(reverse("describe:workspace_detail"))
     return render(
         request,
-        "describe/partials/workspaces/workspace_detail.html",
+        "describe/partials/workspace_detail.html",
         {"workspace_form": form},
     )
 
@@ -74,7 +74,7 @@ def workspace_update(request, pk):
     form = WorkspaceUpdateForm(instance=instance)
     return render(
         request,
-        "describe/partials/workspaces/workspace_detail.html",
+        "describe/partials/workspace_detail.html",
         {"workspace_form": form},
     )
 

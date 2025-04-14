@@ -261,7 +261,7 @@ class Expression(models.Model):
         return self.state.trait
 
 
-class WorkspaceQueryset(models.QuerySet):
+class WorkspaceManager(models.Manager):
     def elements(self):
         return self.prefetch_related(
             "descriptions",
@@ -277,7 +277,7 @@ class Workspace(models.Model):
     name = models.CharField(max_length=200, help_text="The identificative name of the list")
     is_active = models.BooleanField(default=False)
 
-    objects = WorkspaceQueryset.as_manager()
+    objects: WorkspaceManager = WorkspaceManager()
 
     def __str__(self) -> str:
         return self.name
