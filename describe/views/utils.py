@@ -169,8 +169,9 @@ def init_description_filter(request: HttpRequest):
         reset_description_filter(request)
 
     if "description_filter" not in request.session:
+        protocol = Protocol.objects.first()
         request.session["description_filter"] = {
-            "protocol": Protocol.objects.first().pk,
+            "protocol": protocol.pk if protocol else None,
             "strict": False,
             "name": [],
             "expressions": {},
