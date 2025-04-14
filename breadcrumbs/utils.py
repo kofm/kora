@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Union
 
 from django.db.models.base import Model
 from django.http import HttpRequest
@@ -17,23 +17,23 @@ def breadcrumbs_context(breadcrumbs: BreadcrumbList) -> BreadcrumbContext:
     return {CONTEXT_KEY: breadcrumbs}
 
 
-def model_verbose(model: type[Model]) -> str:
+def model_verbose(model: Union[Model, type[Model]]) -> str:
     verbose_name_plural = str(model._meta.verbose_name_plural)
     return verbose_name_plural.title()
 
 
-def model_name(model: type[Model]) -> str:
+def model_name(model: Union[Model, type[Model]]) -> str:
     verbose_name = model._meta.verbose_name
     if isinstance(verbose_name, str):
         return verbose_name.replace(" ", "")
     return ""
 
 
-def app_label(model: type[Model]) -> str:
+def app_label(model: Union[Model, type[Model]]) -> str:
     return model._meta.app_label
 
 
-def view_url(model: type[Model], action: str) -> str:
+def view_url(model: Union[Model, type[Model]], action: str) -> str:
     url_name = f"{app_label(model)}:{model_name(model)}_{action}"
     try:
         if isinstance(model, Model):
@@ -64,17 +64,17 @@ def create_breadcrumb(model: type[Model]) -> tuple[str, str]:
     return ("Create", view_url(model, "create"))
 
 
-def update_breadcrumb(instance: type[Model]) -> tuple[str, str]:
+def update_breadcrumb(instance: Model) -> tuple[str, str]:
     return ("Update", view_url(instance, "update"))
 
 
-def delete_breadcrumb(instance: type[Model]) -> tuple[str, str]:
+def delete_breadcrumb(instance: Model) -> tuple[str, str]:
     return ("Delete", view_url(instance, "delete"))
 
 
-def detail_breadcrumb(instance: type[Model]) -> tuple[str, str]:
+def detail_breadcrumb(instance: Model) -> tuple[str, str]:
     if hasattr(instance, "get_absolute_url"):
-        url = instance.get_absolute_url()
+        url = instance.get_absolute_url()  # type: ignore[reportAttributeAccessIssue]
     else:
         url = view_url(instance, "detail")
     return (str(instance), url)
@@ -88,7 +88,7 @@ def add_breadcrumbs(context: dict[str, Any], crumbs: BreadcrumbList) -> dict[str
 def generate_breadcrumbs(
     request: HttpRequest,
     model: type[Model] | None = None,
-    instance: type[Model] | None = None,
+    instance: Model | None = None,
     additional: BreadcrumbList | None = None,
 ) -> BreadcrumbContext:
     breadcrumbs = []
@@ -116,7 +116,7 @@ def generate_breadcrumbs(
 
 
 def add_plantvariety_breadcrumbs(
-    breadcrumbs: BreadcrumbContext, plantvariety_instance: type[PlantVariety]
+    breadcrumbs: BreadcrumbContext, plantvariety_instance: PlantVariety
 ) -> BreadcrumbContext:
     plantvariety_breadcrumbs = [list_breadcrumb(PlantVariety), detail_breadcrumb(plantvariety_instance)]
     return breadcrumbs_context(plantvariety_breadcrumbs + breadcrumbs[CONTEXT_KEY])
