@@ -108,12 +108,9 @@ CSRF_TRUSTED_ORIGINS = origins.split() if origins else []
 # Internationalization
 LANGUAGE_CODE = "en-GB"
 TIME_ZONE = "UTC"
-USE_I18N = True
-USE_L10N = True
+USE_I18N = False
 USE_TZ = False
-FORMAT_MODULE_PATH = [
-    "formats",
-]
+FORMAT_MODULE_PATH = ("formats",)
 
 STATIC_URL = "static/"
 
