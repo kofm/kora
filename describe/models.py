@@ -261,7 +261,7 @@ class Expression(models.Model):
         return self.state.trait
 
 
-class WorkspaceManager(models.Manager):
+class WorkspaceQuerySet(models.QuerySet):
     def elements(self):
         return self.prefetch_related(
             "descriptions",
@@ -271,13 +271,16 @@ class WorkspaceManager(models.Manager):
             "descriptions__description__variety__species",
         )
 
+    def deactivate_all(self):
+        return self.update(is_active=False)
+
 
 class Workspace(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=200, help_text="The identificative name of the list")
     is_active = models.BooleanField(default=False)
 
-    objects: WorkspaceManager = WorkspaceManager()
+    objects = WorkspaceQuerySet.as_manager()
 
     def __str__(self) -> str:
         return self.name

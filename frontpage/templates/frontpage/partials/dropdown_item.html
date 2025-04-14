@@ -1,0 +1,9 @@
+{% if disabled %}
+<a class="dropdown-item disabled" aria-disabled="true">
+  {{ label }}
+</a>
+{% else %}
+<a class="dropdown-item" href="{{ href|safe }}" {{ attrs|safe }}>
+  {{ label }}
+</a>
+{% endif %}

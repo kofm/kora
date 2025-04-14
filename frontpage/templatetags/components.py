@@ -1,7 +1,32 @@
 from django import template
 from django.utils.safestring import mark_safe
 
+
+def _join_attrs(attrs: dict):
+    return " ".join(f'{key.replace("_", "-")}="{value}"' for key, value in attrs.items())
+
+
 register = template.Library()
+
+
+@register.inclusion_tag("frontpage/partials/dropdown_item.html")
+def dropdown_item(label, **kwargs):
+    href = kwargs.pop("href", None)
+    disabled = kwargs.pop("disabled", False) == "True"
+    querystring = kwargs.pop("querystring", None)
+    if querystring:
+        href += querystring
+    attrs = _join_attrs(kwargs)
+    return {"label": label, "href": href, "attrs": attrs, "disabled": disabled}
+
+
+@register.inclusion_tag("frontpage/partials/dropdown_item.html")
+def dropdown_item_to_modal(label, **kwargs):
+    disabled = kwargs.pop("disabled", False) == "True"
+    attrs = _join_attrs(kwargs)
+    modal_attrs = {"hx_target": "#modal", "hx_trigger": "click", "data_bs_toggle": "modal", "data_bs_target": "#modal"}
+    attrs += _join_attrs(modal_attrs)
+    return {"label": label, "attrs": attrs, "disabled": disabled}
 
 
 @register.inclusion_tag("frontpage/partials/list_page_header.html")

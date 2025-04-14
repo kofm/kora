@@ -1,5 +1,6 @@
 {% load crispy_forms_tags %}
 {% load render_sortable %}
+{% load components %}
 
 <style>
  .asteriskField {
@@ -22,27 +23,31 @@
   <div class="flex-grow-1">
     {% crispy workspace_form %}
   </div>
+
   <div class="dropdown mb-3">
     <button class="btn btn-outline-secondary dropdown-toggle ms-1" type="button" data-bs-toggle="dropdown" aria-expanded="false">
       <i class="bi bi-list"></i>
     </button>
     <div class="dropdown-menu" hx-target="#workspaceBody">
 
-      <a class="dropdown-item" href="#" hx-get="{% url "describe:workspace_create" %}">Create</a>
+      {% url "describe:workspace_create" as create_url %}
+      {% dropdown_item "Create" hx_get=create_url %}
 
-      <a class="dropdown-item {% if not workspace %}disabled{% endif %}"
-	{% if not workspace %}aria-disabled="true"{% endif %}
-	href="#"
-	{% if workspace %}hx-get="{% url "describe:workspace_update" workspace.pk %}"{% endif %}>
-	Rename
-      </a>
+      {% url "describe:workspace_update" workspace.pk as rename_url %}
+      {% dropdown_item "Rename" hx_get=rename_url disabled=workspace|yesno:"False,True" %}
 
-      <a class="dropdown-item {% if not workspace %}disabled{% endif %}" {% if not workspace %}aria-disabled="true"{% endif %} href="{% if workspace %}{% url 'describe:description_compare' %}{% endif %}" target="_blank">Compare</a>
-      <a class="dropdown-item {% if not workspace %}disabled{% endif %}" {% if not workspace %}aria-disabled="true"{% endif %} href="{% if workspace %}{% url 'restapi:workspaces' workspace.pk %}?no_pagination=1&format=json{% endif %}" target="_blank">Download</a>
+      {% url 'describe:description_compare' as compare_url %}
+      {% dropdown_item "Compare" href=compare_url target="_blank" disabled=workspace|yesno:"False,True" %}
 
-      <a class="dropdown-item {% if not workspace %}disabled{% endif %}" {% if not workspace %}aria-disabled="true"{% endif %} href="{% if workspace %}{% url 'describe:workspace_delete' workspace.pk %}{% endif %}">Delete</a>
+      {% url 'restapi:workspaces' workspace.pk as download_url %}
+      {% querystring no_pagination=1 format="json" as download_querystring %}
+      {% dropdown_item "Download" href=download_url querystring=download_querystring target="_blank" disabled=workspace|yesno:"False,True" %}
+
+      {% url 'describe:workspace_delete' workspace.pk as delete_url %}
+      {% dropdown_item_to_modal "Delete" hx_get=delete_url disabled=workspace|yesno:"False,True" %}
     </div>
   </div>
+
 </div>
 {% if workspace.descriptions.all %}
   {% render_sortable workspace.descriptions.all "workspace" "list-group mt-5" "describe:workspace_sort" "describe/partials/workspaces/detail_list_item.html" %}

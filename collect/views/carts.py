@@ -2,12 +2,11 @@ from crispy_forms.utils import render_crispy_form
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.db.models.aggregates import Max
-from django.http import HttpResponseRedirect
 from django.http.response import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.context_processors import csrf
 from django.template.response import TemplateResponse
-from django.urls import reverse, reverse_lazy
+from django.urls import reverse
 from django.views.decorators.http import require_GET, require_POST
 from render_block import render_block_to_string
 
@@ -33,12 +32,12 @@ CART_SORTING = {
 def cart_detail(request):
     context = {}
     user = request.user
-    queryset = Cart.objects.filter(user=user, is_active=True)
-    if queryset.exists():
-        cart = queryset.first()
-        items = CartItem.objects.select_related("sample__position__storage", "sample__variety__species").filter(
-            cart_id=cart.pk
-        )
+    cart = Cart.objects.filter(user=user, is_active=True).first()
+    if cart:
+        items = CartItem.objects.select_related(
+            "sample__position__storage",
+            "sample__variety__species",
+        ).filter(cart_id=cart.pk)
         sorting = request.session.get("cart_sorting", None)
         if sorting:
             items = items.order_by(sorting)
@@ -55,7 +54,7 @@ def cart_detail(request):
 def cart_activate(request):
     user = request.user
     form = CartSelectForm(request.POST, user=user)
-    if form.is_valid():
+    if form.is_valid() and "cart" in request.POST:
         form.save()
         return redirect(reverse("collect:cart_detail"))
     return HttpResponseBadRequest()
@@ -70,6 +69,7 @@ def cart_create(request):
             cart = form.save(commit=False)
             cart.is_active = True
             cart.user = request.user
+            Cart.objects.filter(user=request.user).deactivate_all()
             cart.save()
             return redirect(reverse("collect:cart_detail"))
     return render(request, "collect/cart_detail.html", {"cart_form": form})
@@ -138,8 +138,7 @@ def cart_delete(request, pk):
     if request.method == "POST":
         cart.delete()
         return redirect(reverse("collect:cart_detail"))
-    context = {"cart": cart}
-    return render(request, "collect/cart_confirm_delete.html", context)
+    return render(request, "collect/cart_confirm_delete.html", {"cart": cart})
 
 
 @require_POST
@@ -164,7 +163,7 @@ def cartitem_create(request):
         return JsonResponse({"error": "Invalid input or no active description."}, status=409)
 
     with transaction.atomic():
-        cartitem, created = CartItem.objects.get_or_create(sample_id=sample_id, cart=cart, weight=cart.default_weight)
+        cartitem, _ = CartItem.objects.get_or_create(sample_id=sample_id, cart=cart, weight=cart.default_weight)
 
         order_max = CartItem.objects.filter(cart=cart).aggregate(Max("order"))["order__max"]
         if order_max:

@@ -172,9 +172,9 @@ class SampleWeight(models.Model):
         return f"{self.weight}g"
 
 
-class CartManager(models.Manager):
-    def active(self):
-        return self.filter(is_active=True).last()
+class CartQuerySet(models.QuerySet):
+    def deactivate_all(self):
+        return self.update(is_active=False)
 
 
 class Cart(models.Model):
@@ -184,7 +184,7 @@ class Cart(models.Model):
     created_at = models.DateField(auto_now_add=True)
     default_weight = models.FloatField(help_text="Default quantity to retrieve (g)", default=10)
 
-    objects = CartManager()
+    objects = CartQuerySet.as_manager()
 
     class Meta:
         constraints = (

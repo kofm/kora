@@ -1,10 +1,9 @@
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.db.models import Max
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from django.template.response import TemplateResponse
-from django.urls import reverse, reverse_lazy
+from django.urls import reverse
 from django.views.decorators.http import require_POST
 
 from describe.forms import WorkspaceCreateForm, WorkspaceSelectForm, WorkspaceUpdateForm
@@ -15,27 +14,17 @@ from django_sortable_htmx.views import SortableView
 @login_required
 @require_POST
 def workspace_activate(request):
-    workspace_id = request.POST.get("name", None)
-    if workspace_id:
-        workspace = Workspace.objects.elements().filter(pk=int(workspace_id)).first()
-        workspace.is_active = True
-        workspace.save()
-    else:
-        Workspace.objects.all().update(is_active=False)
-        workspace = None
-
-    form = WorkspaceSelectForm(request=request)
-    return render(
-        request,
-        "describe/partials/workspace_detail.html",
-        {"workspace": workspace, "workspace_form": form},
-    )
+    form = WorkspaceSelectForm(request.POST, user=request.user)
+    if form.is_valid() and "workspace" in request.POST:
+        form.save()
+        return redirect(reverse("describe:workspace_detail"))
+    return HttpResponseBadRequest()
 
 
 @login_required
 def workspace_detail(request):
     workspace = Workspace.objects.elements().filter(user=request.user, is_active=True).first()
-    form = WorkspaceSelectForm(request=request)
+    form = WorkspaceSelectForm(user=request.user, initial={"workspace": workspace})
     return render(
         request,
         "describe/partials/workspace_detail.html",
@@ -49,10 +38,10 @@ def workspace_create(request):
     if request.method == "POST":
         form = WorkspaceCreateForm(request.POST)
         if form.is_valid():
-            instance = form.save(commit=False)
-            instance.user = request.user
-            instance.is_active = True
-            instance.save()
+            workspace = form.save(commit=False)
+            workspace.user = request.user
+            workspace.is_active = True
+            workspace.save()
             return redirect(reverse("describe:workspace_detail"))
     return render(
         request,
@@ -63,15 +52,15 @@ def workspace_create(request):
 
 @login_required
 def workspace_update(request, pk):
-    instance = get_object_or_404(Workspace, pk=pk)
+    workspace = get_object_or_404(Workspace, pk=pk)
     if request.method == "POST":
-        form = WorkspaceCreateForm(request.POST, instance=instance)
+        form = WorkspaceCreateForm(request.POST, instance=workspace)
         if form.is_valid():
-            instance = form.save(commit=False)
-            instance.user = request.user
-            instance.save()
+            workspace = form.save(commit=False)
+            workspace.user = request.user
+            workspace.save()
             return redirect(reverse("describe:workspace_detail"))
-    form = WorkspaceUpdateForm(instance=instance)
+    form = WorkspaceUpdateForm(instance=workspace)
     return render(
         request,
         "describe/partials/workspace_detail.html",
@@ -81,11 +70,11 @@ def workspace_update(request, pk):
 
 @login_required
 def workspace_delete(request, pk):
-    desc = get_object_or_404(Workspace, pk=pk)
-    if request.POST:
-        desc.delete()
-        return redirect(reverse_lazy("describe:description_list"))
-    return TemplateResponse(request, "frontpage/confirm_delete.html", {"desc": desc})
+    workspace = get_object_or_404(Workspace, pk=pk)
+    if request.method == "POST":
+        workspace.delete()
+        return redirect(reverse("describe:workspace_detail"))
+    return render(request, "describe/partials/workspace_confirm_delete.html", {"workspace": workspace})
 
 
 @login_required

@@ -89,6 +89,8 @@ class SeedSampleYearForm(forms.Form):
 
 
 class CartSelectForm(forms.Form):
+    cart = forms.ModelChoiceField(queryset=Cart.objects.none(), label="Active Cart", required=False)
+
     def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.user = user
@@ -105,61 +107,13 @@ class CartSelectForm(forms.Form):
             ),
         )
 
-    cart = forms.ModelChoiceField(queryset=Cart.objects.none(), label="Active Cart")
-
     def save(self):
-        data = self.cleaned_data
-        cart = data["cart"]
-        cart.is_active = True
-        cart.save()
+        cart = self.cleaned_data.get("cart")
+        Cart.objects.filter(user=self.user).deactivate_all()
+        if cart:
+            cart.is_active = True
+            cart.save()
         return cart
-
-
-class CartItemNewForm(forms.Form):
-    """
-    This form handles the addition of a sample in the active Cart.
-    The clean() method takes care of checking that the selected sample isn't
-    already in the cart. It also checks that the (optionally) requested amount
-    is available.
-    It takes a user as parameter to retrieve the active cart.
-    A valid SeedSample pk should be passed to 'seedsample' field
-    """
-
-    def __init__(self, *args, user=None, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.user = user
-
-    seedsample = forms.IntegerField()
-    weight = forms.FloatField(required=False)
-
-    def clean(self):
-        cleaned_data = super().clean()
-        seedsample = get_object_or_404(SeedSample, pk=cleaned_data.get("seedsample"))
-        weight = cleaned_data.get("weight", None)
-        cart = self.user.carts.active()
-        if not cart:
-            e = "You did not select any cart to add to."
-            raise forms.ValidationError(e)
-        cartitem = CartItem.objects.filter(cart=cart, sample=seedsample)
-
-        if cartitem.exists():
-            e = f"{seedsample} is already in the selected Cart."
-            raise forms.ValidationError(e)
-
-        if weight and weight > seedsample.weight:
-            e = f"There is only {seedsample.weight} grams available of {seedsample}."
-            raise forms.ValidationError(e)
-
-        return cleaned_data
-
-    def save(self):
-        cleaned_data = self.cleaned_data
-        seedsample = get_object_or_404(SeedSample, pk=cleaned_data["seedsample"])
-        cartitem = CartItem(cart=self.user.carts.active(), sample=seedsample)
-        if weight := cleaned_data.get("weight", None):
-            cartitem.weight = weight
-        cartitem.save()
-        return cartitem
 
 
 class CartItemSetWeightForm(forms.Form):

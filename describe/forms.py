@@ -195,34 +195,33 @@ class ExpressionForm(forms.ModelForm):
             self.fields["state"].queryset = State.objects.filter(trait=trait)  # type: ignore[attr-defined]
 
 
-class WorkspaceSelectForm(forms.ModelForm):
-    name = forms.ModelChoiceField(queryset=Workspace.objects.none(), label="Active Workspace")
+class WorkspaceSelectForm(forms.Form):
+    workspace = forms.ModelChoiceField(queryset=Workspace.objects.none(), label="Active Workspace", required=False)
 
-    class Meta:
-        model = Workspace
-        fields = ("name",)
-
-    def __init__(self, *args, **kwargs):
-        request = kwargs.pop("request")
+    def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.label_suffix = ""
-        if request.user.is_authenticated:
-            self.fields["name"].queryset = Workspace.objects.filter(user=request.user)
-            active_list = request.user.workspace_set.filter(is_active=True)
-            if active_list.exists():
-                self.fields["name"].initial = active_list.first().pk
-        else:
-            self.fields["name"].disabled = True
+        self.user = user
+        workspaces = Workspace.objects.filter(user=self.user)
+        self.fields["workspace"].queryset = workspaces
         self.helper = FormHelper(self)
         self.helper.layout = Layout(
             Field(
-                "name",
+                "workspace",
                 css_class="form-select",
                 hx_post=reverse("describe:workspace_activate"),
                 hx_trigger="change",
                 hx_target="#workspaceBody",
             )
         )
+
+    def save(self):
+        workspace = self.cleaned_data.get("workspace")
+        Workspace.objects.filter(user=self.user).deactivate_all()
+        if workspace:
+            workspace.is_active = True
+            workspace.save()
+        return workspace
 
 
 class WorkspaceInputForm(forms.ModelForm):
