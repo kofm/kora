@@ -1,8 +1,8 @@
 {% extends "frontpage/base.html" %}
-{% block title %}{{ object.seedsample.variety.name }}{% endblock %}
+{% block title %}{{ object.sample.variety.name }}{% endblock %}
 {% block container %}
 <h5 class="display-5">Are you sure?</h5>
-<p>You are deleting a sample weight ({{ object.weight }} g recorded on {{ object.created_at }}) associated with the seed sample of <b>{{ object.seedsample.variety.name }}</b> ({{ object.seedsample.growing_season }}) variety</p>
+<p>You are deleting a sample weight ({{ object.weight }} g recorded on {{ object.created_at }}) associated with the seed sample of <b>{{ object.sample.variety.name }}</b> ({{ object.sample.growing_season }}) variety</p>
 <form method="post">
   {% csrf_token %}
   <button name="btn-delete" type="submit" class="btn btn-outline-danger mt-3">Delete</button>

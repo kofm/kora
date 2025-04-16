@@ -58,11 +58,11 @@ class Storage(models.Model):
 
     @property
     def available_positions(self):
-        return self.storageposition_set.filter(seedsample__isnull=True).count()
+        return self.storageposition_set.filter(sample__isnull=True).count()
 
     @property
     def stored_samples(self):
-        return self.storageposition_set.filter(seedsample__isnull=False).count()
+        return self.storageposition_set.filter(sample__isnull=False).count()
 
 
 class StoragePosition(models.Model):
@@ -76,7 +76,7 @@ class StoragePosition(models.Model):
         return reverse("collect:storage_detail", args=(self.storage.pk,))
 
 
-class SeedSampleQueryset(models.QuerySet):
+class SampleQueryset(models.QuerySet):
     def with_weight(self):
         return (
             self.select_related("variety", "variety__species", "position", "position__storage")
@@ -106,7 +106,7 @@ class SeedSampleQueryset(models.QuerySet):
         )
 
 
-class SeedSample(ModelIsDeletableMixin, models.Model):
+class Sample(ModelIsDeletableMixin, models.Model):
     sample_id = models.PositiveIntegerField(
         verbose_name="ID", help_text="An unique identificative number of the seed sample", unique=True
     )
@@ -115,11 +115,10 @@ class SeedSample(ModelIsDeletableMixin, models.Model):
     growing_season = models.IntegerField(blank=True, null=True)
     position = models.ForeignKey(StoragePosition, on_delete=models.PROTECT)
 
-    objects = SeedSampleQueryset.as_manager()
+    objects = SampleQueryset.as_manager()
 
     class Meta:
         ordering = ("-sample_id",)
-        verbose_name = "sample"
 
     def __str__(self):
         return f"#{self.sample_id}"
@@ -138,17 +137,21 @@ class SeedSample(ModelIsDeletableMixin, models.Model):
 
     @property
     def weight(self):
-        if self.sampleweight_set.count() > 0:
-            return self.sampleweight_set.last().weight
+        sampleweight = self.sampleweight_set.last()
+        if sampleweight:
+            return sampleweight.weight
         return None
+
+    def last_sampleweight(self):
+        return self.sampleweight_set.last()
 
     @property
     def duplicate_samples(self):
-        return SeedSample.objects.filter(variety=self.variety).exclude(pk=self.pk)
+        return Sample.objects.filter(variety=self.variety).exclude(pk=self.pk)
 
 
 class Germinability(models.Model):
-    seedsample = models.ForeignKey(SeedSample, on_delete=models.CASCADE)
+    sample = models.ForeignKey(Sample, on_delete=models.CASCADE)
     germinability = models.IntegerField()
     after_days = models.IntegerField(blank=True, null=True)
     performed_at = models.DateField(default=timezone.now, blank=True, null=True)
@@ -161,7 +164,7 @@ class Germinability(models.Model):
 
 
 class SampleWeight(models.Model):
-    seedsample = models.ForeignKey(SeedSample, on_delete=models.CASCADE)
+    sample = models.ForeignKey(Sample, on_delete=models.CASCADE)
     weight = models.FloatField("sample weight (g)")
     created_at = models.DateField(auto_now_add=True)
 
@@ -204,7 +207,7 @@ class Cart(models.Model):
 
 
 class CartItem(models.Model):
-    sample = models.ForeignKey(SeedSample, on_delete=models.CASCADE)
+    sample = models.ForeignKey(Sample, on_delete=models.CASCADE)
     weight = models.FloatField("quantity retrieved (g)", default=0)
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE)
     order = models.PositiveIntegerField(default=0)

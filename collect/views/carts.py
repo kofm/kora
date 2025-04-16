@@ -17,7 +17,7 @@ from collect.forms import (
     CartSelectForm,
     CartUpdateForm,
 )
-from collect.models import Cart, CartItem, SampleWeight, SeedSample
+from collect.models import Cart, CartItem, SampleWeight, Sample
 from django_sortable_htmx.views import SortableView
 
 CART_SORTING = {
@@ -97,14 +97,14 @@ def cart_retrieve(request, pk):
 
         sample_ids = [item.sample_id for item in cartitems]
         related_samples_qs = (
-            SeedSample.objects.with_weight().with_germination().filter(pk__in=sample_ids).values("pk", "last_weight")
+            Sample.objects.with_weight().with_germination().filter(pk__in=sample_ids).values("pk", "last_weight")
         )
         samples = {item["pk"]: item["last_weight"] for item in related_samples_qs}
         sampleweights = []
         for item in cartitems:
             sample_id = item.sample_id
             if sample_id not in samples:
-                raise ValueError(f"Sample with ID {sample_id} not found in SeedSample queryset.")
+                raise ValueError(f"Sample with ID {sample_id} not found in Sample queryset.")
 
             new_weight = samples[sample_id] - item.weight
             if new_weight < 0:
@@ -113,7 +113,7 @@ def cart_retrieve(request, pk):
                     f"{samples[sample_id]} - {item['weight']} = {new_weight}"
                 )
 
-            sampleweight = SampleWeight(seedsample_id=sample_id, weight=new_weight)
+            sampleweight = SampleWeight(sample_id=sample_id, weight=new_weight)
             sampleweights.append(sampleweight)
 
         SampleWeight.objects.bulk_create(sampleweights)

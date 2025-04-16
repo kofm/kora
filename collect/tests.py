@@ -1,11 +1,11 @@
 from django.test import TestCase
 
-from collect.models import Germinability, SeedSample, Storage, StoragePosition
-from collect.tables import SeedSampleTableMixin
+from collect.models import Germinability, Sample, Storage, StoragePosition
+from collect.tables import SampleTableMixin
 from register.models import Entity, PlantSpecies, PlantVariety
 
 
-class SeedSampleTestCase(TestCase):
+class SampleTestCase(TestCase):
     def setUp(self):
         wheat = PlantSpecies.objects.create(
             latin_name="Triticum aestivum", common_name="Wheat", plant_type="herbaceous"
@@ -16,15 +16,15 @@ class SeedSampleTestCase(TestCase):
         storage = Storage.objects.create(name="S101", order=0)
         storagepos1 = StoragePosition.objects.create(name="1", storage=storage)
         storagepos2 = StoragePosition.objects.create(name="2", storage=storage)
-        self.record_rieti = SeedSample.objects.create(sample_id=1, position=storagepos1, variety=rieti)
-        self.record_rieti_originario = SeedSample.objects.create(
+        self.record_rieti = Sample.objects.create(sample_id=1, position=storagepos1, variety=rieti)
+        self.record_rieti_originario = Sample.objects.create(
             sample_id=2, position=storagepos2, variety=self.rieti_originario
         )
         Germinability.objects.create(
-            seedsample=self.record_rieti,
+            sample=self.record_rieti,
             germinability=85,
         )
-        self.mixin = SeedSampleTableMixin()
+        self.mixin = SampleTableMixin()
 
     def test_render_germinability(self):
         """Germinability is correctly rendered"""

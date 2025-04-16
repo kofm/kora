@@ -9,37 +9,37 @@
 
 
 {% block title %}
-  {{ seedsample }}
+  {{ sample }}
 {% endblock %}
 
 {% block container %}
 
   {% render_breadcrumbs %}
 
-  {% url 'collect:sample_update' seedsample.pk as update_url %}
-  {% detail_page_header seedsample subtitle=seedsample.variety update_url=update_url %}
+  {% url 'collect:sample_update' sample.pk as update_url %}
+  {% detail_page_header sample subtitle=sample.variety update_url=update_url %}
 
   <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 border rounded p-2 g-2 my-3">
 
-    {% url 'register:plantvariety_detail' seedsample.variety.pk as variety_url %}
-    {% card_col_rows seedsample.variety "Variety" variety_url %}
+    {% url 'register:plantvariety_detail' sample.variety.pk as variety_url %}
+    {% card_col_rows sample.variety "Variety" variety_url %}
 
-    {% url 'collect:storage_detail' seedsample.position.storage.pk as storage_url %}
+    {% url 'collect:storage_detail' sample.position.storage.pk as storage_url %}
     {% card_col_rows position "Storage Location" storage_url %}
 
-    {% card_col_rows seedsample.growing_season "Growing Season" %}
+    {% card_col_rows sample.growing_season "Growing Season" %}
 
-    {% with record=seedsample.sampleweight_set.last %}
+    {% with record=sample.sampleweight_set.last %}
       {% card_col_rows record.weight "Current Weight (g)" time=record.created_at %}
     {% endwith %}
 
-    {% with record=seedsample.germinability_set.last %}
+    {% with record=sample.germinability_set.last %}
       {% card_col_rows record.germinability|default:"-" "Germinability (%)" time=record.performed_at %}
     {% endwith %}
 
 
-    {% url 'collect:storage_detail' seedsample.position.storage.pk as storage_url %}
-    {% card_col_rows seedsample.notes "Notes" %}
+    {% url 'collect:storage_detail' sample.position.storage.pk as storage_url %}
+    {% card_col_rows sample.notes "Notes" %}
 
   </div>
 

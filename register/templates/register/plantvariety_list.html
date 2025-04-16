@@ -100,7 +100,7 @@
                                             data-bs-title="{{ descriptions|yesno:"Descriptions present,No descriptions" }}"
                                         ></a>
                                     {% endwith %}
-                                    {% with accessions=variety.seedsample_set.count %}
+                                    {% with accessions=variety.sample_set.count %}
                                         <a
                                             href="{{ variety_detail_url }}#samples"
                                             class="mx-1 bi bi-box-seam {{ accessions|yesno:"link-primary,text-muted" }}"

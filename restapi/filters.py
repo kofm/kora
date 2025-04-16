@@ -1,7 +1,7 @@
 import django_filters
 from django_filters.rest_framework import FilterSet
 
-from collect.models import SampleWeight, SeedSample, Storage, StoragePosition
+from collect.models import SampleWeight, Sample, Storage, StoragePosition
 from describe.models import Description, Protocol, Trait
 from parameters.models import Parameter, VarietalParameter
 from register.filters import filter_name_generic
@@ -94,16 +94,16 @@ class StoragePositionFilter(FilterSet):
         fields = ("name", "storage")
 
 
-class SeedSampleFilter(FilterSet):
+class SampleFilter(FilterSet):
     class Meta:
-        model = SeedSample
+        model = Sample
         fields = ("sample_id", "variety", "notes", "growing_season", "position")
 
 
 class SampleWeightFilter(FilterSet):
     class Meta:
         model = SampleWeight
-        fields = ("seedsample", "weight")
+        fields = ("sample", "weight")
 
 
 class ParameterFilter(FilterSet):

@@ -5,17 +5,17 @@ from . import views
 app_name = "collect"
 
 urlpatterns = [
-    path("", views.seedsample_list, name="sample_list"),
-    path("<int:pk>", views.seedsample_detail, name="sample_detail"),
-    path("new", views.SeedSampleCreateView.as_view(), name="sample_create"),
+    path("", views.sample_list, name="sample_list"),
+    path("<int:pk>", views.sample_detail, name="sample_detail"),
+    path("new", views.SampleCreateView.as_view(), name="sample_create"),
     path("storage", views.StorageListView.as_view(), name="storage_list"),
     path("storage/create", views.storage_create, name="storage-create"),
     path("storage/<int:pk>", views.StorageDetailView.as_view(), name="storage_detail"),
     path("storage/<int:pk>/update", views.storage_update, name="storage_update"),
     path("storage/<int:pk>/delete", views.storage_delete, name="storage_delete"),
     path("storage/sort", views.StorageSortView.as_view(), name="storage-sort"),
-    path("<int:pk>/update", views.seedsample_update, name="sample_update"),
-    path("<int:pk>/delete", views.SeedSampleDeleteView.as_view(), name="sample_delete"),
+    path("<int:pk>/update", views.sample_update, name="sample_update"),
+    path("<int:pk>/delete", views.SampleDeleteView.as_view(), name="sample_delete"),
     path("cart/", views.cart_detail, name="cart_detail"),
     path("cart/activate", views.cart_activate, name="cart_activate"),
     path("cart/create", views.cart_create, name="cart_create"),

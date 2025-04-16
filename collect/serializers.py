@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from collect.models import Germinability, SampleWeight, SeedSample, StoragePosition
+from collect.models import Germinability, SampleWeight, Sample, StoragePosition
 
 
 class StoragePositionSerializer(serializers.ModelSerializer):
@@ -18,13 +18,13 @@ class GerminabilitySerializer(serializers.ModelSerializer):
 class SampleWeightSerializer(serializers.ModelSerializer):
     class Meta:
         model = SampleWeight
-        fields = ["weight", "seedsample"]
+        fields = ["weight", "sample"]
 
 
-class SeedSampleSerializer(serializers.ModelSerializer):
+class SampleSerializer(serializers.ModelSerializer):
     variety = serializers.StringRelatedField()
     position = serializers.StringRelatedField()
 
     class Meta:
-        model = SeedSample
+        model = Sample
         fields = ["sample_id", "variety", "position"]

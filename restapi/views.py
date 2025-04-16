@@ -9,7 +9,7 @@ from rest_framework import status, viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from collect.models import Cart, CartItem, SampleWeight, SeedSample, Storage, StoragePosition
+from collect.models import Cart, CartItem, SampleWeight, Sample, Storage, StoragePosition
 from collect.serializers import SampleWeightSerializer
 from describe.models import (
     Description,
@@ -29,7 +29,7 @@ from restapi.serializers import (
     PlantVarietySerializer,
     ProtectionSerializer,
     ProtocolSerializer,
-    SeedSampleSerializer,
+    SampleSerializer,
     StoragePositionSerializer,
     StorageSerializer,
     TraitSerializer,
@@ -144,13 +144,13 @@ class StoragePositionViewSet(viewsets.ModelViewSet):
     filterset_class = StoragePositionFilter
 
 
-class SeedSampleViewSet(viewsets.ModelViewSet):
-    queryset = SeedSample.objects.with_weight().with_germination()
-    serializer_class = SeedSampleSerializer
+class SampleViewSet(viewsets.ModelViewSet):
+    queryset = Sample.objects.with_weight().with_germination()
+    serializer_class = SampleSerializer
 
 
 class SampleWeightViewSet(viewsets.ModelViewSet):
-    queryset = SampleWeight.objects.select_related("seedsample").all()
+    queryset = SampleWeight.objects.select_related("sample").all()
     serializer_class = SampleWeightSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = SampleWeightFilter

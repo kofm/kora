@@ -98,9 +98,9 @@ function(){function t(t){t.remember("_draggable",this),this.el=t}t.prototype.ini
 var __webpack_exports__ = {};
 // This entry needs to be wrapped in an IIFE because it needs to be isolated against other modules in the chunk.
 (() => {
-/*!****************************************!*\
-  !*** ./assets/js/seedsample-detail.js ***!
-  \****************************************/
+/*!************************************!*\
+  !*** ./assets/js/sample-detail.js ***!
+  \************************************/
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var apexcharts__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! apexcharts */ "./node_modules/apexcharts/dist/apexcharts.common.js");
 /* harmony import */ var apexcharts__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(apexcharts__WEBPACK_IMPORTED_MODULE_0__);

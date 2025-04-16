@@ -85,7 +85,7 @@ class PlantVarietyFilter(FilterSet):
     breeder = CharFilter(label="Breeder", method="filter_name", field_name="breeder__name")
     species = ModelMultipleChoiceFilter(label="Species", queryset=PlantSpecies.objects.all())
     has_descriptions = BooleanFilter(label="Described", field_name="description", method="filter_has_records")
-    has_accessions = BooleanFilter(label="Accession", field_name="seedsample", method="filter_has_records")
+    has_accessions = BooleanFilter(label="Accession", field_name="sample", method="filter_has_records")
     protection = ProtectionFilter(label="Protection")
 
     class Meta:

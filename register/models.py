@@ -95,8 +95,8 @@ class PlantSpecies(ModelIsDeletableMixin, models.Model):
         return self.variety.filter(description__isnull=False).count()
 
     @property
-    def total_seedsamples(self):
-        return self.variety.filter(seedsample__isnull=False).count()
+    def total_samples(self):
+        return self.variety.filter(sample__isnull=False).count()
 
     def get_update_url(self):
         return reverse("register:plantspecies_update", args=[self.pk])

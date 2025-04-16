@@ -1,7 +1,7 @@
 /******/ (() => { // webpackBootstrap
-/*!**************************************!*\
-  !*** ./assets/js/seedsample-form.js ***!
-  \**************************************/
+/*!**********************************!*\
+  !*** ./assets/js/sample-form.js ***!
+  \**********************************/
 const varietiesData = JSON.parse(
   document.getElementById("varieties-data").textContent
 );

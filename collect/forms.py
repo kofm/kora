@@ -12,12 +12,12 @@ from collect.models import (
     CartItem,
     Germinability,
     SampleWeight,
-    SeedSample,
+    Sample,
     Storage,
 )
 
 
-class SeedSampleForm(forms.ModelForm):
+class SampleForm(forms.ModelForm):
     tomvar = forms.CharField(label="Variety")
     tompos = forms.CharField(label="Position")
 
@@ -36,7 +36,7 @@ class SeedSampleForm(forms.ModelForm):
         )
 
     class Meta:
-        model = SeedSample
+        model = Sample
         fields = (
             "sample_id",
             "tomvar",
@@ -73,7 +73,7 @@ class GerminabilityForm(forms.ModelForm):
         fields = ("germinability", "after_days", "performed_at")
 
 
-class SeedSampleYearForm(forms.Form):
+class SampleYearForm(forms.Form):
     year = forms.ChoiceField(
         choices=((0, ""),),
         widget=forms.Select(
@@ -81,7 +81,7 @@ class SeedSampleYearForm(forms.Form):
                 "class": "form-select",
                 "hx-get": "_hx",
                 "hx-trigger": "change",
-                "hx-target": "#seedsample-table",
+                "hx-target": "#sample-table",
                 "hx-include": "#search-form",
             }
         ),

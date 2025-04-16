@@ -1,20 +1,20 @@
 import django_tables2 as tables
 
-from collect.models import SampleWeight, SeedSample
+from collect.models import SampleWeight, Sample
 from frontpage.utils import smart_truncate_string
 
 
-class SeedSampleTableMixin:
+class SampleTableMixin:
     def render_germinability(self, record):
         return str(record.germinability) + "%"
 
 
-class SeedSampleTablePositionMixin:
+class SampleTablePositionMixin:
     def render_position(self, record):
         return f"{record.position.storage.name}-{record.position.name}"
 
 
-class SeedSampleBaseTable(tables.Table, SeedSampleTableMixin):
+class SampleBaseTable(tables.Table, SampleTableMixin):
     sample_id = tables.Column(linkify=True, attrs={"td": {"class": "col-1"}})
     notes = tables.Column(
         attrs={
@@ -26,7 +26,7 @@ class SeedSampleBaseTable(tables.Table, SeedSampleTableMixin):
     )
 
     class Meta:
-        model = SeedSample
+        model = Sample
         fields: tuple = (
             "sample_id",
             "growing_season",
@@ -39,8 +39,8 @@ class SeedSampleBaseTable(tables.Table, SeedSampleTableMixin):
         return f"{notes}"
 
 
-class SeedSampleTable(SeedSampleTablePositionMixin, SeedSampleBaseTable):
-    """Extension of the SeedSampleBaseTable for the Accession List.
+class SampleTable(SampleTablePositionMixin, SampleBaseTable):
+    """Extension of the SampleBaseTable for the Accession List.
 
     It uses HTMX for dynamic content display. See the template for
     details.  It also has (HTMX) action buttons to add Accessions to
@@ -68,7 +68,7 @@ class SeedSampleTable(SeedSampleTablePositionMixin, SeedSampleBaseTable):
         },
     )
     actions = tables.TemplateColumn(
-        template_name="collect/partials/seedsample_table_actions.html",
+        template_name="collect/partials/sample_table_actions.html",
         verbose_name="",
         orderable=False,
         attrs={
@@ -77,7 +77,7 @@ class SeedSampleTable(SeedSampleTablePositionMixin, SeedSampleBaseTable):
     )
 
     class Meta:
-        model = SeedSample
+        model = Sample
         fields = (
             "sample_id",
             "variety__name",
@@ -88,13 +88,13 @@ class SeedSampleTable(SeedSampleTablePositionMixin, SeedSampleBaseTable):
             "notes",
             "actions",
         )
-        template_name = "collect/partials/seedsample_table.html"
+        template_name = "collect/partials/sample_table.html"
 
 
-class SeedSampleDuplicatesTable(SeedSampleTablePositionMixin, SeedSampleBaseTable):
+class SampleDuplicatesTable(SampleTablePositionMixin, SampleBaseTable):
     orderable: bool = False
 
-    class Meta(SeedSampleBaseTable.Meta):
+    class Meta(SampleBaseTable.Meta):
         fields = (
             "sample_id",
             "variety",
@@ -106,8 +106,8 @@ class SeedSampleDuplicatesTable(SeedSampleTablePositionMixin, SeedSampleBaseTabl
         )
 
 
-class SeedSampleInStorageTable(SeedSampleBaseTable):
-    class Meta(SeedSampleBaseTable.Meta):
+class SampleInStorageTable(SampleBaseTable):
+    class Meta(SampleBaseTable.Meta):
         fields = (
             "position",
             "sample_id",

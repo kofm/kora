@@ -18,7 +18,7 @@ from breadcrumbs.utils import (
     list_breadcrumb,
     update_breadcrumb,
 )
-from collect.models import SeedSample
+from collect.models import Sample
 from describe.models import Description
 from frontpage.views_decorators import NavPlantActiveContext, nav_plant_active_context
 from parameters.models import VarietalParameter
@@ -51,8 +51,8 @@ def plantvariety_detail(request, pk):
     tables = {}
     descriptions = Description.objects.with_expressions().filter(variety=pk)
     tables["description"] = PlantVarietyDescriptionTable(descriptions)
-    samples = SeedSample.objects.with_weight().filter(variety=pk)
-    tables["seedsample"] = PlantVarietySampleTable(samples)
+    samples = Sample.objects.with_weight().filter(variety=pk)
+    tables["sample"] = PlantVarietySampleTable(samples)
     protections = Protection.objects.filter(variety=pk)
     tables["protection"] = ProtectionTable(protections)
     parameters = VarietalParameter.objects.select_related("parameter").filter(variety=pk)
@@ -149,7 +149,7 @@ def plantvariety_list(request):
         PlantVariety.objects.prefetch_related(
             "names",
             "description_set",
-            "seedsample_set",
+            "sample_set",
             "parameters",
             "crop_set",
             "protection_set",

@@ -2,8 +2,8 @@ import django_tables2 as tables
 from django.utils.html import format_html
 from django_tables2 import columns
 
-from collect.models import SeedSample
-from collect.tables import SeedSampleBaseTable, SeedSampleTablePositionMixin
+from collect.models import Sample
+from collect.tables import SampleBaseTable, SampleTablePositionMixin
 from describe.models import Description
 from describe.tables import DescriptionTable
 from parameters.models import ParameterValue
@@ -46,20 +46,20 @@ class PlantVarietyDescriptionTable(tables.Table):
         template_name = "describe/partials/description_table.html"
 
 
-class PlantVarietySampleTable(SeedSampleTablePositionMixin, SeedSampleBaseTable):
+class PlantVarietySampleTable(SampleTablePositionMixin, SampleBaseTable):
     position = tables.Column(attrs={"td": {"class": "col-2"}})
     growing_season = tables.Column(attrs={"td": {"class": "col-2"}})
     last_weight = tables.Column("Weight", attrs={"td": {"class": "col-2"}})
     notes = tables.Column(attrs={"td": {"style": "width:40rem"}})
     actions = tables.TemplateColumn(
-        template_name="collect/partials/seedsample_table_actions.html",
+        template_name="collect/partials/sample_table_actions.html",
         verbose_name="",
         orderable=False,
         attrs={"td": {"class": "col-1"}},
     )
 
     class Meta:
-        model = SeedSample
+        model = Sample
         fields = (
             "sample_id",
             "position",
@@ -154,5 +154,5 @@ class PlantVarietyTable(tables.Table):
         return render_icon(described)
 
     def render_accessions(self, record):
-        accessions = SeedSample.objects.filter(variety=record).exists()
+        accessions = Sample.objects.filter(variety=record).exists()
         return render_icon(accessions)

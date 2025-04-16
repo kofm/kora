@@ -85,14 +85,11 @@ module.exports = [
     merge(commonConfig, {
         name: "collect",
         entry: {
-            "seedsample-detail": {
-                import: path.resolve("assets/js/seedsample-detail.js"),
+            "sample-detail": {
+                import: path.resolve("assets/js/sample-detail.js"),
             },
-            "seedsample-form": {
-                import: path.resolve("assets/js/seedsample-form.js"),
-            },
-            cart: {
-                import: path.resolve("assets/js/cart.js"),
+            "sample-form": {
+                import: path.resolve("assets/js/sample-form.js"),
             },
         },
         output: {
