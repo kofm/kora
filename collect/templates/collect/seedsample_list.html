@@ -14,7 +14,7 @@
 {% block container %}
 
     {% render_breadcrumbs %}
-    {% url 'collect:seedsample_create' as create_url %}
+    {% url 'collect:sample_create' as create_url %}
     {% list_page_header "Samples" create_url=create_url %}
 
     <div class="row">

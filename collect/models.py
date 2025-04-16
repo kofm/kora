@@ -125,10 +125,10 @@ class SeedSample(ModelIsDeletableMixin, models.Model):
         return f"#{self.sample_id}"
 
     def get_absolute_url(self):
-        return reverse("collect:seedsample_detail", kwargs={"pk": self.pk})
+        return reverse("collect:sample_detail", kwargs={"pk": self.pk})
 
     def get_delete_url(self):
-        return reverse("collect:seedsample_delete", kwargs={"pk": self.pk})
+        return reverse("collect:sample_delete", kwargs={"pk": self.pk})
 
     @property
     def germinability(self):

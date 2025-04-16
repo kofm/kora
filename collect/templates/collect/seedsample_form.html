@@ -28,7 +28,7 @@
             {% endif %}
             <button name="btn-save" type="submit" class="btn btn-outline-primary mt-3">Save</button>
             {% if not object %}<button id="btn-another" name="btn-another" type="submit" class="btn btn-outline-primary mt-3">Save & +1</button>{% endif %}
-            <a class="btn btn-outline-secondary mt-3" type="submit" href="{% url 'collect:seedsample_list'  %}">Cancel</a>
+            <a class="btn btn-outline-secondary mt-3" type="submit" href="{% url 'collect:sample_list'  %}">Cancel</a>
         </form>
 
         <script src="{% static 'collect/seedsample-form.bundle.js' %}"></script>

@@ -116,7 +116,7 @@ class SeedSampleCreateView(CreateBreadcrumbsMixin, CreateView):
 
     def get_success_url(self):
         if "btn-another" in self.request.POST:
-            return reverse("collect:seedsample_create")
+            return reverse("collect:sample_create")
         return super().get_success_url()
 
 
@@ -141,7 +141,7 @@ def seedsample_update(request, pk):
         form = SeedSampleForm(request.POST, instance=instance)
         if form.is_valid():
             form.save()
-            return redirect(reverse("collect:seedsample_detail", args=(pk,)))
+            return redirect(reverse("collect:sample_detail", args=(pk,)))
     else:
         form = SeedSampleForm(instance=instance)
     context.update({"form": form, "object": instance})
@@ -158,7 +158,7 @@ def seedsample_update(request, pk):
 class SeedSampleDeleteView(DeleteBreadcrumbsMixin, DeleteView):
     object: SeedSample
     model = SeedSample
-    success_url = reverse_lazy("collect:seedsample_list")
+    success_url = reverse_lazy("collect:sample_list")
 
 
 class StorageListView(ListBreadcrumbsMixin, ListView):
