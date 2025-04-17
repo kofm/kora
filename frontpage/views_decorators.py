@@ -12,6 +12,41 @@ def is_htmx(request: HttpRequest):
     return request.headers.get("Hx-Request", False)
 
 
+def htmx_render_blocks(blocks: list):
+    def decorator(view):
+        @wraps(view)
+        def _view(request, *args, **kwargs):
+            resp = view(request, *args, **kwargs)
+
+            if not is_htmx(request):
+                return resp
+
+            if not hasattr(resp, "render"):
+                raise ValueError("@htmx_render_block_from_params should be used with TemplateResponse")
+
+            rendered_blocks = [
+                render_block_to_string(
+                    resp.template_name,
+                    b,
+                    context=resp.context_data,
+                    request=request,
+                )
+                for b in blocks
+            ]
+
+            resp = HttpResponse(
+                content="\n".join(rendered_blocks),
+                status=resp.status_code,
+                headers=resp.headers,
+            )
+
+            return resp
+
+        return _view
+
+    return decorator
+
+
 def htmx_render_block_from_params():
     def decorator(view):
         @wraps(view)

@@ -55,19 +55,10 @@ class SampleForm(forms.ModelForm):
 class SampleWeightForm(forms.ModelForm):
     class Meta:
         model = SampleWeight
-        fields = ("weight",)
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.helper = FormHelper()
-        self.helper.add_input(Submit("submit", "Submit", css_class="col-12 mt-3"))
+        fields = ("weight", "created_at")
 
 
 class GerminabilityForm(forms.ModelForm):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields["germinability"].required = False
-
     class Meta:
         model = Germinability
         fields = ("germinability", "after_days", "performed_at")

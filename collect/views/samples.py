@@ -1,13 +1,16 @@
+import json
 from django.db import transaction
-from django.db.models import F, IntegerField, Q, Value
+from django.db.models import F, CharField, IntegerField, Q, Value
 from django.db.models.functions import Cast, Concat
-from django.shortcuts import get_object_or_404, redirect
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404, redirect, render
 from django.template.response import TemplateResponse
 from django.urls import reverse, reverse_lazy
 from django.utils.timezone import now
 from django.views.generic import DetailView, ListView
 from django.views.generic.edit import CreateView, DeleteView
 from django_tables2 import RequestConfig
+from render_block import render_block_to_string
 
 from breadcrumbs.generic import (
     CreateBreadcrumbsMixin,
@@ -24,16 +27,18 @@ from collect.forms import (
     StorageCreateForm,
     StorageUpdateForm,
 )
-from collect.models import Sample, Storage, StoragePosition
+from collect.models import Germinability, Sample, SampleWeight, Storage, StoragePosition
 from collect.tables import (
     SampleDuplicatesTable,
     SampleInStorageTable,
     SampleTable,
 )
 from django_sortable_htmx.views import SortableView
+from frontpage.views_decorators import htmx_render_block_from_params, htmx_render_blocks
 from register.models import PlantVariety, PlantVarietyName
 
 
+@htmx_render_blocks(["table"])
 def sample_list(request):
     flt = SampleFilter(request.GET)
     queryset = flt.qs.with_weight().with_germination()
@@ -42,31 +47,34 @@ def sample_list(request):
     RequestConfig(request, paginate={"per_page": 15}).configure(table)
 
     context = {"table": table, "filter": flt}
-
-    template_file = "collect/sample_list.html"
-
-    if request.headers.get("HX-Request") == "true":
-        template_file = "collect/partials/sample_table.html"
-
     context.update(generate_breadcrumbs(request, Sample))
 
-    return TemplateResponse(request, template_file, context)
+    return TemplateResponse(request, "collect/sample_list.html", context)
 
 
+@htmx_render_block_from_params()
 def sample_detail(request, pk):
-    context = {}
-    sample = get_object_or_404(Sample, pk=pk)
-    context["sample"] = sample
-    context["position"] = f"{sample.position.storage}-{sample.position}"
-    context["duplicates_table"] = SampleDuplicatesTable(sample.duplicate_samples)
+    template_name = "collect/sample_detail.html"
+    sample = Sample.objects.detail().get(pk=pk)
+
+    context = {
+        "sample": sample,
+        "log": sample.get_log(),
+    }
+
+    duplicates_table = SampleDuplicatesTable(sample.duplicate_samples)
     crumbs = generate_breadcrumbs(request, Sample, sample)
     crumbs = add_plantvariety_breadcrumbs(crumbs, sample.variety)
-    context.update(crumbs)
-    germ_rates = sample.germinability_set.annotate(date=F("performed_at")).values("date", "germinability")
-    weights = sample.sampleweight_set.annotate(date=F("created_at")).values("date", "weight")
-    log = list(germ_rates) + list(weights)
-    context["log"] = sorted(log, key=lambda e: e["date"], reverse=True)
-    return TemplateResponse(request, "collect/sample_detail.html", context)
+
+    context.update(
+        {
+            "position": f"{sample.position.storage}-{sample.position}",
+            "duplicates_table": duplicates_table,
+            **crumbs,
+        }
+    )
+
+    return TemplateResponse(request, template_name, context)
 
 
 class SampleCreateView(CreateBreadcrumbsMixin, CreateView):
@@ -101,7 +109,9 @@ class SampleCreateView(CreateBreadcrumbsMixin, CreateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["weight_form"] = SampleWeightForm()
-        context["germinability_form"] = GerminabilityForm(initial={"after_days": 7})
+        germinability_form = GerminabilityForm(initial={"after_days": 7})
+        germinability_form.fields["germinability"].required = False
+        context["germinability_form"] = germinability_form
         context["varieties"] = list(PlantVarietyName.objects.values("variety__id", "name"))
         context["positions"] = list(
             StoragePosition.objects.filter(sample__isnull=True)
@@ -245,3 +255,35 @@ def storage_delete(request, pk):
     context.update(generate_breadcrumbs(request, Storage, storage))
 
     return TemplateResponse(request, "collect/storage_confirm_delete.html", context)
+
+
+def sampleweight_update(request, pk):
+    sampleweight = get_object_or_404(SampleWeight, pk=pk)
+    if request.method == "POST":
+        form = SampleWeightForm(request.POST, instance=sampleweight)
+        if form.is_valid():
+            form.save()
+            return HttpResponse(headers={"Hx-Trigger": json.dumps({"closeModal": True, "logItemUpdated": True})})
+    else:
+        form = SampleWeightForm(instance=sampleweight)
+    return render(
+        request,
+        "collect/partials/sampleweight_update.html",
+        {"sampleweight": sampleweight, "form": form},
+    )
+
+
+def germinability_update(request, pk):
+    germinability = get_object_or_404(Germinability, pk=pk)
+    if request.method == "POST":
+        form = GerminabilityForm(request.POST, instance=germinability)
+        if form.is_valid():
+            form.save()
+            return HttpResponse(headers={"Hx-Trigger": json.dumps({"closeModal": True, "logItemUpdated": True})})
+    else:
+        form = GerminabilityForm(instance=germinability)
+    return TemplateResponse(
+        request,
+        "collect/partials/germinability_update.html",
+        {"germinability": germinability, "form": form},
+    )

@@ -2,11 +2,20 @@ from django import template
 from django.utils.safestring import mark_safe
 
 
+register = template.Library()
+
+
 def _join_attrs(attrs: dict):
     return " ".join(f'{key.replace("_", "-")}="{value}"' for key, value in attrs.items())
 
 
-register = template.Library()
+HTMX_MODAL_ATTRS = {
+    "hx_target": "#modal",
+    "hx_swap": "innerHTML",
+    "hx_trigger": "click",
+    "data_bs_toggle": "modal",
+    "data_bs_target": "#modal",
+}
 
 
 @register.inclusion_tag("frontpage/partials/dropdown_item.html")
@@ -24,8 +33,7 @@ def dropdown_item(label, **kwargs):
 def dropdown_item_to_modal(label, **kwargs):
     disabled = kwargs.pop("disabled", False) == "True"
     attrs = _join_attrs(kwargs)
-    modal_attrs = {"hx_target": "#modal", "hx_trigger": "click", "data_bs_toggle": "modal", "data_bs_target": "#modal"}
-    attrs += _join_attrs(modal_attrs)
+    attrs += _join_attrs(HTMX_MODAL_ATTRS)
     return {"label": label, "attrs": attrs, "disabled": disabled}
 
 
@@ -63,8 +71,8 @@ def detail_page_header(
 
 
 @register.inclusion_tag("frontpage/partials/list_group_item.html")
-def list_group_item(value, label, url="#", time=""):
-    return {"value": value, "label": label, "url": url, "time": time}
+def list_group_item(value, label, pk, update_url=None, time=""):
+    return {"value": value, "label": label, "pk": pk, "update_url": update_url, "time": time}
 
 
 @register.inclusion_tag("frontpage/partials/card_col_rows.html")
@@ -82,6 +90,12 @@ def offcanvas(context, offcanvas_id, title, template_file):
             "template_file": template_file,
         },
     }
+
+
+@register.simple_tag
+def modal_attrs():
+    html = _join_attrs(HTMX_MODAL_ATTRS)
+    return mark_safe(html)
 
 
 @register.simple_tag

@@ -35301,25 +35301,38 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _scss_bootstrap_scss__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../scss/bootstrap.scss */ "./assets/scss/bootstrap.scss");
 /* harmony import */ var bootstrap__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! bootstrap */ "./node_modules/bootstrap/dist/js/bootstrap.esm.js");
 /* harmony import */ var tom_select__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! tom-select */ "./node_modules/tom-select/dist/esm/tom-select.complete.js");
-// Import our custom CSS
-
-
-// Import all of Bootstrap's JS
 
 
 
-document.addEventListener("DOMContentLoaded", function () {
-  const tooltipTriggerList = document.querySelectorAll(
-    '[data-bs-toggle="tooltip"]'
-  );
-
-  const tooltipList = [...tooltipTriggerList].map(
-    (tooltipTriggerEl) => new bootstrap__WEBPACK_IMPORTED_MODULE_1__.Tooltip(tooltipTriggerEl)
-  );
-});
 
 
 window.TomSelect = tom_select__WEBPACK_IMPORTED_MODULE_2__["default"];
+
+document.addEventListener("DOMContentLoaded", function () {
+
+  // Initialize Bootstrap tooltips
+  document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach((el) => {
+    new bootstrap__WEBPACK_IMPORTED_MODULE_1__.Tooltip(el);
+  });
+
+  // Initialize TomSelect with data-ts="select"
+  document.querySelectorAll('[data-ts="select"]').forEach((el) => {
+    new tom_select__WEBPACK_IMPORTED_MODULE_2__["default"](el);
+  });
+
+  // Listen for custom event to close modal
+  document.body.addEventListener('closeModal', function() {
+    const modalElement = document.getElementById("modal");
+    if (modalElement) {
+      let modal = bootstrap__WEBPACK_IMPORTED_MODULE_1__.Modal.getInstance(modalElement);
+      if (!modal) {
+        modal = new bootstrap__WEBPACK_IMPORTED_MODULE_1__.Modal(modalElement);
+      }
+      modal.hide();
+    }
+  });
+
+});
 
 })();
 

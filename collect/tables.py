@@ -97,10 +97,9 @@ class SampleDuplicatesTable(SampleTablePositionMixin, SampleBaseTable):
     class Meta(SampleBaseTable.Meta):
         fields = (
             "sample_id",
-            "variety",
             "position",
-            "weight",
-            "germinability",
+            "last_weight",
+            "last_germinability",
             "growing_season",
             "notes",
         )

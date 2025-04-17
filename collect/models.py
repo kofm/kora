@@ -91,6 +91,11 @@ class SampleQueryset(models.QuerySet):
             .distinct()
         )
 
+    def detail(self):
+        return self.select_related("variety", "variety__species", "position", "position__storage").prefetch_related(
+            "germinability_set", "sampleweight_set"
+        )
+
     def with_germination(self):
         return (
             self.select_related("variety", "variety__species", "position", "position__storage")
@@ -147,7 +152,35 @@ class Sample(ModelIsDeletableMixin, models.Model):
 
     @property
     def duplicate_samples(self):
-        return Sample.objects.filter(variety=self.variety).exclude(pk=self.pk)
+        return Sample.objects.with_weight().with_germination().filter(variety=self.variety).exclude(pk=self.pk)
+
+    def get_log(self):
+        germ_rates = self.germinability_set.all()
+        weights = self.sampleweight_set.all()
+
+        log = []
+
+        for germ in germ_rates:
+            log.append(
+                {
+                    "pk": self.pk,
+                    "date": germ.performed_at,
+                    "germinability": germ.germinability,
+                    "update_url": germ.get_update_url(),
+                }
+            )
+
+        for weight in weights:
+            log.append(
+                {
+                    "pk": self.pk,
+                    "date": weight.created_at,
+                    "weight": weight.weight,
+                    "update_url": weight.get_update_url(),
+                }
+            )
+
+        return sorted(log, key=lambda e: e["date"])
 
 
 class Germinability(models.Model):
@@ -162,17 +195,23 @@ class Germinability(models.Model):
     def __str__(self):
         return str(self.germinability)
 
+    def get_update_url(self):
+        return reverse("collect:germinability_update", args=[self.pk])
+
 
 class SampleWeight(models.Model):
     sample = models.ForeignKey(Sample, on_delete=models.CASCADE)
     weight = models.FloatField("sample weight (g)")
-    created_at = models.DateField(auto_now_add=True)
+    created_at = models.DateField(default=timezone.now)
 
     class Meta:
         ordering = ("created_at",)
 
     def __str__(self):
         return f"{self.weight}g"
+
+    def get_update_url(self):
+        return reverse("collect:sampleweight_update", args=[self.pk])
 
 
 class CartQuerySet(models.QuerySet):
