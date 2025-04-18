@@ -44,7 +44,7 @@ from describe.views.utils import (
     reset_description_filter,
     update_description_filter,
 )
-from frontpage.views_decorators import nav_active
+from frontpage.views_decorators import htmx_render_block_from_params, is_htmx, make_get_request, nav_active
 from register.filters import filter_name_generic
 from register.models import PlantVariety
 
@@ -54,7 +54,12 @@ nav_describe = nav_active("nav_describe")
 
 
 @nav_describe
+@htmx_render_block_from_params()
 def description_list(request):
+    return _description_list(request)
+
+
+def _description_list(request):
     description_filter = init_description_filter(request)
     protocol_id = description_filter["protocol"]
 
@@ -75,9 +80,10 @@ def description_list(request):
             if formset.is_valid():
                 expressions = formset.get_expression_ids()  # type: ignore[attr-defined]
                 update_description_filter(request, expressions=expressions)
+        if is_htmx(request):
+            return _description_list(make_get_request(request))
         return HttpResponseRedirect("")
 
-    template_name = "describe/description_list.html"
     context = {}
 
     descriptions = process_description_filter(Description.objects.with_expressions(), description_filter)
@@ -98,15 +104,6 @@ def description_list(request):
     table = DescriptionTable(descriptions)
     RequestConfig(request, paginate={"per_page": 10}).configure(table)
 
-    if request.headers.get("HX-Request") == "true":
-        table_block = render_block_to_string(
-            template_name,
-            "description_table",
-            {"table": table},
-            request,
-        )
-        return HttpResponse(table_block)
-
     traits = Trait.objects.filter(protocol=protocol_id).with_states()
     context["form_variety"] = DescriptionVarietyForm()
     context["form_protocol"] = ProtocolForm(initial={"protocol": protocol_id})
@@ -116,30 +113,18 @@ def description_list(request):
     context["table"] = table
     context.update(generate_breadcrumbs(request, Description))
 
-    return TemplateResponse(request, template_name, context)
+    return TemplateResponse(request, "describe/description_list.html", context)
 
 
+@htmx_render_block_from_params()
 def description_form(request):
     protocol_id = request.GET.get("protocol", None)
     if not protocol_id:
         return HttpResponseBadRequest()
-
-    template_name = "describe/description_list.html"
-
     update_description_filter(request, expressions={}, protocol=protocol_id)
-
     traits = Trait.objects.filter(protocol=protocol_id).prefetch_related("states").order_by("numeric_id")
     formset = ExpressionFilterFormSet(traits=traits)
-
-    context = {"formset": formset}
-
-    rendered_block = render_block_to_string(
-        template_name,
-        block_name="expression_filter",
-        context=context,
-        request=request,
-    )
-    return HttpResponse(rendered_block)
+    return TemplateResponse(request, "describe/description_list.html", {"formset": formset})
 
 
 def description_find_similar(request):
@@ -263,7 +248,7 @@ def description_create(request):
     form = DescriptionForm(request.POST or None)
     if form.is_valid():
         description = form.save()
-        return redirect(description.get_absolute_url())
+        return redirect(reverse("describe:description_expression_update", args=(description.pk,)))
 
     variety_id = request.GET.get("variety_id", None)
     if variety_id:

@@ -60,6 +60,7 @@
 	  hx-trigger="keyup delay:500ms"
 	  hx-target="#table"
 		  _="on change from #expressionForm or change from #protocolForm or change from #strictForm reset() the #varietyForm"
+	  hx-vals='{"use_block": "description_table"}'
 	>
 	  <label class="form-label" for="{{ form_variety.variety.id_for_label }}">
 	    {{ form_variety.variety.label }}:
@@ -69,8 +70,8 @@
 
 	{% block protocol_filter %}
 	  <form id="protocolForm" autocomplete="off"
-	    hx-get="{% url 'describe:description_form' %}" hx-trigger="change" hx-target="#expression_filter" hx-swap-oob="true"
-	    hx-on::after-request="htmx.ajax('GET', '{% url 'describe:description_list' %}', {target: '#table', indicator: '#spinner'})"
+	    hx-get="{% url 'describe:description_form' %}" hx-trigger="change" hx-target="#expression_filter" hx-swap-oob="true" hx-vals='{"use_block": "expression_filter"}'
+	    hx-on::after-request='htmx.ajax("GET", "{% url "describe:description_list" %}", {target: "#table", indicator: "#spinner", values: {"use_block": "description_table"}})'
 	  >
 	    <label class="form-label" for="{{ form_protocol.protocol.id_for_label }}">
 	      {{ form_protocol.protocol.label }}:
@@ -79,7 +80,7 @@
 	  </form>
 	{% endblock %}
 
-	<form id="strictForm" hx-post="." autocomplete="off" hx-vals='{"strict_changed": "true"}'
+	<form id="strictForm" hx-post="." autocomplete="off" hx-vals='{"strict_changed": "true", "use_block": "description_table"}'
 	  class="mb-2"
 	  hx-trigger="change" hx-target="#table" hx-indicator="#spinner">
 	  <div class="form-check mt-1">
@@ -94,6 +95,7 @@
 	  class="mb-2"
 	  autocomplete="off"
 	  hx-post="."
+	  hx-vals='{"use_block": "description_table"}'
 	  hx-trigger="change" hx-target="#table" hx-indicator="#spinner"
 	>
 	  <label class="form-label" for="{{ form_name.name.id_for_label }}">
@@ -109,6 +111,7 @@
 	  {% block expression_filter %}
 	    <form id="expressionForm" autocomplete="off"
 	      hx-post="." hx-trigger="change" hx-target="#table" hx-indicator="#spinner"
+	      hx-vals='{"use_block": "description_table"}'
 	    >
 	      {{ formset.management_form }}
 	      <fieldset>
