@@ -18,6 +18,7 @@ from describe.models import (
     Trait,
     Workspace,
 )
+from frontpage.widgets import TomSelectMultiple
 from register.models import PlantVariety
 
 
@@ -79,7 +80,7 @@ class DescriptionNameForm(forms.Form):
     name = forms.MultipleChoiceField(
         label="Tag",
         choices=[("", "")] + Description.names(),
-        widget=forms.SelectMultiple(attrs={"class": "form-select"}),
+        widget=TomSelectMultiple,
         required=False,
     )
 

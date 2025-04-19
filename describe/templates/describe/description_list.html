@@ -62,7 +62,7 @@
 	</form>
 
 	{% block protocol_filter %}
-	  <form id="protocolForm" autocomplete="off" hx-get="{% url 'describe:description_form' %}" hx-trigger="change"  hx-target="#expression_filter" hx-swap-oob="true" hx-on::after-request='htmx.ajax("GET", "{% url "describe:description_list" %}", {target: "#table", indicator: "#spinner"}})'>
+	  <form id="protocolForm" autocomplete="off" hx-get="{% url 'describe:description_form' %}" hx-trigger="change"  hx-target="#expression_filter" hx-swap-oob="true" hx-on::after-request='htmx.ajax("GET", "{% url "describe:description_list" %}", {target: "#table", indicator: "#spinner"})'>
 	    <label class="form-label" for="{{ form_protocol.protocol.id_for_label }}">
 	      {{ form_protocol.protocol.label }}:
 	    </label>
@@ -93,9 +93,6 @@
 	  {{ form_name.name }}
 	  <input name="name_form" type="hidden" value="1"/>
 	</form>
-	<script>
-	 new TomSelect('#id_name', {create: false})
-	</script>
 
 	<div id="expression_filter" hx-swap-oob="true">
 	  {% block expression_filter %}

@@ -16,7 +16,7 @@ def get_form_initial_value(form: forms.Form, key: str) -> str:
     return field[0] if isinstance(field, list) else field
 
 
-def get_parameter_value(form: forms.Form) -> int:
+def get_parameter_value(form: forms.Form) -> int | None:
     parameter = get_form_initial_value(form, "parameter")
     crop_id = get_form_initial_value(form, "crop")
     if parameter and crop_id:

@@ -35308,6 +35308,45 @@ __webpack_require__.r(__webpack_exports__);
 
 window.TomSelect = tom_select__WEBPACK_IMPORTED_MODULE_2__["default"];
 
+function initializeTomSelects(root = document) {
+  root.querySelectorAll('.tomselect').forEach((el) => {
+    // If already initialized and still attached, skip
+    if (el.tomselectInstance && el.tomselectInstance.wrapper.parentNode) {
+      return;
+    }
+
+    // If previously broken instance exists, destroy it
+    if (el.tomselectInstance) {
+      el.tomselectInstance.destroy();
+    }
+
+    const options = {};
+
+    // Dynamically map data-ts-* attributes into options
+    for (const attr of el.attributes) {
+      if (attr.name.startsWith('data-ts-')) {
+        const optionName = attr.name
+          .replace('data-ts-', '')
+          .replace(/-([a-z])/g, (_, char) => char.toUpperCase());
+
+        let value = attr.value;
+
+        if (value === 'true') {
+          value = true;
+        } else if (value === 'false') {
+          value = false;
+        } else if (!isNaN(value) && value.trim() !== '') {
+          value = Number(value);
+        }
+
+        options[optionName] = value;
+      }
+    }
+
+    el.tomselectInstance = new tom_select__WEBPACK_IMPORTED_MODULE_2__["default"](el, options);
+  });
+}
+
 document.addEventListener("DOMContentLoaded", function () {
 
   // Initialize Bootstrap tooltips
@@ -35315,12 +35354,15 @@ document.addEventListener("DOMContentLoaded", function () {
     new bootstrap__WEBPACK_IMPORTED_MODULE_1__.Tooltip(el);
   });
 
-  // Initialize TomSelect with data-ts="select"
-  document.querySelectorAll('[data-ts="select"]').forEach((el) => {
-    new tom_select__WEBPACK_IMPORTED_MODULE_2__["default"](el);
+  // Initialize TomSelects
+  initializeTomSelects();
+
+  // Reinitialize after HTMX swaps
+  document.body.addEventListener('htmx:afterSwap', (event) => {
+    initializeTomSelects(event.target);
   });
 
-  // Listen for custom event to close modal
+  // Handle modal close event
   document.body.addEventListener('closeModal', function() {
     const modalElement = document.getElementById("modal");
     if (modalElement) {
