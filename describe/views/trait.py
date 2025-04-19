@@ -10,6 +10,7 @@ from django.views.decorators.http import require_GET, require_POST
 
 from describe.forms import RelatedStateForm, StateFormSet, TraitForm
 from describe.models import Protocol, Trait
+from frontpage.views_decorators import is_htmx
 
 
 @require_GET
@@ -19,7 +20,7 @@ def related_state_form(request):
     If the request contains `trait` send the `related_state` field; otherwise send the `trait` field.
     This allow building a dynamic form via htmx.
     """
-    if request.headers.get("HX-Request") == "true":
+    if is_htmx(request):
         form = RelatedStateForm(request.GET)
         if request.GET.get("trait", None):
             return HttpResponse(form["related_state"])

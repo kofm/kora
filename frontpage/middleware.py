@@ -3,12 +3,14 @@ from urllib.parse import urlparse
 from django.conf import settings
 from django.shortcuts import resolve_url
 
+from frontpage.views_decorators import is_htmx
+
 
 def htmx_middleware(get_response):
     def middleware(request):
         response = get_response(request)
 
-        if request.headers.get("HX-Request") == "true" and response.status_code == 302:
+        if is_htmx(request) and response.status_code == 302:
             redirect_location = response.get("Location", "")
             login_url = resolve_url(settings.LOGIN_URL)
             parsed_redirect = urlparse(redirect_location)
