@@ -1,9 +1,8 @@
 from rest_framework import serializers
 
 from calculator.models import Crop, CropParameter
-from parameters.models import Parameter, SpeciesParameter
+from parameters.models import Parameter
 from register.models import PlantSpecies, PlantVariety
-from restapi.serializers import PlantSpeciesSerializer
 from spaces.models import Area
 
 

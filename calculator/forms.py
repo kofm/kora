@@ -1,7 +1,7 @@
 from django import forms
 from django.core.exceptions import ValidationError
 from django.db.models.base import Model
-from django.forms.widgets import DateInput, HiddenInput, NumberInput, TextInput
+from django.forms.widgets import DateInput, HiddenInput, NumberInput
 from django.shortcuts import get_object_or_404
 from dynamic_forms import DynamicField, DynamicFormMixin
 

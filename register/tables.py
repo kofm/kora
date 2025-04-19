@@ -5,7 +5,6 @@ from django_tables2 import columns
 from collect.models import Sample
 from collect.tables import SampleBaseTable, SampleTablePositionMixin
 from describe.models import Description
-from describe.tables import DescriptionTable
 from parameters.models import ParameterValue
 from register.models import Entity, PlantSpecies, PlantVariety, Protection
 

@@ -166,7 +166,7 @@ class Description(ModelIsDeletableMixin, models.Model):
         try:
             queryset = cls.objects.order_by("name").values_list("name", flat=True).distinct()
             return [(name, name) for name in queryset]
-        except (ProgrammingError, OperationalError) as e:
+        except (ProgrammingError, OperationalError):
             return []
 
     @cached_property

@@ -2,7 +2,6 @@
 Kora API
 """
 
-from django import views
 from django.db.models.query import Prefetch
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status, viewsets

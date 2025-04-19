@@ -8,15 +8,13 @@ from collections import defaultdict
 from django.contrib.auth.decorators import login_required
 from django.db.models import CharField, Q
 from django.db.models.functions import Lower
-from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseRedirect
+from django.http import HttpResponseBadRequest, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.urls import reverse, reverse_lazy
 from django.utils.http import urlencode
-from django.views.decorators.http import require_POST
 from django.views.generic import DeleteView
 from django_tables2 import RequestConfig
-from render_block import render_block_to_string
 
 from breadcrumbs.generic import DeleteBreadcrumbsMixin
 from breadcrumbs.utils import add_plantvariety_breadcrumbs, generate_breadcrumbs
@@ -41,11 +39,9 @@ from describe.views.utils import (
     make_traits_expressions_dict,
     process_description_filter,
     render_export_file_to_response,
-    reset_description_filter,
     update_description_filter,
 )
 from frontpage.views_decorators import (
-    htmx_render_block_from_params,
     htmx_render_blocks,
     is_htmx,
     make_get_request,

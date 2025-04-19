@@ -1,7 +1,7 @@
 import json
 
 from django.db import transaction
-from django.db.models import CharField, F, IntegerField, Q, Value
+from django.db.models import IntegerField, Q, Value
 from django.db.models.functions import Cast, Concat
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -11,7 +11,6 @@ from django.utils.timezone import now
 from django.views.generic import DetailView, ListView
 from django.views.generic.edit import CreateView, DeleteView
 from django_tables2 import RequestConfig
-from render_block import render_block_to_string
 
 from breadcrumbs.generic import (
     CreateBreadcrumbsMixin,

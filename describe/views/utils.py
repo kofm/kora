@@ -7,7 +7,6 @@ from django.http import HttpRequest, HttpResponse
 
 from describe.models import Description, Protocol, State
 from frontpage.views_decorators import is_htmx
-from register.filters import filter_name_generic
 
 
 def join_description_expressions(
