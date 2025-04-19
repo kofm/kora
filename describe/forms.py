@@ -1,3 +1,4 @@
+import json
 from typing import Any
 
 from crispy_forms.bootstrap import FieldWithButtons, StrictButton
@@ -18,7 +19,7 @@ from describe.models import (
     Trait,
     Workspace,
 )
-from frontpage.widgets import TomSelectMultiple
+from frontpage.widgets import TomSelect, TomSelectMultiple
 from register.models import PlantVariety
 
 
@@ -92,12 +93,7 @@ class DescriptionVarietyForm(forms.Form):
 class ProtocolForm(forms.Form):
     protocol = forms.ModelChoiceField(
         queryset=Protocol.objects.select_related("plantspecies").all(),
-        widget=forms.Select(
-            attrs={
-                "class": "form-select",
-                "aria-label": "Select Protocol",
-            }
-        ),
+        widget=TomSelect(attrs={"aria-label": "Select Protocol"}),
     )
 
 
@@ -148,30 +144,41 @@ class RelatedStateForm(DynamicFormMixin, forms.Form):
 
 
 class DescriptionForm(forms.ModelForm):
-    """Form used to create or update a Description."""
+    """Form used to create or update a Description.
 
-    variety = forms.ModelChoiceField(queryset=PlantVariety.objects.select_related("species").all())
+    The model field `name` is a CharField but we want the user to be
+    able to select a value from a pre-populated list of values (to
+    prevent duplication); therefore, in the __init__ method the `name`
+    field widget is set to a `forms.Select` and the available choices
+    to the unique values of the `name` field within the entire
+    database. This allow keeping the correct CharField validation
+    while allowing the creation of a TomSelect widget populated from
+    the original <select> element. Using a ChoiceField directly would
+    have automatically introduced a validation against the available
+    choices, which is not what we want here since the user *can*
+    create new `name` values.
 
-    def __init__(self, *args, **kwargs):
-        """Initialize a DescriptionForm.
+    """
 
-            The model field `name` is a CharField but we want the user to be
-        able to select a value from a pre-populated list of values (to
-        prevent duplication); therefore, in the __init__ method the `name`
-        field widget is set to a `forms.Select` and the available choices
-        to the unique values of the `name` field within the entire
-        database. This allow keeping the correct CharField validation
-        while allowing the creation of a TomSelect widget populated from
-        the original <select> element. Using a ChoiceField directly would
-        have automatically introduced a validation against the available
-        choices, which is not what we want here since the user *can*
-        create new `name` values."""
-        super().__init__(*args, **kwargs)
-        self.fields["name"].widget = forms.Select(choices=Description.names())
+    variety = forms.ModelChoiceField(
+        queryset=PlantVariety.objects.select_related("species").all(),
+        widget=TomSelect(attrs={"hx-get": "", "hx-target": "#protocolInputDiv"}),
+    )
 
     class Meta:
         model = Description
         fields = ("variety", "protocol", "name")
+        widgets = {
+            "protocol": TomSelect,
+            "name": TomSelect(
+                attrs={
+                    "data-ts-create": "true",
+                    "data-ts-items": json.dumps([]),
+                    "data-ts-placeholder": "Create or select an existing tag...",
+                },
+                choices=Description.names(),
+            ),
+        }
 
 
 class DescriptionUpdateForm(DescriptionForm):

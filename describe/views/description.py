@@ -228,18 +228,26 @@ def description_update(request, pk):
 
 
 @nav_describe
+@htmx_render_blocks(["protocol_form"])
 def description_create(request):
     context = {}
 
-    form = DescriptionForm(request.POST or None)
-    if form.is_valid():
-        description = form.save()
-        return redirect(reverse("describe:description_expression_update", args=(description.pk,)))
+    if request.method == "POST":
+        form = DescriptionForm(request.POST)
+        if form.is_valid():
+            description = form.save()
+            return redirect(reverse("describe:description_expression_update", args=(description.pk,)))
+    else:
+        form = DescriptionForm()
+        form.fields["variety"].queryset = PlantVariety.objects.all()[0:10]
+        form.fields["protocol"].disabled = True
 
-    variety_id = request.GET.get("variety_id", None)
+    variety_id = request.GET.get("variety", None)
     if variety_id:
         variety = get_object_or_404(PlantVariety, pk=variety_id)
         form.initial["variety"] = variety
+        form.fields["protocol"].queryset = Protocol.objects.filter(plantspecies=variety.species_id)
+        form.fields["protocol"].disabled = False
         context["variety"] = variety
     context["form"] = form
     context["model_name"] = "Description"

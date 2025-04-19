@@ -107,7 +107,7 @@ def protection_create(request: HttpRequest, variety_id: int):
     breadcrumbs = generate_breadcrumbs(request, Protection)
     breadcrumbs = add_plantvariety_breadcrumbs(breadcrumbs, variety)
     context.update(breadcrumbs)
-    return TemplateResponse(request, "register/protection_create.html", context)
+    return TemplateResponse(request, "frontpage/_create_form.html", context)
 
 
 @nav_plant_active_context

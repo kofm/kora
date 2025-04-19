@@ -36,7 +36,7 @@ from register.tables import (
 class PlantVarietyCreate(NavPlantActiveContext, CrumbsCreateView):
     model = PlantVariety
     form_class = PlantVarietyForm
-    template_name_suffix = "_create_form"
+    template_name = "frontpage/_create_form.html"
 
     def get_context_data(self, **kwargs):
         kwargs.update({"model_name": self.model._meta.verbose_name.title()})
