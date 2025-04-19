@@ -11,8 +11,8 @@ from collect.models import (
     Cart,
     CartItem,
     Germinability,
-    SampleWeight,
     Sample,
+    SampleWeight,
     Storage,
 )
 

@@ -9,7 +9,7 @@ from rest_framework import status, viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from collect.models import Cart, CartItem, SampleWeight, Sample, Storage, StoragePosition
+from collect.models import Cart, CartItem, Sample, SampleWeight, Storage, StoragePosition
 from collect.serializers import SampleWeightSerializer
 from describe.models import (
     Description,

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from collect.models import Germinability, SampleWeight, Sample, StoragePosition
+from collect.models import Germinability, Sample, SampleWeight, StoragePosition
 
 
 class StoragePositionSerializer(serializers.ModelSerializer):

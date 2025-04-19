@@ -1,6 +1,6 @@
 import django_tables2 as tables
 
-from collect.models import SampleWeight, Sample
+from collect.models import Sample, SampleWeight
 from frontpage.utils import smart_truncate_string
 
 

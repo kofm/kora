@@ -1,7 +1,7 @@
 import django_filters
 from django_filters.rest_framework import FilterSet
 
-from collect.models import SampleWeight, Sample, Storage, StoragePosition
+from collect.models import Sample, SampleWeight, Storage, StoragePosition
 from describe.models import Description, Protocol, Trait
 from parameters.models import Parameter, VarietalParameter
 from register.filters import filter_name_generic

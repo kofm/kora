@@ -1,6 +1,7 @@
 import json
+
 from django.db import transaction
-from django.db.models import F, CharField, IntegerField, Q, Value
+from django.db.models import CharField, F, IntegerField, Q, Value
 from django.db.models.functions import Cast, Concat
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -22,8 +23,8 @@ from breadcrumbs.utils import add_plantvariety_breadcrumbs, generate_breadcrumbs
 from collect.filters import SampleFilter
 from collect.forms import (
     GerminabilityForm,
-    SampleWeightForm,
     SampleForm,
+    SampleWeightForm,
     StorageCreateForm,
     StorageUpdateForm,
 )

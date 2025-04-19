@@ -17,7 +17,7 @@ from collect.forms import (
     CartSelectForm,
     CartUpdateForm,
 )
-from collect.models import Cart, CartItem, SampleWeight, Sample
+from collect.models import Cart, CartItem, Sample, SampleWeight
 from django_sortable_htmx.views import SortableView
 
 CART_SORTING = {
