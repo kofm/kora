@@ -110,7 +110,7 @@ CSRF_TRUSTED_ORIGINS = origins.split() if origins else []
 LANGUAGE_CODE = "en-GB"
 TIME_ZONE = "UTC"
 USE_I18N = False
-USE_TZ = False
+USE_TZ = True
 FORMAT_MODULE_PATH = ("formats",)
 
 STATIC_URL = "static/"
