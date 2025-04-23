@@ -5,139 +5,129 @@
 {% load breadcrumbs %}
 {% load components %}
 
-{% block javascript %}
-    <script type="text/javascript">
-     document.addEventListener('DOMContentLoaded', function() {
-         const species = new TomSelect("#id_species", {})
-     });
-    </script>
-{% endblock %}
-
-{% block title %}
-    Varieties
-{% endblock %}
+{% block title %}Varieties{% endblock %}
 
 {% block container %}
-    {% render_breadcrumbs %}
+  {% render_breadcrumbs %}
 
-    {% url 'register:variety_create' as create_url %}
-    {% list_page_header "Varieties" create_url=create_url %}
+  {% url 'register:variety_create' as create_url %}
+  {% list_page_header "Varieties" create_url=create_url %}
 
-    <div class="row my-3">
-        <div class="col">
-            <h2>Search</h2>
-            <form method="get">
-                {% csrf_token %}
-                {{ filter.form|crispy }}
-                <button class="btn btn-primary my-2" type="submit">Submit</button>
-                <a href="{% url 'register:variety_list' %}"
-                   class="btn btn-secondary my-2">
-                    Reset
-                </a>
-            </form>
-        </div>
-        <div class="col-8">
-            <div class="row">
-                <div class="col d-flex justify-content start">
-                    <h2>Results
-                        <a class="btn btn-secondary fw-bold" href="">
-                            {{ page_obj.paginator.count }}
-                        </a>
-                    </h2>
-                </div>
-                <div class="col d-flex justify-content-end align-self-end">
-                    <span class="step-links">
-                        {% if page_obj.has_previous %}
-                            <a href={% querystring page=1 %}">&laquo; first</a>
-                            <a href="{% querystring page=page_obj.previous_page_number %}">previous</a>
-                        {% endif %}
-
-                        <span class="current">
-                            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
-                        </span>
-
-                        {% if page_obj.has_next %}
-                            <a href="{% querystring page=page_obj.next_page_number %}">next</a>
-                            <a href="{% querystring page=page_obj.paginator.num_pages %}">last &raquo;</a>
-                        {% endif %}
-                    </span>
-                </div>
-
-            </div>
-
-            <div class="row row-cols-1 row-cols-md-3 g-4">
-                {% for variety in page_obj %}
-                    {% url 'register:plantvariety_detail' variety.pk as variety_detail_url %}
-                    <div class="col">
-                        <div class="card h-100 mt-2 text-center">
-                            <div class="card-header text-truncate">
-                                {{ variety.species }}
-                            </div>
-
-
-                            <div class="card-body d-flex flex-column">
-
-                                <h5 class="card-title text-truncate p-1">
-                                    <a class="link-body-emphasis text-decoration-none" href="{% url 'register:plantvariety_detail' variety.pk %}">
-                                        {{ variety.name }}
-                                    </a>
-                                </h5>
-
-                                <small class="card-subtitle link-secondary text-truncate p-1">
-                                    {% for name in variety.names.all %}
-                                        {{ forloop.first|yesno:",-" }}
-					{% if not name == variety.name %}{{ name }}{% endif %}
-                                    {% empty %}
-                                        &nbsp;
-                                    {% endfor %}
-                                </small>
-                                <p class="card-text p-2">
-                                    {% with descriptions=variety.description_set.count %}
-                                        <a
-                                            href="{{ variety_detail_url }}#descriptions"
-                                            class="mx-1 bi bi-file-text {{ descriptions|yesno:"link-primary,text-muted" }}"
-                                            data-bs-toggle="tooltip"
-                                            data-bs-title="{{ descriptions|yesno:"Descriptions present,No descriptions" }}"
-                                        ></a>
-                                    {% endwith %}
-                                    {% with accessions=variety.sample_set.count %}
-                                        <a
-                                            href="{{ variety_detail_url }}#samples"
-                                            class="mx-1 bi bi-box-seam {{ accessions|yesno:"link-primary,text-muted" }}"
-                                            data-bs-toggle="tooltip"
-                                            data-bs-title="{{ accessions|yesno:"Samples present,No samples" }}"
-                                        ></a>
-                                    {% endwith %}
-                                    {% with protections=variety.protection_set.count %}
-                                        <a
-                                            href="{{ variety_detail_url }}#protections"
-                                            class="mx-1 bi bi-shield-lock {{ protections|yesno:"link-primary,text-muted" }}"
-                                            data-bs-toggle="tooltip"
-                                            data-bs-title="{{ protections|yesno:"Protections present,No protections" }}"
-                                        ></a>
-                                    {% endwith %}
-                                    {% with crops=variety.crop_set.count %}
-                                        <a
-                                            href="{{ variety_detail_url }}#crops"
-                                            class="mx-1 bi bi-tree {{ crops|yesno:"link-primary,text-muted" }}"
-                                            data-bs-toggle="tooltip"
-                                            data-bs-title="{{ crops|yesno:"Crops present,No crops" }}"
-                                        ></a>
-                                    {% endwith %}
-                                    {% with parameters=variety.parameters.count %}
-                                        <a
-                                            href="{{ variety_detail_url }}#parameters"
-                                            class="mx-1 bi bi-calculator {{ parameters|yesno:"link-primary,text-muted" }}"
-                                            data-bs-toggle="tooltip"
-                                            data-bs-title="{{ parameters|yesno:"Parameters present,No parameters" }}"
-                                        ></a>
-                                    {% endwith %}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                {% endfor %}
-            </div>
-        </div>
+  <div class="row my-3">
+    <div class="col">
+      <h2>Search</h2>
+      <form method="get">
+        {% csrf_token %}
+        {{ filter.form|crispy }}
+        <button class="btn btn-primary my-2" type="submit">Submit</button>
+        <a href="{% url 'register:variety_list' %}"
+          class="btn btn-secondary my-2">
+          Reset
+        </a>
+      </form>
     </div>
+    <div class="col-8">
+      <div class="row">
+        <div class="col d-flex justify-content start">
+          <h2>Results
+            <a class="btn btn-secondary fw-bold" href="">
+              {{ page_obj.paginator.count }}
+            </a>
+          </h2>
+        </div>
+        <div class="col d-flex justify-content-end align-self-end">
+          <span class="step-links">
+            {% if page_obj.has_previous %}
+              <a href={% querystring page=1 %}">&laquo; first</a>
+              <a href="{% querystring page=page_obj.previous_page_number %}">previous</a>
+            {% endif %}
+
+            <span class="current">
+              Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+            </span>
+
+            {% if page_obj.has_next %}
+              <a href="{% querystring page=page_obj.next_page_number %}">next</a>
+              <a href="{% querystring page=page_obj.paginator.num_pages %}">last &raquo;</a>
+            {% endif %}
+          </span>
+        </div>
+
+      </div>
+
+      <div class="row row-cols-1 row-cols-md-3 g-4">
+        {% for variety in page_obj %}
+          {% url 'register:plantvariety_detail' variety.pk as variety_detail_url %}
+          <div class="col">
+            <div class="card h-100 mt-2 text-center">
+              <div class="card-header text-truncate">
+                {{ variety.species }}
+              </div>
+
+
+              <div class="card-body d-flex flex-column">
+
+                <h5 class="card-title text-truncate p-1">
+                  <a class="link-body-emphasis text-decoration-none" href="{% url 'register:plantvariety_detail' variety.pk %}">
+                    {{ variety.name }}
+                  </a>
+                </h5>
+
+                <small class="card-subtitle link-secondary text-truncate p-1">
+                  {% for name in variety.names.all %}
+                    {{ forloop.first|yesno:",-" }}
+		    {% if not name == variety.name %}{{ name }}{% endif %}
+                  {% empty %}
+                    &nbsp;
+                  {% endfor %}
+                </small>
+                <p class="card-text p-2">
+                  {% with descriptions=variety.description_set.count %}
+                    <a
+                      href="{{ variety_detail_url }}#descriptions"
+                      class="mx-1 bi bi-file-text {{ descriptions|yesno:"link-primary,text-muted" }}"
+                      data-bs-toggle="tooltip"
+                      data-bs-title="{{ descriptions|yesno:"Descriptions present,No descriptions" }}"
+                    ></a>
+                  {% endwith %}
+                  {% with accessions=variety.sample_set.count %}
+                    <a
+                      href="{{ variety_detail_url }}#samples"
+                      class="mx-1 bi bi-box-seam {{ accessions|yesno:"link-primary,text-muted" }}"
+                      data-bs-toggle="tooltip"
+                      data-bs-title="{{ accessions|yesno:"Samples present,No samples" }}"
+                    ></a>
+                  {% endwith %}
+                  {% with protections=variety.protection_set.count %}
+                    <a
+                      href="{{ variety_detail_url }}#protections"
+                      class="mx-1 bi bi-shield-lock {{ protections|yesno:"link-primary,text-muted" }}"
+                      data-bs-toggle="tooltip"
+                      data-bs-title="{{ protections|yesno:"Protections present,No protections" }}"
+                    ></a>
+                  {% endwith %}
+                  {% with crops=variety.crop_set.count %}
+                    <a
+                      href="{{ variety_detail_url }}#crops"
+                      class="mx-1 bi bi-tree {{ crops|yesno:"link-primary,text-muted" }}"
+                      data-bs-toggle="tooltip"
+                      data-bs-title="{{ crops|yesno:"Crops present,No crops" }}"
+                    ></a>
+                  {% endwith %}
+                  {% with parameters=variety.parameters.count %}
+                    <a
+                      href="{{ variety_detail_url }}#parameters"
+                      class="mx-1 bi bi-calculator {{ parameters|yesno:"link-primary,text-muted" }}"
+                      data-bs-toggle="tooltip"
+                      data-bs-title="{{ parameters|yesno:"Parameters present,No parameters" }}"
+                    ></a>
+                  {% endwith %}
+                </p>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
 {% endblock %}

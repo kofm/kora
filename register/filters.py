@@ -10,6 +10,7 @@ from django_filters import (
     ModelMultipleChoiceFilter,
 )
 
+from frontpage.widgets import TomSelectMultiple
 from register.models import PROTECTION_STATUS_CHOICES, PlantSpecies, PlantVariety, Protection
 
 TRIGRAM_SEARCH_THRESHOLD = 7
@@ -83,7 +84,7 @@ class ProtectionFilter(Filter):
 class PlantVarietyFilter(FilterSet):
     name = CharFilter(label="Denomination", method="filter_name", field_name="names__name")
     breeder = CharFilter(label="Breeder", method="filter_name", field_name="breeder__name")
-    species = ModelMultipleChoiceFilter(label="Species", queryset=PlantSpecies.objects.all())
+    species = ModelMultipleChoiceFilter(label="Species", queryset=PlantSpecies.objects.all(), widget=TomSelectMultiple)
     has_descriptions = BooleanFilter(label="Described", field_name="description", method="filter_has_records")
     has_accessions = BooleanFilter(label="Accession", field_name="sample", method="filter_has_records")
     protection = ProtectionFilter(label="Protection")

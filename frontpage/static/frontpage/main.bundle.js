@@ -35568,10 +35568,6 @@ window._hyperscript.browserInit();
 window.TomSelect = tom_select__WEBPACK_IMPORTED_MODULE_1__["default"];
 window.htmx = (htmx_org__WEBPACK_IMPORTED_MODULE_2___default());
 
-(htmx_org__WEBPACK_IMPORTED_MODULE_2___default().config).extensions = {
-    tomselect: true
-};
-
 (0,_widgets_tomselect_js__WEBPACK_IMPORTED_MODULE_3__.registerTomSelectExtension)((htmx_org__WEBPACK_IMPORTED_MODULE_2___default()));
 
 document.addEventListener("DOMContentLoaded", function () {

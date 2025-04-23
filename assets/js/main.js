@@ -12,10 +12,6 @@ import { initializeTooltips, closeModalById } from "./bootstrap-init.js";
 window.TomSelect = TomSelect;
 window.htmx = htmx;
 
-htmx.config.extensions = {
-    tomselect: true
-};
-
 registerTomSelectExtension(htmx);
 
 document.addEventListener("DOMContentLoaded", function () {

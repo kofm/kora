@@ -69,9 +69,6 @@ module.exports = [
     merge(commonConfig, {
         name: "collect",
         entry: {
-            "sample-detail": {
-                import: path.resolve("assets/js/sample-detail.js"),
-            },
             "sample-form": {
                 import: path.resolve("assets/js/sample-form.js"),
             },

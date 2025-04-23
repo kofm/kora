@@ -11,7 +11,7 @@
     <div class="form-text">{{ form.variety.help_text }}</div>
   </div>
 
-  <div id="protocolInputDiv" class="mb-3">
+  <div id="protocolInputDiv" class="mb-3" hx-ext="tomselect">
     {% block protocol_form %}
       <label for="{{ form.protocol.id_for_label }}" class="form-label">Protocol <span class="asteriskField">*</span></label>
       {{ form.protocol }}
