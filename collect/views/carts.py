@@ -110,7 +110,7 @@ def cart_retrieve(request, pk):
             if new_weight < 0:
                 raise ValueError(
                     f"Calculated negative weight for sample {sample_id}: "
-                    f"{samples[sample_id]} - {item['weight']} = {new_weight}"
+                    f"{samples[sample_id]} - {item.weight} = {new_weight}"
                 )
 
             sampleweight = SampleWeight(sample_id=sample_id, weight=new_weight)
