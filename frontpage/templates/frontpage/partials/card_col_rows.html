@@ -5,11 +5,6 @@
     </div>
     <div class="card-body">
       <h5 class="card-title">{{ title|default_if_none:"-" }}</h5>
-      {% if time %}
-        <p class="small text-muted">
-          Last updated {{ time|timesince }} ago.
-        </p>
-      {% endif %}
     </div>
   </div>
 </div>

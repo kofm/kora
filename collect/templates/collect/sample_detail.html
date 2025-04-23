@@ -54,7 +54,7 @@
     {% block germinability %}
       <div id="germinabilityCard" hx-swap-oob="true">
 	{% with record=sample.germinability_set.last %}
-	  {% card_col_rows record.germinability|default:"-" "Germinability (%)" time=record.performed_at %}
+	  {% card_col_rows record.germinability|default:"-" "Germinability (%)" %}
 	{% endwith %}
       </div>
     {% endblock %}
@@ -83,7 +83,7 @@
 	      <ul class="list-group list-group-flush mb-0 pb-4">
 		{% for item in log %}
 		  {% if item.weight is not None %}
-		    {% list_group_item item.weight|add_suffix:" g" "Weight" item.pk time=item.date update_url=item.update_url %}
+		    {% list_group_item item.weight|add_suffix:" g" "Weight" item.pk time=item.date update_url=item.update_url delete_url=item.delete_url %}
 		  {% elif item.germinability %}
 		    {% list_group_item item.germinability|add_suffix:"%" "Germination" item.pk time=item.date update_url=item.update_url %}
 		  {% endif %}
