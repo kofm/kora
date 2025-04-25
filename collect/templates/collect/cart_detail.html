@@ -1,5 +1,6 @@
 {% load render_sortable %}
 {% load crispy_forms_tags %}
+{% load components %}
 
 <style>
  .asteriskField {
@@ -26,71 +27,36 @@
 
     <button
       class="btn btn-outline-secondary dropdown-toggle ms-1"
-      type="button"
-      data-bs-toggle="dropdown"
-      aria-expanded="false">
-
+	     type="button"
+	     data-bs-toggle="dropdown"
+	     aria-expanded="false">
       <i class="bi bi-list"></i>
-
     </button>
 
     <div class="dropdown-menu" hx-target="#cartBody">
 
-      <a class="dropdown-item" href="#" hx-get="{% url "collect:cart_create" %}">Create</a>
+      {% url "collect:cart_create" as create_url %}
+      {% dropdown_item "Create" hx_get=create_url %}
 
-      <a class="dropdown-item {% if not cart %}disabled{% endif %}"
-		{% if not cart %}aria-disabled="true"{% endif %}
-		href="#"
-		{% if cart %}hx-get="{% url "collect:cart_update" cart.pk %}"{% endif %}>
-	Rename
-      </a>
+      {% url "collect:cart_update" cart.pk as rename_url %}
+      {% dropdown_item "Rename" hx_get=rename_url disabled=cart|yesno:"False,True" %}
 
-      <a class="dropdown-item {% if not cart %}disabled{% endif %}"
-		{% if not cart %}aria-disabled="true"{% endif %}
-		{% if cart %}
-	hx-get="{% url 'collect:cart_retrieve' cart.pk %}"
-		hx-target="#modal"
-		hx-trigger="click"
-		data-bs-toggle="modal"
-		data-bs-target="#modal"
-		{% endif %}>
-	Retrieve
-      </a>
+      {% url 'collect:cart_retrieve' cart.pk as retrieve_url %}
+      {% dropdown_item_to_modal "Retrieve" hx_get=retrieve_url disabled=cart|yesno:"False,True" %}
 
-      <a class="dropdown-item {% if not cart %}disabled{% endif %}"
-		{% if not cart %}aria-disabled="true"{% endif %}
-		{% if cart %}
-	hx-get="{% url 'collect:cart_empty' cart.pk %}"
-		hx-target="#modal"
-		hx-trigger="click"
-		data-bs-toggle="modal"
-		data-bs-target="#modal"
-		{% endif %}>
-	Empty
-      </a>
+      {% url 'collect:cart_empty' cart.pk as empty_url %}
+      {% dropdown_item_to_modal "Empty" hx_get=empty_url disabled=cart|yesno:"False,True" %}
 
-      <a
-	class="dropdown-item {% if not cart %}disabled{% endif %}"
-	       {% if not cart %}aria-disabled="true"{% endif %}
-	       href="{% if cart %}{% url 'restapi:cartitems' cart.pk %}?no_pagination=1&format=json{% endif %}"
-	       target="_blank">
-	Download
-      </a>
+      {% url 'restapi:cartitems' cart.pk as download_url %}
+      {% querystring no_pagination=1 format="json" as download_querystring %}
+      {% dropdown_item "Download" href=download_url querystring=download_querystring target="_blank" disabled=cart|yesno:"False,True" %}
 
-      <a class="dropdown-item {{ cart|yesno:",disabled" }}"
-		{% if not cart %}aria-disabled="true"{% endif %}
-		{% if cart %}
-	hx-get="{% url 'collect:cart_delete' cart.pk %}"
-		hx-target="#modal"
-		hx-trigger="click"
-		data-bs-toggle="modal"
-		data-bs-target="#modal"
-		{% endif %}>
-	Delete
-      </a>
+      {% url 'collect:cart_delete' cart.pk as delete_url %}
+      {% dropdown_item_to_modal "Delete" hx_get=delete_url disabled=cart|yesno:"False,True" %}
 
     </div>
   </div>
+
 </div>
 
 <div>
@@ -133,4 +99,3 @@
     To start using carts, first create a new one or choose an existing cart from the list.
   </p>
 {% endif %}
-

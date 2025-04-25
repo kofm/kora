@@ -6,7 +6,7 @@ from django.db.models import QuerySet
 from django.http import HttpRequest, HttpResponse
 
 from describe.models import Description, Protocol, State
-from register.filters import filter_name_generic
+from frontpage.views_decorators import is_htmx
 
 
 def join_description_expressions(
@@ -165,7 +165,7 @@ def render_export_file_to_response(protocol, filter_expression, descriptions):
 
 def init_description_filter(request: HttpRequest):
     reset = request.GET.get("reset") != "false"
-    if not request.headers.get("HX-Request") == "true" and reset:
+    if not is_htmx(request) and reset:
         reset_description_filter(request)
 
     if "description_filter" not in request.session:

@@ -1,0 +1,62 @@
+{% load crispy_forms_tags %}
+{% load render_sortable %}
+{% load components %}
+
+<style>
+ .asteriskField {
+   display: none;
+ }
+</style>
+
+<script>
+ document.body.addEventListener('htmx:afterSwap', function(event) {
+   const input = document.querySelector("#id_name");
+   if (input && input.type === 'text')
+   {
+     input.focus();
+     input.setSelectionRange(0, input.value.length);
+   }
+ });
+</script>
+
+<div class="d-flex align-items-end">
+  <div class="flex-grow-1">
+    {% crispy workspace_form %}
+  </div>
+
+  <div class="dropdown mb-3">
+    <button class="btn btn-outline-secondary dropdown-toggle ms-1" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+      <i class="bi bi-list"></i>
+    </button>
+    <div class="dropdown-menu" hx-target="#workspaceBody">
+
+      {% url "describe:workspace_create" as create_url %}
+      {% dropdown_item "Create" hx_get=create_url %}
+
+      {% url "describe:workspace_update" workspace.pk as rename_url %}
+      {% dropdown_item "Rename" hx_get=rename_url disabled=workspace|yesno:"False,True" %}
+
+      {% url 'describe:description_compare' as compare_url %}
+      {% dropdown_item "Compare" href=compare_url target="_blank" disabled=workspace|yesno:"False,True" %}
+
+      {% url 'restapi:workspaces' workspace.pk as download_url %}
+      {% querystring no_pagination=1 format="json" as download_querystring %}
+      {% dropdown_item "Download" href=download_url querystring=download_querystring target="_blank" disabled=workspace|yesno:"False,True" %}
+
+      {% url 'describe:workspace_delete' workspace.pk as delete_url %}
+      {% dropdown_item_to_modal "Delete" hx_get=delete_url disabled=workspace|yesno:"False,True" %}
+    </div>
+  </div>
+
+</div>
+{% if workspace.descriptions.all %}
+  {% render_sortable workspace.descriptions.all "workspace" "list-group mt-5" "describe:workspace_sort" "describe/partials/workspaces/detail_list_item.html" %}
+{% elif workspace %}
+  <p class="text-muted mt-5">
+    This collection is currently empty. Add descriptions by clicking the star symbol next to each description in the main pane.
+  </p>
+{% else %}
+  <p class="text-muted mt-5">
+    To start using workspaces, first create a new one or choose an existing workspace from the list.
+  </p>
+{% endif %}

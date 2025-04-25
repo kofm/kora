@@ -17,7 +17,7 @@ router.register(r"parameters", views.ParameterViewSet)
 router.register(r"varietalparameters", views.VarietalParameterViewSet)
 router.register(r"storages", views.StorageViewSet)
 router.register(r"storagepositions", views.StoragePositionViewSet)
-router.register(r"seedsamples", views.SeedSampleViewSet)
+router.register(r"samples", views.SampleViewSet)
 router.register(r"sampleweights", views.SampleWeightViewSet)
 router.register(r"workspaces", views.WorkspaceViewSet, basename="workspace")
 

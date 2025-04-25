@@ -27,7 +27,7 @@ class PlantSpeciesList(crumbs.ListBreadcrumbsMixin, NavPlantActiveContext, Singl
     def get_queryset(self):
         return PlantSpecies.objects.all().annotate(
             num_varieties=Count("variety", distinct=True),
-            num_accessions=Count("variety__seedsample", distinct=True),
+            num_accessions=Count("variety__sample", distinct=True),
             num_parameters=Count("parameters", distinct=True),
         )
 

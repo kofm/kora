@@ -1,0 +1,17 @@
+{% extends "frontpage/modal_content.html" %}
+
+{% block title %}
+  Delete Workspace
+{% endblock %}
+
+{% block body %}
+  <p>Do you really want to <b>delete</b> the Workspace?</p>
+{% endblock %}
+
+{% block footer %}
+  <button type="button" class="btn btn-danger" data-bs-dismiss="modal"
+    hx-post="{% url 'describe:workspace_delete' workspace.pk %}" hx-target="#workspaceBody">
+    Delete
+  </button>
+  {{ block.super }}
+{% endblock %}

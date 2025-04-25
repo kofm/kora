@@ -1,3 +1,4 @@
+import json
 from typing import Any
 
 from crispy_forms.bootstrap import FieldWithButtons, StrictButton
@@ -18,6 +19,7 @@ from describe.models import (
     Trait,
     Workspace,
 )
+from frontpage.widgets import TomSelect, TomSelectMultiple
 from register.models import PlantVariety
 
 
@@ -79,7 +81,7 @@ class DescriptionNameForm(forms.Form):
     name = forms.MultipleChoiceField(
         label="Tag",
         choices=[("", "")] + Description.names(),
-        widget=forms.SelectMultiple(attrs={"class": "form-select"}),
+        widget=TomSelectMultiple,
         required=False,
     )
 
@@ -91,12 +93,7 @@ class DescriptionVarietyForm(forms.Form):
 class ProtocolForm(forms.Form):
     protocol = forms.ModelChoiceField(
         queryset=Protocol.objects.select_related("plantspecies").all(),
-        widget=forms.Select(
-            attrs={
-                "class": "form-select",
-                "aria-label": "Select Protocol",
-            }
-        ),
+        widget=TomSelect(attrs={"aria-label": "Select Protocol"}),
     )
 
 
@@ -147,30 +144,41 @@ class RelatedStateForm(DynamicFormMixin, forms.Form):
 
 
 class DescriptionForm(forms.ModelForm):
-    """Form used to create or update a Description."""
+    """Form used to create or update a Description.
 
-    variety = forms.ModelChoiceField(queryset=PlantVariety.objects.select_related("species").all())
+    The model field `name` is a CharField but we want the user to be
+    able to select a value from a pre-populated list of values (to
+    prevent duplication); therefore, in the __init__ method the `name`
+    field widget is set to a `forms.Select` and the available choices
+    to the unique values of the `name` field within the entire
+    database. This allow keeping the correct CharField validation
+    while allowing the creation of a TomSelect widget populated from
+    the original <select> element. Using a ChoiceField directly would
+    have automatically introduced a validation against the available
+    choices, which is not what we want here since the user *can*
+    create new `name` values.
 
-    def __init__(self, *args, **kwargs):
-        """Initialize a DescriptionForm.
+    """
 
-            The model field `name` is a CharField but we want the user to be
-        able to select a value from a pre-populated list of values (to
-        prevent duplication); therefore, in the __init__ method the `name`
-        field widget is set to a `forms.Select` and the available choices
-        to the unique values of the `name` field within the entire
-        database. This allow keeping the correct CharField validation
-        while allowing the creation of a TomSelect widget populated from
-        the original <select> element. Using a ChoiceField directly would
-        have automatically introduced a validation against the available
-        choices, which is not what we want here since the user *can*
-        create new `name` values."""
-        super().__init__(*args, **kwargs)
-        self.fields["name"].widget = forms.Select(choices=Description.names())
+    variety = forms.ModelChoiceField(
+        queryset=PlantVariety.objects.select_related("species").all(),
+        widget=TomSelect(attrs={"hx-get": "", "hx-target": "#protocolInputDiv"}),
+    )
 
     class Meta:
         model = Description
         fields = ("variety", "protocol", "name")
+        widgets = {
+            "protocol": TomSelect,
+            "name": TomSelect(
+                attrs={
+                    "data-ts-create": "true",
+                    "data-ts-items": json.dumps([]),
+                    "data-ts-placeholder": "Create or select an existing tag...",
+                },
+                choices=Description.names(),
+            ),
+        }
 
 
 class DescriptionUpdateForm(DescriptionForm):
@@ -195,34 +203,33 @@ class ExpressionForm(forms.ModelForm):
             self.fields["state"].queryset = State.objects.filter(trait=trait)  # type: ignore[attr-defined]
 
 
-class WorkspaceSelectForm(forms.ModelForm):
-    name = forms.ModelChoiceField(queryset=Workspace.objects.none(), label="Active Workspace")
+class WorkspaceSelectForm(forms.Form):
+    workspace = forms.ModelChoiceField(queryset=Workspace.objects.none(), label="Active Workspace", required=False)
 
-    class Meta:
-        model = Workspace
-        fields = ("name",)
-
-    def __init__(self, *args, **kwargs):
-        request = kwargs.pop("request")
+    def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.label_suffix = ""
-        if request.user.is_authenticated:
-            self.fields["name"].queryset = Workspace.objects.filter(user=request.user)
-            active_list = request.user.workspace_set.filter(is_active=True)
-            if active_list.exists():
-                self.fields["name"].initial = active_list.first().pk
-        else:
-            self.fields["name"].disabled = True
+        self.user = user
+        workspaces = Workspace.objects.filter(user=self.user)
+        self.fields["workspace"].queryset = workspaces
         self.helper = FormHelper(self)
         self.helper.layout = Layout(
             Field(
-                "name",
+                "workspace",
                 css_class="form-select",
                 hx_post=reverse("describe:workspace_activate"),
                 hx_trigger="change",
                 hx_target="#workspaceBody",
             )
         )
+
+    def save(self):
+        workspace = self.cleaned_data.get("workspace")
+        Workspace.objects.filter(user=self.user).deactivate_all()
+        if workspace:
+            workspace.is_active = True
+            workspace.save()
+        return workspace
 
 
 class WorkspaceInputForm(forms.ModelForm):

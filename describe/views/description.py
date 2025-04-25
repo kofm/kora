@@ -8,15 +8,13 @@ from collections import defaultdict
 from django.contrib.auth.decorators import login_required
 from django.db.models import CharField, Q
 from django.db.models.functions import Lower
-from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseRedirect
+from django.http import HttpResponseBadRequest, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.urls import reverse, reverse_lazy
 from django.utils.http import urlencode
-from django.views.decorators.http import require_POST
 from django.views.generic import DeleteView
 from django_tables2 import RequestConfig
-from render_block import render_block_to_string
 
 from breadcrumbs.generic import DeleteBreadcrumbsMixin
 from breadcrumbs.utils import add_plantvariety_breadcrumbs, generate_breadcrumbs
@@ -41,10 +39,14 @@ from describe.views.utils import (
     make_traits_expressions_dict,
     process_description_filter,
     render_export_file_to_response,
-    reset_description_filter,
     update_description_filter,
 )
-from frontpage.views_decorators import nav_active
+from frontpage.views_decorators import (
+    htmx_render_blocks,
+    is_htmx,
+    make_get_request,
+    nav_active,
+)
 from register.filters import filter_name_generic
 from register.models import PlantVariety
 
@@ -54,16 +56,24 @@ nav_describe = nav_active("nav_describe")
 
 
 @nav_describe
+@htmx_render_blocks(["description_table"])
 def description_list(request):
+    return _description_list(request)
+
+
+def _description_list(request):
     description_filter = init_description_filter(request)
     protocol_id = description_filter["protocol"]
 
     if request.method == "POST":
-        if "name" in request.POST:
-            form = DescriptionNameForm(request.POST)
-            if form.is_valid():
-                names = form.cleaned_data["name"]
-                update_description_filter(request, name=names)
+        if "name_form" in request.POST:
+            if "name" in request.POST:
+                form = DescriptionNameForm(request.POST)
+                if form.is_valid():
+                    names = form.cleaned_data["name"]
+                    update_description_filter(request, name=names)
+            else:
+                update_description_filter(request, name=[])
         if "strict_changed" in request.POST:
             form = ProtocolStrictSearchForm(request.POST)
             if form.is_valid():
@@ -75,9 +85,10 @@ def description_list(request):
             if formset.is_valid():
                 expressions = formset.get_expression_ids()  # type: ignore[attr-defined]
                 update_description_filter(request, expressions=expressions)
+        if is_htmx(request):
+            return _description_list(make_get_request(request))
         return HttpResponseRedirect("")
 
-    template_name = "describe/description_list.html"
     context = {}
 
     descriptions = process_description_filter(Description.objects.with_expressions(), description_filter)
@@ -98,15 +109,6 @@ def description_list(request):
     table = DescriptionTable(descriptions)
     RequestConfig(request, paginate={"per_page": 10}).configure(table)
 
-    if request.headers.get("HX-Request") == "true":
-        table_block = render_block_to_string(
-            template_name,
-            "description_table",
-            {"table": table},
-            request,
-        )
-        return HttpResponse(table_block)
-
     traits = Trait.objects.filter(protocol=protocol_id).with_states()
     context["form_variety"] = DescriptionVarietyForm()
     context["form_protocol"] = ProtocolForm(initial={"protocol": protocol_id})
@@ -116,57 +118,39 @@ def description_list(request):
     context["table"] = table
     context.update(generate_breadcrumbs(request, Description))
 
-    return TemplateResponse(request, template_name, context)
+    return TemplateResponse(request, "describe/description_list.html", context)
 
 
+@htmx_render_blocks(["expression_filter"])
 def description_form(request):
     protocol_id = request.GET.get("protocol", None)
     if not protocol_id:
         return HttpResponseBadRequest()
-
-    template_name = "describe/description_list.html"
-
     update_description_filter(request, expressions={}, protocol=protocol_id)
-
     traits = Trait.objects.filter(protocol=protocol_id).prefetch_related("states").order_by("numeric_id")
     formset = ExpressionFilterFormSet(traits=traits)
-
-    context = {"formset": formset}
-
-    rendered_block = render_block_to_string(
-        template_name,
-        block_name="expression_filter",
-        context=context,
-        request=request,
-    )
-    return HttpResponse(rendered_block)
+    return TemplateResponse(request, "describe/description_list.html", {"formset": formset})
 
 
+@htmx_render_blocks(["expression_filter", "protocol_filter"])
 def description_find_similar(request):
     """Populate filter form with similar traits based on a reference description."""
-
-    template_name = "describe/description_list.html"
-
     description_id = request.GET.get("description_id")
 
     if not description_id:
         return redirect(reverse("describe:description_list"))
 
     description = get_object_or_404(Description, pk=description_id)
-
     protocol_id = description.protocol.pk
-
     expressions = Expression.objects.prefetch_related("state__trait").filter(
         description=description_id, state__trait__grouping=True
     )
-
     filter_expression = defaultdict(list)
     for expression in expressions:
         filter_expression[str(expression.state.trait.pk)].append(expression.state.pk)
-
     update_description_filter(request, expressions=dict(filter_expression), protocol=protocol_id)
 
-    if not request.headers.get("HX-Request") == "true":
+    if not is_htmx(request):
         url = reverse("describe:description_list")
         query_string = urlencode({"reset": "false"})
         return redirect(f"{url}?{query_string}")
@@ -175,20 +159,7 @@ def description_find_similar(request):
     form = ProtocolForm(initial={"protocol": protocol_id})
     formset = ExpressionFilterFormSet(traits=traits, expressions=dict(filter_expression))
 
-    expression_block = render_block_to_string(
-        template_name,
-        block_name="expression_filter",
-        context={"formset": formset},
-        request=request,
-    )
-    protocol_block = render_block_to_string(
-        template_name,
-        block_name="protocol_filter",
-        context={"form_protocol": form},
-        request=request,
-    )
-
-    return HttpResponse(expression_block + protocol_block)
+    return TemplateResponse(request, "describe/description_list.html", {"form_protocol": form, "formset": formset})
 
 
 @nav_describe
@@ -257,18 +228,26 @@ def description_update(request, pk):
 
 
 @nav_describe
+@htmx_render_blocks(["protocol_form"])
 def description_create(request):
     context = {}
 
-    form = DescriptionForm(request.POST or None)
-    if form.is_valid():
-        description = form.save()
-        return redirect(description.get_absolute_url())
+    if request.method == "POST":
+        form = DescriptionForm(request.POST)
+        if form.is_valid():
+            description = form.save()
+            return redirect(reverse("describe:description_expression_update", args=(description.pk,)))
+    else:
+        form = DescriptionForm()
+        form.fields["variety"].queryset = PlantVariety.objects.all()[0:10]
+        form.fields["protocol"].disabled = True
 
-    variety_id = request.GET.get("variety_id", None)
+    variety_id = request.GET.get("variety", None)
     if variety_id:
         variety = get_object_or_404(PlantVariety, pk=variety_id)
         form.initial["variety"] = variety
+        form.fields["protocol"].queryset = Protocol.objects.filter(plantspecies=variety.species_id)
+        form.fields["protocol"].disabled = False
         context["variety"] = variety
     context["form"] = form
     context["model_name"] = "Description"

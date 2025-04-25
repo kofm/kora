@@ -1,0 +1,9 @@
+{% extends "frontpage/_update_form.html" %}
+
+{% load crispy_forms_tags %}
+
+{% block form %}
+  {{ form|crispy }}
+  {{ form_weight|crispy }}
+    <input class="btn btn-primary me-2" type="submit" value="Update">
+{% endblock %}

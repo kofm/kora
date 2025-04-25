@@ -1,5 +1,0 @@
-{% extends "frontpage/confirm_delete.html" %}
-
-{% block delete_message %}
-<p>You are deleting a seed sample of the variety <b>{{ object.variety.name }}</b> (#{{ object.id }}), grown in {{ object.growing_season }} and situated in <b>{{ object.position }}</b> position. Maybe you want to <a href="{% url 'collect:seedsample_update' object.id %}">move it</a> instead?</p>
-{% endblock %}

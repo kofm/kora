@@ -1,15 +1,10 @@
 <div class="col">
-    <div class="card h-100">
-        <div class="card-header small text-muted">
-            {{ label }}
-        </div>
-        <div class="card-body">
-            <h5 class="card-title">{{ title|default:"-" }}</h5>
-            {% if time %}
-                <p class="small text-muted">
-                    Last updated {{ time|timesince }} ago.
-                </p>
-            {% endif %}
-        </div>
+  <div class="card h-100 shadow-sm">
+    <div class="card-header small text-muted">
+      <i class="bi bi-tag"></i> {{ label }}
     </div>
+    <div class="card-body">
+      <h5 class="card-title">{{ title|default_if_none:"-" }}</h5>
+    </div>
+  </div>
 </div>

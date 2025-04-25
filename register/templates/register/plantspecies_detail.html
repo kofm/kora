@@ -10,7 +10,7 @@
 {% block container %}
 
     {% render_breadcrumbs %}
-    {% detail_page_header object subtitle=object.latin_name %}
+    {% detail_page_header object title=object.common_name subtitle=object.latin_name subtitle_emphasis=True %}
     
 
     {% if filter %}

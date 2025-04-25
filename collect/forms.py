@@ -1,23 +1,43 @@
 from crispy_forms.bootstrap import FieldWithButtons, StrictButton
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Field, Layout, Submit
+from crispy_forms.layout import Field, Layout
 from django import forms
 from django.core.validators import MinValueValidator
-from django.forms.widgets import HiddenInput
-from django.shortcuts import get_object_or_404
+from django.forms.widgets import DateInput, HiddenInput
 from django.urls import reverse
 
 from collect.models import (
     Cart,
     CartItem,
     Germinability,
+    Sample,
     SampleWeight,
-    SeedSample,
     Storage,
+    StoragePosition,
 )
+from frontpage.widgets import TomSelect, YearInput
 
 
-class SeedSampleForm(forms.ModelForm):
+class SampleForm2(forms.ModelForm):
+    class Meta:
+        model = Sample
+        fields = ("sample_id", "variety", "position", "growing_season")
+        widgets = {
+            "variety": TomSelect,
+            "position": TomSelect,
+            "growing_season": YearInput,
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        sample_id = Sample.objects.next_id()
+        self.fields["sample_id"].initial = sample_id
+        empty_positions = StoragePosition.objects.empty_positions_for_accession(self.instance.pk)
+        self.fields["position"].queryset = empty_positions
+        self.fields["position"].initial = empty_positions.first()
+
+
+class SampleForm(forms.ModelForm):
     tomvar = forms.CharField(label="Variety")
     tompos = forms.CharField(label="Position")
 
@@ -36,7 +56,7 @@ class SeedSampleForm(forms.ModelForm):
         )
 
     class Meta:
-        model = SeedSample
+        model = Sample
         fields = (
             "sample_id",
             "tomvar",
@@ -55,25 +75,22 @@ class SeedSampleForm(forms.ModelForm):
 class SampleWeightForm(forms.ModelForm):
     class Meta:
         model = SampleWeight
-        fields = ("weight",)
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.helper = FormHelper()
-        self.helper.add_input(Submit("submit", "Submit", css_class="col-12 mt-3"))
+        fields = ("weight", "created_at")
+        widgets = {
+            "created_at": DateInput(attrs={"type": "date"}),
+        }
 
 
 class GerminabilityForm(forms.ModelForm):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields["germinability"].required = False
-
     class Meta:
         model = Germinability
         fields = ("germinability", "after_days", "performed_at")
+        widgets = {
+            "performed_at": DateInput(attrs={"type": "date"}),
+        }
 
 
-class SeedSampleYearForm(forms.Form):
+class SampleYearForm(forms.Form):
     year = forms.ChoiceField(
         choices=((0, ""),),
         widget=forms.Select(
@@ -81,7 +98,7 @@ class SeedSampleYearForm(forms.Form):
                 "class": "form-select",
                 "hx-get": "_hx",
                 "hx-trigger": "change",
-                "hx-target": "#seedsample-table",
+                "hx-target": "#sample-table",
                 "hx-include": "#search-form",
             }
         ),
@@ -89,6 +106,8 @@ class SeedSampleYearForm(forms.Form):
 
 
 class CartSelectForm(forms.Form):
+    cart = forms.ModelChoiceField(queryset=Cart.objects.none(), label="Active Cart", required=False)
+
     def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.user = user
@@ -105,61 +124,13 @@ class CartSelectForm(forms.Form):
             ),
         )
 
-    cart = forms.ModelChoiceField(queryset=Cart.objects.none(), label="Active Cart")
-
     def save(self):
-        data = self.cleaned_data
-        cart = data["cart"]
-        cart.is_active = True
-        cart.save()
+        cart = self.cleaned_data.get("cart")
+        Cart.objects.filter(user=self.user).deactivate_all()
+        if cart:
+            cart.is_active = True
+            cart.save()
         return cart
-
-
-class CartItemNewForm(forms.Form):
-    """
-    This form handles the addition of a sample in the active Cart.
-    The clean() method takes care of checking that the selected sample isn't
-    already in the cart. It also checks that the (optionally) requested amount
-    is available.
-    It takes a user as parameter to retrieve the active cart.
-    A valid SeedSample pk should be passed to 'seedsample' field
-    """
-
-    def __init__(self, *args, user=None, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.user = user
-
-    seedsample = forms.IntegerField()
-    weight = forms.FloatField(required=False)
-
-    def clean(self):
-        cleaned_data = super().clean()
-        seedsample = get_object_or_404(SeedSample, pk=cleaned_data.get("seedsample"))
-        weight = cleaned_data.get("weight", None)
-        cart = self.user.carts.active()
-        if not cart:
-            e = "You did not select any cart to add to."
-            raise forms.ValidationError(e)
-        cartitem = CartItem.objects.filter(cart=cart, sample=seedsample)
-
-        if cartitem.exists():
-            e = f"{seedsample} is already in the selected Cart."
-            raise forms.ValidationError(e)
-
-        if weight and weight > seedsample.weight:
-            e = f"There is only {seedsample.weight} grams available of {seedsample}."
-            raise forms.ValidationError(e)
-
-        return cleaned_data
-
-    def save(self):
-        cleaned_data = self.cleaned_data
-        seedsample = get_object_or_404(SeedSample, pk=cleaned_data["seedsample"])
-        cartitem = CartItem(cart=self.user.carts.active(), sample=seedsample)
-        if weight := cleaned_data.get("weight", None):
-            cartitem.weight = weight
-        cartitem.save()
-        return cartitem
 
 
 class CartItemSetWeightForm(forms.Form):

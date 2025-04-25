@@ -40,6 +40,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "frontpage.middleware.htmx_middleware",
 ]
 
 ROOT_URLCONF = "persefone.urls"
@@ -108,12 +109,9 @@ CSRF_TRUSTED_ORIGINS = origins.split() if origins else []
 # Internationalization
 LANGUAGE_CODE = "en-GB"
 TIME_ZONE = "UTC"
-USE_I18N = True
-USE_L10N = True
-USE_TZ = False
-FORMAT_MODULE_PATH = [
-    "formats",
-]
+USE_I18N = False
+USE_TZ = True
+FORMAT_MODULE_PATH = ("formats",)
 
 STATIC_URL = "static/"
 

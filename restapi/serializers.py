@@ -1,9 +1,7 @@
-import math
-
 from django_countries.serializers import CountryFieldMixin
 from rest_framework import serializers
 
-from collect.models import CartItem, SeedSample, Storage, StoragePosition
+from collect.models import CartItem, Sample, Storage, StoragePosition
 from describe.models import (
     Description,
     Expression,
@@ -175,14 +173,14 @@ class StoragePositionSerializer(serializers.ModelSerializer):
         return str(obj)
 
 
-class SeedSampleSerializer(serializers.ModelSerializer):
+class SampleSerializer(serializers.ModelSerializer):
     storage = serializers.StringRelatedField(many=False, read_only=True, source="position.storage")
     position_name = serializers.StringRelatedField(many=False, source="position.name")
     last_weight = serializers.FloatField(read_only=True)
     last_germinability = serializers.FloatField(read_only=True)
 
     class Meta:
-        model = SeedSample
+        model = Sample
         fields = (
             "pk",
             "sample_id",

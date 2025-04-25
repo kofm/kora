@@ -1,16 +1,31 @@
 {% extends "frontpage/_create_form.html" %}
 
-{% load widget_tweaks %}
-{% load static %}
-{% load breadcrumbs %}
-
 {% block javascript %}
-    <script type="text/javascript">
-     let url = "{% url 'restapi:protocols-list' %}?no_pagination=1&format=json";
-    </script>
+   
 {% endblock %}
 
+{% block form %}
+  <div class="mb-3">
+    <label for="{{ form.variety.id_for_label }}" class="form-label">Variety <span class="asteriskField">*</span></label>
+    {{ form.variety }}
+    <div class="form-text">{{ form.variety.help_text }}</div>
+  </div>
 
-{% block additional_content %}
-    <script src="{% static 'describe/description-form.bundle.js' %}"></script>
+  <div id="protocolInputDiv" class="mb-3" hx-ext="tomselect">
+    {% block protocol_form %}
+      <label for="{{ form.protocol.id_for_label }}" class="form-label">Protocol <span class="asteriskField">*</span></label>
+      {{ form.protocol }}
+      <div class="form-text">{{ form.protocol.help_text }}</div>
+    {% endblock %}
+  </div>
+
+  <div class="mb-3">
+    <label for="{{ form.name.id_for_label }}" class="form-label">Tag <span class="asteriskField">*</span></label>
+    {{ form.name }}
+    <div class="form-text">{{ form.name.help_text }}</div>
+  </div>
+
+  {% block buttons %}
+    {{ block.super }}
+  {% endblock %}
 {% endblock %}

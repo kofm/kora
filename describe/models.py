@@ -166,7 +166,7 @@ class Description(ModelIsDeletableMixin, models.Model):
         try:
             queryset = cls.objects.order_by("name").values_list("name", flat=True).distinct()
             return [(name, name) for name in queryset]
-        except (ProgrammingError, OperationalError) as e:
+        except (ProgrammingError, OperationalError):
             return []
 
     @cached_property
@@ -261,7 +261,7 @@ class Expression(models.Model):
         return self.state.trait
 
 
-class WorkspaceQueryset(models.QuerySet):
+class WorkspaceQuerySet(models.QuerySet):
     def elements(self):
         return self.prefetch_related(
             "descriptions",
@@ -271,13 +271,16 @@ class WorkspaceQueryset(models.QuerySet):
             "descriptions__description__variety__species",
         )
 
+    def deactivate_all(self):
+        return self.update(is_active=False)
+
 
 class Workspace(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=200, help_text="The identificative name of the list")
     is_active = models.BooleanField(default=False)
 
-    objects = WorkspaceQueryset.as_manager()
+    objects = WorkspaceQuerySet.as_manager()
 
     def __str__(self) -> str:
         return self.name

@@ -1,7 +1,7 @@
 from django import forms
 from django.core.exceptions import ValidationError
 from django.db.models.base import Model
-from django.forms.widgets import DateInput, HiddenInput, NumberInput, TextInput
+from django.forms.widgets import DateInput, HiddenInput, NumberInput
 from django.shortcuts import get_object_or_404
 from dynamic_forms import DynamicField, DynamicFormMixin
 
@@ -16,7 +16,7 @@ def get_form_initial_value(form: forms.Form, key: str) -> str:
     return field[0] if isinstance(field, list) else field
 
 
-def get_parameter_value(form: forms.Form) -> int:
+def get_parameter_value(form: forms.Form) -> int | None:
     parameter = get_form_initial_value(form, "parameter")
     crop_id = get_form_initial_value(form, "crop")
     if parameter and crop_id:

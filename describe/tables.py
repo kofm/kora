@@ -1,13 +1,14 @@
 import django_tables2 as tables
-from django.utils.html import format_html
 
-from describe.models import Description, Protocol, State
+from describe.models import Description, State
 
 link_classes = "text-decoration-none link-body-emphasis"
 
 
 class DescriptionTable(tables.Table):
     variety__name = tables.Column("Variety", linkify=True)
+    variety__species__common_name = tables.Column("Species")
+    protocol__name = tables.Column("Protocol")
     actions = tables.TemplateColumn(
         template_name="describe/partials/description_table_actions.html",
         verbose_name="",
@@ -16,7 +17,7 @@ class DescriptionTable(tables.Table):
 
     class Meta:
         model = Description
-        fields = ("variety__name", "variety__species__latin_name", "name", "protocol__name")
+        fields = ("variety__name", "variety__species__common_name", "name", "protocol__name")
         template_name = "describe/partials/description_table.html"
 
 

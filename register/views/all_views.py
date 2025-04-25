@@ -1,3 +1,4 @@
+from django.http import HttpRequest
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.urls import reverse
@@ -76,7 +77,7 @@ def protection_list(request):
 
 
 @nav_plant_active_context
-def protection_create(request, variety_id):
+def protection_create(request: HttpRequest, variety_id: int):
     variety = get_object_or_404(PlantVariety, pk=variety_id)
     if request.method == "POST":
         form = ProtectionForm(request.POST)
@@ -106,7 +107,7 @@ def protection_create(request, variety_id):
     breadcrumbs = generate_breadcrumbs(request, Protection)
     breadcrumbs = add_plantvariety_breadcrumbs(breadcrumbs, variety)
     context.update(breadcrumbs)
-    return TemplateResponse(request, "register/protection_create.html", context)
+    return TemplateResponse(request, "frontpage/_create_form.html", context)
 
 
 @nav_plant_active_context
@@ -138,11 +139,13 @@ class ProtectionDeleteView(DeleteBreadcrumbsMixin, NavPlantActiveContext, Delete
 @nav_plant_active_context
 def protection_detail(request, pk):
     instance = get_object_or_404(Protection, pk=pk)
-    context = {"protection": instance}
     breadcrumbs = generate_breadcrumbs(request, Protection, instance)
     breadcrumbs = add_plantvariety_breadcrumbs(breadcrumbs, instance.variety)
-    context.update(breadcrumbs)
-    return TemplateResponse(request, "register/protection_detail.html", context)
+    return TemplateResponse(
+        request,
+        "register/protection_detail.html",
+        {"protection": instance, **breadcrumbs},
+    )
 
 
 class EntityCreateView(CreateBreadcrumbsMixin, NavDescribeActiveContext, CreateView):
