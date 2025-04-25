@@ -83,6 +83,7 @@ major_version_zero = true
 dev = [
     "basedpyright>=1.28.5",
     "debugpy>=1.8.14",
+    "django-browser-reload>=1.18.0",
     "django-debug-toolbar>=5.1.0",
     "django-extensions>=4.1",
     "ipython>=9.1.0",

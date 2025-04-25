@@ -39,14 +39,14 @@
     {% card_col_rows sample.variety "Variety" variety_url %}
 
     {% url 'collect:storage_detail' sample.position.storage.pk as storage_url %}
-    {% card_col_rows position "Storage Location" storage_url %}
+    {% card_col_rows sample.position "Storage Location" storage_url %}
 
     {% card_col_rows sample.growing_season "Growing Season" %}
 
     {% block weight %}
       <div id="weightCard" hx-swap-oob="true">
 	{% with record=sample.sampleweight_set.last %}
-	  {% card_col_rows record.weight "Current Weight (g)" time=record.created_at %}
+	  {% card_col_rows record.weight "Current Weight (g)" %}
 	{% endwith %}
       </div>
     {% endblock %}
