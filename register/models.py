@@ -108,6 +108,11 @@ class PlantSpecies(ModelIsDeletableMixin, models.Model):
         return reverse("register:plantspecies_delete", args=[self.pk])
 
 
+class PlantVarietyManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().select_related("species")
+
+
 class PlantVariety(ModelIsDeletableMixin, models.Model):
     name = models.CharField(help_text="The name of the variety", max_length=100)
     species = models.ForeignKey(PlantSpecies, on_delete=models.PROTECT, related_name="variety")
@@ -115,13 +120,15 @@ class PlantVariety(ModelIsDeletableMixin, models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     breeder = models.ForeignKey(Entity, on_delete=models.PROTECT, null=True, blank=True)
 
+    objects = PlantVarietyManager()
+
     class Meta:
         ordering = ("name",)
         verbose_name = "variety"
         verbose_name_plural = "varieties"
 
     def __str__(self):
-        return f"{self.name}"
+        return f"{self.name} ({self.species.common_name})"
 
     def get_absolute_url(self):
         return reverse("register:plantvariety_detail", args=[self.pk])

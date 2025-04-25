@@ -1,0 +1,17 @@
+{% extends "frontpage/modal_content.html" %}
+
+{% block title %}
+  Delete Weight
+{% endblock %}
+
+{% block body %}
+  <p>Do you really want to <b>delete</b> this Weight?</p>
+{% endblock %}
+
+{% block footer %}
+  <button type="button" class="btn btn-danger" data-bs-dismiss="modal"
+    hx-post="{{ request.get_full_path }}">
+    Delete
+  </button>
+  {{ block.super }}
+{% endblock %}

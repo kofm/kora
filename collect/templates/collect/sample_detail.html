@@ -70,13 +70,27 @@
 
     <!-- Sample Log -->
     {% block log %}
-      <div id="log" class="col-md-6" hx-trigger="logItemUpdated from:body" hx-get="{% url 'collect:sample_detail' sample.pk %}" hx-target="#log" hx-swap="outerHTML" hx-vals='{"use_block": ["log", "weight", "germinability"]}'>
+      <div id="log" class="col-md-6" hx-trigger="logItemUpdated from:body" hx-get="{% url 'collect:sample_detail' sample.pk %}" hx-target="#log" hx-swap="outerHTML">
 	<div class="card shadow-sm h-100 overflow-hidden">
           <div class="card-header d-flex justify-content-between align-items-center">
             <span class="text-muted"><i class="bi bi-clock-history"></i> Sample Log</span>
-            <button class="btn btn-sm btn-outline-primary">
-	      Create
-            </button>
+            <div class="dropdown dropstart text-muted">
+	      <a class="link-body-emphasis text-decoration-none" data-bs-toggle="dropdown" aria-expanded="false" href="#" data-bs-popper-config='{"strategy":"fixed"}'>
+		<i class="bi bi-three-dots-vertical fs-5" ></i>
+	      </a>
+
+	      <ul class="dropdown-menu">
+
+		  <li>
+		    <a class="dropdown-item" hx-get="{% url 'collect:sampleweight_create' sample.pk %}" {% modal_attrs %}>Record Weight</a>
+		  </li>
+
+		  <li>
+		    <a class="dropdown-item" hx-get="{% url 'collect:germinability_create' sample.pk %}" {% modal_attrs %}>Record Germinability</a>
+		  </li>
+
+	      </ul>
+	    </div>
           </div>
           <div class="position-relative" style="max-height: 400px;">
 	    <div class="overflow-auto h-100">
@@ -85,7 +99,7 @@
 		  {% if item.weight is not None %}
 		    {% list_group_item item.weight|add_suffix:" g" "Weight" item.pk time=item.date update_url=item.update_url delete_url=item.delete_url %}
 		  {% elif item.germinability %}
-		    {% list_group_item item.germinability|add_suffix:"%" "Germination" item.pk time=item.date update_url=item.update_url %}
+		    {% list_group_item item.germinability|add_suffix:"%" "Germination" item.pk time=item.date update_url=item.update_url delete_url=item.delete_url %}
 		  {% endif %}
 		{% endfor %}
 	      </ul>

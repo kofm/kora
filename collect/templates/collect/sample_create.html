@@ -1,0 +1,11 @@
+{% extends "frontpage/_create_form.html" %}
+{% load crispy_forms_tags %}
+
+{% block form %}
+  {{ form|crispy }}
+  {{ form_weight|crispy }}
+  <div class="mb-3">
+    <button class="btn btn-primary me-2" type="submit">Create</button>
+    <button class="btn btn-primary me-2" name="another" type="submit" value="another">Create +1</button>
+  </div>
+{% endblock %}

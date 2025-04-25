@@ -99,7 +99,6 @@ class SampleDuplicatesTable(SampleTablePositionMixin, SampleBaseTable):
             "sample_id",
             "position",
             "last_weight",
-            "last_germinability",
             "growing_season",
             "notes",
         )

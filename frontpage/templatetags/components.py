@@ -70,13 +70,13 @@ def detail_page_header(
 
 
 @register.inclusion_tag("frontpage/partials/list_group_item.html")
-def list_group_item(value, label, pk, update_url=None, time=""):
-    return {"value": value, "label": label, "pk": pk, "update_url": update_url, "time": time}
+def list_group_item(value, label, pk, update_url=None, delete_url=None, time=""):
+    return {"value": value, "label": label, "pk": pk, "update_url": update_url, "delete_url": delete_url, "time": time}
 
 
 @register.inclusion_tag("frontpage/partials/card_col_rows.html")
-def card_col_rows(title, label, url="#", time=""):
-    return {"title": title, "label": label, "url": url, "time": time}
+def card_col_rows(title, label, url="#"):
+    return {"title": title, "label": label, "url": url}
 
 
 @register.inclusion_tag("frontpage/partials/offcanvas.html", takes_context=True)

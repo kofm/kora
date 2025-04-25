@@ -6,9 +6,31 @@
   <div>
     {{ value|default:"-" }}<small class="text-muted d-block">{{ time }}</small>
   </div>
-  {% if update_url %}
-    <button class="btn btn-sm btn-outline-secondary" hx-get="{{ update_url }}" {% modal_attrs %}>
-      Update
-    </button>
+
+  {% if update_url or delete_url %}
+    <div class="d-flex align-items-center justify-content-end">
+      <div class="dropdown dropstart text-muted">
+
+	<a class="link-body-emphasis text-decoration-none" data-bs-toggle="dropdown" aria-expanded="false" href="#" data-bs-popper-config='{"strategy":"fixed"}'>
+	  <i class="bi bi-three-dots-vertical fs-5" ></i>
+	</a>
+
+	<ul class="dropdown-menu">
+
+	  {% if update_url %}
+            <li>
+              <a class="dropdown-item" hx-get="{{ update_url }}" {% modal_attrs %}>Update</a>
+            </li>
+	  {% endif %}
+
+	  {% if delete_url %}
+            <li>
+              <a class="dropdown-item" hx-get="{{ delete_url }}" {% modal_attrs %}>Delete</a>
+            </li>
+	  {% endif %}
+
+	</ul>
+      </div>
+    </div>
   {% endif %}
 </li>

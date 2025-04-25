@@ -1,16 +1,9 @@
 {% extends "frontpage/_update_form.html" %}
 
-{% load static %}
 {% load crispy_forms_tags %}
 
 {% block form %}
   {{ form|crispy }}
   {{ form_weight|crispy }}
     <input class="btn btn-primary me-2" type="submit" value="Update">
-{% endblock %}
-
-{% block additional_content %}
-    {{ varieties|json_script:"varieties-data" }}
-    {{ positions|json_script:"positions-data" }}
-    <script src="{% static 'collect/sample-form.bundle.js' %}"></script>
 {% endblock %}

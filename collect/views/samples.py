@@ -23,6 +23,7 @@ from collect.filters import SampleFilter
 from collect.forms import (
     GerminabilityForm,
     SampleForm,
+    SampleForm2,
     SampleWeightForm,
     StorageCreateForm,
     StorageUpdateForm,
@@ -52,122 +53,58 @@ def sample_list(request):
     return TemplateResponse(request, "collect/sample_list.html", context)
 
 
-@htmx_render_block_from_params()
+@htmx_render_blocks(["log", "weight", "germinability"])
 def sample_detail(request, pk):
     template_name = "collect/sample_detail.html"
     sample = Sample.objects.detail().get(pk=pk)
-
-    context = {
-        "sample": sample,
-        "log": sample.get_log(),
-    }
 
     duplicates_table = SampleDuplicatesTable(sample.duplicate_samples)
     crumbs = generate_breadcrumbs(request, Sample, sample)
     crumbs = add_plantvariety_breadcrumbs(crumbs, sample.variety)
 
-    context.update(
-        {
-            "position": f"{sample.position.storage}-{sample.position}",
-            "duplicates_table": duplicates_table,
-            **crumbs,
-        }
-    )
+    context = {"sample": sample, "log": sample.get_log(), "duplicates_table": duplicates_table, **crumbs}
 
     return TemplateResponse(request, template_name, context)
 
 
-class SampleCreateView(CreateBreadcrumbsMixin, CreateView):
-    form_class = SampleForm
-    model = Sample
-
-    def form_valid(self, form):
-        response = super().form_valid(form)
-        weight_form = SampleWeightForm(self.request.POST)
-        new_weight = weight_form.save(commit=False)
-        new_weight.sample = self.object
-        new_weight.save()
-        if self.request.POST.get("germinability"):
-            germinability_form = GerminabilityForm(self.request.POST)
-            new_germinability = germinability_form.save(commit=False)
-            new_germinability.sample = self.object
-            new_germinability.save()
-        return response
-
-    def get_form(self):
-        form = super().get_form()
-        variety_id = self.request.GET.get("variety_id", None)
-        if variety_id:
-            variety = get_object_or_404(PlantVariety, pk=variety_id)
-            form.fields["variety"].initial = variety
-        samples_id = Sample.objects.all().values_list("sample_id", flat=True)
-        sample_id = max(samples_id) + 1 if samples_id else 1
-        form.fields["sample_id"].initial = sample_id
-        form.fields["growing_season"].initial = now().year - 1
-        return form
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["weight_form"] = SampleWeightForm()
-        germinability_form = GerminabilityForm(initial={"after_days": 7})
-        germinability_form.fields["germinability"].required = False
-        context["germinability_form"] = germinability_form
-        context["varieties"] = list(PlantVarietyName.objects.values("variety__id", "name"))
-        context["positions"] = list(
-            StoragePosition.objects.filter(sample__isnull=True)
-            .annotate(
-                position_name=Concat("storage__name", Value("-"), "name"),
-                posn=Cast("name", output_field=IntegerField()),
-            )
-            .order_by("storage__name", "posn")
-            .values("pk", "position_name")
-        )
-        return context
-
-    def get_success_url(self):
-        if "btn-another" in self.request.POST:
-            return reverse("collect:sample_create")
-        return super().get_success_url()
-
-
-def get_empty_positions_for_accession(instance: Sample):
-    # TODO: This should be in the model manager
-    qs = StoragePosition.objects.all()
-    query = Q(sample__id=instance.pk)
-    query |= Q(sample__isnull=True)
-    qs = qs.filter(query)
-    qs = qs.annotate(
-        position_name=Concat("storage__name", Value("-"), "name"),
-        posn=Cast("name", output_field=IntegerField()),
+def sample_create(request):
+    if request.method == "POST":
+        form = SampleForm2(request.POST)
+        form_weight = SampleWeightForm(request.POST)
+        if form.is_valid() and form_weight.is_valid():
+            with transaction.atomic():
+                sample = form.save()
+                weight = form_weight.save(commit=False)
+                weight.sample = sample
+                weight.save()
+            if "another" in request.POST:
+                return redirect(reverse("collect:sample_create"))
+            return redirect(reverse("collect:sample_list"))
+    else:
+        form = SampleForm2()
+        form_weight = SampleWeightForm()
+    return TemplateResponse(
+        request,
+        "collect/sample_create.html",
+        {"form": form, "form_weight": form_weight, **generate_breadcrumbs(request, Sample), "model_name": "Sample"},
     )
-    qs = qs.order_by("storage__name", "posn")
-    return qs.values("pk", "position_name")
 
 
 def sample_update(request, pk):
     context = {}
-    instance = get_object_or_404(Sample, pk=pk)
+    sample = get_object_or_404(Sample, pk=pk)
     if request.method == "POST":
-        form = SampleForm(request.POST, instance=instance)
-        form_weight = SampleWeightForm(request.POST, initial={"weight": instance.weight})
-        if form.is_valid() and form_weight.is_valid():
+        form = SampleForm2(request.POST, instance=sample)
+        if form.is_valid():
             sample = form.save()
-            if form_weight.has_changed():
-                sampleweight = sample.last_sampleweight()
-                sampleweight.weight = form_weight.cleaned_data.get("weight")
-                sampleweight.save()
             return redirect(reverse("collect:sample_detail", args=(pk,)))
     else:
-        form = SampleForm(instance=instance)
-        form_weight = SampleWeightForm(initial={"weight": instance.weight})
+        form = SampleForm2(instance=sample)
 
-    context.update({"form": form, "form_weight": form_weight, "object": instance})
+    context.update({"form": form, "object": sample})
 
-    context["varieties"] = list(PlantVarietyName.objects.values("variety__id", "name"))
-    context["positions"] = list(get_empty_positions_for_accession(instance))
-
-    crumbs = generate_breadcrumbs(request, Sample, instance)
-    crumbs = add_plantvariety_breadcrumbs(crumbs, instance.variety)
+    crumbs = generate_breadcrumbs(request, Sample, sample)
+    crumbs = add_plantvariety_breadcrumbs(crumbs, sample.variety)
     context.update(crumbs)
 
     return TemplateResponse(request, "collect/sample_update.html", context)
@@ -257,6 +194,23 @@ def storage_delete(request, pk):
     return TemplateResponse(request, "collect/storage_confirm_delete.html", context)
 
 
+def sampleweight_create(request, sample_id):
+    if request.method == "POST":
+        form = SampleWeightForm(request.POST)
+        if form.is_valid():
+            sampleweight = form.save(commit=False)
+            sampleweight.sample_id = sample_id
+            sampleweight.save()
+            return HttpResponse(headers={"Hx-Trigger": json.dumps({"closeModal": True, "logItemUpdated": True})})
+    else:
+        form = SampleWeightForm()
+    return TemplateResponse(
+        request,
+        "collect/partials/sampleweight_create.html",
+        {"form": form},
+    )
+
+
 def sampleweight_update(request, pk):
     sampleweight = get_object_or_404(SampleWeight, pk=pk)
     if request.method == "POST":
@@ -273,6 +227,35 @@ def sampleweight_update(request, pk):
     )
 
 
+def sampleweight_delete(request, pk):
+    sampleweight = get_object_or_404(SampleWeight, pk=pk)
+    if request.method == "POST":
+        sampleweight.delete()
+        return HttpResponse(headers={"Hx-Trigger": json.dumps({"closeModal": True, "logItemUpdated": True})})
+    return render(
+        request,
+        "collect/partials/sampleweight_confirm_delete.html",
+        {},
+    )
+
+
+def germinability_create(request, sample_id):
+    if request.method == "POST":
+        form = GerminabilityForm(request.POST)
+        if form.is_valid():
+            germinability = form.save(commit=False)
+            germinability.sample_id = sample_id
+            germinability.save()
+            return HttpResponse(headers={"Hx-Trigger": json.dumps({"closeModal": True, "logItemUpdated": True})})
+    else:
+        form = GerminabilityForm()
+    return TemplateResponse(
+        request,
+        "collect/partials/germinability_create.html",
+        {"form": form},
+    )
+
+
 def germinability_update(request, pk):
     germinability = get_object_or_404(Germinability, pk=pk)
     if request.method == "POST":
@@ -286,4 +269,16 @@ def germinability_update(request, pk):
         request,
         "collect/partials/germinability_update.html",
         {"germinability": germinability, "form": form},
+    )
+
+
+def germinability_delete(request, pk):
+    germinability = get_object_or_404(Germinability, pk=pk)
+    if request.method == "POST":
+        germinability.delete()
+        return HttpResponse(headers={"Hx-Trigger": json.dumps({"closeModal": True, "logItemUpdated": True})})
+    return render(
+        request,
+        "collect/partials/germinability_confirm_delete.html",
+        {},
     )

@@ -3,7 +3,7 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Field, Layout
 from django import forms
 from django.core.validators import MinValueValidator
-from django.forms.widgets import HiddenInput
+from django.forms.widgets import DateInput, HiddenInput
 from django.urls import reverse
 
 from collect.models import (
@@ -13,7 +13,28 @@ from collect.models import (
     Sample,
     SampleWeight,
     Storage,
+    StoragePosition,
 )
+from frontpage.widgets import TomSelect, YearInput
+
+
+class SampleForm2(forms.ModelForm):
+    class Meta:
+        model = Sample
+        fields = ("sample_id", "variety", "position", "growing_season")
+        widgets = {
+            "variety": TomSelect,
+            "position": TomSelect,
+            "growing_season": YearInput,
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        sample_id = Sample.objects.next_id()
+        self.fields["sample_id"].initial = sample_id
+        empty_positions = StoragePosition.objects.empty_positions_for_accession(self.instance.pk)
+        self.fields["position"].queryset = empty_positions
+        self.fields["position"].initial = empty_positions.first()
 
 
 class SampleForm(forms.ModelForm):
@@ -55,12 +76,18 @@ class SampleWeightForm(forms.ModelForm):
     class Meta:
         model = SampleWeight
         fields = ("weight", "created_at")
+        widgets = {
+            "created_at": DateInput(attrs={"type": "date"}),
+        }
 
 
 class GerminabilityForm(forms.ModelForm):
     class Meta:
         model = Germinability
         fields = ("germinability", "after_days", "performed_at")
+        widgets = {
+            "performed_at": DateInput(attrs={"type": "date"}),
+        }
 
 
 class SampleYearForm(forms.Form):
