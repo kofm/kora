@@ -1,0 +1,18 @@
+name: Trigger Submodule Update
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  notify-docker-compose:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Trigger docker-compose update
+        run: |
+          curl -X POST https://api.github.com/repos/kofm/kora-docker/dispatches \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: token ${{ secrets.DISPATCH_TOKEN }}" \
+            -d '{"event_type": "update-submodule"}'
