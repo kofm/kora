@@ -48,6 +48,7 @@ def detail_page_header(
     subtitle="",
     update_url=None,
     delete_url=None,
+    subtitle_emphasis=False,
     **kwargs,
 ):
     if not title and instance:
@@ -66,6 +67,7 @@ def detail_page_header(
         "update_url": update_url,
         "delete_url": delete_url,
         "cant_delete_msg": cant_delete_msg,
+        "subtitle_emphasis": subtitle_emphasis,
     }
 
 

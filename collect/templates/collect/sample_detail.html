@@ -33,7 +33,7 @@
   {% url 'collect:sample_update' sample.pk as update_url %}
   {% detail_page_header sample subtitle=sample.variety update_url=update_url %}
 
-  <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4 my-3">
+  <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4 mb-3">
 
     {% url 'register:plantvariety_detail' sample.variety.pk as variety_url %}
     {% card_col_rows sample.variety "Variety" variety_url %}

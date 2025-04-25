@@ -1,30 +1,34 @@
 <div class="row">
-    <div class="col-8">
-        <h1 class="display-2">
-            {{ page_title }}
-        </h1>
-        <small class="text-body-secondary h2">{{ subtitle }}</small>
+  <div class="col-8">
+    <h1 class="my-0 lh-1">
+      {{ page_title }}
+    </h1>
+  </div>
+  <div class="col d-flex justify-content-end align-items-center">
+    <div class="btn-group" role="group" aria-label="Actions">
+      {% if update_url %}
+        <a class="btn btn-outline-primary" href="{{ update_url }}">
+          Update
+        </a>
+      {% endif %}
+      {% if delete_url %}
+        <a class="btn btn-outline-danger {{ object.is_deletable|yesno:",disabled" }}"
+          href="{{ delete_url }}"
+          aria-disabled="{{ object.is_deletable|yesno:"false,true" }}"
+        >
+          Delete
+        </a>
+      {% endif %}
     </div>
-    <div class="col d-flex justify-content-end align-items-center">
-        <div class="btn-group" role="group" aria-label="Actions">
-            {% if update_url %}
-                <a class="btn btn-outline-primary" href="{{ update_url }}">
-                    Update
-                </a>
-            {% endif %}
-            {% if delete_url %}
-                <a class="btn btn-outline-danger {{ object.is_deletable|yesno:",disabled" }}"
-                   href="{{ delete_url }}"
-                   aria-disabled="{{ object.is_deletable|yesno:"false,true" }}"
-                >
-                    Delete
-                </a>
-            {% endif %}
-        </div>
-        {% if delete_url and not object.is_deletable %}
-            <span class="ms-1 small text-muted">
-                <a data-bs-toggle="tooltip" data-bs-title="{{ cant_delete_msg }}"><i class="bi bi-info-circle"></i></a>
-            </span>
-        {% endif %}
-    </div>
+    {% if delete_url and not object.is_deletable %}
+      <span class="ms-1 small text-muted">
+        <a data-bs-toggle="tooltip" data-bs-title="{{ cant_delete_msg }}"><i class="bi bi-info-circle"></i></a>
+      </span>
+    {% endif %}
+  </div>
+</div>
+<div class="row mb-3">
+  <div class="col">
+    <p class="text-body-secondary my-0 fs-3 {% if subtitle_emphasis %}fst-italic{% endif %}">{{ subtitle }}</p>
+  </div>
 </div>

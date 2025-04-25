@@ -6,43 +6,45 @@
 {% load components %}
 
 {% block title %}Protocol: {{ protocol.name }}{% endblock %}
+
 {% block container %}
 
-    {% render_breadcrumbs %}
+  {% render_breadcrumbs %}
 
-    {% detail_page_header protocol title=protocol.name subtitle=protocol.plantspecies %}
-    <div class="row my-3">
-        <div class="col">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Characteristic</th>
-                        <th></th>
-                        <th>Note</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for trait in protocol.traits.all %}
-                        <tr>
-                            <td rowspan="{{ trait.states.all|length|default:1 }}">{{ trait.numeric_id }}</td>
-                            <td rowspan="{{ trait.states.all|length|default:1 }}" {% if trait.grouping %}class="fw-bold"{% endif %}>
-			      {{ trait.description }}
-			      {% if trait.grouping %}&#10033;{% endif %}
-			    </td>
+  {% detail_page_header protocol title=protocol.name subtitle=protocol.plantspecies %}
 
-                            {% for state in trait.states.all %}
-                                <td>{{ state.numeric_id }}</td>
-                                <td>{{ state.description }} </td>
-                                <td><a class="text-decoration-none link-body-emphasis" href="{% url 'describe:state-update' state.pk %}"><i class="bi bi-arrow-left-right"></i></a></td>
-                                {% if not forloop.last %}
-                        </tr>
-                                {% endif %}
-                            {% endfor %}
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+  <div class="row mb-3">
+    <div class="col">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Characteristic</th>
+            <th></th>
+            <th>Note</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for trait in protocol.traits.all %}
+            <tr>
+              <td rowspan="{{ trait.states.all|length|default:1 }}">{{ trait.numeric_id }}</td>
+              <td rowspan="{{ trait.states.all|length|default:1 }}" {% if trait.grouping %}class="fw-bold"{% endif %}>
+		{{ trait.description }}
+		{% if trait.grouping %}&#10033;{% endif %}
+	      </td>
+
+              {% for state in trait.states.all %}
+                <td>{{ state.numeric_id }}</td>
+                <td>{{ state.description }} </td>
+                <td><a class="text-decoration-none link-body-emphasis" href="{% url 'describe:state-update' state.pk %}"><i class="bi bi-arrow-left-right"></i></a></td>
+                {% if not forloop.last %}
+            </tr>
+                {% endif %}
+              {% endfor %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
+  </div>
 {% endblock %}

@@ -21,14 +21,6 @@
   {% url 'register:variety_update' variety.pk as update_url %}
   {% detail_page_header variety title=variety.name subtitle=variety.species.common_name update_url=update_url %}
 
-  {% if variety.has_breeder %}
-    <p class="lead">
-      <a class="text-decoration-none link-body-emphasis" href="{% url 'register:entity_detail' variety.breeder.pk %}">
-        {{ variety.breeder.name }}<i class="{{ variety.breeder.country.flag_css }} mx-3"></i>
-      </a>
-    </p>
-  {% endif %}
-
   <div class="row mt-5">
     <div class="col">
       <h2 id="descriptions">
