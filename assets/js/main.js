@@ -7,7 +7,7 @@ window._hyperscript = require('hyperscript.org');
 window._hyperscript.browserInit();
 
 import { initializeTomSelects, registerTomSelectExtension } from "./widgets/tomselect.js";
-import { initializeTooltips, closeModalById } from "./bootstrap-init.js";
+import { initializeTooltips, closeModalById, initializeToast } from "./bootstrap-init.js";
 
 window.TomSelect = TomSelect;
 window.htmx = htmx;
@@ -21,4 +21,10 @@ document.addEventListener("DOMContentLoaded", function () {
     document.body.addEventListener('closeModal', function() {
         closeModalById("modal");
     });
+
+    htmx.onLoad(() => {
+	htmx.findAll(".toast").forEach((element) => {
+	    initializeToast(element);
+	})
+    })
 });

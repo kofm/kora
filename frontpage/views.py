@@ -1,9 +1,9 @@
 from django.http import HttpResponse
-from django.shortcuts import render
+from django.template.response import TemplateResponse
 
 
 def index(request):
-    return render(request, "frontpage/index.html", {"nav_home": "active", "crumbs": None})
+    return TemplateResponse(request, "frontpage/index.html", {"nav_home": "active", "crumbs": None})
 
 
 def appearance_set(request):

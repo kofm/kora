@@ -16,3 +16,14 @@ export function closeModalById(modalId = "modal") {
         modal.hide();
     }
 }
+
+export function initializeToast(element) {
+    let toast = bootstrap.Toast.getInstance(element)
+    if (!toast) {
+	const toast = new bootstrap.Toast(element)
+	toast.show()
+    } else if (!toast.isShown()) {
+	toast.dispose()
+	element.remove()
+    }
+}

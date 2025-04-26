@@ -11,6 +11,7 @@
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   closeModalById: () => (/* binding */ closeModalById),
+/* harmony export */   initializeToast: () => (/* binding */ initializeToast),
 /* harmony export */   initializeTooltips: () => (/* binding */ initializeTooltips)
 /* harmony export */ });
 /* harmony import */ var bootstrap__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! bootstrap */ "./node_modules/bootstrap/dist/js/bootstrap.esm.js");
@@ -30,6 +31,17 @@ function closeModalById(modalId = "modal") {
             modal = new bootstrap__WEBPACK_IMPORTED_MODULE_0__.Modal(modalElement);
         }
         modal.hide();
+    }
+}
+
+function initializeToast(element) {
+    let toast = bootstrap__WEBPACK_IMPORTED_MODULE_0__.Toast.getInstance(element)
+    if (!toast) {
+	const toast = new bootstrap__WEBPACK_IMPORTED_MODULE_0__.Toast(element)
+	toast.show()
+    } else if (!toast.isShown()) {
+	toast.dispose()
+	element.remove()
     }
 }
 
@@ -35577,6 +35589,12 @@ document.addEventListener("DOMContentLoaded", function () {
     document.body.addEventListener('closeModal', function() {
         (0,_bootstrap_init_js__WEBPACK_IMPORTED_MODULE_4__.closeModalById)("modal");
     });
+
+    htmx_org__WEBPACK_IMPORTED_MODULE_2___default().onLoad(() => {
+	htmx_org__WEBPACK_IMPORTED_MODULE_2___default().findAll(".toast").forEach((element) => {
+	    (0,_bootstrap_init_js__WEBPACK_IMPORTED_MODULE_4__.initializeToast)(element);
+	})
+    })
 });
 
 })();
