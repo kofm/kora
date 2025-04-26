@@ -287,7 +287,7 @@ class Cart(models.Model):
 
 
 class CartItem(models.Model):
-    sample = models.ForeignKey(Sample, on_delete=models.CASCADE)
+    sample = models.ForeignKey(Sample, on_delete=models.PROTECT)
     weight = models.FloatField("quantity retrieved (g)", default=0)
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE)
     order = models.PositiveIntegerField(default=0)
