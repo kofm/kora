@@ -1,5 +1,6 @@
 {% if user.is_authenticated %}
   <div id="cartBody"
+    class="d-flex flex-column h-100"
     hx-get="{% url 'collect:cart_detail' %}"
     hx-trigger="click from:#offcanvasCartToggle once"
     hx-swap="innerHTML">

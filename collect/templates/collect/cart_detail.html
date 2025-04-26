@@ -27,9 +27,9 @@
 
     <button
       class="btn btn-outline-secondary dropdown-toggle ms-1"
-	     type="button"
-	     data-bs-toggle="dropdown"
-	     aria-expanded="false">
+      type="button"
+      data-bs-toggle="dropdown"
+      aria-expanded="false">
       <i class="bi bi-list"></i>
     </button>
 
@@ -89,7 +89,10 @@
 
   </div>
 
-  {% render_sortable items "cart" "list-group" "collect:cartitem_sort" "collect/partials/cart_list_item.html" %}
+  <div class="flex-grow-1 overflow-auto">
+
+    {% render_sortable items "cart" "list-group" "collect:cartitem_sort" "collect/partials/cart_list_item.html" %}
+  </div>
 {% elif cart %}
   <p class="text-muted mt-5">
     This cart is currently empty. Add samples by clicking the plus symbol next to each sample in the main pane.
