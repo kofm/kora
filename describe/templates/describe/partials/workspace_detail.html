@@ -50,7 +50,9 @@
 
 </div>
 {% if workspace.descriptions.all %}
-  {% render_sortable workspace.descriptions.all "workspace" "list-group mt-5" "describe:workspace_sort" "describe/partials/workspaces/detail_list_item.html" %}
+  <div class="flex-grow-1 overflow-auto mt-4">
+    {% render_sortable workspace.descriptions.all "workspace" "list-group" "describe:workspace_sort" "describe/partials/workspaces/detail_list_item.html" %}
+  </div>
 {% elif workspace %}
   <p class="text-muted mt-5">
     This collection is currently empty. Add descriptions by clicking the star symbol next to each description in the main pane.

@@ -1,5 +1,6 @@
 {% if user.is_authenticated %}
   <div id="workspaceBody"
+    class="d-flex flex-column h-100"
     hx-get="{% url 'describe:workspace_detail' %}"
     hx-trigger="click from:#offcanvasWorkspaceToggle once"
     hx-swap="innerHTML">
