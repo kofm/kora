@@ -1,0 +1,7 @@
+   .table-hover .row-action {
+       opacity: 0;
+       transition: opacity .15s ease;
+   }
+   .table-hover tbody tr:hover .row-action {
+       opacity: 1;
+   }

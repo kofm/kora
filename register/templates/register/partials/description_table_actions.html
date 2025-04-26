@@ -1,13 +1,13 @@
 <div class="d-flex justify-content-end gap-2">
-  <a href="{% url 'describe:description_find_similar' %}?description_id={{ record.pk }}"
+  <a class="row-action" href="{% url 'describe:description_find_similar' %}?description_id={{ record.pk }}"
     class="btn btn-sm btn-outline-secondary rounded-circle">
-    <i class="bi bi-search"></i>
+      <span class="badge rounded-pill text-bg-secondary">Similar</span>
   </a>
   <a href="#"
-    class="btn btn-sm btn-outline-secondary rounded-circle"
+    class="row-action"
     hx-post="{% url 'describe:workspace_element_create' %}"
     hx-vals='{"description_id": "{{ record.pk }}"}'
     hx-target="#workspaceBody">
-    <i class="bi bi-star-fill"></i>
+      <span class="badge rounded-pill text-bg-secondary">Add</span>
   </a>
 </div>

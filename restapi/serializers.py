@@ -177,6 +177,7 @@ class SampleSerializer(serializers.ModelSerializer):
     storage = serializers.StringRelatedField(many=False, read_only=True, source="position.storage")
     position_name = serializers.StringRelatedField(many=False, source="position.name")
     last_weight = serializers.FloatField(read_only=True)
+    available_weight = serializers.FloatField(read_only=True)
     last_germinability = serializers.FloatField(read_only=True)
 
     class Meta:
@@ -191,6 +192,7 @@ class SampleSerializer(serializers.ModelSerializer):
             "position",
             "position_name",
             "last_weight",
+            "available_weight",
             "last_germinability",
         )
 

@@ -1,3 +1,5 @@
+{% load components %}
+
 <div class="list-group-item listgroup-item-action flex-column align-item-start">
 
   <div class="d-flex w-100 justify-content-between">
@@ -10,25 +12,15 @@
       <small class="text-muted">{{ object.sample.position }}</small>
     </h6>
 
-
     <small>
-      <a class="text-decoration-none link-body-emphasis"
-		href=""
-		hx-get="{% url 'collect:cartitem_delete' object.pk %}"
-		hx-target="closest .list-group-item"
-		hx-swap="delete"
-      >
+      <a class="text-decoration-none link-body-emphasis" href="" hx-get="{% url 'collect:cartitem_delete' object.pk %}" hx-target="closest .list-group-item" hx-swap="delete">
 	<i class="bi bi-x-lg"></i>
       </a>
     </small>
-    <input type="hidden" name="order" value="{{ object.pk }}">
-
   </div>
-    {% block weight %}
-      <div hx-on::after-request="if(event.detail.successful) document.getElementById('id_weight').focus()" id="weight_{{ object.pk }}">
-	<small class="text-muted" hx-get="{% url 'collect:cartitem_set_weight' object.pk %}" hx-target="#weight_{{ object.pk }}" hx-swap="innerHTML">
-	  {{ object.weight }} grams
-	</small>
-      </div>
-    {% endblock %}
+  <a href="#" class="link-body-emphasis text-decoration-none" hx-get="{% url 'collect:cartitem_update' object.pk %}" {% modal_attrs %}>
+    <small class="text-muted">
+      {{ object.weight }} grams
+    </small>
+  </a>
 </div>

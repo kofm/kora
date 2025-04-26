@@ -1,31 +1,26 @@
 import django_tables2 as tables
+from django.forms.widgets import format_html
 
-from collect.models import Sample, SampleWeight
+from collect.models import Sample
+from frontpage.tables import TableHoverFixed
 from frontpage.utils import smart_truncate_string
 
 
-class SampleTableMixin:
-    def render_germinability(self, record):
-        return str(record.germinability) + "%"
-
-
-class SampleTablePositionMixin:
-    def render_position(self, record):
-        return f"{record.position.storage.name}-{record.position.name}"
-
-
-class SampleBaseTable(tables.Table, SampleTableMixin):
-    sample_id = tables.Column(linkify=True, attrs={"td": {"class": "col-1"}})
-    notes = tables.Column(
-        attrs={
-            "td": {
-                "class": "text-truncate",
-                "style": "width:10rem; max-width:10rem; min-width:10rem;",
-            }
-        }
+class SampleBaseTable(tables.Table):
+    weight = tables.Column(
+        verbose_name="Stock",
+        orderable=False,
+        attrs={"td": {"class": "text-nowrap"}},
+    )
+    growing_season = tables.Column("Grown")
+    notes = tables.Column(attrs={"td": {"class": "text-nowrap text-truncate"}})
+    actions = tables.TemplateColumn(
+        template_name="collect/partials/sample_table_actions.html",
+        verbose_name="",
+        orderable=False,
     )
 
-    class Meta:
+    class Meta(TableHoverFixed.Meta):
         model = Sample
         fields: tuple = (
             "sample_id",
@@ -38,8 +33,32 @@ class SampleBaseTable(tables.Table, SampleTableMixin):
         notes = smart_truncate_string(record.notes)
         return f"{notes}"
 
+    def render_position(self, record):
+        return f"{record.position.storage.name}-{record.position.name}"
 
-class SampleTable(SampleTablePositionMixin, SampleBaseTable):
+    def render_weight(self, record, value):
+        """
+        record.last_weight  → total grams
+        record.available_weight → available grams
+        """
+        total = getattr(record, "last_weight", 0) or 0
+        available = getattr(record, "available_weight", 0) or 0
+
+        if total == available:
+            return total
+        return format_html(
+            """
+                {available} g<del class="text-muted ms-2">{total} g</del>
+            """,
+            total=total,
+            available=available,
+        )
+
+    def render_germinability(self, record):
+        return str(record.germinability) + "%"
+
+
+class SampleTable(SampleBaseTable):
     """Extension of the SampleBaseTable for the Accession List.
 
     It uses HTMX for dynamic content display. See the template for
@@ -47,36 +66,12 @@ class SampleTable(SampleTablePositionMixin, SampleBaseTable):
     the selected cart.
     """
 
-    variety__name = tables.Column(
-        "Variety",
-        attrs={
-            "td": {"class": "col-2"},
-            "a": {"class": "text-decoration-none link-body-emphasis"},
-        },
-    )
-    variety__species__common_name = tables.Column(attrs={"td": {"class": "col-2"}})
-    position = tables.Column(attrs={"td": {"class": "col-2"}})
-    growing_season = tables.Column(
-        attrs={
-            "td": {"class": "col-2"},
-        }
-    )
-    last_weight = tables.Column(
-        "Weight (g)",
-        attrs={
-            "td": {"class": "col-2"},
-        },
-    )
-    actions = tables.TemplateColumn(
-        template_name="collect/partials/sample_table_actions.html",
-        verbose_name="",
-        orderable=False,
-        attrs={
-            "td": {"class": "col-1"},
-        },
-    )
+    variety__name = tables.Column("Variety")
+    variety__species__common_name = tables.Column("Species")
+    position = tables.Column()
+    growing_season = tables.Column("Grown")
 
-    class Meta:
+    class Meta(SampleBaseTable.Meta):
         model = Sample
         fields = (
             "sample_id",
@@ -84,23 +79,24 @@ class SampleTable(SampleTablePositionMixin, SampleBaseTable):
             "variety__species__common_name",
             "position",
             "growing_season",
-            "last_weight",
+            "weight",
             "notes",
             "actions",
         )
         template_name = "collect/partials/sample_table.html"
 
 
-class SampleDuplicatesTable(SampleTablePositionMixin, SampleBaseTable):
+class SampleDuplicatesTable(SampleBaseTable):
     orderable: bool = False
 
     class Meta(SampleBaseTable.Meta):
         fields = (
             "sample_id",
             "position",
-            "last_weight",
+            "weight",
             "growing_season",
             "notes",
+            "actions",
         )
 
 
@@ -114,10 +110,5 @@ class SampleInStorageTable(SampleBaseTable):
             "germinability",
             "growing_season",
             "notes",
+            "actions",
         )
-
-
-class SampleWeightTable(tables.Table):
-    class Meta:
-        model = SampleWeight
-        fields = ("created_at", "weight")

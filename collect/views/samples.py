@@ -35,14 +35,13 @@ from collect.tables import (
     SampleTable,
 )
 from django_sortable_htmx.views import SortableView
-from frontpage.views_decorators import htmx_render_block_from_params, htmx_render_blocks
-from register.models import PlantVariety, PlantVarietyName
+from frontpage.views_decorators import htmx_render_blocks
 
 
 @htmx_render_blocks(["table"])
 def sample_list(request):
     flt = SampleFilter(request.GET)
-    queryset = flt.qs.with_weight().with_germination()
+    queryset = flt.qs.with_availability()
 
     table = SampleTable(queryset)
     RequestConfig(request, paginate={"per_page": 15}).configure(table)

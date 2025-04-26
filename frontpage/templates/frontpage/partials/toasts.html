@@ -2,11 +2,12 @@
   {% for message in messages %}
     <div class="toast align-items-center {{ message.tags }}" role="alert" aria-live="assertive" aria-atomic="true">
       <div class="toast-header">
-	{% if message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
-	  <i class="bi bi-exclamation-lg"></i>
-	  <strong class="me-auto">
-	    Error
-	  </strong>
+	{% if message.level == DEFAULT_MESSAGE_LEVELS.SUCCESS %}
+	  <strong class="ms-1 me-auto"><i class="bi bi-check-circle-fill"></i></strong>
+	{% elif message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
+	  <i class="bi bi-exclamation-triangle-fill"></i><strong class="ms-1 me-auto">Error</strong>
+	{% elif message.level == DEFAULT_MESSAGE_LEVELS.WARNING %}
+	  <i class="bi bi-question-octagon-fill"></i><strong class="ms-1 me-auto">Oops!</strong>
 	{% endif %}
 	<button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
       </div>

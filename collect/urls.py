@@ -33,6 +33,6 @@ urlpatterns = [
     path("cartitem/create", views.cartitem_create, name="cartitem_create"),
     path("cartitem/sort/set", views.cartitem_set_sorting, name="cartitem_set_sorting"),
     path("cartitem/<int:pk>/delete", views.cartitem_delete, name="cartitem_delete"),
-    path("cartitem/<int:pk>/set_weight", views.cartitem_set_weight, name="cartitem_set_weight"),
+    path("cartitem/<int:pk>/update", views.cartitem_update, name="cartitem_update"),
     path("cartitem/sort", views.CartItemSortView.as_view(), name="cartitem_sort"),
 ]

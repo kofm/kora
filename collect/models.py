@@ -1,11 +1,12 @@
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator
 from django.db import models, transaction
-from django.db.models import F, IntegerField, RowRange, Window
-from django.db.models.aggregates import Max
+from django.db.models import ExpressionWrapper, F, FloatField, IntegerField, OuterRef, RowRange, Subquery, Window
+from django.db.models.aggregates import Coalesce, Max, Sum
 from django.db.models.functions import Concat, LastValue
 from django.db.models.query import Cast, Value
 from django.db.models.query_utils import Q
+from django.forms import ValidationError
 from django.urls import reverse
 from django.utils import timezone
 
@@ -120,6 +121,32 @@ class SampleQueryset(models.QuerySet):
             .distinct()
         )
 
+    def with_availability(self, excluded_cartitem_pk=None):
+        latest_weight_sq = (
+            SampleWeight.objects.filter(sample=OuterRef("pk")).order_by("-created_at").values("weight")[:1]
+        )
+
+        reserved_filter = Q()
+        if excluded_cartitem_pk:
+            reserved_filter &= ~Q(cartitem__pk=excluded_cartitem_pk)
+
+        return self.select_related("variety", "variety__species", "position", "position__storage").annotate(
+            reserved=Coalesce(
+                Sum("cartitem__weight", filter=reserved_filter),
+                Value(0),
+                output_field=FloatField(),
+            ),
+            last_weight=Coalesce(
+                Subquery(latest_weight_sq, output_field=FloatField()),
+                Value(0),
+                output_field=FloatField(),
+            ),
+            available_weight=ExpressionWrapper(
+                F("last_weight") - F("reserved"),
+                output_field=FloatField(),
+            ),
+        )
+
     def detail(self):
         return self.select_related("variety", "variety__species", "position", "position__storage").prefetch_related(
             "germinability_set", "sampleweight_set"
@@ -130,18 +157,29 @@ class SampleQueryset(models.QuerySet):
         return qs["sample_id__max"] + 1
 
     def with_germination(self):
-        return (
-            self.select_related("variety", "variety__species", "position", "position__storage")
-            .annotate(
-                last_germinability=Window(
-                    expression=LastValue("germinability__germinability"),
-                    partition_by=F("id"),
-                    order_by=F("germinability__performed_at").asc(),
-                    frame=RowRange(start=None, end=None),
-                ),
-            )
-            .distinct()
+        latest_germinability_sq = (
+            Germinability.objects.filter(sample=OuterRef("pk")).order_by("-performed_at").values("germinability")[:1]
         )
+
+        return self.detail().annotate(
+            last_germinability=Coalesce(
+                Subquery(latest_germinability_sq, output_field=FloatField()),
+                Value(0),
+                output_field=FloatField(),
+            ),
+        )
+        # return (
+        #     self.select_related("variety", "variety__species", "position", "position__storage")
+        #     .annotate(
+        #         last_germinability=Window(
+        #             expression=LastValue("germinability__germinability"),
+        #             partition_by=F("id"),
+        #             order_by=F("germinability__performed_at").asc(),
+        #             frame=RowRange(start=None, end=None),
+        #         ),
+        #     )
+        #     .distinct()
+        # )
 
 
 class Sample(ModelIsDeletableMixin, models.Model):
@@ -185,7 +223,17 @@ class Sample(ModelIsDeletableMixin, models.Model):
 
     @property
     def duplicate_samples(self):
-        return Sample.objects.with_weight().with_germination().filter(variety=self.variety).exclude(pk=self.pk)
+        return Sample.objects.with_availability().filter(variety=self.variety).exclude(pk=self.pk)
+
+    @property
+    def available(self):
+        # Assumes you always fetched this via .with_availability()
+        aw = getattr(self, "available_weight", None)
+        if aw is None:
+            last = self.sampleweight_set.values_list("weight", flat=True).last() or 0
+            reserved = self.cartitem_set.aggregate(total=Coalesce(Sum("weight"), Value(0), output_field=FloatField()))
+            aw = last - reserved["total"]
+        return aw if aw > 0 else 0
 
     def get_log(self):
         germ_rates = self.germinability_set.all()
@@ -296,4 +344,34 @@ class CartItem(models.Model):
         ordering = ("sample__position",)
 
     def __str__(self):
-        return self.sample.variety.name
+        return f"{self.weight} g of Sample #{self.sample.sample_id}"
+
+    def clean(self):
+        super().clean()
+
+        sample = Sample.objects.with_availability(excluded_cartitem_pk=self.pk).get(pk=self.sample_id)
+        if not sample:
+            raise ValidationError({"sample": "Selected sample does not exist."})
+
+        if self.weight > sample.available:
+            raise ValidationError(
+                {"weight": (f"Cannot reserve {self.weight:g} g; only {sample.available:g} g available.")}
+            )
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        return super().save(*args, **kwargs)
+
+    def create_sampleweight(self):
+        """
+        Returns a new (unsaved) SampleWeight that reflects
+        withdrawing this CartItem’s `weight` from the sample.
+        """
+        last_sw = self.sample.sampleweight_set.order_by("-created_at").first()
+        last_weight = last_sw.weight if last_sw else 0.0
+
+        new_weight = last_weight - self.weight
+        if new_weight < 0:
+            raise ValidationError(f"Cannot retrieve {self.weight:g}g: only {last_weight:g}g in stock.")
+
+        return SampleWeight(sample=self.sample, weight=new_weight)

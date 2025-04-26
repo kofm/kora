@@ -133,6 +133,12 @@ class CartSelectForm(forms.Form):
         return cart
 
 
+class CartItemUpdateForm(forms.ModelForm):
+    class Meta:
+        model = CartItem
+        fields = ("weight",)
+
+
 class CartItemSetWeightForm(forms.Form):
     cartitem = forms.IntegerField(widget=forms.HiddenInput)
     weight = forms.FloatField(required=False)

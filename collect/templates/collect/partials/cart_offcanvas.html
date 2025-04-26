@@ -2,7 +2,7 @@
   <div id="cartBody"
     class="d-flex flex-column h-100"
     hx-get="{% url 'collect:cart_detail' %}"
-    hx-trigger="click from:#offcanvasCartToggle once"
+    hx-trigger="click from:#offcanvasCartToggle once, cartUpdated from:body"
     hx-swap="innerHTML">
   </div>
 {% else %}

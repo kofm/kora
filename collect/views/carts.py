@@ -1,7 +1,11 @@
+import json
+
 from crispy_forms.utils import render_crispy_form
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.db.models.aggregates import Max
+from django.forms import ValidationError
 from django.http.response import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.context_processors import csrf
@@ -14,6 +18,7 @@ from collect.forms import (
     CartCreateForm,
     CartDefaultWeightForm,
     CartItemSetWeightForm,
+    CartItemUpdateForm,
     CartSelectForm,
     CartUpdateForm,
 )
@@ -96,10 +101,8 @@ def cart_retrieve(request, pk):
         cartitems = list(cart.cartitem_set.all())
 
         sample_ids = [item.sample_id for item in cartitems]
-        related_samples_qs = (
-            Sample.objects.with_weight().with_germination().filter(pk__in=sample_ids).values("pk", "last_weight")
-        )
-        samples = {item["pk"]: item["last_weight"] for item in related_samples_qs}
+        sample_qs = Sample.objects.with_availability().filter(pk__in=sample_ids).values("pk", "last_weight")
+        samples = {sample["pk"]: sample["last_weight"] for sample in sample_qs}
         sampleweights = []
         for item in cartitems:
             sample_id = item.sample_id
@@ -108,17 +111,15 @@ def cart_retrieve(request, pk):
 
             new_weight = samples[sample_id] - item.weight
             if new_weight < 0:
-                raise ValueError(
-                    f"Calculated negative weight for sample {sample_id}: "
-                    f"{samples[sample_id]} - {item.weight} = {new_weight}"
-                )
+                messages.error(request, "One of the samples in your cart is not available anymore.")
+                return HttpResponse()
 
             sampleweight = SampleWeight(sample_id=sample_id, weight=new_weight)
             sampleweights.append(sampleweight)
 
         SampleWeight.objects.bulk_create(sampleweights)
         cart.delete()
-        return redirect(reverse("collect:cart_detail"))
+        return HttpResponse(headers={"Hx-Trigger": json.dumps({"cartUpdated": True})})
 
     context = {"cart": cart}
     return render(request, "collect/cart_confirm_retrieve.html", context)
@@ -129,7 +130,7 @@ def cart_empty(request, pk):
     context = {"cart": cart}
     if request.method == "POST":
         cart.cartitem_set.all().delete()
-        return redirect(reverse("collect:cart_detail"))
+        return HttpResponse(headers={"Hx-Trigger": json.dumps({"cartUpdated": True})})
     return render(request, "collect/cart_empty.html", context)
 
 
@@ -159,16 +160,31 @@ def cartitem_create(request):
     cart = Cart.objects.filter(user=request.user, is_active=True).first()
     sample_id = request.POST.get("sample_id", None)
 
-    if not sample_id or not cart:
-        return JsonResponse({"error": "Invalid input or no active description."}, status=409)
+    if not sample_id:
+        return JsonResponse({"error": "Invalid input."}, status=409)
 
-    with transaction.atomic():
-        cartitem, _ = CartItem.objects.get_or_create(sample_id=sample_id, cart=cart, weight=cart.default_weight)
+    if not cart:
+        messages.error(request, "No cart selected.")
+        return HttpResponse(headers={"HX-Reswap": "none"})
 
-        order_max = CartItem.objects.filter(cart=cart).aggregate(Max("order"))["order__max"]
-        if order_max:
-            cartitem.order = order_max + 1
-        cartitem.save()
+    try:
+        with transaction.atomic():
+            cartitem, created = CartItem.objects.get_or_create(
+                sample_id=sample_id,
+                cart=cart,
+            )
+            if not created:
+                messages.warning(request, f"{cartitem.weight} g of this sample are already in your cart.")
+                return HttpResponse(headers={"HX-Reswap": "none"})
+            cartitem.weight = cart.default_weight
+            order_max = CartItem.objects.filter(cart=cart).aggregate(Max("order"))["order__max"]
+            cartitem.order = order_max + 1 if order_max else 1
+            cartitem.save()
+            messages.success(request, f"{cart.default_weight} g added to {cart.name}")
+            return HttpResponse(headers={"Hx-Trigger": json.dumps({"cartUpdated": True, "logItemUpdated": True})})
+    except ValidationError as e:
+        for msg in e.messages:
+            messages.error(request, msg)
 
     return redirect(reverse("collect:cart_detail"))
 
@@ -188,7 +204,7 @@ def cartitem_delete(request, pk):
     cartitem = get_object_or_404(CartItem, pk=pk)
     if request.user.pk == cartitem.cart.user_id:
         cartitem.delete()
-    return HttpResponse()
+    return HttpResponse(headers={"Hx-Trigger": json.dumps({"cartUpdated": True, "logItemUpdated": True})})
 
 
 @login_required
@@ -217,6 +233,17 @@ def cartitem_set_weight(request, pk):
         return HttpResponse(rendered_block)
     rendered_form = render_crispy_form(form, helper=form.helper, context=csrf(request))
     return HttpResponse(rendered_form)
+
+
+def cartitem_update(request, pk):
+    cartitem = get_object_or_404(CartItem, pk=pk)
+    form = CartItemUpdateForm(instance=cartitem)
+    if request.method == "POST":
+        form = CartItemUpdateForm(request.POST, instance=cartitem)
+        if form.is_valid():
+            form.save()
+            return HttpResponse(headers={"Hx-Trigger": json.dumps({"closeModal": True, "cartUpdated": True})})
+    return TemplateResponse(request, "collect/partials/cartitem_update.html", {"form": form})
 
 
 class CartItemSortView(SortableView):

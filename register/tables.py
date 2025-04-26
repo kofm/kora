@@ -3,8 +3,9 @@ from django.utils.html import format_html
 from django_tables2 import columns
 
 from collect.models import Sample
-from collect.tables import SampleBaseTable, SampleTablePositionMixin
+from collect.tables import SampleBaseTable
 from describe.models import Description
+from frontpage.tables import TableHoverFixed
 from parameters.models import ParameterValue
 from register.models import Entity, PlantSpecies, PlantVariety, Protection
 
@@ -39,31 +40,25 @@ class PlantVarietyDescriptionTable(tables.Table):
         orderable=False,
     )
 
-    class Meta:
+    class Meta(TableHoverFixed.Meta):
         model = Description
         fields = ("name", "protocol__name")
-        template_name = "describe/partials/description_table.html"
 
 
-class PlantVarietySampleTable(SampleTablePositionMixin, SampleBaseTable):
-    position = tables.Column(attrs={"td": {"class": "col-2"}})
-    growing_season = tables.Column(attrs={"td": {"class": "col-2"}})
-    last_weight = tables.Column("Weight", attrs={"td": {"class": "col-2"}})
-    notes = tables.Column(attrs={"td": {"style": "width:40rem"}})
+class PlantVarietySampleTable(SampleBaseTable):
     actions = tables.TemplateColumn(
         template_name="collect/partials/sample_table_actions.html",
         verbose_name="",
         orderable=False,
-        attrs={"td": {"class": "col-1"}},
     )
 
-    class Meta:
+    class Meta(SampleBaseTable.Meta):
         model = Sample
         fields = (
             "sample_id",
             "position",
             "growing_season",
-            "last_weight",
+            "weight",
             "notes",
             "actions",
         )

@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+
 from django.contrib import messages
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -119,7 +120,7 @@ STATIC_URL = "static/"
 
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = "bootstrap5"
-DJANGO_TABLES2_TEMPLATE = "django_tables2/bootstrap5.html"
+DJANGO_TABLES2_TEMPLATE = "django_tables2/bootstrap5-responsive.html"
 
 REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "restapi.pagination.OptionalPagination",
