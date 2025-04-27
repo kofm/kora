@@ -1,3 +1,4 @@
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.db.models import Max
@@ -81,22 +82,26 @@ def workspace_delete(request, pk):
 @require_POST
 def workspace_element_create(request):
     description_id = request.POST.get("description_id", None)
-    workspace = Workspace.objects.filter(user=request.user, is_active=True).first()
+    if not description_id:
+        return JsonResponse({"error": "Invalid input"}, status=409)
 
-    if not description_id or not workspace:
-        return JsonResponse({"error": "Invalid input or no active description."}, status=409)
+    workspace = Workspace.objects.filter(user=request.user, is_active=True).first()
+    if not workspace:
+        messages.error(request, "No workspace selected.")
+        return HttpResponse(headers={"HX-Reswap": "none"})
 
     description = get_object_or_404(Description, pk=description_id)
 
     with transaction.atomic():
         element, created = WorkspaceElement.objects.get_or_create(description=description, workspace=workspace)
         if not created:
-            return JsonResponse({"error": "Element already exists."}, status=400)
+            messages.warning(request, f"{description} is already in Workspace '{workspace.name}'")
+            return HttpResponse(headers={"HX-Reswap": "none"})
 
         order_max = workspace.descriptions.aggregate(Max("order"))["order__max"]
-        if order_max:
-            element.order = order_max + 1
-            element.save()
+        element.order = order_max + 1 if order_max else 1
+        element.save()
+        messages.success(request, f"{description} added to Workspace '{workspace.name}'")
 
     return redirect(reverse("describe:workspace_detail"))
 

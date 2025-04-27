@@ -5,6 +5,7 @@ List, Detail, Update, Create, Delete
 
 from collections import defaultdict
 
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import CharField, Q
 from django.db.models.functions import Lower
@@ -145,6 +146,8 @@ def description_find_similar(request):
     expressions = Expression.objects.prefetch_related("state__trait").filter(
         description=description_id, state__trait__grouping=True
     )
+    if not expressions:
+        messages.warning(request, "No asterisked expressions available for this variety.")
     filter_expression = defaultdict(list)
     for expression in expressions:
         filter_expression[str(expression.state.trait.pk)].append(expression.state.pk)
