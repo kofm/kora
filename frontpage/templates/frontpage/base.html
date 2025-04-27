@@ -18,10 +18,10 @@
 
     {% include 'frontpage/navbar.html' %}
 
-    <div class="container">
+    <main class="container">
       {% block container %}
       {% endblock %}
-    </div>
+    </main>
 
     {% offcanvas "workspace" "Workspace" "describe/partials/workspace_offcanvas.html" %}
     {% offcanvas "cart" "Cart" "collect/partials/cart_offcanvas.html" %}
