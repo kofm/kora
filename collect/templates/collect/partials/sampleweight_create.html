@@ -6,13 +6,13 @@
 {% endblock %}
 
 {% block body %}
-  <form id="sampleweight">
+  <form id="sampleweight" onsubmit="return false;">
     {{ form|crispy }}
   </form>
 {% endblock %}
 
 {% block footer %}
-  <button type="button" class="btn btn-primary" hx-post="{{ request.get_full_path }}" hx-include="#sampleweight" hx-target="#modal">
+  <button type="button" class="btn btn-primary" hx-post="{{ request.get_full_path }}" hx-include="#sampleweight" hx-target="#modal" hx-trigger="click, keyup[key=='Enter'] from:#sampleweight">
     Record
   </button>
   {{ block.super }}
