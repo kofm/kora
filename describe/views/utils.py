@@ -185,6 +185,9 @@ def reset_description_filter(request):
 
 
 def update_description_filter(request, **kwargs):
+    if "description_filter" not in request.session:
+        init_description_filter(request)
+
     for key, value in kwargs.items():
         request.session["description_filter"][key] = value
     request.session.modified = True
