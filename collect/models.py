@@ -1,9 +1,9 @@
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator
 from django.db import models, transaction
-from django.db.models import ExpressionWrapper, F, FloatField, IntegerField, OuterRef, RowRange, Subquery, Window
-from django.db.models.aggregates import Coalesce, Max, Sum
-from django.db.models.functions import Concat, LastValue
+from django.db.models import ExpressionWrapper, F, FloatField, IntegerField, OuterRef, Subquery
+from django.db.models.aggregates import Coalesce, Count, Max, Sum
+from django.db.models.functions import Concat
 from django.db.models.query import Cast, Value
 from django.db.models.query_utils import Q
 from django.forms import ValidationError
@@ -12,6 +12,27 @@ from django.utils import timezone
 
 from frontpage.generic import ModelIsDeletableMixin
 from register.models import PlantVariety
+
+
+class StorageQuerySet(models.QuerySet):
+    def with_position_counts(self):
+        return self.annotate(
+            total_positions_count=Count("storageposition", distinct=True),
+            stored_positions_count=Count(
+                "storageposition", filter=Q(storageposition__sample__isnull=False), distinct=True
+            ),
+            available_positions_count=Count(
+                "storageposition", filter=Q(storageposition__sample__isnull=True), distinct=True
+            ),
+        )
+
+
+class StorageManager(models.Manager):
+    def get_queryset(self):
+        return StorageQuerySet(self.model, using=self._db)
+
+    def with_position_counts(self):
+        return self.get_queryset().with_position_counts()
 
 
 class Storage(models.Model):
@@ -24,9 +45,11 @@ class Storage(models.Model):
     name = models.CharField(max_length=200, unique=True)
     order = models.PositiveIntegerField(default=0)
 
+    objects = StorageManager()
+
     class Meta:
         ordering = ("name",)
-        verbose_name_plural = "Storage"
+        verbose_name_plural = "storage"
 
     def __str__(self) -> str:
         return self.name
@@ -41,7 +64,7 @@ class Storage(models.Model):
         return reverse("collect:storage_delete", args=(self.pk,))
 
     def is_deletable(self):
-        return self.stored_samples == 0
+        return self.stored_positions == 0
 
     def increase_positions(self, value):
         if value <= self.total_positions:
@@ -58,15 +81,21 @@ class Storage(models.Model):
 
     @property
     def total_positions(self):
+        if hasattr(self, "total_positions_count"):
+            return self.total_positions_count
         return self.storageposition_set.count()
 
     @property
-    def available_positions(self):
-        return self.storageposition_set.filter(sample__isnull=True).count()
+    def stored_positions(self):
+        if hasattr(self, "stored_positions_count"):
+            return self.stored_positions_count
+        return self.storageposition_set.filter(sample__isnull=False).count()
 
     @property
-    def stored_samples(self):
-        return self.storageposition_set.filter(sample__isnull=False).count()
+    def available_positions(self):
+        if hasattr(self, "available_positions_count"):
+            return self.available_positions_count
+        return self.storageposition_set.filter(sample__isnull=True).count()
 
 
 class StoragePositionQuerySet(models.QuerySet):
@@ -107,20 +136,6 @@ class StoragePosition(models.Model):
 
 
 class SampleQueryset(models.QuerySet):
-    def with_weight(self):
-        return (
-            self.select_related("variety", "variety__species", "position", "position__storage")
-            .annotate(
-                last_weight=Window(
-                    expression=LastValue("sampleweight__weight"),
-                    partition_by=F("id"),
-                    order_by=F("sampleweight__created_at").asc(),
-                    frame=RowRange(start=None, end=None),
-                ),
-            )
-            .distinct()
-        )
-
     def with_availability(self, excluded_cartitem_pk=None):
         latest_weight_sq = (
             SampleWeight.objects.filter(sample=OuterRef("pk")).order_by("-created_at").values("weight")[:1]
@@ -130,7 +145,7 @@ class SampleQueryset(models.QuerySet):
         if excluded_cartitem_pk:
             reserved_filter &= ~Q(cartitem__pk=excluded_cartitem_pk)
 
-        return self.select_related("variety", "variety__species", "position", "position__storage").annotate(
+        qs = self.select_related("variety", "variety__species", "position", "position__storage").annotate(
             reserved=Coalesce(
                 Sum("cartitem__weight", filter=reserved_filter),
                 Value(0),
@@ -146,6 +161,10 @@ class SampleQueryset(models.QuerySet):
                 output_field=FloatField(),
             ),
         )
+
+        if self.model._meta.ordering:
+            qs = qs.order_by(*self.model._meta.ordering)
+        return qs
 
     def detail(self):
         return self.select_related("variety", "variety__species", "position", "position__storage").prefetch_related(
@@ -168,18 +187,6 @@ class SampleQueryset(models.QuerySet):
                 output_field=FloatField(),
             ),
         )
-        # return (
-        #     self.select_related("variety", "variety__species", "position", "position__storage")
-        #     .annotate(
-        #         last_germinability=Window(
-        #             expression=LastValue("germinability__germinability"),
-        #             partition_by=F("id"),
-        #             order_by=F("germinability__performed_at").asc(),
-        #             frame=RowRange(start=None, end=None),
-        #         ),
-        #     )
-        #     .distinct()
-        # )
 
 
 class Sample(ModelIsDeletableMixin, models.Model):
@@ -207,19 +214,20 @@ class Sample(ModelIsDeletableMixin, models.Model):
 
     @property
     def germinability(self):
+        if hasattr(self, "last_germinability"):
+            return self.last_germinability
         if self.germinability_set.count() > 0:
             return self.germinability_set.last().germinability
         return None
 
     @property
     def weight(self):
+        if hasattr(self, "last_weight"):
+            return self.last_weight
         sampleweight = self.sampleweight_set.last()
         if sampleweight:
             return sampleweight.weight
         return None
-
-    def last_sampleweight(self):
-        return self.sampleweight_set.last()
 
     @property
     def duplicate_samples(self):

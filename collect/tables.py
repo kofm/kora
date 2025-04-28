@@ -103,11 +103,9 @@ class SampleDuplicatesTable(SampleBaseTable):
 class SampleInStorageTable(SampleBaseTable):
     class Meta(SampleBaseTable.Meta):
         fields = (
-            "position",
             "sample_id",
             "variety",
             "weight",
-            "germinability",
             "growing_season",
             "notes",
             "actions",

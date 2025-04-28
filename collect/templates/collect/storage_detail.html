@@ -13,7 +13,7 @@
 
     {% detail_page_header storage subtitle="Storage" cant_delete_msg="You can't delete this storage as it is not empty." %}
 
-    <h2>Samples <span class="badge rounded-pill text-bg-secondary">{{ storage.stored_samples }}/{{ storage.total_positions }}</span></h2>
+    <h2>Samples <span class="badge rounded-pill text-bg-secondary">{{ storage.stored_positions }}/{{ storage.total_positions }}</span></h2>
 
     {% render_table table %}
 

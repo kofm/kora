@@ -1,19 +1,16 @@
 import json
+from typing import override
 
 from django.db import transaction
-from django.db.models import IntegerField, Q, Value
-from django.db.models.functions import Cast, Concat
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.response import TemplateResponse
 from django.urls import reverse, reverse_lazy
-from django.utils.timezone import now
 from django.views.generic import DetailView, ListView
-from django.views.generic.edit import CreateView, DeleteView
+from django.views.generic.edit import DeleteView
 from django_tables2 import RequestConfig
 
 from breadcrumbs.generic import (
-    CreateBreadcrumbsMixin,
     DeleteBreadcrumbsMixin,
     DetailBreadcrumbsMixin,
     ListBreadcrumbsMixin,
@@ -23,7 +20,6 @@ from collect.filters import SampleFilter
 from collect.forms import (
     GerminabilityForm,
     SampleForm,
-    SampleForm2,
     SampleWeightForm,
     StorageCreateForm,
     StorageUpdateForm,
@@ -41,7 +37,7 @@ from frontpage.views_decorators import htmx_render_blocks
 @htmx_render_blocks(["table"])
 def sample_list(request):
     flt = SampleFilter(request.GET)
-    queryset = flt.qs.with_availability()
+    queryset = flt.qs.with_availability().with_germination()
 
     table = SampleTable(queryset)
     RequestConfig(request, paginate={"per_page": 15}).configure(table)
@@ -68,7 +64,7 @@ def sample_detail(request, pk):
 
 def sample_create(request):
     if request.method == "POST":
-        form = SampleForm2(request.POST)
+        form = SampleForm(request.POST)
         form_weight = SampleWeightForm(request.POST)
         if form.is_valid() and form_weight.is_valid():
             with transaction.atomic():
@@ -80,7 +76,7 @@ def sample_create(request):
                 return redirect(reverse("collect:sample_create"))
             return redirect(reverse("collect:sample_list"))
     else:
-        form = SampleForm2()
+        form = SampleForm()
         form_weight = SampleWeightForm()
     return TemplateResponse(
         request,
@@ -93,12 +89,12 @@ def sample_update(request, pk):
     context = {}
     sample = get_object_or_404(Sample, pk=pk)
     if request.method == "POST":
-        form = SampleForm2(request.POST, instance=sample)
+        form = SampleForm(request.POST, instance=sample)
         if form.is_valid():
             sample = form.save()
             return redirect(reverse("collect:sample_detail", args=(pk,)))
     else:
-        form = SampleForm2(instance=sample)
+        form = SampleForm(instance=sample)
 
     context.update({"form": form, "object": sample})
 
@@ -117,17 +113,23 @@ class SampleDeleteView(DeleteBreadcrumbsMixin, DeleteView):
 
 class StorageListView(ListBreadcrumbsMixin, ListView):
     model = Storage
-    queryset = Storage.objects.all().order_by("order", "pk")
+    queryset = Storage.objects.prefetch_related("storageposition_set").with_position_counts().order_by("order", "pk")
 
 
 class StorageDetailView(DetailBreadcrumbsMixin, DetailView):
     model = Storage
 
+    def get_queryset(self):
+        return Storage.objects.with_position_counts()
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         storage_positions = self.object.storageposition_set.all()
         seed_samples = (
-            Sample.objects.filter(position__in=storage_positions).select_related("variety").order_by("position")
+            Sample.objects.with_availability()
+            .filter(position__in=storage_positions)
+            .select_related("variety")
+            .order_by("position")
         )
         table = SampleInStorageTable(seed_samples)
         RequestConfig(self.request, paginate={"per_page": 10}).configure(table)

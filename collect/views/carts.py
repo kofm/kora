@@ -1,6 +1,5 @@
 import json
 
-from crispy_forms.utils import render_crispy_form
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
@@ -8,16 +7,13 @@ from django.db.models.aggregates import Max
 from django.forms import ValidationError
 from django.http.response import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from django.template.context_processors import csrf
 from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.views.decorators.http import require_GET, require_POST
-from render_block import render_block_to_string
 
 from collect.forms import (
     CartCreateForm,
     CartDefaultWeightForm,
-    CartItemSetWeightForm,
     CartItemUpdateForm,
     CartSelectForm,
     CartUpdateForm,
@@ -205,34 +201,6 @@ def cartitem_delete(request, pk):
     if request.user.pk == cartitem.cart.user_id:
         cartitem.delete()
     return HttpResponse(headers={"Hx-Trigger": json.dumps({"cartUpdated": True, "logItemUpdated": True})})
-
-
-@login_required
-def cartitem_set_weight(request, pk):
-    template_name = "collect/partials/cart_list_item.html"
-    form = CartItemSetWeightForm(initial={"cartitem": pk})
-    if request.method == "POST":
-        form = CartItemSetWeightForm(request.POST, initial={"cartitem": pk})
-        if form.is_valid():
-            cartitem = form.save()
-            rendered_block = render_block_to_string(
-                template_name,
-                "weight",
-                {"object": cartitem},
-                request,
-            )
-            return HttpResponse(rendered_block)
-    if request.GET.get("cancel", None):
-        cartitem = get_object_or_404(CartItem, pk=pk)
-        rendered_block = render_block_to_string(
-            template_name,
-            "weight",
-            {"object": cartitem},
-            request,
-        )
-        return HttpResponse(rendered_block)
-    rendered_form = render_crispy_form(form, helper=form.helper, context=csrf(request))
-    return HttpResponse(rendered_form)
 
 
 def cartitem_update(request, pk):
