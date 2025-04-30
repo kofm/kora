@@ -1,3 +1,27 @@
+## 0.3.1 (2025-04-30)
+
+### Feat
+
+- **restapi**: add date fields to ProtectionSerializer
+- **collect**: enhance form submission UX in partials
+- **describe**: improve description list UI and workspace element create with messages
+- **collect**: add sample weight reservation system and improve cart UI and validation
+- **collect**: prevent deletion of Samples which are held in a Cart
+- **frontpage**: add HTMX toast notifications and improve message handling
+- **describe**: improve workspace detail and offcanvas layout
+- add GitHub Actions to automate submodule update in kora-docker
+
+### Fix
+
+- **collect**: refactor storage counts, forms, and views; remove deprecated code
+- **describe**: initialize session before updating description_filter
+- **collect, describe**: restrict add-to-cart and add-to-workspace buttons to authenticated users
+- **collect**: improve cart detail and offcanvas layout
+
+### Refactor
+
+- **frontpage**: replace div.container with main.container in base.html
+
 ## 0.3.0 (2025-04-25)
 
 ### Feat
