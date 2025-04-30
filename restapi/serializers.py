@@ -74,6 +74,8 @@ class ProtectionSerializer(CountryFieldMixin, serializers.ModelSerializer):
             "variety",
             "applicants",
             "maintainers",
+            "date_start",
+            "date_end",
         )
 
 
