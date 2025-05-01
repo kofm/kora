@@ -1,3 +1,7 @@
+from crispy_forms.helper import FormHelper, Layout
+from crispy_forms.layout import HTML, Div, Field, Submit
+from django.contrib.auth.decorators import permission_required
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.http import HttpRequest
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
@@ -22,6 +26,7 @@ from breadcrumbs.utils import (
 from frontpage.views_decorators import (
     NavDescribeActiveContext,
     NavPlantActiveContext,
+    htmx_render_blocks,
     nav_describe_active_context,
     nav_plant_active_context,
 )
@@ -39,10 +44,11 @@ class PlantVarietyParametersList(NavPlantActiveContext, DetailView):
     template_name = "register/plantvarietyparameters_list.html"
 
 
-class VarietalParameterCreate(NavPlantActiveContext, CrumbsCreateView):
+class VarietalParameterCreate(PermissionRequiredMixin, NavPlantActiveContext, CrumbsCreateView):
     model = VarietalParameter
     form_class = VarietalParameterForm
     template_name_suffix = "_create_form"
+    permission_required = "parameter.add_varietalparameter"
 
     @property
     def crumbs(self):
@@ -62,21 +68,44 @@ class VarietalParameterCreate(NavPlantActiveContext, CrumbsCreateView):
         return initial_data
 
     def get_success_url(self, *args, **kwargs):
-        return reverse("register:plantvarietyparameters_list", kwargs={"pk": self.variety.pk})
+        return reverse("register:parameter_list", kwargs={"pk": self.variety.pk})
 
 
 @nav_plant_active_context
+@htmx_render_blocks(["table"])
 def protection_list(request):
     queryset = Protection.objects.select_related("variety", "variety__species").all()
     flt = ProtectionOmniFilter(request.GET, queryset=queryset)
+    flt.form.helper = FormHelper()
+    flt.form.helper.form_tag = True
+    flt.form.helper.attrs = {
+        "hx_get": "",
+        "hx_trigger": "change from:select, keyup changed delay:500ms from:input",
+    }
+    flt.form.helper.form_method = "GET"
+    flt.form.helper.layout = Layout(
+        Div(
+            Div(Field("omni"), css_class="col-3"),
+            Div(Field("type"), css_class="col-3"),
+            Div(Field("status"), css_class="col-3"),
+            Div(Field("country"), css_class="col-3"),
+            css_class="row row-cols-sm-1 row-cols-lg-4 g-3 align-items-center",
+        ),
+        Div(
+            Div(Submit("search", "Search"), css_class="col-12"),
+            HTML('<a class="btn btn-secondary" href=".">Clear</a>'),
+            css_class="row row-cols-lg-auto",
+        ),
+    )
     table = ProtectionListTable(flt.qs)
-    RequestConfig(request).configure(table)
+    RequestConfig(request, paginate={"per_page": 10}).configure(table)
     context = {"table": table, "filter": flt}
     context.update(generate_breadcrumbs(request, Protection))
     return TemplateResponse(request, "register/protection_list.html", context)
 
 
 @nav_plant_active_context
+@permission_required("register.add_protection", raise_exception=True)
 def protection_create(request: HttpRequest, variety_id: int):
     variety = get_object_or_404(PlantVariety, pk=variety_id)
     if request.method == "POST":
@@ -111,6 +140,7 @@ def protection_create(request: HttpRequest, variety_id: int):
 
 
 @nav_plant_active_context
+@permission_required("register.change_protection", raise_exception=True)
 def protection_update(request, pk):
     context = {}
     protection = get_object_or_404(Protection, pk=pk)
@@ -128,12 +158,12 @@ def protection_update(request, pk):
     return TemplateResponse(request, "register/protection_update.html", context)
 
 
-class ProtectionDeleteView(DeleteBreadcrumbsMixin, NavPlantActiveContext, DeleteView):
+class ProtectionDeleteView(PermissionRequiredMixin, DeleteBreadcrumbsMixin, NavPlantActiveContext, DeleteView):
     object: Protection
     model = Protection
 
     def get_success_url(self):
-        return reverse_lazy("register:plantvariety_detail", args=[self.object.variety.pk])
+        return reverse_lazy("register:variety_detail", args=[self.object.variety.pk])
 
 
 @nav_plant_active_context
@@ -148,10 +178,11 @@ def protection_detail(request, pk):
     )
 
 
-class EntityCreateView(CreateBreadcrumbsMixin, NavDescribeActiveContext, CreateView):
+class EntityCreateView(PermissionRequiredMixin, CreateBreadcrumbsMixin, NavDescribeActiveContext, CreateView):
     model = Entity
     fields = ("name", "type", "country", "contact", "email")
     template_name = "frontpage/_create_form.html"
+    permission_required = ["register.add_entity"]
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
@@ -169,16 +200,18 @@ def entity_detail(request, pk):
     return TemplateResponse(request, "register/entity_detail.html", context)
 
 
-class EntityUpdateView(UpdateBreadcrumbsMixin, NavDescribeActiveContext, UpdateView):
+class EntityUpdateView(PermissionRequiredMixin, UpdateBreadcrumbsMixin, NavDescribeActiveContext, UpdateView):
     model = Entity
     fields = ("name", "type", "country", "contact", "email")
     template_name = "frontpage/_update_form.html"
+    permission_required = ["register.change_entity"]
 
 
-class EntityDeleteView(NavDescribeActiveContext, DeleteView):
+class EntityDeleteView(PermissionRequiredMixin, NavDescribeActiveContext, DeleteView):
     object: Entity
     model = Entity
     template_name = "frontpage/confirm_delete.html"
+    permission_required = ["register.delete_entity"]
 
 
 @nav_describe_active_context

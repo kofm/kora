@@ -1,5 +1,7 @@
 """Protocol views."""
 
+from django.contrib.auth.decorators import permission_required
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
 from django.template.response import TemplateResponse
@@ -28,8 +30,9 @@ def protocol_list(request):
     return TemplateResponse(request, "describe/protocol_list.html", context)
 
 
-class ProtocolSortView(SortableView):
+class ProtocolSortView(PermissionRequiredMixin, SortableView):
     model = Protocol
+    permission_required = ["describe.change_protocol"]
 
 
 def protocol_detail(request, pk):
@@ -40,6 +43,7 @@ def protocol_detail(request, pk):
 
 
 @nav_describe_active_context
+@permission_required("describe.change_protocol", raise_exception=True)
 def protocol_update(request, pk):
     context = {}
     protocol = get_object_or_404(Protocol, pk=pk)
@@ -94,6 +98,7 @@ def protocol_update_meta(request, pk):
     return TemplateResponse(request, "describe/partials/protocol_update_metadata.html", context)
 
 
-class ProtocolDelete(DeleteBreadcrumbsMixin, NavDescribeActiveContext, DeleteView):
+class ProtocolDelete(PermissionRequiredMixin, DeleteBreadcrumbsMixin, NavDescribeActiveContext, DeleteView):
     model = Protocol
     success_url = reverse_lazy("describe:protocol_list")
+    permission_required = ["describe.delete_protocol"]

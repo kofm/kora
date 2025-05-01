@@ -1,0 +1,22 @@
+from django.db.models.signals import post_migrate
+from django.dispatch import receiver
+
+from frontpage.utils.permissions import (
+    get_or_create_usergroups,
+    group_assign_model_permissions,
+    skip_if_not_app,
+)
+
+
+@receiver(post_migrate)
+@skip_if_not_app("collect")
+def setup_register_groups_and_permissions(sender, **kwargs):
+    app_label = "collect"
+
+    viewers, editors = get_or_create_usergroups(app_label)
+    for model_name in ("Sample", "Storage", "StoragePosition", "SampleWeight", "Germinability"):
+        group_assign_model_permissions(app_label, model_name, viewers, ("view",))
+        group_assign_model_permissions(app_label, model_name, editors)
+
+    for model_name in ("Cart", "CartItem"):
+        group_assign_model_permissions(app_label, model_name, editors)

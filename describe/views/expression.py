@@ -1,5 +1,6 @@
 """Expression Views."""
 
+from django.contrib.auth.decorators import permission_required
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.template.response import TemplateResponse
@@ -20,6 +21,7 @@ def expression_create_form_empty(request, pk, trait):
 
 
 @require_POST
+@permission_required("describe.change_expression", raise_exception=True)
 def expression_update_form(request, pk):
     expression = get_object_or_404(Expression, pk=pk)
     form = ExpressionForm(request.POST, instance=expression, trait=expression.state.trait)
@@ -30,6 +32,7 @@ def expression_update_form(request, pk):
 
 
 @require_POST
+@permission_required("describe.add_expression", raise_exception=True)
 def expression_create(request):
     trait = request.POST.get("trait")
     form = ExpressionForm(request.POST, trait=trait)
@@ -42,6 +45,7 @@ def expression_create(request):
 
 
 @require_POST
+@permission_required("describe.delete_expression", raise_exception=True)
 def expression_delete(request, pk):
     expression = get_object_or_404(Expression, pk=pk)
     expression.delete()

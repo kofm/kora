@@ -42,7 +42,7 @@ class PlantVarietySerializer(serializers.HyperlinkedModelSerializer):
             "url",
         ]
         extra_kwargs = {
-            "url": {"view_name": "register:plantvariety_detail"},
+            "url": {"view_name": "register:variety_detail"},
             "species": {"view_name": "register:plantspecies_detail"},
         }
 

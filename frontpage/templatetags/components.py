@@ -1,5 +1,8 @@
 from django import template
+from django.urls import reverse
 from django.utils.safestring import mark_safe
+
+from persefone import settings
 
 register = template.Library()
 
@@ -17,9 +20,14 @@ HTMX_MODAL_ATTRS = {
 }
 
 
+@register.simple_tag
+def is_public():
+    return getattr(settings, "PUBLIC")
+
+
 @register.inclusion_tag("frontpage/partials/dropdown_item.html")
 def dropdown_item(label, **kwargs):
-    href = kwargs.pop("href", None)
+    href = kwargs.pop("href", "#")
     disabled = kwargs.pop("disabled", False) == "True"
     querystring = kwargs.pop("querystring", None)
     if querystring:
@@ -36,27 +44,55 @@ def dropdown_item_to_modal(label, **kwargs):
     return {"label": label, "attrs": attrs, "disabled": disabled}
 
 
-@register.inclusion_tag("frontpage/partials/list_page_header.html")
-def list_page_header(title, create_url=None):
-    return {"page_title": title, "create_url": create_url}
+@register.inclusion_tag("frontpage/partials/list_page_header.html", takes_context=True)
+def list_page_header(context, title, create_url=None, permission=None, create_modal=False, **kwargs):
+    user = context["request"].user
+    if user.has_perm(permission):
+        create_url = reverse(create_url) if create_url else None
+    else:
+        create_url = None
+    title_class = kwargs.pop("title_class", "")
+    return {"page_title": title, "create_url": create_url, "title_class": title_class, "create_modal": create_modal}
 
 
-@register.inclusion_tag("frontpage/partials/detail_page_header.html")
+def get_action_url_from_instance(action, instance):
+    method = f"get_{action}_url"
+    if instance and hasattr(instance, method):
+        return getattr(instance, method)
+    return None
+
+
+def get_permission_from_instance(action, instance):
+    app_label = instance._meta.app_label
+    model_name = instance._meta.model_name
+    return f"{app_label}.{action}_{model_name}"
+
+
+@register.inclusion_tag("frontpage/partials/detail_page_header.html", takes_context=True)
 def detail_page_header(
-    instance=None,
+    context,
+    instance,
     title="",
     subtitle="",
-    update_url=None,
-    delete_url=None,
     subtitle_emphasis=False,
+    update_url=None,
+    update_permission=None,
+    delete_url=None,
+    delete_permission=None,
     **kwargs,
 ):
-    if not title and instance:
-        title = instance.__str__()
-    if not update_url and instance and hasattr(instance, "get_update_url"):
-        update_url = instance.get_update_url()
-    if not delete_url and instance and hasattr(instance, "get_delete_url"):
-        delete_url = instance.get_delete_url()
+    user = context["request"].user
+    title = title or instance.__str__()
+    update_permission = update_permission or get_permission_from_instance("change", instance)
+    delete_permission = delete_permission or get_permission_from_instance("delete", instance)
+    if user.has_perm(update_permission):
+        update_url = update_url or get_action_url_from_instance("update", instance)
+    else:
+        update_url = None
+    if user.has_perm(delete_permission):
+        delete_url = delete_url or get_action_url_from_instance("delete", instance)
+    else:
+        delete_url = None
     cant_delete_msg = kwargs.get(
         "cant_delete_msg", "You can't remove this entry because it is referenced by other data."
     )
@@ -72,8 +108,13 @@ def detail_page_header(
 
 
 @register.inclusion_tag("frontpage/partials/list_group_item.html")
-def list_group_item(value, label, pk, update_url=None, delete_url=None, time=""):
-    return {"value": value, "label": label, "pk": pk, "update_url": update_url, "delete_url": delete_url, "time": time}
+def list_group_item(value, date, update_url=None, delete_url=None):
+    return {
+        "value": value,
+        "date": date,
+        "update_url": update_url,
+        "delete_url": delete_url,
+    }
 
 
 @register.inclusion_tag("frontpage/partials/card_col_rows.html")

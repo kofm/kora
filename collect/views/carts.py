@@ -1,7 +1,8 @@
 import json
 
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.db import transaction
 from django.db.models.aggregates import Max
 from django.forms import ValidationError
@@ -20,6 +21,7 @@ from collect.forms import (
 )
 from collect.models import Cart, CartItem, Sample, SampleWeight
 from django_sortable_htmx.views import SortableView
+from frontpage.utils.htmx import htmx_trigger_response
 
 CART_SORTING = {
     "variety": "sample__variety__name",
@@ -29,7 +31,7 @@ CART_SORTING = {
 }
 
 
-@login_required
+@permission_required("collect.view_cart", raise_exception=True)
 def cart_detail(request):
     context = {}
     user = request.user
@@ -51,7 +53,7 @@ def cart_detail(request):
 
 
 @require_POST
-@login_required
+@permission_required("collect.view_cart", raise_exception=True)
 def cart_activate(request):
     user = request.user
     form = CartSelectForm(request.POST, user=user)
@@ -61,7 +63,7 @@ def cart_activate(request):
     return HttpResponseBadRequest()
 
 
-@login_required
+@permission_required("collect.add_cart", raise_exception=True)
 def cart_create(request):
     form = CartCreateForm()
     if request.method == "POST":
@@ -76,6 +78,7 @@ def cart_create(request):
     return render(request, "collect/cart_detail.html", {"cart_form": form})
 
 
+@permission_required("collect.change_cart", raise_exception=True)
 def cart_update(request, pk):
     instance = get_object_or_404(Cart, pk=pk, user=request.user)
     if request.method == "POST":
@@ -90,6 +93,7 @@ def cart_update(request, pk):
     return render(request, "collect/cart_detail.html", {"cart_form": form})
 
 
+@permission_required("collect.view_cart", raise_exception=True)
 def cart_retrieve(request, pk):
     context = {}
     cart = get_object_or_404(Cart, pk=pk, user=request.user)
@@ -115,21 +119,23 @@ def cart_retrieve(request, pk):
 
         SampleWeight.objects.bulk_create(sampleweights)
         cart.delete()
-        return HttpResponse(headers={"Hx-Trigger": json.dumps({"cartUpdated": True})})
+        return htmx_trigger_response(["cartUpdated"])
 
     context = {"cart": cart}
     return render(request, "collect/cart_confirm_retrieve.html", context)
 
 
+@permission_required("collect.change_cart", raise_exception=True)
 def cart_empty(request, pk):
     cart = get_object_or_404(Cart, pk=pk)
     context = {"cart": cart}
     if request.method == "POST":
         cart.cartitem_set.all().delete()
-        return HttpResponse(headers={"Hx-Trigger": json.dumps({"cartUpdated": True})})
+        return htmx_trigger_response(["cartUpdated"])
     return render(request, "collect/cart_empty.html", context)
 
 
+@permission_required("collect.delete_cart", raise_exception=True)
 def cart_delete(request, pk):
     cart = get_object_or_404(Cart, pk=pk)
     if request.method == "POST":
@@ -138,6 +144,7 @@ def cart_delete(request, pk):
     return render(request, "collect/cart_confirm_delete.html", {"cart": cart})
 
 
+@permission_required("collect.view_cart", raise_exception=True)
 @require_POST
 def cart_set_default_weight(request, pk):
     instance = get_object_or_404(Cart, pk=pk)
@@ -150,7 +157,7 @@ def cart_set_default_weight(request, pk):
         return HttpResponseBadRequest()
 
 
-@login_required
+@permission_required("collect.add_cartitem", raise_exception=True)
 @require_POST
 def cartitem_create(request):
     cart = Cart.objects.filter(user=request.user, is_active=True).first()
@@ -177,7 +184,7 @@ def cartitem_create(request):
             cartitem.order = order_max + 1 if order_max else 1
             cartitem.save()
             messages.success(request, f"{cart.default_weight} g added to {cart.name}")
-            return HttpResponse(headers={"Hx-Trigger": json.dumps({"cartUpdated": True, "logItemUpdated": True})})
+            return htmx_trigger_response(["cartUpdated", "logItemUpdated"])
     except ValidationError as e:
         for msg in e.messages:
             messages.error(request, msg)
@@ -185,7 +192,7 @@ def cartitem_create(request):
     return redirect(reverse("collect:cart_detail"))
 
 
-@login_required
+@permission_required("collect.change_cartitem", raise_exception=True)
 @require_GET
 def cartitem_set_sorting(request):
     sort_key = request.GET.get("sort", None)
@@ -194,15 +201,16 @@ def cartitem_set_sorting(request):
     return redirect(reverse("collect:cart_detail"))
 
 
-@login_required
+@permission_required("collect.delete_cartitem", raise_exception=True)
 @require_GET
 def cartitem_delete(request, pk):
     cartitem = get_object_or_404(CartItem, pk=pk)
     if request.user.pk == cartitem.cart.user_id:
         cartitem.delete()
-    return HttpResponse(headers={"Hx-Trigger": json.dumps({"cartUpdated": True, "logItemUpdated": True})})
+        return htmx_trigger_response(["cartUpdated", "logItemUpdated"])
 
 
+@permission_required("collect.change_cartitem", raise_exception=True)
 def cartitem_update(request, pk):
     cartitem = get_object_or_404(CartItem, pk=pk)
     form = CartItemUpdateForm(instance=cartitem)
@@ -210,12 +218,13 @@ def cartitem_update(request, pk):
         form = CartItemUpdateForm(request.POST, instance=cartitem)
         if form.is_valid():
             form.save()
-            return HttpResponse(headers={"Hx-Trigger": json.dumps({"closeModal": True, "cartUpdated": True})})
+            return htmx_trigger_response(["cartUpdated", "logItemUpdated"])
     return TemplateResponse(request, "collect/partials/cartitem_update.html", {"form": form})
 
 
-class CartItemSortView(SortableView):
+class CartItemSortView(PermissionRequiredMixin, SortableView):
     model = CartItem
+    permission_required = ["collect.change_cartitem"]
 
     def post(self, request):
         request.session["cart_sorting"] = CART_SORTING["manual"]

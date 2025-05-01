@@ -6,7 +6,8 @@ List, Detail, Update, Create, Delete
 from collections import defaultdict
 
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.db.models import CharField, Q
 from django.db.models.functions import Lower
 from django.http import HttpResponseBadRequest, HttpResponseRedirect
@@ -123,6 +124,7 @@ def _description_list(request):
 
 
 @htmx_render_blocks(["expression_filter"])
+@permission_required("describe.add_description", raise_exception=True)
 def description_form(request):
     protocol_id = request.GET.get("protocol", None)
     if not protocol_id:
@@ -169,16 +171,21 @@ def description_find_similar(request):
 @login_required
 def description_compare(request):
     wsp = Workspace.objects.filter(user=request.user, is_active=True).first()
+    if not wsp:
+        return redirect(reverse("describe:description_list"))
+
     elems = WorkspaceElement.objects.select_related("description__variety__species").filter(workspace=wsp)
+    if not elems:
+        return redirect(reverse("describe:description_list"))
 
     # Get all the available Descriptions for any of the Variety-Name
     # combinations present in the workspace.
     # This includes descriptions from other protocols, too.
     pairs = elems.values_list("description__variety_id", "description__name").distinct()
-    q = Q()
+    query = Q()
     for variety_id, name in pairs:
-        q |= Q(variety_id=variety_id, name=name)
-    descriptions = Description.objects.filter(q)
+        query |= Q(variety_id=variety_id, name=name)
+    descriptions = Description.objects.filter(query)
 
     protocols = (
         Protocol.objects.select_related("plantspecies")
@@ -218,6 +225,7 @@ def description_detail(request, pk):
 
 
 @nav_describe
+@permission_required("describe.change_description", raise_exception=True)
 def description_update(request, pk):
     description = get_object_or_404(Description, pk=pk)
     form = DescriptionUpdateForm(request.POST or None, instance=description)
@@ -232,6 +240,7 @@ def description_update(request, pk):
 
 @nav_describe
 @htmx_render_blocks(["protocol_form"])
+@permission_required("describe.add_description", raise_exception=True)
 def description_create(request):
     context = {}
 
@@ -259,11 +268,13 @@ def description_create(request):
     return TemplateResponse(request, "describe/description_create.html", context)
 
 
-class DescriptionDeleteView(DeleteBreadcrumbsMixin, NavDescribeActiveContext, DeleteView):
+class DescriptionDeleteView(PermissionRequiredMixin, DeleteBreadcrumbsMixin, NavDescribeActiveContext, DeleteView):
     model = Description
     success_url = reverse_lazy("describe:description_list")
+    permission_required = ["describe.delete_description"]
 
 
+@permission_required("describe.change_expression", raise_exception=True)
 def description_expression_update(request, pk):
     description = get_object_or_404(Description, pk=pk)
     traits = description.available_traits

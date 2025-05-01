@@ -254,28 +254,23 @@ class Sample(ModelIsDeletableMixin, models.Model):
 
     def get_log(self):
         entries = []
-        for germ in Germinability.objects.filter(sample_id=self.pk):
+        for germ in self.germinability_set.all():
             entries.append(
                 {
-                    "pk": self.pk,
+                    "type": "germinability",
                     "date": germ.performed_at,
-                    "germinability": germ.germinability,
-                    "update_url": germ.get_update_url(),
-                    "delete_url": germ.get_delete_url(),
+                    "instance": germ,
                 }
             )
-        for weight in SampleWeight.objects.filter(sample_id=self.pk):
+        for weight in self.sampleweight_set.all():
             entries.append(
                 {
-                    "pk": self.pk,
+                    "type": "weight",
                     "date": weight.created_at,
-                    "weight": weight.weight,
-                    "update_url": weight.get_update_url(),
-                    "delete_url": weight.get_delete_url(),
+                    "instance": weight,
                 }
             )
-
-        return sorted(log, key=lambda e: e["date"])
+        return sorted(entries, key=lambda e: e["date"])
 
 
 class Germinability(models.Model):
@@ -288,7 +283,7 @@ class Germinability(models.Model):
         ordering = ("performed_at",)
 
     def __str__(self):
-        return str(self.germinability)
+        return f"{self.germinability}%"
 
     def get_update_url(self):
         return reverse("collect:germinability_update", args=[self.pk])
@@ -306,7 +301,7 @@ class SampleWeight(models.Model):
         ordering = ("created_at",)
 
     def __str__(self):
-        return f"{self.weight}g"
+        return f"{self.weight} g"
 
     def get_update_url(self):
         return reverse("collect:sampleweight_update", args=(self.pk,))

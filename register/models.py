@@ -131,7 +131,7 @@ class PlantVariety(ModelIsDeletableMixin, models.Model):
         return f"{self.name} ({self.species.common_name})"
 
     def get_absolute_url(self):
-        return reverse("register:plantvariety_detail", args=[self.pk])
+        return reverse("register:variety_detail", args=[self.pk])
 
     def get_list_url(self):
         return reverse("register:variety_list")
@@ -157,7 +157,7 @@ class PlantVarietyName(models.Model):
         return self.name
 
     def get_absolute_url(self):
-        return reverse("register:plantvariety_detail", args=[self.variety.pk])
+        return reverse("register:variety_detail", args=[self.variety.pk])
 
     def get_delete_url(self):
         return reverse("register:denomination_delete", args=[self.pk])

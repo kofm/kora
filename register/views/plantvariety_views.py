@@ -1,3 +1,5 @@
+from django.contrib.auth.decorators import permission_required
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
@@ -33,10 +35,11 @@ from register.tables import (
 )
 
 
-class PlantVarietyCreate(NavPlantActiveContext, CrumbsCreateView):
+class PlantVarietyCreate(PermissionRequiredMixin, NavPlantActiveContext, CrumbsCreateView):
     model = PlantVariety
     form_class = PlantVarietyForm
     template_name = "frontpage/_create_form.html"
+    permission_required = ["register.add_plantvariety"]
 
     def get_context_data(self, **kwargs):
         kwargs.update({"model_name": self.model._meta.verbose_name.title()})
@@ -66,20 +69,23 @@ def plantvariety_detail(request, pk):
     return TemplateResponse(request, "register/plantvariety_detail.html", context)
 
 
-class PlantVarietyUpdateView(NavPlantActiveContext, CrumbsUpdateView):
+class PlantVarietyUpdateView(PermissionRequiredMixin, NavPlantActiveContext, CrumbsUpdateView):
     model = PlantVariety
     fields = ("breeder",)
     template_name = "register/plantvariety_update_form.html"
+    permission_required = ["register.change_plantvariety"]
 
 
-class PlantVarietyDelete(NavPlantActiveContext, CrumbsDeleteView):
+class PlantVarietyDelete(PermissionRequiredMixin, NavPlantActiveContext, CrumbsDeleteView):
     object: PlantVariety
     model = PlantVariety
+    permission_required = ["register.delete_plantvariety"]
 
     def get_success_url(self):
         return reverse_lazy("register:variety_list")
 
 
+@permission_required("register.add_plantvarietyname", raise_exception=True)
 def plantvarietyname_create(request, pk):
     context = {}
     variety = get_object_or_404(PlantVariety, pk=pk)
@@ -89,7 +95,7 @@ def plantvarietyname_create(request, pk):
             instance = form.save(commit=False)
             instance.variety = variety
             instance.save()
-            return redirect(reverse("register:plantvariety_detail", args=[pk]))
+            return redirect(reverse("register:variety_detail", args=[pk]))
     else:
         form = PlantVarietyNameForm()
     breadcrumbs = [
@@ -104,6 +110,7 @@ def plantvarietyname_create(request, pk):
     return TemplateResponse(request, "frontpage/_create_form.html", context)
 
 
+@permission_required("register.change_plantvarietyname", raise_exception=True)
 def plantvarietyname_update(request, pk):
     context = {}
     instance = get_object_or_404(PlantVarietyName, pk=pk)
@@ -118,7 +125,7 @@ def plantvarietyname_update(request, pk):
         form = PlantVarietyNameForm(request.POST, instance=instance)
         if form.is_valid():
             form.save()
-            return redirect(reverse_lazy("register:plantvariety_detail", args=[instance.variety.pk]))
+            return redirect(reverse_lazy("register:variety_detail", args=[instance.variety.pk]))
     else:
         form = PlantVarietyNameForm(instance=instance)
     context["form"] = form
@@ -126,6 +133,7 @@ def plantvarietyname_update(request, pk):
     return TemplateResponse(request, "frontpage/_update_form.html", context)
 
 
+@permission_required("register.delete_plantvarietyname", raise_exception=True)
 def plantvarietyname_delete(request, pk):
     instance = get_object_or_404(PlantVarietyName, pk=pk)
     context = {"object": instance}
@@ -139,7 +147,7 @@ def plantvarietyname_delete(request, pk):
     context.update(breadcrumbs_context(breadcrumbs))
     if request.method == "POST":
         instance.delete()
-        return redirect(reverse_lazy("register:plantvariety_detail", args=[instance.variety.pk]))
+        return redirect(reverse_lazy("register:variety_detail", args=[instance.variety.pk]))
     return TemplateResponse(request, "register/plantvarietyname_confirm_delete.html", context)
 
 

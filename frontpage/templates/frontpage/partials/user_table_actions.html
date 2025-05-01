@@ -1,0 +1,6 @@
+{% load components %}
+{% if record.username != request.user.username %}
+  <a href="#" class="link-body-emphasis" hx-get="{% url 'frontpage:user_delete' record.username %}" {% modal_attrs %}>
+    <i class="bi bi-trash3-fill"></i>
+  </a>
+{% endif %}

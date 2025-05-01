@@ -9,15 +9,14 @@
 
 {% block container %}
 
-    {% render_breadcrumbs %}
+  {% render_breadcrumbs %}
 
-    {% url 'collect:storage-create' as create_url %}
-    {% list_page_header "Storage" create_url=create_url %}
+  {% list_page_header "Storage" create_url='collect:storage-create'  permission="collect.add_storage" %}
 
-    <div class="row">
-	    <div class="col">
-            {% render_sortable object_list "storage" "row" "collect:storage-sort" "collect/partials/storage_card.html" "collect:storage-create" %}
-	    </div>
+  <div class="row">
+    <div class="col">
+      {% render_sortable object_list "storage" "row" "collect:storage-sort" "collect/partials/storage_card.html" is_sortable=perms.collect.change_storage %}
     </div>
+  </div>
 
 {% endblock %}

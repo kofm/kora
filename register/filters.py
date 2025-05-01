@@ -10,7 +10,7 @@ from django_filters import (
     ModelMultipleChoiceFilter,
 )
 
-from frontpage.widgets import TomSelectMultiple
+from frontpage.widgets import TomSelect, TomSelectMultiple
 from register.models import PROTECTION_STATUS_CHOICES, PlantSpecies, PlantVariety, Protection
 
 TRIGRAM_SEARCH_THRESHOLD = 7
@@ -111,10 +111,10 @@ class EntityFilter(FilterSet):
 
 
 class ProtectionOmniFilter(FilterSet):
-    omni = CharFilter(method="omni_search", label="")
+    omni = CharFilter(method="omni_search", label="Search")
     type = ChoiceFilter(choices=PROTECTION_TYPE_CHOICES)
     status = ChoiceFilter(choices=PROTECTION_STATUS_CHOICES)
-    country = ChoiceFilter(choices=CountryField().get_choices())
+    country = ChoiceFilter(choices=CountryField().get_choices(include_blank=False), widget=TomSelect)
 
     def omni_search(self, queryset, name, value):
         query = Q(variety__names__name__icontains=value)

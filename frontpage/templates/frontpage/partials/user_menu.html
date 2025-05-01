@@ -1,0 +1,31 @@
+{% load components %}
+
+<div class="dropdown">
+
+  <a class="text-decoration-none dropdown-toggle" href="#"
+    role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    <i class="bi bi-person-circle"></i>
+  </a>
+
+  <div class="dropdown-menu dropdown-menu-end shadow">
+    {% if user.is_authenticated %}
+
+      <h6 class="dropdown-header">{{ user.username }}</h6>
+
+      {% if user.is_superuser %}
+	{% url 'frontpage:admin' as admin_url %}
+	{% dropdown_item "Admin" href=admin_url %}
+      {% endif %}
+
+      {% url 'logout' as logout_url %}
+      {% dropdown_item "Logout" hx_post=logout_url%}
+
+    {% else %}
+      
+	{% url 'login' as login_url %}
+	{% dropdown_item "Login" href=login_url %}
+      
+    {% endif %}
+  </div>
+
+</div>

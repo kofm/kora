@@ -2,6 +2,7 @@
 Trait
 """
 
+from django.contrib.auth.decorators import permission_required
 from django.db.models import Max
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -28,6 +29,7 @@ def related_state_form(request):
             return HttpResponse(form["trait"])
 
 
+@permission_required("describe.change_trait", raise_exception=True)
 def trait_update(request, pk):
     trait = get_object_or_404(Trait, pk=pk)
     trait_prev = trait.get_previous_in_protocol()
@@ -57,6 +59,7 @@ def trait_update(request, pk):
     )
 
 
+@permission_required("describe.add_trait", raise_exception=True)
 def trait_create(request, protocol_pk):
     protocol = get_object_or_404(Protocol, pk=protocol_pk)
     if request.method == "POST":
@@ -71,6 +74,7 @@ def trait_create(request, protocol_pk):
 
 
 @require_POST
+@permission_required("describe.delete_trait", raise_exception=True)
 def trait_delete(request, pk):
     trait = get_object_or_404(Trait, pk=pk)
     trait.delete()

@@ -132,7 +132,7 @@ def varietalparameter_update(request, pk):
             form.save()
             return redirect(
                 reverse_lazy(
-                    "register:plantvariety_detail",
+                    "register:variety_detail",
                     args=[
                         param.variety.pk,
                     ],
@@ -147,7 +147,7 @@ def varietalparameter_delete(request, pk):
         param.delete()
         return redirect(
             reverse_lazy(
-                "register:plantvariety_detail",
+                "register:variety_detail",
                 args=[
                     param.variety.pk,
                 ],

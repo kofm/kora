@@ -6,6 +6,7 @@ from collect.models import Sample
 from collect.tables import SampleBaseTable
 from describe.models import Description
 from frontpage.tables import TableHoverFixed
+from frontpage.utils.text import smart_truncate_string
 from parameters.models import ParameterValue
 from register.models import Entity, PlantSpecies, PlantVariety, Protection
 
@@ -28,7 +29,21 @@ class ProtectionListTable(ProtectionTable):
 
     class Meta:
         model = Protection
-        exclude = ("id",)
+        fields = (
+            "variety",
+            "type",
+            "status",
+            "country",
+            "reference",
+            "date_start",
+            "date_end",
+            "note",
+        )
+        template_name = "register/partials/protection_table.html"
+
+    def render_note(self, record):
+        notes = smart_truncate_string(record.note, 18)
+        return f"{notes}"
 
 
 class PlantVarietyDescriptionTable(tables.Table):

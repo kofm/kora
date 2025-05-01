@@ -3,7 +3,7 @@ from django.forms.widgets import format_html
 
 from collect.models import Sample
 from frontpage.tables import TableHoverFixed
-from frontpage.utils import smart_truncate_string
+from frontpage.utils.text import smart_truncate_string
 
 
 class SampleBaseTable(tables.Table):

@@ -1,0 +1,36 @@
+{% extends "frontpage/base.html" %}
+
+{% load crispy_forms_tags %}
+{% load components %}
+{% load render_table from django_tables2 %}
+
+{% block title %}
+  Admin
+{% endblock %}
+
+{% block container %}
+  <div class="row mt-3">
+    <div class="col-3">
+      <h1>Admin</h1>
+
+      <nav id="navbar-admin" class="h-100 flex-column align-items-stretch pe-4 border-end">
+	<nav class="nav nav-pills flex-column">
+          <a class="nav-link" href="#users">Users</a>
+	</nav>
+      </nav>
+    </div>
+    <div class="col">
+      <div data-bs-spy="scroll" data-bs-target="#navbar-admin" data-bs-smooth-scroll="true" class="" tabindex="0">
+	{% block users %}
+	  <div id="users" hx-get="" hx-trigger="usersUpdated from:body" hx-vals='{"use_block": "users"}'>
+	    {% list_page_header "Users" create_url="frontpage:user_create" title_class="fs-2" create_modal=True %}
+	    <div hx-target="#users" hx-swap="outerHTML">
+	      {% render_table table_user %}
+	    </div>
+	  </div>
+	{% endblock %}
+      </div>
+    </div>
+  </div>
+
+{% endblock %}

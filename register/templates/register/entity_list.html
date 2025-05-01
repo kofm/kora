@@ -17,8 +17,7 @@
 {% block container %}
 
     {% render_breadcrumbs %}
-    {% url 'register:entity_create' as create_url %}
-    {% list_page_header "Entities" create_url=create_url %}
+    {% list_page_header "Entities" create_url='register:entity_create'  permission="register.add_entity" %}
     
     <div class="row">
         <div class="col">

@@ -1,0 +1,22 @@
+{% extends "frontpage/base.html" %}
+{% load static %}
+
+{% block title %}
+  Forbidden (403)
+{% endblock %}
+
+{% block container %}
+
+  <div class="row wd-flex justify-content-center align-items-center vh-100 text-center">
+    <div class="col-6">
+      <img style="max-height: 50vh;" alt="403" src="{% static 'frontpage/403.png' %}"/>
+      <h1>Oops!</h1>
+      <p class="lead"><em>Looks like you weren’t meant to be here!</em></p>
+      <p>You don’t have permission to access this page.</p>
+      {% if request.user.is_authenticated %}
+	<p>You are logged in as <strong>{{ request.user.username }}</strong>.</p>
+      {% else %}
+	<p>Please <a href="{% url 'login' %}?next={{ request.path }}">log in</a> with an account that has access.</p>
+      {% endif %}
+    </div>
+{% endblock %}

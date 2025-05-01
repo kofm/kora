@@ -1,0 +1,5 @@
+{% load components %}
+
+<a href="#" hx-get="{% url 'frontpage:user_update' record.username %}" {% modal_attrs %}>
+  {{ record }}
+</a>

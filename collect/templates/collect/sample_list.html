@@ -12,8 +12,7 @@
 {% block container %}
 
   {% render_breadcrumbs %}
-  {% url 'collect:sample_create' as create_url %}
-  {% list_page_header "Samples" create_url=create_url %}
+  {% list_page_header "Samples" create_url='collect:sample_create'  permission="collect.add_sample" %}
 
   <div class="row">
     <div class="col">

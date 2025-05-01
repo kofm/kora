@@ -1,4 +1,5 @@
 import os
+from logging import DEBUG
 from pathlib import Path
 
 from django.contrib import messages
@@ -34,18 +35,20 @@ INSTALLED_APPS = [
     "render_block",
 ]
 
+PUBLIC = os.getenv("PUBLIC", "").lower() in ("1", "true", "yes")
+
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    *([] if PUBLIC else ["django.contrib.auth.middleware.LoginRequiredMiddleware"]),
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "frontpage.middleware.htmx_login_redirect_middleware",
     "frontpage.middleware.htmx_message_middleware",
 ]
-
 ROOT_URLCONF = "persefone.urls"
 
 TEMPLATES = [
@@ -138,4 +141,32 @@ MESSAGE_TAGS = {
     messages.SUCCESS: "text-white bg-success",
     messages.WARNING: "text-dark bg-warning",
     messages.ERROR: "text-white bg-danger",
+}
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "file": {
+            "class": "logging.FileHandler",
+            "filename": "kora.log",
+            "level": "DEBUG" if os.getenv("DEV", False) else "WARNING",
+            "formatter": "verbose",
+        },
+    },
+    "loggers": {
+        "": {
+            "level": "DEBUG",
+            "handlers": ["file"],
+        },
+    },
+    "formatters": {
+        "verbose": {
+            "format": "%(asctime)s %(levelname)s [%(name)s] %(message)s",
+        },
+        "simple": {
+            "format": "{levelname} {message}",
+            "style": "{",
+        },
+    },
 }

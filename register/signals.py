@@ -1,7 +1,24 @@
-from django.db.models.signals import post_delete, post_save
+from webbrowser import get
+
+from django.db.models.signals import post_delete, post_migrate, post_save
 from django.dispatch import receiver
 
+from frontpage.utils.permissions import (
+    get_or_create_usergroups,
+    group_assign_model_permissions,
+    skip_if_not_app,
+)
 from register.models import PlantVariety, PlantVarietyName
+
+
+@receiver(post_migrate)
+@skip_if_not_app("register")
+def setup_register_groups_and_permissions(sender, **kwargs):
+    app_label = "register"
+    viewers, editors = get_or_create_usergroups(app_label)
+    for model_name in ("Entity", "PlantSpecies", "PlantVariety", "PlantVarietyName", "Protection"):
+        group_assign_model_permissions(app_label, model_name, viewers, ("view",))
+        group_assign_model_permissions(app_label, model_name, editors)
 
 
 @receiver(post_save, sender=PlantVarietyName)

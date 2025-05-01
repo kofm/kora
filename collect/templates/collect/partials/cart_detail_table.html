@@ -59,7 +59,7 @@
     </td>
     <td>
       <form id="cartitem-delete-form-{{ forloop.counter }}" action="{% url 'collect:cartitem-delete' cartitem.pk %}" method="post">
-        <a href="{% url 'register:plantvariety_detail' cartitem.sample.variety.id %}"><i class="bi bi-zoom-in" style="color: black;"></i></a>
+        <a href="{% url 'register:variety_detail' cartitem.sample.variety.id %}"><i class="bi bi-zoom-in" style="color: black;"></i></a>
         <a href="#" onclick="this.parentElement.submit()"><i class="bi bi-trash" style="color: black;" ></i></a>
       </form>
     </td>

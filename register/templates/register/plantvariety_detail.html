@@ -32,16 +32,18 @@
     </div>
   </div>
 
-  <div class="row mt-5">
-    <div class="col">
-      <h2 id="samples">Samples <a href="{% url 'collect:sample_create' %}?variety_id={{ variety.pk }}" class="btn btn-sm btn-outline-primary">Create</a></h2>
-      {% if variety.sample_set.count %}
-        {% render_table tables.sample %}
-      {% else %}
-        <p class="text-muted">There are no seed samples of this variety.</p>
-      {% endif %}
+  {% if perms.collect.view_sample %}
+    <div class="row mt-5">
+      <div class="col">
+	<h2 id="samples">Samples <a href="{% url 'collect:sample_create' %}?variety_id={{ variety.pk }}" class="btn btn-sm btn-outline-primary">Create</a></h2>
+	{% if variety.sample_set.count %}
+          {% render_table tables.sample %}
+	{% else %}
+          <p class="text-muted">There are no seed samples of this variety.</p>
+	{% endif %}
+      </div>
     </div>
-  </div>
+  {% endif %}
 
   <div class="row mt-5">
     <div class="col">
@@ -73,17 +75,19 @@
 
   <div class="row mt-5">
     <div class="col">
-      <h2 id="protections">Protections<a class="btn btn-sm btn-outline-primary ms-2" href="{% url 'register:protection-create' variety.pk %}">Create</a></h2>
+      <h2 id="protections">Protections<a class="btn btn-sm btn-outline-primary ms-2" href="{% url 'register:protection_create' variety.pk %}">Create</a></h2>
       {% render_table tables.protection %}
     </div>
   </div>
 
-  <div class="row mt-5">
-    <div class="col">
-      <h2 id="parameters">Parameters <a class="btn btn-sm btn-outline-primary" href="{% url 'parameters:varietalparameter_create' variety.id %}">Create</a></h2>
-      {% render_table tables.parameter %}
+  {% if perms.parameters.view_varietalparameter %}
+    <div class="row mt-5">
+      <div class="col">
+	<h2 id="parameters">Parameters <a class="btn btn-sm btn-outline-primary" href="{% url 'parameters:varietalparameter_create' variety.id %}">Create</a></h2>
+	{% render_table tables.parameter %}
+      </div>
     </div>
-  </div>
+  {% endif %}
 
 
 {% endblock %}

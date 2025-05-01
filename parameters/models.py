@@ -33,9 +33,7 @@ class Parameter(models.Model):
     def get_absolute_url(self):
         return reverse(
             "parameters:parameter-detail",
-            args=[
-                self.pk,
-            ],
+            args=[self.pk],
         )
 
     def natural_key(self):

@@ -1,0 +1,17 @@
+{% extends "frontpage/modal_content.html" %}
+
+{% block title %}
+  Are you sure?
+{% endblock %}
+
+{% block body %}
+  <p>Do you really want to <b>delete</b> {{ instance }}?</p>
+{% endblock %}
+
+{% block footer %}
+  <button type="button" class="btn btn-danger" data-bs-dismiss="modal"
+    hx-post="{{ request.get_full_path }}">
+    Delete
+  </button>
+  {{ block.super }}
+{% endblock %}

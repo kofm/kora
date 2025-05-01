@@ -14,7 +14,7 @@
     <p class="lead">{{ protection.get_type_display }}</p>
 
     <a class="btn btn-sm btn-outline-secondary mb-3"
-       href="{% url 'register:protection-create' protection.variety.pk %}?duplicate={{ protection.pk }}">
+       href="{% url 'register:protection_create' protection.variety.pk %}?duplicate={{ protection.pk }}">
         Duplicate
     </a>
     <div class="card">

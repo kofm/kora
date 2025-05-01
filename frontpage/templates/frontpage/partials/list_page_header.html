@@ -1,15 +1,20 @@
+{% load components %}
 <div class="row mb-3">
   <div class="col">
-    <h1>
+    <h1 class="{{ title_class }}">
       {{ page_title }}
     </h1>
   </div>
   <div class="col d-flex justify-content-end align-items-center">
 
     {% if create_url %}
-      <a class="btn btn-outline-primary ms-2" href="{{ create_url }}">
-        Create
-      </a>
+      {% if create_modal %}
+	<a class="btn btn-outline-primary ms-2" hx-get="{{ create_url }}" {% modal_attrs %}>
+      {% else %}
+	<a class="btn btn-outline-primary ms-2" href="{{ create_url }}">
+      {% endif %}
+      Create
+	</a>
     {% endif %}
 
     {% if menu_items %}
