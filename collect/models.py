@@ -7,6 +7,7 @@ from django.db.models.functions import Concat
 from django.db.models.query import Cast, Value
 from django.db.models.query_utils import Q
 from django.forms import ValidationError
+from django.forms.widgets import format_html
 from django.urls import reverse
 from django.utils import timezone
 
@@ -235,7 +236,7 @@ class Sample(ModelIsDeletableMixin, models.Model):
 
     @property
     def available(self):
-        # Assumes you always fetched this via .with_availability()
+        # Fetch using .with_availability()
         aw = getattr(self, "available_weight", None)
         if aw is None:
             last = self.sampleweight_set.values_list("weight", flat=True).last() or 0
@@ -243,14 +244,18 @@ class Sample(ModelIsDeletableMixin, models.Model):
             aw = last - reserved["total"]
         return aw if aw > 0 else 0
 
+    def get_weight_display(self):
+        if self.weight and self.weight > self.available:
+            return format_html('{} g <del class="text-muted"><small>{}</small></del>', self.available, self.weight)
+        elif self.weight:
+            return format_html("{} g", self.weight)
+        else:
+            return "-"
+
     def get_log(self):
-        germ_rates = self.germinability_set.all()
-        weights = self.sampleweight_set.all()
-
-        log = []
-
-        for germ in germ_rates:
-            log.append(
+        entries = []
+        for germ in Germinability.objects.filter(sample_id=self.pk):
+            entries.append(
                 {
                     "pk": self.pk,
                     "date": germ.performed_at,
@@ -259,9 +264,8 @@ class Sample(ModelIsDeletableMixin, models.Model):
                     "delete_url": germ.get_delete_url(),
                 }
             )
-
-        for weight in weights:
-            log.append(
+        for weight in SampleWeight.objects.filter(sample_id=self.pk):
+            entries.append(
                 {
                     "pk": self.pk,
                     "date": weight.created_at,

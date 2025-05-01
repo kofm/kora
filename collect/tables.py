@@ -41,18 +41,7 @@ class SampleBaseTable(tables.Table):
         record.last_weight  → total grams
         record.available_weight → available grams
         """
-        total = getattr(record, "last_weight", 0) or 0
-        available = getattr(record, "available_weight", 0) or 0
-
-        if total == available:
-            return total
-        return format_html(
-            """
-                {available} g<del class="text-muted ms-2">{total} g</del>
-            """,
-            total=total,
-            available=available,
-        )
+        return record.get_weight_display()
 
     def render_germinability(self, record):
         return str(record.germinability) + "%"

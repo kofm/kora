@@ -51,7 +51,7 @@ def sample_list(request):
 @htmx_render_blocks(["log", "weight", "germinability"])
 def sample_detail(request, pk):
     template_name = "collect/sample_detail.html"
-    sample = Sample.objects.detail().get(pk=pk)
+    sample = Sample.objects.detail().with_availability().get(pk=pk)
 
     duplicates_table = SampleDuplicatesTable(sample.duplicate_samples)
     crumbs = generate_breadcrumbs(request, Sample, sample)

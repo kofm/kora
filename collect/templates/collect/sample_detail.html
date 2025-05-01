@@ -59,24 +59,7 @@
 
     {% block weight %}
       <div id="weightCard" hx-swap-oob="true">
-	<div class="col">
-	  <div class="card h-100 shadow-sm">
-	    <div class="card-header small text-muted">
-	      <i class="bi bi-tag"></i> Weight
-	    </div>
-	    <div class="card-body">
-	      <h5 class="card-title">
-		{% if sample.weight > sample.available %}
-		  {{ sample.available }} grams <del class="text-muted">{{ sample.weight }} g</del>
-		{% elif not sample.weight %}
-		  -
-		{% else %}
-		  {{ sample.available }} grams
-		{% endif %}
-	      </h5>
-	    </div>
-	  </div>
-	</div>
+	{% card_col_rows sample.get_weight_display "Weight" %}
       </div>
     {% endblock %}
 
