@@ -5,6 +5,9 @@ node_modules/
 .venv/
 .git/
 
+uv.lock
+pyproject.toml
+kora_db_bk_*.sql
 *.pyc
 *.min.js
 *.bundle.js
