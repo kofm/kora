@@ -18,7 +18,7 @@ class UserTable(tables.Table):
     username = tables.TemplateColumn(template_name="frontpage/partials/username_column.html")
     actions = tables.TemplateColumn(template_name="frontpage/partials/user_table_actions.html", verbose_name="")
 
-    class Meta:
+    class Meta(TableHoverFixed.Meta):
         model = User
         fields = (
             "username",
@@ -29,3 +29,4 @@ class UserTable(tables.Table):
             "actions",
         )
         template_name = "frontpage/partials/htmx_table.html"
+        per_page = 10

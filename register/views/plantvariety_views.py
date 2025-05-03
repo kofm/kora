@@ -62,7 +62,7 @@ def plantvariety_detail(request, pk):
     tables["parameter"] = VarietalParameterTable(parameters)
 
     for key in tables:
-        RequestConfig(request, paginate={"per_page": 10}).configure(tables[key])
+        RequestConfig(request).configure(tables[key])
 
     context["tables"] = tables
     context.update(generate_breadcrumbs(request, PlantVariety, variety))

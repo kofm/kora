@@ -8,6 +8,9 @@ from django.views.generic import CreateView, DeleteView, ListView, UpdateView
 from django.views.generic.detail import DetailView
 from django_tables2 import RequestConfig
 
+from breadcrumbs.utils import generate_breadcrumbs
+from frontpage.views_decorators import htmx_render_blocks, nav_active
+from parameters.filters import ParameterFilter
 from parameters.forms import VarietalParameterForm
 from parameters.tables import (
     ParameterTable,
@@ -18,17 +21,15 @@ from parameters.tables import (
 from .models import Parameter, SpeciesParameter, VarietalParameter
 
 
-class ParametersList(ListView):
-    model = Parameter
-    paginate_by = 10
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        parameters_table = ParameterTable(Parameter.objects.all())
-        RequestConfig(self.request, paginate={"per_page": 10}).configure(parameters_table)
-        context["parameters_table"] = parameters_table
-        context["nav_parameters"] = "active"
-        return context
+@nav_active("nav_plan")
+@htmx_render_blocks(["table"])
+def parameter_list(request):
+    queryset = Parameter.objects.all()
+    flt = ParameterFilter(request.GET, queryset=queryset)
+    table = ParameterTable(flt.qs)
+    RequestConfig(request).configure(table)
+    context = {"page_obj": queryset, "table": table, "filter": flt, **generate_breadcrumbs(request, Parameter)}
+    return TemplateResponse(request, "parameters/parameter_list.html", context)
 
 
 class ParameterCreate(CreateView):
@@ -86,7 +87,7 @@ class ParameterDetail(DetailView):
         # Display the tables
         for key, value in table_data.items():
             table = value["table"](value["model"].objects.filter(parameter=self.object.pk))
-            RequestConfig(self.request, paginate={"per_page": 10}).configure(table)
+            RequestConfig(self.request).configure(table)
             context[key] = table
 
         return context

@@ -1,13 +1,29 @@
 {% extends "frontpage/base.html" %}
 
+{% load breadcrumbs %}
+{% load components %}
+{% load crispy_forms_tags %}
 {% load render_table from django_tables2 %}
 
 {% block title %}Parameters{% endblock %}
 
 {% block container %}
 
-<p class="display-1">Parameters <a class="btn btn-secondary ms-2" href="{% url 'parameters:parameter-create' %}">Create</a></p>
+  {% render_breadcrumbs %}
 
-{% render_table parameters_table %}
+  {% list_page_header title="Parameters" create_url="parameters:parameter_create" permission="parameters:add_parameter" %}
 
+  <h2>Search</h2>
+  <div hx-target="#table">
+    {% crispy filter.form %}
+  </div>
+
+  <div class="mt-3">
+    <h2>Results</h2>
+    {% block table %}
+      <div id="table" hx-target="#table">
+	{% render_table table %}
+      </div>
+    {% endblock %}
+  </div>
 {% endblock %}

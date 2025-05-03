@@ -18,18 +18,19 @@
 
   {% list_page_header "Protections" %}
 
+  <h2>Search</h2>
   <div hx-target="#table">
     {% crispy filter.form %}
   </div>
 
   <div class="row my-3">
     <div class="col">
+      <h2>Results</h2>
       {% block table %}
 	<div id="table" hx-target="#table">
 	  {% render_table table %}
 	</div>
       {% endblock %}
-
     </div>
   </div>
 

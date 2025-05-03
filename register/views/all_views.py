@@ -98,7 +98,7 @@ def protection_list(request):
         ),
     )
     table = ProtectionListTable(flt.qs)
-    RequestConfig(request, paginate={"per_page": 10}).configure(table)
+    RequestConfig(request).configure(table)
     context = {"table": table, "filter": flt}
     context.update(generate_breadcrumbs(request, Protection))
     return TemplateResponse(request, "register/protection_list.html", context)
@@ -194,7 +194,7 @@ class EntityCreateView(PermissionRequiredMixin, CreateBreadcrumbsMixin, NavDescr
 def entity_detail(request, pk):
     entity = get_object_or_404(Entity, pk=pk)
     table = PlantVarietyEntityTable(entity.plantvariety_set.all())
-    RequestConfig(request, paginate={"per_page": 10}).configure(table)
+    RequestConfig(request).configure(table)
     context = {"entity": entity, "table": table}
     context.update(generate_breadcrumbs(request, Entity, entity))
     return TemplateResponse(request, "register/entity_detail.html", context)
@@ -215,12 +215,11 @@ class EntityDeleteView(PermissionRequiredMixin, NavDescribeActiveContext, Delete
 
 
 @nav_describe_active_context
+@htmx_render_blocks(["table"])
 def entity_list(request):
-    context = {}
     flt = EntityFilter(request.GET, queryset=Entity.objects.all())
     table = EntityTable(flt.qs)
-    RequestConfig(request, paginate={"per_page": 25}).configure(table)
-    context["table"] = table
-    context["filter"] = flt
+    RequestConfig(request).configure(table)
+    context = {"table": table, "filter": flt}
     context.update(generate_breadcrumbs(request, Entity))
     return TemplateResponse(request, "register/entity_list.html", context)

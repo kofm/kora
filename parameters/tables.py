@@ -1,10 +1,10 @@
 import django_tables2 as tables
 
+from frontpage.tables import TableHoverFixed
 from parameters.models import Parameter, SpeciesParameter, VarietalParameter
 
 
 class ParameterTable(tables.Table):
-    code = tables.Column(linkify=True)
     actions = tables.TemplateColumn(
         template_name="parameters/partials/parameter_table_actions.html",
         verbose_name="",
@@ -12,9 +12,11 @@ class ParameterTable(tables.Table):
         attrs={"td": {"class": "text-end"}},
     )
 
-    class Meta:
+    class Meta(TableHoverFixed.Meta):
         model = Parameter
         exclude = ("id",)
+        per_page = 10
+        template_name = "frontpage/partials/htmx_table.html"
 
 
 class VarietalParameterTable(tables.Table):

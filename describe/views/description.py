@@ -109,7 +109,7 @@ def _description_list(request):
         )
 
     table = DescriptionTable(descriptions)
-    RequestConfig(request, paginate={"per_page": 10}).configure(table)
+    RequestConfig(request).configure(table)
 
     traits = Trait.objects.filter(protocol=protocol_id).with_states()
     context["form_variety"] = DescriptionVarietyForm()

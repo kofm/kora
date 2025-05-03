@@ -7,32 +7,34 @@
 {% load components %}
 
 {% block javascript %}
-    <link rel="stylesheet" href="{% static 'flags/sprite.css' %}">
+  <link rel="stylesheet" href="{% static 'flags/sprite.css' %}">
 {% endblock %}
 
 {% block title %}
-    Entities
+  Entities
 {% endblock %}
 
 {% block container %}
 
-    {% render_breadcrumbs %}
-    {% list_page_header "Entities" create_url='register:entity_create'  permission="register.add_entity" %}
-    
-    <div class="row">
-        <div class="col">
-            <h2>Search</h2>
-            <form id="filter-form" method="get" class="form">
-                {{ filter.form|crispy }}
-                <button type="submit" class="btn btn-primary my-3">Submit</button>
-                <a href="{% url 'register:entity_list' %}" class="btn btn-outline-secondary my-3">Reset</a>
-            </form>
-        </div>
+  {% render_breadcrumbs %}
+  {% list_page_header "Entities" create_url='register:entity_create'  permission="register.add_entity" %}
+
+  <div class="row">
+    <div class="col">
+      <h2>Search</h2>
+      <div hx-target="#table">
+	{% crispy filter.form %}
+      </div>
     </div>
-    <div class="row mt-3">
-        <div class="col">
-            <h2>Results</h2>
-            {% render_table table %}
-        </div>
+  </div>
+  <div class="row mt-3">
+    <div class="col">
+      <h2>Results</h2>
+      <div id="table" hx-target="#table">
+	{% block table %}
+	  {% render_table table %}
+	{% endblock %}
+      </div>
     </div>
+  </div>
 {% endblock %}

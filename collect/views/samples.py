@@ -160,7 +160,7 @@ class StorageDetailView(PermissionRequiredMixin, DetailBreadcrumbsMixin, DetailV
             .order_by("position")
         )
         table = SampleInStorageTable(seed_samples)
-        RequestConfig(self.request, paginate={"per_page": 10}).configure(table)
+        RequestConfig(self.request).configure(table)
         context["table"] = table
         return context
 

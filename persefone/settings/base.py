@@ -1,5 +1,4 @@
 import os
-from logging import DEBUG
 from pathlib import Path
 
 from django.contrib import messages
@@ -124,6 +123,7 @@ STATIC_URL = "static/"
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = "bootstrap5"
 DJANGO_TABLES2_TEMPLATE = "django_tables2/bootstrap5-responsive.html"
+DJANGO_TABLES2_PAGE_RANGE = 10
 
 REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "restapi.pagination.OptionalPagination",

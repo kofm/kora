@@ -1,4 +1,3 @@
-import json
 import logging
 
 from django.contrib.admin.sites import login_not_required
@@ -36,7 +35,7 @@ def appearance_set(request):
 def admin(request):
     queryset = User.objects.prefetch_related("groups").all()
     table_user = UserTable(queryset)
-    RequestConfig(request, paginate={"per_page": 10}).configure(table_user)
+    RequestConfig(request).configure(table_user)
     context = {"table_user": table_user, "page_obj": queryset}
     return TemplateResponse(request, "frontpage/admin.html", context)
 

@@ -1,3 +1,4 @@
+from crispy_forms.layout import Field
 from django import forms
 from django.db.models import Q
 from django_countries.fields import CountryField
@@ -10,8 +11,16 @@ from django_filters import (
     ModelMultipleChoiceFilter,
 )
 
+from frontpage.forms import HTMXFormMixin, generate_form_layout
 from frontpage.widgets import TomSelect, TomSelectMultiple
-from register.models import PROTECTION_STATUS_CHOICES, PlantSpecies, PlantVariety, Protection
+from register.models import (
+    ENTITY_TYPE_CHOICES,
+    PROTECTION_STATUS_CHOICES,
+    Entity,
+    PlantSpecies,
+    PlantVariety,
+    Protection,
+)
 
 TRIGRAM_SEARCH_THRESHOLD = 7
 
@@ -103,11 +112,26 @@ class PlantVarietyFilter(FilterSet):
         return queryset
 
 
+class EntityFormFilter(HTMXFormMixin, forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper.layout = generate_form_layout([Field("name"), Field("country"), Field("type")])
+
+    class Meta:
+        model = Entity
+        fields = ("name", "country", "type")
+
+
 class EntityFilter(FilterSet):
     name = CharFilter(label="Name", method="filter_name", field_name="name")
+    country = ChoiceFilter(choices=CountryField().get_choices(include_blank=False), widget=TomSelect)
+    type = ChoiceFilter(choices=ENTITY_TYPE_CHOICES)
 
     def filter_name(self, queryset, name, value):
         return filter_name_generic(queryset, name, value)
+
+    class Meta:
+        form = EntityFormFilter
 
 
 class ProtectionOmniFilter(FilterSet):

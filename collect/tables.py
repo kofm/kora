@@ -1,5 +1,4 @@
 import django_tables2 as tables
-from django.forms.widgets import format_html
 
 from collect.models import Sample
 from frontpage.tables import TableHoverFixed
@@ -99,3 +98,4 @@ class SampleInStorageTable(SampleBaseTable):
             "notes",
             "actions",
         )
+        per_page = 15

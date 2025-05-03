@@ -22,6 +22,7 @@ class ProtectionTable(tables.Table, CountryRenderer):
     class Meta:
         model = Protection
         exclude = ("id", "variety")
+        per_page = 5
 
 
 class ProtectionListTable(ProtectionTable):
@@ -40,6 +41,7 @@ class ProtectionListTable(ProtectionTable):
             "note",
         )
         template_name = "register/partials/protection_table.html"
+        per_page = 10
 
     def render_note(self, record):
         notes = smart_truncate_string(record.note, 18)
@@ -58,6 +60,7 @@ class PlantVarietyDescriptionTable(tables.Table):
     class Meta(TableHoverFixed.Meta):
         model = Description
         fields = ("name", "protocol__name")
+        per_page = 5
 
 
 class PlantVarietySampleTable(SampleBaseTable):
@@ -77,6 +80,7 @@ class PlantVarietySampleTable(SampleBaseTable):
             "notes",
             "actions",
         )
+        per_page = 5
 
 
 class EntityTable(tables.Table, CountryRenderer):
@@ -84,7 +88,9 @@ class EntityTable(tables.Table, CountryRenderer):
 
     class Meta:
         model = Entity
-        fields = ("name", "country", "email")
+        fields = ("name", "type", "country")
+        template_name = "register/partials/entity_table.html"
+        per_page = 10
 
 
 class VarietalParameterTable(tables.Table):
@@ -102,6 +108,7 @@ class VarietalParameterTable(tables.Table):
         page_field = "para_page"
         template_name = "django_tables2/bootstrap4.html"
         fields = ("parameter__name", "parameter__code", "value", "url_ref", "note")
+        per_page = 5
 
     def render_value(self, record):
         return format_html("{} {}", record.value, record.parameter.measure_unit)

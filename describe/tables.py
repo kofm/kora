@@ -21,6 +21,7 @@ class DescriptionTable(tables.Table):
         model = Description
         fields = ("variety__name", "variety__species__common_name", "name", "protocol__name")
         template_name = "describe/partials/description_table.html"
+        per_page = 10
 
     def render_name(self, record, value):
         return format_html(f'<span class="badge rounded-pill text-bg-info">{value}</span>')
