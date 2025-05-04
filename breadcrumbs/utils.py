@@ -90,7 +90,11 @@ def generate_breadcrumbs(
     model: type[Model] | None = None,
     instance: Model | None = None,
     additional: BreadcrumbList | None = None,
+    skip_if_htmx=True,
 ) -> BreadcrumbContext:
+    if skip_if_htmx and request.headers.get("HX-Request"):
+        return breadcrumbs_context([])
+
     breadcrumbs = []
     url_name = get_view_url_name(request)
 
@@ -116,7 +120,11 @@ def generate_breadcrumbs(
 
 
 def add_plantvariety_breadcrumbs(
-    breadcrumbs: BreadcrumbContext, plantvariety_instance: PlantVariety
+    breadcrumbs: BreadcrumbContext,
+    plantvariety_instance: PlantVariety,
 ) -> BreadcrumbContext:
+    if not breadcrumbs:
+        return breadcrumbs_context([])
+
     plantvariety_breadcrumbs = [list_breadcrumb(PlantVariety), detail_breadcrumb(plantvariety_instance)]
     return breadcrumbs_context(plantvariety_breadcrumbs + breadcrumbs[CONTEXT_KEY])
