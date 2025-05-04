@@ -134,11 +134,20 @@ class EntityFilter(FilterSet):
         form = EntityFormFilter
 
 
+class ProtectionOmniFilterForm(HTMXFormMixin, forms.Form):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper.layout = generate_form_layout([Field("omni"), Field("type"), Field("status"), Field("country")])
+
+
 class ProtectionOmniFilter(FilterSet):
     omni = CharFilter(method="omni_search", label="Search")
     type = ChoiceFilter(choices=PROTECTION_TYPE_CHOICES)
     status = ChoiceFilter(choices=PROTECTION_STATUS_CHOICES)
     country = ChoiceFilter(choices=CountryField().get_choices(include_blank=False), widget=TomSelect)
+
+    class Meta:
+        form = ProtectionOmniFilterForm
 
     def omni_search(self, queryset, name, value):
         query = Q(variety__names__name__icontains=value)

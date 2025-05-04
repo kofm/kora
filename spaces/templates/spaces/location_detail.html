@@ -1,11 +1,8 @@
 {% extends "frontpage/base.html" %}
 {% load static %}
-
-
-{% block javascript %}
-    
-    <script src="{% static 'django_sortable_htmx/sortable.bundle.js' %}"></script>
-{% endblock %}
+{% load breadcrumbs %}
+{% load components %}
+{% load render_sortable %}
 
 
 {% block title %}Location: {{ location.name }}{% endblock %}
@@ -13,41 +10,23 @@
 
 {% block container %}
 
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{% url 'spaces:location-list' %}">Zones</a></li>
-            <li class="breadcrumb-item">{{ location.name }}</li>
-        </ol>
-    </nav>
+  {% render_breadcrumbs %}
 
-    <h1 class="display-1">{{ location }}</h1>
+  {% detail_page_header instance=location subtitle="Location" %}
 
-    <div class="row">
-        <div class="col">
-            <form hx-post="{% url 'spaces:area-sort' %}" hx-trigger="end" hx-target="#grid-area">
-                <p class="text-small text-muted">Sort:
-                    <a class="text-decoration-none" href="{% url 'spaces:location-detail' location.pk %}">Custom</a>
-                    <a class="text-decoration-none" href="?order_by=name">Name</a>
-                    <a class="text-decoration-none" href="?order_by=crop">Crop</a>
-                    <a class="text-decoration-none" href="?order_by=area">Area</a>
-                </p>
-                <div id="grid-area" class="row">
-                    {% include 'spaces/partials/area_list.html' with area_list=areas %}
-                </div>
-            </div>
-
-            <input type="hidden" name="location" value="{{ location.pk }}">
-
-        </form>
+  <div class="card mb-4">
+    <div class="card-header d-flex align-items-center">
+      <h2 class="mb-0 fs-5">Areas</h2>
+      <button hx-get="{% url 'spaces:area-create' location.pk %}" class="btn btn-sm rounded-3 btn-outline-secondary ms-auto" {% modal_attrs %}>
+	<i class="bi bi-plus-lg"></i>
+      </button>
     </div>
-    <div class="row justify-content-center">
-        <div class="col-4">
-            <a href="{% url 'spaces:location-update' location.pk %}" class="btn btn-lg btn-secondary col-12 m-3">Update Location</a>
-        </div>
-        <div class="col-4">
-            <a href="{% url 'spaces:location-delete' location.pk %}" class="btn btn-lg btn-danger col-12 m-3">Delete Location</a>
-        </div>
+    <div class="card-body p-0 m-3">
+      {% block areas %}
+	<div id="area-list" hx-get="" hx-trigger="areaUpdated from:body">
+	  {% render_sortable areas "areas" "row d-flex justify-content-center" "spaces:area-sort" %}
+	</div>
+      {% endblock %}
     </div>
-    </div>
-    <script src="{% static 'spaces/location-detail.bundle.js' %}" data-sortable="{{ sortable }}"></script>
+  </div>
 {% endblock %}

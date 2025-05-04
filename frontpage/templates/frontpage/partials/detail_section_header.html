@@ -1,0 +1,21 @@
+{% load components %}
+
+
+  <div class="d-inline-flex gap-3 flex-column">
+    <h2 class="my-0 lh-1 {{ title_class }}">
+      {{ page_title }}
+    </h2>
+
+
+    {% if create_url %}
+      {% if create_modal %}
+	<a class="btn btn-sm btn-outline-primary" hx-get="{{ create_url }}" {% modal_attrs %}>
+      {% else %}
+	  <a class="btn btn-sm btn-outline-primary" href="{{ create_url }}">
+      {% endif %}
+      Create
+	  </a>
+    {% endif %}
+
+  </div>
+

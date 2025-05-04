@@ -21,7 +21,7 @@ from collect.forms import (
 )
 from collect.models import Cart, CartItem, Sample, SampleWeight
 from django_sortable_htmx.views import SortableView
-from frontpage.utils.htmx import htmx_trigger_response
+from frontpage.utils.htmx import htmx_response_trigger
 
 CART_SORTING = {
     "variety": "sample__variety__name",
@@ -119,7 +119,7 @@ def cart_retrieve(request, pk):
 
         SampleWeight.objects.bulk_create(sampleweights)
         cart.delete()
-        return htmx_trigger_response(["cartUpdated"])
+        return htmx_response_trigger(["cartUpdated"])
 
     context = {"cart": cart}
     return render(request, "collect/cart_confirm_retrieve.html", context)
@@ -131,7 +131,7 @@ def cart_empty(request, pk):
     context = {"cart": cart}
     if request.method == "POST":
         cart.cartitem_set.all().delete()
-        return htmx_trigger_response(["cartUpdated"])
+        return htmx_response_trigger(["cartUpdated"])
     return render(request, "collect/cart_empty.html", context)
 
 
@@ -184,7 +184,7 @@ def cartitem_create(request):
             cartitem.order = order_max + 1 if order_max else 1
             cartitem.save()
             messages.success(request, f"{cart.default_weight} g added to {cart.name}")
-            return htmx_trigger_response(["cartUpdated", "logItemUpdated"])
+            return htmx_response_trigger(["cartUpdated", "logItemUpdated"])
     except ValidationError as e:
         for msg in e.messages:
             messages.error(request, msg)
@@ -207,7 +207,7 @@ def cartitem_delete(request, pk):
     cartitem = get_object_or_404(CartItem, pk=pk)
     if request.user.pk == cartitem.cart.user_id:
         cartitem.delete()
-        return htmx_trigger_response(["cartUpdated", "logItemUpdated"])
+        return htmx_response_trigger(["cartUpdated", "logItemUpdated"])
 
 
 @permission_required("collect.change_cartitem", raise_exception=True)
@@ -218,7 +218,7 @@ def cartitem_update(request, pk):
         form = CartItemUpdateForm(request.POST, instance=cartitem)
         if form.is_valid():
             form.save()
-            return htmx_trigger_response(["cartUpdated", "logItemUpdated"])
+            return htmx_response_trigger(["cartUpdated", "logItemUpdated"])
     return TemplateResponse(request, "collect/partials/cartitem_update.html", {"form": form})
 
 

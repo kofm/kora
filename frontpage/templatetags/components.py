@@ -1,5 +1,6 @@
 from django import template
-from django.urls import reverse
+from django.urls import NoReverseMatch, reverse
+from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 
 from persefone import settings
@@ -45,14 +46,47 @@ def dropdown_item_to_modal(label, **kwargs):
 
 
 @register.inclusion_tag("frontpage/partials/list_page_header.html", takes_context=True)
-def list_page_header(context, title, create_url=None, permission=None, create_modal=False, **kwargs):
+def list_page_header(context, title, subtitle=None, create_url=None, permission=None, create_modal=False, **kwargs):
     user = context["request"].user
     if user.has_perm(permission):
-        create_url = reverse(create_url) if create_url else None
+        try:
+            create_url = reverse(create_url) if create_url else None
+        except NoReverseMatch:
+            pass
     else:
         create_url = None
     title_class = kwargs.pop("title_class", "")
-    return {"page_title": title, "create_url": create_url, "title_class": title_class, "create_modal": create_modal}
+    return {
+        "page_title": title,
+        "subtitle": subtitle,
+        "create_url": create_url,
+        "title_class": title_class,
+        "create_modal": create_modal,
+    }
+
+
+@register.inclusion_tag("frontpage/partials/detail_section_header.html", takes_context=True)
+def detail_section_header(context, title, create_url=None, permission=None, create_modal=False, **kwargs):
+    user = context["request"].user
+    if user.has_perm(permission):
+        try:
+            create_url = reverse(create_url) if create_url else None
+        except NoReverseMatch:
+            pass
+    else:
+        create_url = None
+    title_class = kwargs.pop("title_class", "")
+    return {
+        "page_title": title,
+        "create_url": create_url,
+        "title_class": title_class,
+        "create_modal": create_modal,
+    }
+
+
+@register.simple_tag()
+def hx_vals_use_block(block):
+    return format_html('hx-vals=\'{{"use_block": "{}"}}\'', block)
 
 
 def get_action_url_from_instance(action, instance):
@@ -73,6 +107,7 @@ def detail_page_header(
     context,
     instance,
     title="",
+    title_class="",
     subtitle="",
     subtitle_emphasis=False,
     update_url=None,
@@ -97,7 +132,8 @@ def detail_page_header(
         "cant_delete_msg", "You can't remove this entry because it is referenced by other data."
     )
     return {
-        "page_title": title,
+        "title": title,
+        "title_class": title_class,
         "subtitle": subtitle,
         "object": instance,
         "update_url": update_url,

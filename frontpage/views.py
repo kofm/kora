@@ -12,7 +12,7 @@ from django_tables2 import RequestConfig
 
 from frontpage.forms import UserUpdateForm
 from frontpage.tables import UserTable
-from frontpage.utils.htmx import htmx_trigger_response
+from frontpage.utils.htmx import htmx_response_trigger
 from frontpage.utils.logging import get_client_ip
 from frontpage.views_decorators import htmx_render_block_from_params
 
@@ -46,7 +46,7 @@ def user_create(request):
         form = UserCreationForm(request.POST)
         if form.is_valid():
             form.save()
-            return htmx_trigger_response(["usersUpdated", "closeModal"])
+            return htmx_response_trigger(["usersUpdated", "closeModal"])
     else:
         form = UserCreationForm()
     return TemplateResponse(request, "frontpage/user_create.html", {"form": form})
@@ -59,7 +59,7 @@ def user_update(request, username):
         form = UserUpdateForm(request.POST, instance=user)
         if form.is_valid():
             form.save()
-            return htmx_trigger_response(["usersUpdated", "closeModal"])
+            return htmx_response_trigger(["usersUpdated", "closeModal"])
     else:
         form = UserUpdateForm(instance=user)
     return TemplateResponse(request, "frontpage/user_create.html", {"form": form, "instance": user})
@@ -70,7 +70,7 @@ def user_delete(request, username):
     user = User.objects.get(username=username)
     if request.method == "POST":
         user.delete()
-        return htmx_trigger_response(["usersUpdated", "closeModal"])
+        return htmx_response_trigger(["usersUpdated", "closeModal"])
     return TemplateResponse(request, "frontpage/user_confirm_delete.html", {"instance": user})
 
 

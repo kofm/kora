@@ -33,7 +33,7 @@ from collect.tables import (
 )
 from django_sortable_htmx.views import SortableView
 from frontpage.templatetags.components import get_action_url_from_instance, get_permission_from_instance
-from frontpage.utils.htmx import htmx_trigger_response_close_modal
+from frontpage.utils.htmx import htmx_response_trigger_close_modal
 from frontpage.views_decorators import htmx_render_blocks
 
 
@@ -222,7 +222,7 @@ def sampleweight_create(request, sample_id):
             sampleweight = form.save(commit=False)
             sampleweight.sample_id = sample_id
             sampleweight.save()
-            return htmx_trigger_response_close_modal(["logItemUpdated"])
+            return htmx_response_trigger_close_modal(["logItemUpdated"])
     else:
         form = SampleWeightForm()
     return TemplateResponse(
@@ -239,7 +239,7 @@ def sampleweight_update(request, pk):
         form = SampleWeightForm(request.POST, instance=sampleweight)
         if form.is_valid():
             form.save()
-            return htmx_trigger_response_close_modal(["logItemUpdated"])
+            return htmx_response_trigger_close_modal(["logItemUpdated"])
 
     else:
         form = SampleWeightForm(instance=sampleweight)
@@ -255,7 +255,7 @@ def sampleweight_delete(request, pk):
     sampleweight = get_object_or_404(SampleWeight, pk=pk)
     if request.method == "POST":
         sampleweight.delete()
-        return htmx_trigger_response_close_modal(["logItemUpdated"])
+        return htmx_response_trigger_close_modal(["logItemUpdated"])
     return render(
         request,
         "collect/partials/sampleweight_confirm_delete.html",
@@ -271,7 +271,7 @@ def germinability_create(request, sample_id):
             germinability = form.save(commit=False)
             germinability.sample_id = sample_id
             germinability.save()
-            return htmx_trigger_response_close_modal(["logItemUpdated"])
+            return htmx_response_trigger_close_modal(["logItemUpdated"])
     else:
         form = GerminabilityForm()
     return TemplateResponse(
@@ -288,7 +288,7 @@ def germinability_update(request, pk):
         form = GerminabilityForm(request.POST, instance=germinability)
         if form.is_valid():
             form.save()
-            return htmx_trigger_response_close_modal(["logItemUpdated"])
+            return htmx_response_trigger_close_modal(["logItemUpdated"])
     else:
         form = GerminabilityForm(instance=germinability)
     return TemplateResponse(
@@ -303,7 +303,7 @@ def germinability_delete(request, pk):
     germinability = get_object_or_404(Germinability, pk=pk)
     if request.method == "POST":
         germinability.delete()
-        return htmx_trigger_response_close_modal(["logItemUpdated"])
+        return htmx_response_trigger_close_modal(["logItemUpdated"])
     return render(
         request,
         "collect/partials/germinability_confirm_delete.html",

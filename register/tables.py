@@ -17,8 +17,6 @@ class CountryRenderer:
 
 
 class ProtectionTable(tables.Table, CountryRenderer):
-    type = tables.Column(linkify=True)
-
     class Meta:
         model = Protection
         exclude = ("id", "variety")
@@ -28,7 +26,7 @@ class ProtectionTable(tables.Table, CountryRenderer):
 class ProtectionListTable(ProtectionTable):
     variety = tables.Column(linkify=True)
 
-    class Meta:
+    class Meta(TableHoverFixed.Meta):
         model = Protection
         fields = (
             "variety",
@@ -84,9 +82,7 @@ class PlantVarietySampleTable(SampleBaseTable):
 
 
 class EntityTable(tables.Table, CountryRenderer):
-    name = columns.Column(linkify=True)
-
-    class Meta:
+    class Meta(TableHoverFixed.Meta):
         model = Entity
         fields = ("name", "type", "country")
         template_name = "register/partials/entity_table.html"

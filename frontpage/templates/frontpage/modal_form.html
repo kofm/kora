@@ -1,0 +1,27 @@
+{% extends "frontpage/modal_content.html" %}
+
+{% load crispy_forms_tags %}
+
+{% block title %}
+  {% if instance %}
+    {% block update_title %}
+      Update: <small>{{ instance }}</small>
+    {% endblock %}
+  {% else %}
+    {% block create_title %}
+      Create {{ object_to_create }}
+    {% endblock %}
+  {% endif %}
+{% endblock %}
+
+{% block body %}
+  <form id="modal-form" onsubmit="return false;">
+    {{ form|crispy }}
+  </form>
+{% endblock %}
+
+{% block footer %}
+  <button type="button" class="btn btn-primary" hx-post="{{ request.get_full_path }}" hx-include="#modal-form" hx-target="#modal" hx-trigger="click, keyup[key=='Enter'] from:#user-form">
+    Submit
+  </button>
+{% endblock %}

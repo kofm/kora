@@ -9,9 +9,9 @@ app_name = "parameters"
 urlpatterns = [
     path("", views.parameter_list, name="parameter_list"),
     path("create", views.ParameterCreate.as_view(), name="parameter_create"),
-    path("<int:pk>", views.ParameterDetail.as_view(), name="parameter-detail"),
-    path("<int:pk>/update", views.ParameterUpdate.as_view(), name="parameter-update"),
-    path("<int:pk>/delete", views.ParameterDelete.as_view(), name="parameter-delete"),
+    path("<int:pk>", views.parameter_detail, name="parameter_detail"),
+    path("<int:pk>/update", views.ParameterUpdate.as_view(), name="parameter_update"),
+    path("<int:pk>/delete", views.ParameterDelete.as_view(), name="parameter_delete"),
     path(
         "variety/<int:pk>/create",
         VarietalParameterCreate.as_view(),

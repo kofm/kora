@@ -128,3 +128,14 @@ def add_plantvariety_breadcrumbs(
 
     plantvariety_breadcrumbs = [list_breadcrumb(PlantVariety), detail_breadcrumb(plantvariety_instance)]
     return breadcrumbs_context(plantvariety_breadcrumbs + breadcrumbs[CONTEXT_KEY])
+
+
+def add_parent_breadcrumbs(
+    breadcrumbs: BreadcrumbContext,
+    instance: Model,
+) -> BreadcrumbContext:
+    if not breadcrumbs:
+        return breadcrumbs_context([])
+
+    parent_breadcrumbs = [list_breadcrumb(instance._meta.model), detail_breadcrumb(instance)]
+    return breadcrumbs_context(parent_breadcrumbs + breadcrumbs[CONTEXT_KEY])

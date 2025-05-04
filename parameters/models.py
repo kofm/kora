@@ -30,14 +30,17 @@ class Parameter(models.Model):
     def __str__(self):
         return self.code
 
-    def get_absolute_url(self):
-        return reverse(
-            "parameters:parameter-detail",
-            args=[self.pk],
-        )
-
     def natural_key(self):
         return (self.code,)
+
+    def get_absolute_url(self):
+        return reverse("parameters:parameter_detail", args=(self.pk,))
+
+    def get_update_url(self):
+        return reverse("parameters:parameter_update", args=(self.pk,))
+
+    def get_delete_url(self):
+        return reverse("parameters:parameter_delete", args=(self.pk,))
 
 
 class ParameterValue(models.Model):

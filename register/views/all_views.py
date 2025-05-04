@@ -76,27 +76,6 @@ class VarietalParameterCreate(PermissionRequiredMixin, NavPlantActiveContext, Cr
 def protection_list(request):
     queryset = Protection.objects.select_related("variety", "variety__species").all()
     flt = ProtectionOmniFilter(request.GET, queryset=queryset)
-    flt.form.helper = FormHelper()
-    flt.form.helper.form_tag = True
-    flt.form.helper.attrs = {
-        "hx_get": "",
-        "hx_trigger": "change from:select, keyup changed delay:500ms from:input",
-    }
-    flt.form.helper.form_method = "GET"
-    flt.form.helper.layout = Layout(
-        Div(
-            Div(Field("omni"), css_class="col-3"),
-            Div(Field("type"), css_class="col-3"),
-            Div(Field("status"), css_class="col-3"),
-            Div(Field("country"), css_class="col-3"),
-            css_class="row row-cols-sm-1 row-cols-lg-4 g-3 align-items-center",
-        ),
-        Div(
-            Div(Submit("search", "Search"), css_class="col-12"),
-            HTML('<a class="btn btn-secondary" href=".">Clear</a>'),
-            css_class="row row-cols-lg-auto",
-        ),
-    )
     table = ProtectionListTable(flt.qs)
     RequestConfig(request).configure(table)
     context = {"table": table, "filter": flt}

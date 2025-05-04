@@ -1,4 +1,6 @@
 from django import forms
+from django.contrib.auth.decorators import permission_required
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
@@ -9,7 +11,7 @@ from django.views.generic.detail import DetailView
 from django_tables2 import RequestConfig
 
 from breadcrumbs.utils import generate_breadcrumbs
-from frontpage.views_decorators import htmx_render_blocks, nav_active
+from frontpage.views_decorators import htmx_render_block_from_params, htmx_render_blocks, nav_active
 from parameters.filters import ParameterFilter
 from parameters.forms import VarietalParameterForm
 from parameters.tables import (
@@ -32,10 +34,11 @@ def parameter_list(request):
     return TemplateResponse(request, "parameters/parameter_list.html", context)
 
 
-class ParameterCreate(CreateView):
+class ParameterCreate(PermissionRequiredMixin, CreateView):
     model = Parameter
     success_url = reverse_lazy("parameters:parameter_list")
     fields = "__all__"
+    permission_required = ["parameters.add_parameter"]
 
     def get_form(self):
         form = super(ParameterCreate, self).get_form()
@@ -48,11 +51,12 @@ class ParameterCreate(CreateView):
         return context
 
 
-class ParameterUpdate(UpdateView):
+class ParameterUpdate(PermissionRequiredMixin, UpdateView):
     model = Parameter
     fields = "__all__"
     template_name = "parameters/parameter_form.html"
     success_url = reverse_lazy("parameters:parameter_list")
+    permission_required = ["parameters.change_parameter"]
 
     def get_form(self):
         form = super(ParameterUpdate, self).get_form()
@@ -65,9 +69,10 @@ class ParameterUpdate(UpdateView):
         return context
 
 
-class ParameterDelete(DeleteView):
+class ParameterDelete(PermissionRequiredMixin, DeleteView):
     model = Parameter
     success_url = reverse_lazy("parameters:parameter_list")
+    permission_required = ["parameters.delete_parameter"]
 
 
 class ParameterDetail(DetailView):
@@ -105,6 +110,26 @@ class ParameterDetail(DetailView):
         page = self.request.GET.get("pagevp")
         varparams = paginator.get_page(page)
         return varparams
+
+
+@nav_active("nav_plan")
+@htmx_render_block_from_params()
+def parameter_detail(request, pk):
+    parameter = get_object_or_404(Parameter, pk=pk)
+    vp_queryset = VarietalParameter.objects.select_related("variety__species", "parameter").filter(parameter=parameter)
+    sp_queryset = SpeciesParameter.objects.select_related("specie", "parameter").filter(parameter=parameter)
+    vptable = VarietalParameterTable(vp_queryset)
+    sptable = SpeciesParameterTable(sp_queryset)
+    rq = RequestConfig(request)
+    rq.configure(vptable)
+    rq.configure(sptable)
+    context = {
+        "parameter": parameter,
+        "vp_table": vptable,
+        "sp_table": sptable,
+        **generate_breadcrumbs(request, Parameter, parameter),
+    }
+    return TemplateResponse(request, "parameters/parameter_detail.html", context)
 
 
 class SpeciesParameterUpdate(UpdateView):

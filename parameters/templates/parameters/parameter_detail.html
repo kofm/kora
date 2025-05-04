@@ -1,24 +1,26 @@
-<!--  -*- engine: django -*-  -->
-
 {% extends "frontpage/base.html" %}
 
 {% load render_table from django_tables2 %}
+{% load components %}
+{% load breadcrumbs %}
 
 {% block title %}{{ parameter.code }}{% endblock %}
 
 {% block container %}
 
-<h1>{{ parameter.name }}</h1>
+  {% render_breadcrumbs %}
+  {% detail_page_header parameter subtitle=parameter.name title_class="font-monospace" %}
 
-<p>{{ parameter.description }}</p>
-
-{% if parameter.measure_unit != 'unitless' %}
-<p>It is measured in {{ parameter.measure_unit }}.</p>
-{% endif %}
-
-<h2>Crop parameters</h2>
-{% render_table species_parameters_table %}
-
-<h2>Varietal parameters</h2>
-{% render_table varietal_parameters_table %}
+  <h2>Species parameters</h2>
+  {% block sp_table %}
+    <div id="sp-table" hx-target="#sp-table" {% hx_vals_use_block "sp_table" %}>
+      {% render_table sp_table %}
+    </div>
+  {% endblock %}
+  <h2>Varietal parameters</h2>
+  {% block vp_table %}
+    <div id="vp-table" hx-target="#vp-table" {% hx_vals_use_block "vp_table" %}>
+      {% render_table vp_table %}
+    </div>
+  {% endblock %}
 {% endblock %}

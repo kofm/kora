@@ -5,13 +5,6 @@ from parameters.models import Parameter, SpeciesParameter, VarietalParameter
 
 
 class ParameterTable(tables.Table):
-    actions = tables.TemplateColumn(
-        template_name="parameters/partials/parameter_table_actions.html",
-        verbose_name="",
-        orderable=False,
-        attrs={"td": {"class": "text-end"}},
-    )
-
     class Meta(TableHoverFixed.Meta):
         model = Parameter
         exclude = ("id",)
@@ -29,12 +22,18 @@ class VarietalParameterTable(tables.Table):
 
     class Meta:
         model = VarietalParameter
-        fields = ("variety", "value", "note", "created_at", "updated_at")
+        fields = ("variety", "value", "note")
         empty_text = "There are no associated parameters."
+        per_page = 15
+        prefix = "vp"
+        template_name = "frontpage/partials/htmx_table.html"
 
 
 class SpeciesParameterTable(tables.Table):
     class Meta:
         model = SpeciesParameter
-        fields = ("specie", "value", "note", "created_at", "updated_at")
+        fields = ("specie", "value", "note")
         empty_text = "There are no associated parameters."
+        per_page = 15
+        prefix = "sp"
+        template_name = "frontpage/partials/htmx_table.html"
