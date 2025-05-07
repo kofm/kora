@@ -21,6 +21,7 @@ from parameters.models import Parameter, VarietalParameter
 from register.models import Entity, PlantSpecies, PlantVariety, Protection
 from restapi.serializers import (
     CartItemSerializer,
+    CartSerializer,
     DescriptionSerializer,
     EntitySerializer,
     ParameterSerializer,
@@ -175,7 +176,7 @@ class CartItemViewSet(viewsets.ModelViewSet):
             return Response({"detail": "Cart not found."}, status=status.HTTP_404_NOT_FOUND)
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save(cart=cart)  # Associate the cart with the new CartItem
+        serializer.save(cart=cart)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
@@ -186,6 +187,14 @@ class WorkspaceViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         return Workspace.objects.filter(user=user)
+
+
+class CartViewSet(viewsets.ModelViewSet):
+    serializer_class = CartSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        return Cart.objects.filter(user=user)
 
 
 class WorkspaceElementViewSet(viewsets.ModelViewSet):

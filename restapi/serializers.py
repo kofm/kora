@@ -1,7 +1,7 @@
 from django_countries.serializers import CountryFieldMixin
 from rest_framework import serializers
 
-from collect.models import CartItem, Sample, Storage, StoragePosition
+from collect.models import Cart, CartItem, Sample, Storage, StoragePosition
 from describe.models import (
     Description,
     Expression,
@@ -225,6 +225,12 @@ class CartItemSerializer(serializers.ModelSerializer):
 class WorkspaceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Workspace
+        fields = ("id", "name")
+
+
+class CartSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Cart
         fields = ("id", "name")
 
 
