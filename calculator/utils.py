@@ -1,5 +1,3 @@
-from typing import Union
-
 import pandas as pd
 from django.db.models.query import QuerySet
 
@@ -17,7 +15,7 @@ def get_params(queryset: QuerySet, params_list: list) -> list:
     return list(queryset)
 
 
-def get_all_params(Model: Union[CropParameter, VarietalParameter, SpeciesParameter], **kwargs) -> QuerySet:
+def get_all_params(Model: CropParameter | VarietalParameter | SpeciesParameter, **kwargs) -> QuerySet:
     return Model.objects.filter(**kwargs).values(
         "parameter",
         "parameter__code",
@@ -93,7 +91,7 @@ def crop_statistics_calc(crop_queryset: QuerySet, models):
                             **cropmodels_result,
                         }
                     }
-                    for crop, cropmodels_result in zip(crop_queryset, crompodels_results_dict)
+                    for crop, cropmodels_result in zip(crop_queryset, crompodels_results_dict, strict=False)
                 ]
             )
             .groupby("common_name")

@@ -1,5 +1,3 @@
-from webbrowser import get
-
 from django.db.models.signals import post_delete, post_migrate, post_save
 from django.dispatch import receiver
 

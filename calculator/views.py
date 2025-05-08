@@ -157,7 +157,7 @@ def statistics_view(request):
     export_format = request.GET.get("_export", None)
     if TableExport.is_valid_format(export_format):
         exporter = TableExport(export_format, crop_statistics_table)
-        return exporter.response("table.{}".format(export_format))
+        return exporter.response(f"table.{export_format}")
 
     context = {"crop_statistics_table": crop_statistics_table, "filter": filter}
 

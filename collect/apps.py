@@ -1,5 +1,3 @@
-from typing import override
-
 from django.apps import AppConfig
 
 

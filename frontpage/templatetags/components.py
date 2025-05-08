@@ -23,7 +23,7 @@ HTMX_MODAL_ATTRS = {
 
 @register.simple_tag
 def is_public():
-    return getattr(settings, "PUBLIC")
+    return settings.PUBLIC
 
 
 @register.inclusion_tag("frontpage/partials/dropdown_item.html")

@@ -1,4 +1,4 @@
-from typing import Any, Union
+from typing import Any
 
 from django.db.models.base import Model
 from django.http import HttpRequest
@@ -17,23 +17,23 @@ def breadcrumbs_context(breadcrumbs: BreadcrumbList) -> BreadcrumbContext:
     return {CONTEXT_KEY: breadcrumbs}
 
 
-def model_verbose(model: Union[Model, type[Model]]) -> str:
+def model_verbose(model: Model | type[Model]) -> str:
     verbose_name_plural = str(model._meta.verbose_name_plural)
     return verbose_name_plural.title()
 
 
-def model_name(model: Union[Model, type[Model]]) -> str:
+def model_name(model: Model | type[Model]) -> str:
     verbose_name = model._meta.verbose_name
     if isinstance(verbose_name, str):
         return verbose_name.replace(" ", "")
     return ""
 
 
-def app_label(model: Union[Model, type[Model]]) -> str:
+def app_label(model: Model | type[Model]) -> str:
     return model._meta.app_label
 
 
-def view_url(model: Union[Model, type[Model]], action: str) -> str:
+def view_url(model: Model | type[Model], action: str) -> str:
     url_name = f"{app_label(model)}:{model_name(model)}_{action}"
     try:
         if isinstance(model, Model):

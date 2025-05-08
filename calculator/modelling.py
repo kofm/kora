@@ -1,7 +1,6 @@
 import datetime
 import os
 import time
-from typing import List
 
 import pandas as pd
 
@@ -10,8 +9,8 @@ from calculator.models import Crop
 
 class CropModel:
     # TODO: AUTOMATICALLY GET PARAMETERS AND ASSIGN TO MODEL PROPERTIES
-    inputs: List[str] = []
-    inputs_optional: List[str] = []
+    inputs: list[str] = []
+    inputs_optional: list[str] = []
     context_name = "unnamed_model"
     model_name = "Unnamed Model"
     measure_unit = ""

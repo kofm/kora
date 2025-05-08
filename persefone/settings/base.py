@@ -69,7 +69,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "persefone.wsgi.application"
 
-
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {

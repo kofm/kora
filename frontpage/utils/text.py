@@ -1,7 +1,5 @@
 import re
 
-from django.db import models
-
 
 def smart_truncate_string(text, min_length=10, suffix="..."):
     """If the `text` is more than `min_length` characters long, it

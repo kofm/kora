@@ -1,6 +1,5 @@
 import django_tables2 as tables
 from django.utils.html import format_html
-from django_tables2 import columns
 
 from collect.models import Sample
 from collect.tables import SampleBaseTable
