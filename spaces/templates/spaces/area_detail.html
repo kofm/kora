@@ -13,7 +13,7 @@
   {% detail_page_header instance=area subtitle=area.location %}
 
   <div class="mb-3">
-    <button hx-get="{% url 'spaces:area_duplicate' area.pk %}" class="btn btn-sm btn-outline-secondary" {% modal_attrs %}>Duplicate</button>
+    <button hx-get="{% url 'spaces:area_create' area.location_id %}?duplicate={{ area.pk }}" class="btn btn-sm btn-outline-secondary" {% modal_attrs %}>Duplicate</button>
   </div>
 
   <div class="row">
