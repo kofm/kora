@@ -22,6 +22,7 @@ INSTALLED_APPS = [
     "crispy_bootstrap5",
     "django_countries",
     "widget_tweaks",
+    "easyaudit",
     "register.apps.RegisterConfig",
     "describe.apps.DescribeConfig",
     "frontpage.apps.FrontpageConfig",
@@ -47,6 +48,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "frontpage.middleware.htmx_login_redirect_middleware",
     "frontpage.middleware.htmx_message_middleware",
+    "easyaudit.middleware.easyaudit.EasyAuditMiddleware",
 ]
 ROOT_URLCONF = "persefone.urls"
 
@@ -169,3 +171,18 @@ LOGGING = {
         },
     },
 }
+
+
+# Defines whether to log model related events, such as when an
+# object is created, updated, or deleted. Defaults to True.
+DJANGO_EASY_AUDIT_WATCH_MODEL_EVENTS = True
+
+# Defines whether to log user authentication events, such as logins,
+# logouts and failed logins. Defaults to True.
+DJANGO_EASY_AUDIT_WATCH_AUTH_EVENTS = False
+
+# Defines whether to log URL requests made to the project. Defaults to
+# True
+DJANGO_EASY_AUDIT_WATCH_REQUEST_EVENTS = False
+
+DJANGO_EASY_AUDIT_UNREGISTERED_CLASSES_EXTRA = ["auth.group"]
