@@ -63,15 +63,19 @@
         Plan
       </a>
       <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-        <li>
-          <a class="dropdown-item" href="{% url 'spaces:location_list' %}">Locations</a>
-        </li>
+	{% if perms.spaces.view_location %}
+          <li>
+            <a class="dropdown-item" href="{% url 'spaces:location_list' %}">Locations</a>
+          </li>
+	{% endif %}
         <li>
           <a class="dropdown-item" href="{% url 'calculator:crops-statistics' %}">Statistics</a>
         </li>
-        <li>
-          <a class="dropdown-item" href="{% url 'parameters:parameter_list'  %}">Parameters</a>
-        </li>
+	{% if perms.parameters.view_parameter %}
+          <li>
+            <a class="dropdown-item" href="{% url 'parameters:parameter_list'  %}">Parameters</a>
+          </li>
+	{% endif %}
       </ul>
     </li>
 
