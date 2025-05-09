@@ -2,11 +2,10 @@
 {% load static %}
 {% load breadcrumbs %}
 {% load components %}
-{% load render_sortable %}
+{% load sortable_grid %}
+{% load crispy_forms_tags %}
 
-
-{% block title %}Location: {{ location.name }}{% endblock %}
-
+{% block title %}{{ location.name }}{% endblock %}
 
 {% block container %}
 
@@ -14,19 +13,16 @@
 
   {% detail_page_header instance=location subtitle="Location" %}
 
-  <div class="card mb-4">
-    <div class="card-header d-flex align-items-center">
-      <h2 class="mb-0 fs-5">Areas</h2>
-      <button hx-get="{% url 'spaces:area-create' location.pk %}" class="btn btn-sm rounded-3 btn-outline-secondary ms-auto" {% modal_attrs %}>
-	<i class="bi bi-plus-lg"></i>
-      </button>
+  <h2>Areas</h2>
+
+  <button hx-get="{% url 'spaces:area-create' location.pk %}" class="mt-3 btn btn-sm btn-outline-primary" {% modal_attrs %}>
+    Create Area
+  </button>
+
+  {% block areas %}
+    <div id="area-list" class="mt-2" hx-get="" hx-trigger="areaUpdated from:body">
+      {% render_sortable_grid location.area_set.all "areas" "" "spaces:area-sort" cols=location.cols %}
     </div>
-    <div class="card-body p-0 m-3">
-      {% block areas %}
-	<div id="area-list" hx-get="" hx-trigger="areaUpdated from:body">
-	  {% render_sortable areas "areas" "row d-flex justify-content-center" "spaces:area-sort" %}
-	</div>
-      {% endblock %}
-    </div>
-  </div>
+  {% endblock %}
+
 {% endblock %}

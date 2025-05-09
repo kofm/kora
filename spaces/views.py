@@ -1,7 +1,6 @@
 import json
 
 from django.db.models.base import Model
-from django.db.models.expressions import F
 from django.shortcuts import get_object_or_404
 from django.template.response import TemplateResponse
 from django.urls import reverse
@@ -52,29 +51,10 @@ def area_sort_hx(request):
 
 @htmx_render_blocks(["areas"])
 def location_detail(request, pk):
-    """
-    Returns the detail view of a Location.
-    `order_by` defines the order of the within-location areas
-    `sortable` disable sorting (using Sortable.js) if any sorting methods is
-    selected by the user. Defaults to True so the user can arrange Area cards
-    to their liking
-    """
-    order_by = request.GET.get("order_by")
     location = get_object_or_404(Location, pk=pk)
-    areas = location.area_set.all()
-    sortable = "true"
-    if order_by:
-        sortable = "false"
-        if order_by == "area":
-            areas = areas.order_by(F("length") * F("width"))
-        else:
-            areas = areas.order_by(order_by)
 
     context = {
-        "sortable": sortable,
         "location": location,
-        "areas": areas,
-        "order_by": order_by,
         **generate_breadcrumbs(request, Location, location),
     }
     return TemplateResponse(request, "spaces/location_detail.html", context)
@@ -105,7 +85,9 @@ def area_create(request, location_id):
 class LocationUpdateView(UpdateView):
     model = Location
     fields = "__all__"
-    success_url = reverse_lazy("spaces:location_list")
+
+    def get_success_url(self):
+        return reverse("spaces:location-detail", args=(self.object.pk,))
 
 
 class LocationDeleteView(DeleteView):

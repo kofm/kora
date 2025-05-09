@@ -10,6 +10,7 @@ class Location(models.Model):
     order = models.PositiveIntegerField(default=0)
     latitude = models.FloatField(blank=True, null=True)
     longitude = models.FloatField(blank=True, null=True)
+    cols = models.IntegerField(default=6)
 
     def __str__(self):
         return self.name
@@ -31,11 +32,11 @@ class Area(ModelIsDeletableMixin, models.Model):
     width = models.FloatField(help_text="The width of the area, in meters")
     order = models.PositiveIntegerField(help_text="The ordering of the area within its location", default=0)
 
-    def __str__(self):
-        return self.name
-
     class Meta:
         ordering = ["order", "name"]
+
+    def __str__(self):
+        return self.name
 
     def get_absolute_url(self):
         return reverse("spaces:area-detail", args=(self.pk,))

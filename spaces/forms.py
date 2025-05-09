@@ -6,4 +6,4 @@ from spaces.models import Area
 class AreaForm(forms.ModelForm):
     class Meta:
         model = Area
-        exclude = ("location", "order")
+        fields = ("name", "length", "width")
