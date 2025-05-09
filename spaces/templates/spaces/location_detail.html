@@ -15,13 +15,13 @@
 
   <h2>Areas</h2>
 
-  <button hx-get="{% url 'spaces:area-create' location.pk %}" class="mt-3 btn btn-sm btn-outline-primary" {% modal_attrs %}>
+  <button hx-get="{% url 'spaces:area_create' location.pk %}" class="mt-3 btn btn-sm btn-outline-primary" {% modal_attrs %}>
     Create Area
   </button>
 
   {% block areas %}
     <div id="area-list" class="mt-2" hx-get="" hx-trigger="areaUpdated from:body">
-      {% render_sortable_grid location.area_set.all "areas" "" "spaces:area-sort" cols=location.cols %}
+      {% render_sortable_grid location.area_set.all "areas" "" "spaces:area_sort" cols=location.cols %}
     </div>
   {% endblock %}
 

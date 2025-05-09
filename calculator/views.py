@@ -31,7 +31,7 @@ class CropDeleteView(DeleteView):
     model = Crop
 
     def get_success_url(self):
-        return reverse_lazy("spaces:area-detail", kwargs={"pk": self.object.area.pk})
+        return reverse_lazy("spaces:area_detail", kwargs={"pk": self.object.area.pk})
 
 
 def cropparam_table_hx(request, pk):

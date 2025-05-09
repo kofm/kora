@@ -87,7 +87,7 @@ class LocationUpdateView(UpdateView):
     fields = "__all__"
 
     def get_success_url(self):
-        return reverse("spaces:location-detail", args=(self.object.pk,))
+        return reverse("spaces:location_detail", args=(self.object.pk,))
 
 
 class LocationDeleteView(DeleteView):
@@ -124,7 +124,7 @@ def area_duplicate(request, pk):
             created_area = form.save(commit=False)
             created_area.location_id = area["location_id"]
             created_area.save()
-            response = htmx_response_redirect(reverse("spaces:area-detail", args=(created_area.pk,)))
+            response = htmx_response_redirect(reverse("spaces:area_detail", args=(created_area.pk,)))
             response.headers["HX-Trigger"] = json.dumps({"closeModal": True})
             return response
     else:
@@ -143,7 +143,7 @@ class AreaUpdateView(UpdateView):
     fields = ["location", "name", "width", "length"]
 
     def get_success_url(self):
-        return reverse_lazy("spaces:area-detail", args=[self.object.id])
+        return reverse_lazy("spaces:area_detail", args=[self.object.id])
 
 
 class AreaDeleteView(DeleteView):

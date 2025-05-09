@@ -12,7 +12,6 @@
         "bootstrap-icons": "^1.10.3",
         "htmx.org": "^1.9.12",
         "hyperscript.org": "^0.9.5",
-        "jquery": "^3.6.4",
         "sortablejs": "^1.15.0",
         "tom-select": "^2.4.3"
     },

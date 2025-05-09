@@ -16,13 +16,13 @@ class Location(models.Model):
         return self.name
 
     def get_absolute_url(self):
-        return reverse("spaces:location-detail", args=[self.pk])
+        return reverse("spaces:location_detail", args=[self.pk])
 
     def get_update_url(self):
-        return reverse("spaces:location-update", args=[self.pk])
+        return reverse("spaces:location_update", args=[self.pk])
 
     def get_delete_url(self):
-        return reverse("spaces:location-delete", args=[self.pk])
+        return reverse("spaces:location_delete", args=[self.pk])
 
 
 class Area(ModelIsDeletableMixin, models.Model):
@@ -39,13 +39,13 @@ class Area(ModelIsDeletableMixin, models.Model):
         return self.name
 
     def get_absolute_url(self):
-        return reverse("spaces:area-detail", args=(self.pk,))
+        return reverse("spaces:area_detail", args=(self.pk,))
 
     def get_update_url(self):
-        return reverse("spaces:area-update", args=(self.pk,))
+        return reverse("spaces:area_update", args=(self.pk,))
 
     def get_delete_url(self):
-        return reverse("spaces:area-delete", args=(self.pk,))
+        return reverse("spaces:area_delete", args=(self.pk,))
 
     @property
     def total_area(self):
