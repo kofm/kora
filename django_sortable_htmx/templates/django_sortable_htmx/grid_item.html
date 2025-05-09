@@ -1,0 +1,8 @@
+<div class="border d-flex align-items-center justify-content-center rounded-3 draggable">
+    <h5>
+        <a href="{{ object.get_absolute_url }}" class="link-body-emphasis text-decoration-none">
+            {{ object }}
+        </a>
+    </h5>
+    <input type="hidden" name="order" value="{{ object.pk }}">
+</div>

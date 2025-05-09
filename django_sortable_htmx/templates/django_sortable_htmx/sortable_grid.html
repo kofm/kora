@@ -1,0 +1,23 @@
+<form
+  hx-post="{% url sort_url %}"
+  hx-trigger="end"
+  hx-swap="none"
+>
+  <div
+    id="{{ element_id }}"
+    class="{{ element_class }} sortable overflow-auto"
+    data-sortable="{{ is_sortable|yesno:'true,false' }}"
+    style="
+        display:grid;
+        grid-template-columns: repeat({{ cols }}, minmax(100px, 1fr));
+        grid-template-rows: 50px;
+	grid-auto-rows: 50px;
+	column-gap: 10px;
+	row-gap: 10px;
+	"
+  >
+    {% for object in object_list %}
+      {% include item_template %}
+    {% endfor %}
+  </div>
+</form>

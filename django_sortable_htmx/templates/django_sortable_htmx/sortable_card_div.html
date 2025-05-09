@@ -1,12 +1,7 @@
-{% load static %}
-
-<form hx-post="{% url sortable.sort_url %}" hx-trigger="end" hx-swap="none">
-  <div id="{{ sortable.element_id }}" class="{{ sortable.element_class }} sortable" data-sortable="{{ sortable.is_sortable|yesno:"true,false" }}">
-    {% for object in sortable.object_list %}
-      {% include sortable.item_template %}
+<form hx-post="{% url sort_url %}" hx-trigger="end" hx-swap="none">
+  <div id="{{ element_id }}" class="{{ element_class }} sortable" data-sortable="{{ is_sortable|yesno:"true,false" }}">
+    {% for object in object_list %}
+      {% include item_template %}
     {% endfor %}
-    {% if sortable.extra_item %}
-      {% include sortable.extra_item %}
-    {% endif %}
   </div>
 </form>
