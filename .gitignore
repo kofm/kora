@@ -25,3 +25,4 @@ __pycache__
 /.ruff_cache/
 /venv/
 /kora_backup.sql
+docs/build

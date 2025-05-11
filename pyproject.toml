@@ -92,3 +92,6 @@ dev = [
     "ipython>=9.1.0",
     "ruff>=0.11.5",
 ]
+docs = [
+    "sphinx>=8.2.3",
+]
