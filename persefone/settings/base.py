@@ -148,30 +148,31 @@ LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
     "handlers": {
-        "file": {
+        "auth_fail_file": {
             "class": "logging.FileHandler",
-            "filename": "kora.log",
-            "level": "DEBUG" if os.getenv("DEV", False) else "WARNING",
-            "formatter": "verbose",
+            "filename": "kora_auth.log",
+            "level": "WARNING",
+            "formatter": "simple",
         },
     },
     "loggers": {
         "": {
-            "level": "DEBUG",
-            "handlers": ["file"],
+            "handlers": [],
+            "level": "WARNING",
+        },
+        "kora.failed_login": {
+            "handlers": ["auth_fail_file"],
+            "level": "WARNING",
+            "propagate": False,
         },
     },
     "formatters": {
-        "verbose": {
-            "format": "%(asctime)s %(levelname)s [%(name)s] %(message)s",
-        },
         "simple": {
             "format": "{levelname} {message}",
             "style": "{",
         },
     },
 }
-
 
 # Defines whether to log model related events, such as when an
 # object is created, updated, or deleted. Defaults to True.

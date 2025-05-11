@@ -5,7 +5,6 @@ from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.contrib.auth.views import LoginView
-from django.db.models.query_utils import logger
 from django.http import HttpResponse
 from django.template.response import TemplateResponse
 from django_tables2 import RequestConfig
@@ -16,7 +15,7 @@ from frontpage.utils.htmx import htmx_response_trigger
 from frontpage.utils.logging import get_client_ip
 from frontpage.views_decorators import htmx_render_block_from_params
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("kora.failed_login")
 
 
 def index(request):
