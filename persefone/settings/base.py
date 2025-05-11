@@ -3,6 +3,8 @@ from pathlib import Path
 
 from django.contrib import messages
 
+from persefone.settings.env_utils import getenv_bool, getenv_list
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 TEMPLATE_DIR = Path(BASE_DIR) / "templates"
 
@@ -35,7 +37,7 @@ INSTALLED_APPS = [
     "render_block",
 ]
 
-PUBLIC = os.getenv("PUBLIC", "").lower() in ("1", "true", "yes")
+PUBLIC = getenv_bool("PUBLIC")
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -106,11 +108,8 @@ DATABASES = {
 
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
-hosts = os.getenv("ALLOWED_HOSTS", "")
-ALLOWED_HOSTS = hosts.split() if hosts else []
-
-origins = os.getenv("CSRF_TRUSTED_ORIGINS", "")
-CSRF_TRUSTED_ORIGINS = origins.split() if origins else []
+ALLOWED_HOSTS = getenv_list("ALLOWED_HOSTS")
+CSRF_TRUSTED_ORIGINS = getenv_list("CSRF_TRUSTED_ORIGINS")
 
 # Internationalization
 LANGUAGE_CODE = "en-GB"
@@ -119,13 +118,18 @@ USE_I18N = False
 USE_TZ = True
 FORMAT_MODULE_PATH = ("formats",)
 
+# Static Files
 STATIC_URL = "static/"
 
+# crispy_forms
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = "bootstrap5"
+
+# django_tables2
 DJANGO_TABLES2_TEMPLATE = "django_tables2/bootstrap5-responsive.html"
 DJANGO_TABLES2_PAGE_RANGE = 10
 
+# rest_framework
 REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "restapi.pagination.OptionalPagination",
     "PAGE_SIZE": 10,
@@ -134,8 +138,11 @@ REST_FRAMEWORK = {
     ],
 }
 
+# Authentication
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
+
+# Messages
 MESSAGE_TAGS = {
     messages.DEBUG: "bg-light",
     messages.INFO: "text-white bg-primary",
@@ -144,6 +151,7 @@ MESSAGE_TAGS = {
     messages.ERROR: "text-white bg-danger",
 }
 
+# Logging
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -174,16 +182,20 @@ LOGGING = {
     },
 }
 
-# Defines whether to log model related events, such as when an
-# object is created, updated, or deleted. Defaults to True.
-DJANGO_EASY_AUDIT_WATCH_MODEL_EVENTS = True
+# easy_audit
+# Defines whether to log model related events, such as when an object
+# is created, updated, or deleted. Defaults to True.
+DJANGO_EASY_AUDIT_WATCH_MODEL_EVENTS = getenv_bool("DJANGO_EASY_AUDIT_WATCH_MODEL_EVENTS", True)
 
 # Defines whether to log user authentication events, such as logins,
-# logouts and failed logins. Defaults to True.
-DJANGO_EASY_AUDIT_WATCH_AUTH_EVENTS = False
+# logouts and failed logins. Defaults to False
+DJANGO_EASY_AUDIT_WATCH_AUTH_EVENTS = getenv_bool("DJANGO_EASY_AUDIT_WATCH_AUTH_EVENTS", False)
 
 # Defines whether to log URL requests made to the project. Defaults to
-# True
-DJANGO_EASY_AUDIT_WATCH_REQUEST_EVENTS = False
+# False
+DJANGO_EASY_AUDIT_WATCH_REQUEST_EVENTS = getenv_bool("DJANGO_EASY_AUDIT_WATCH_REQUEST_EVENTS", False)
 
-DJANGO_EASY_AUDIT_UNREGISTERED_CLASSES_EXTRA = ["auth.group"]
+DJANGO_EASY_AUDIT_UNREGISTERED_CLASSES_EXTRA = getenv_list(
+    "DJANGO_EASY_AUDIT_UNREGISTERED_CLASSES_EXTRA",
+    ["auth.group"],
+)
