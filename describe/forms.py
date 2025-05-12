@@ -181,7 +181,17 @@ class DescriptionForm(forms.ModelForm):
         }
 
 
-class DescriptionUpdateForm(DescriptionForm):
+class DescriptionUpdateForm(forms.ModelForm):
+    variety = forms.ModelChoiceField(
+        queryset=PlantVariety.objects.select_related("species").all(),
+        widget=TomSelect,
+    )
+    name = forms.ChoiceField(
+        label="Tag",
+        choices=Description.names(),
+        widget=TomSelect,
+    )
+
     class Meta:
         model = Description
         fields = ("variety", "name")
@@ -194,13 +204,6 @@ class ExpressionForm(forms.ModelForm):
         model = Expression
         fields = ("description", "state", "note")
         widgets = {"description": forms.HiddenInput()}
-
-    def __init__(self, *args, **kwargs) -> None:
-        trait = kwargs.pop("trait", None)
-        super().__init__(*args, **kwargs)
-        self.auto_id = False
-        if trait:
-            self.fields["state"].queryset = State.objects.filter(trait=trait)  # type: ignore[attr-defined]
 
 
 class WorkspaceSelectForm(forms.Form):

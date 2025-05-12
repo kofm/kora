@@ -4,25 +4,25 @@
 {{ form.description }}
 
 <div class="row g-3 mb-3">
-    <div class="col-4">
-	    {{ form.state.errors }}
-	    {{ form.state|add_class:'form-select'|add_valid_class:'is-valid' }}
-    </div>
-    <div class="col">
-	    {{ form.note.errors }}
-	    {{ form.note|add_class:'form-select'|add_valid_class:'is-valid' }}
-    </div>
-    <div class="col-1 d-flex flex-column justify-content-end mb-2">
-	    {% if expression %}
-	        <a
-		        href="#"
-		        class="text-decoration-none link-body-emphasis"
-		        hx-post="{% url 'describe:expression-delete' expression.pk %}"
-		        hx-target="closest form"
-		        hx-swap="outerHTML"
-	        >
-		        <i class="bi bi-dash-circle"></i>
-	        </a>
-	    {% endif %}
-    </div>
+  <div class="col-4">
+    {{ form.state.errors }}
+    {{ form.state|add_class:'form-select'|add_valid_class:'is-valid' }}
+  </div>
+  <div class="col">
+    {{ form.note.errors }}
+    {{ form.note|add_class:'form-select'|add_valid_class:'is-valid' }}
+  </div>
+  <div class="col-1 d-flex flex-column justify-content-end mb-2">
+    {% if expression %}
+      <a
+	href="#"
+	class="text-decoration-none link-body-emphasis"
+	hx-post="{% url 'describe:expression-delete' expression.pk %}"
+	hx-target="closest form"
+	hx-swap="outerHTML"
+      >
+	<i class="bi bi-dash-circle"></i>
+      </a>
+    {% endif %}
+  </div>
 </div>

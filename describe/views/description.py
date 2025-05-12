@@ -19,7 +19,7 @@ from django.views.generic import DeleteView
 from django_tables2 import RequestConfig
 
 from breadcrumbs.generic import DeleteBreadcrumbsMixin
-from breadcrumbs.utils import add_plantvariety_breadcrumbs, generate_breadcrumbs
+from breadcrumbs.utils import add_parent_breadcrumbs, add_plantvariety_breadcrumbs, generate_breadcrumbs
 from describe.forms import (
     DescriptionForm,
     DescriptionNameForm,
@@ -275,19 +275,42 @@ class DescriptionDeleteView(PermissionRequiredMixin, DeleteBreadcrumbsMixin, Nav
 
 
 @permission_required("describe.change_expression", raise_exception=True)
+@htmx_render_blocks(["header", "description_form"])
 def description_expression_update(request, pk):
-    description = get_object_or_404(Description, pk=pk)
-    traits = description.available_traits
-    formset = []
+    context = {}
+    description = Description.objects.select_related("variety__species", "protocol__plantspecies").get(pk=pk)
+    if request.method == "POST":
+        undo = {"variety": description.variety_id, "name": description.name}
+        description_form = DescriptionUpdateForm(request.POST, instance=description)
+        if description_form.is_valid():
+            description_form.save()
+            if "undo" not in request.POST:
+                context.update({"undo": undo})
+    else:
+        description_form = DescriptionUpdateForm(instance=description)
 
-    for trait in traits:
-        expressions = description.expressions.filter(state__trait=trait)
-        forms = []
-        if expressions.exists():
-            for expression in expressions:
-                form = ExpressionForm(instance=expression, trait=trait)
-                forms.append(form)
-        formset.append({"trait": trait, "forms": forms})
-    context = {"description": description, "formset": formset}
-    context.update(generate_breadcrumbs(request, Description, description))
+    context.update({"description": description, "form": description_form})
+
+    if not is_htmx(request):
+        traits = Trait.objects.prefetch_related("states").filter(protocol=description.protocol_id)
+        state_choices = {t.pk: [(s.pk, str(s)) for s in t.states.all()] for t in traits}
+        formset = []
+        expressions_dict = defaultdict(list)
+        for e in Expression.objects.prefetch_related("state__trait").filter(description=description):
+            expressions_dict[e.state.trait.pk].append(e)
+
+        for trait in traits:
+            expressions = expressions_dict[trait.pk]
+            forms = []
+            if expressions:
+                for expression in expressions:
+                    form = ExpressionForm(instance=expression, auto_id=False)
+                    form.fields["state"].choices = state_choices[trait.pk]
+                    forms.append(form)
+            formset.append({"trait": trait, "forms": forms})
+        context["formset"] = formset
+
+    crumbs = generate_breadcrumbs(request, Description, description)
+    crumbs = add_parent_breadcrumbs(crumbs, description.variety)
+    context.update(crumbs)
     return TemplateResponse(request, "describe/description_expression_update.html", context)

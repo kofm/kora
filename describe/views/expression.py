@@ -7,7 +7,7 @@ from django.template.response import TemplateResponse
 from django.views.decorators.http import require_GET, require_POST
 
 from describe.forms import ExpressionForm
-from describe.models import Description, Expression
+from describe.models import Description, Expression, State
 
 
 @require_GET
@@ -24,7 +24,9 @@ def expression_create_form_empty(request, pk, trait):
 @permission_required("describe.change_expression", raise_exception=True)
 def expression_update_form(request, pk):
     expression = get_object_or_404(Expression, pk=pk)
-    form = ExpressionForm(request.POST, instance=expression, trait=expression.state.trait)
+    state_queryset = State.objects.filter(trait=expression.state.trait_id)
+    form = ExpressionForm(request.POST, instance=expression)
+    form.fields["state"].queryset = state_queryset
     context = {"form": form}
     if form.is_valid():
         form.save()

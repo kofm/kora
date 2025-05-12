@@ -3,70 +3,104 @@
 {% load static %}
 {% load crispy_forms_tags %}
 {% load breadcrumbs %}
+{% load widget_tweaks %}
+{% load frontpage_extras %}
 
 {% block title %}{{ description }}{% endblock %}
 
 {% block javascript %}
-    <link href="{% static 'describe/expression-update.css' %}" rel="stylesheet" type="text/css"></link>
+  <link href="{% static 'describe/expression-update.css' %}" rel="stylesheet" type="text/css"></link>
 {% endblock %}
 
 {% block container %}
 
-    {% render_breadcrumbs %}
+  {% render_breadcrumbs %}
 
-    <div class="row mb-5">
-	    <div class="col">
-	        <h1 class="display-3">
-		        {{ description }}
-	        </h1>
-	        <p class="lead">Reference protocol <a href="{% url 'describe:protocol_detail' description.protocol.id %}">{{ description.protocol.name }}</a> (<i>{{ description.protocol.plantspecies.latin_name }}</i>)</p>
-	    </div>
+  {% block header %}
+    <div id="header" class="row" hx-swap-oob="true">
+      <div class="col">
+	<h1 class="mb-0">
+	  {{ description.variety.name }}
+	</h1>
+	<p class="text-body-secondary my-0 fs-3">{{ description.name }}</p>
+	<p class="lead">Reference protocol <a href="{% url 'describe:protocol_detail' description.protocol.id %}">{{ description.protocol.name }}</a> (<i>{{ description.protocol.plantspecies.latin_name }}</i>)</p>
+      </div>
+    </div>
+  {% endblock %}
+
+  <div class="row mb-5">
+
+    <div class="col-3 navbar-example">
+      <div id="simple-list-example" class="d-flex flex-column gap-2 simple-list-example-scrollspy">
+	<a class="p-1 rounded text-decoration-none link-body-emphasis" href="#description-form">0. Description</a>
+	{% for row in formset %}
+	  <a class="p-1 rounded text-decoration-none link-body-emphasis {{ row.trait.grouping|yesno:"fw-bold," }}" href="#trait-{{ row.trait.pk }}">
+	    {{ row.trait }}
+	  </a>
+	{% endfor %}
+      </div>
     </div>
 
-    <div class="row mb-5">
+    <div id="accordion" data-bs-spy="scroll" data-bs-target="#navbar-example" data-bs-root-margin="0px 0px -80%" data-bs-smooth-scroll="true" class="col" tabindex="0">
+      <div id="description-form" class="card mb-2">
+	<div class="card-header bg-secondary text-white">
+	  <a class="text-decoration-none link-light" data-bs-toggle="collapse" data-bs-target="#description-collapse" role="button" aria-expanded="false" aria-controls="description-collapse">
+	    0. Description
+	  </a>
+	</div>
 
-	    <div class="col-3 navbar-example">
-	        <div id="simple-list-example" class="d-flex flex-column gap-2 simple-list-example-scrollspy">
-		        {% for row in formset %}
-		            <a class="p-1 rounded text-decoration-none link-body-emphasis {{ row.trait.grouping|yesno:"fw-bold," }}" href="#trait-{{ row.trait.pk }}">
-			            {{ row.trait }}
-		            </a>
-		        {% endfor %}
-	        </div>
+	<div id="description-collapse" class="collapse">
+	  <div class="card-body position-relative" hx-ext="tomselect">
+	    {% block description_form %}
+	      <form hx-post="" hx-target="closest .card-body" hx-trigger="change">
+		<div class="mb-3">
+		  {{ form.variety.label_tag }}
+		  {{ form.variety.errors }}
+		  {{ form.variety|add_class:'form-select'|add_valid_class:'is-valid' }}
+		</div>
+		<div>
+		  {{ form.name.label_tag }}
+		  {{ form.name.errors }}
+		  {{ form.name|add_class:'form-select'|add_valid_class:'is-valid' }}
+		</div>
+	      </form>
+	      {% if undo %}
+		<form hx-post="" hx-trigger="click from:#undo" hx-target="closest .card-body">
+		  <input type="hidden" name="variety" value="{{ undo.variety }}">
+		  <input type="hidden" name="name" value="{{ undo.name }}">
+		  <input type="hidden" name="undo" value="true">
+		  <small class="ms-auto d-flex justify-content-center mt-2">
+		    <a id="undo" class="link-body-emphasis" type="submit">Undo</a>
+		  </small>
+		</form>
+	      {% endif %}
+	    {% endblock %}
+	  </div>
+	</div>
+
+
+      </div>
+      {% for row in formset %}
+	<div id="trait-{{ row.trait.pk }}" class="card mb-2">
+	  <div class="card-header bg-secondary text-white">
+	    <a class="link-light text-decoration-none" href="" data-bs-toggle="collapse" data-bs-target="#collapse{{ row.trait.pk }}">
+	      {{ row.trait }}
+	    </a>
+	  </div>
+	  <div id="collapse{{ row.trait.pk }}" class="collapse show">
+	    <div class="card-body">
+	      {% for form in row.forms %}
+		{% include 'describe/partials/expression_update.html' with form=form %}
+	      {% endfor %}
+	      <a href="" class="text-decoration-none link-body-emphasis" hx-get="{% url 'describe:description-expression-form' description.pk row.trait.pk %}" hx-swap="beforebegin" hx-target="this">
+		<i class="bi bi-plus-circle"></i>
+	      </a>
 	    </div>
-
-	    <div
-	        data-bs-spy="scroll"
-	        data-bs-target="#navbar-example"
-	        data-bs-root-margin="0px 0px -80%"
-	        data-bs-smooth-scroll="true"
-	        class="col"
-	        tabindex="0">
-	        {% for row in formset %}
-		        <div id="trait-{{ row.trait.pk }}" class="card mb-2">
-		            <div class="card-header bg-secondary text-white">
-			            {{ row.trait }}
-		            </div>
-		            <div class="card-body">
-			            {% for form in row.forms %}
-			                {% include 'describe/partials/expression_update.html' with form=form %}
-			            {% endfor %}
-			            <a href=""
-			               class="text-decoration-none link-body-emphasis"
-			               hx-get="{% url 'describe:description-expression-form' description.pk row.trait.pk %}"
-			               hx-swap="beforebegin"
-			               hx-target="this">
-			                <i class="bi bi-plus-circle"></i>
-			            </a>
-		            </div>
-		        </div>
-
-	        {% endfor %}
-
-	        <a href="{% url 'describe:description_detail' description.pk %}" class="btn btn-primary submit-btn">Back</a>
-
-
-
-	    </div>
+	  </div>
+	</div>
+      {% endfor %}
     </div>
+  </div>
+
+  <a href="{% url 'describe:description_detail' description.pk %}" class="btn btn-primary submit-btn">Back</a>
 {% endblock %}

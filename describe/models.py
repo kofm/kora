@@ -150,7 +150,7 @@ class Description(ModelIsDeletableMixin, models.Model):
         ordering = ("variety__name",)
 
     def __str__(self):
-        return f"{self.variety} ({self.name} description)"
+        return f"{self.variety.name} ({self.name})"
 
     def get_absolute_url(self):
         return reverse("describe:description_detail", args=(self.pk,))
