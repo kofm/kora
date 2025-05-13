@@ -1,11 +1,9 @@
 {% with expression=form.instance %}
-    <form
-	hx-post="{% url 'describe:expression-update' expression.pk %}"
-	hx-trigger="change"
-	hx-swap="outerHTML"
-    >
 
-	{% include "describe/partials/expression_form.html" %}
+  {% url 'describe:expression-update' expression.pk as url %}
 
-    </form>
+  <form hx-post="{{ url }}" hx-trigger="change" hx-swap="outerHTML">
+    {% include "describe/partials/expression_form.html" %}
+  </form>
+
 {% endwith %}

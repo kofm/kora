@@ -43,12 +43,7 @@ urlpatterns = [
     path("trait/<int:trait_pk>/state/form", stt.state_form, name="state_form"),
     path("state/create", stt.state_create, name="state_create"),
     path("state/<int:pk>/related_state/delete", stt.relatedstate_delete, name="relatedstate-delete"),
-    path("expression/<int:pk>/update", xpr.expression_update_form, name="expression-update"),
-    path(
-        "<int:pk>/trait/<int:trait>/expression/form",
-        xpr.expression_create_form_empty,
-        name="description-expression-form",
-    ),
+    path("expression/<int:pk>/update", xpr.expression_update, name="expression-update"),
     path("expression/<int:pk>/delete", xpr.expression_delete, name="expression-delete"),
     path("expression/create", xpr.expression_create, name="expression-create"),
 ]

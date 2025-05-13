@@ -52,7 +52,7 @@
 	<div id="description-collapse" class="collapse">
 	  <div class="card-body position-relative" hx-ext="tomselect">
 	    {% block description_form %}
-	      <form hx-post="" hx-target="closest .card-body" hx-trigger="change">
+	      <form hx-post="" hx-target="closest .card-body" hx-trigger="click from:#submit">
 		<div class="mb-3">
 		  {{ form.variety.label_tag }}
 		  {{ form.variety.errors }}
@@ -63,15 +63,18 @@
 		  {{ form.name.errors }}
 		  {{ form.name|add_class:'form-select'|add_valid_class:'is-valid' }}
 		</div>
+		<small class="ms-auto d-flex justify-content-center mt-2">
+		  <a id="submit" href="#" class="link-secondary link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover">Update</a> 
+		  {% if undo %}
+		  <a id="undo" href="#" class="pe-auto ms-3 link-secondary link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover">Undo</a>
+		  {% endif %}
+		</small>
 	      </form>
 	      {% if undo %}
 		<form hx-post="" hx-trigger="click from:#undo" hx-target="closest .card-body">
 		  <input type="hidden" name="variety" value="{{ undo.variety }}">
 		  <input type="hidden" name="name" value="{{ undo.name }}">
 		  <input type="hidden" name="undo" value="true">
-		  <small class="ms-auto d-flex justify-content-center mt-2">
-		    <a id="undo" class="link-body-emphasis" type="submit">Undo</a>
-		  </small>
 		</form>
 	      {% endif %}
 	    {% endblock %}
@@ -92,7 +95,7 @@
 	      {% for form in row.forms %}
 		{% include 'describe/partials/expression_update.html' with form=form %}
 	      {% endfor %}
-	      <a href="" class="text-decoration-none link-body-emphasis" hx-get="{% url 'describe:description-expression-form' description.pk row.trait.pk %}" hx-swap="beforebegin" hx-target="this">
+	      <a href="" class="text-decoration-none link-body-emphasis" hx-get="{% url 'describe:expression-create' %}" hx-swap="beforebegin" hx-target="this" hx-vals='{"description": "{{ description.pk }}", "trait": "{{ row.trait.pk }}"}'>
 		<i class="bi bi-plus-circle"></i>
 	      </a>
 	    </div>

@@ -203,7 +203,10 @@ class ExpressionForm(forms.ModelForm):
     class Meta:
         model = Expression
         fields = ("description", "state", "note")
-        widgets = {"description": forms.HiddenInput()}
+        widgets = {
+            "description": forms.HiddenInput(),
+            "note": forms.TextInput(attrs={"class": "form-control", "placeholder": "Notes:"}),
+        }
 
 
 class WorkspaceSelectForm(forms.Form):

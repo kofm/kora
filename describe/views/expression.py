@@ -4,45 +4,42 @@ from django.contrib.auth.decorators import permission_required
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.template.response import TemplateResponse
-from django.views.decorators.http import require_GET, require_POST
+from django.views.decorators.http import require_POST
 
 from describe.forms import ExpressionForm
-from describe.models import Description, Expression, State
-
-
-@require_GET
-def expression_create_form_empty(request, pk, trait):
-    """Return a Description ExpressionForm for a specific Trait.
-
-    Used by the `description_update` view via htmx to add an empty field for a specific trait."""
-    description = get_object_or_404(Description, pk=pk)
-    form = ExpressionForm(initial={"description": description.pk}, trait=trait)
-    return TemplateResponse(request, "describe/partials/expression_create.html", {"form": form, "trait": trait})
+from describe.models import Expression, State
 
 
 @require_POST
 @permission_required("describe.change_expression", raise_exception=True)
-def expression_update_form(request, pk):
-    expression = get_object_or_404(Expression, pk=pk)
+def expression_update(request, pk):
+    expression = get_object_or_404(Expression.objects.select_related("state"), pk=pk)
     state_queryset = State.objects.filter(trait=expression.state.trait_id)
     form = ExpressionForm(request.POST, instance=expression)
     form.fields["state"].queryset = state_queryset
-    context = {"form": form}
     if form.is_valid():
         form.save()
-    return TemplateResponse(request, "describe/partials/expression_update.html", context)
+    return TemplateResponse(request, "describe/partials/expression_update.html", {"form": form})
 
 
-@require_POST
 @permission_required("describe.add_expression", raise_exception=True)
 def expression_create(request):
-    trait = request.POST.get("trait")
-    form = ExpressionForm(request.POST, trait=trait)
-    if form.is_valid():
-        expression = form.save()
-        return TemplateResponse(
-            request, "describe/partials/expression_update.html", {"form": form, "expression": expression}
-        )
+    if request.method == "POST":
+        form = ExpressionForm(request.POST)
+        trait = request.POST.get("trait")
+        state_choices = State.objects.filter(trait=trait)
+        form.fields["state"].queryset = state_choices
+        if form.is_valid():
+            expression = form.save()
+            return TemplateResponse(
+                request, "describe/partials/expression_update.html", {"form": form, "expression": expression}
+            )
+    else:
+        description = request.GET.get("description", None)
+        form = ExpressionForm(initial={"description": description})
+        trait = request.GET.get("trait")
+        state_choices = State.objects.filter(trait=trait)
+        form.fields["state"].queryset = state_choices
     return TemplateResponse(request, "describe/partials/expression_create.html", {"form": form, "trait": trait})
 
 
