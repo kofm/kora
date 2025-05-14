@@ -14,19 +14,15 @@
   {% render_breadcrumbs %}
   {% list_page_header "Samples" create_url='collect:sample_create'  permission="collect.add_sample" %}
 
-  <div class="row">
-    <div class="col">
-      <form hx-target="div.table-container" hx-swap="outerHTML">
-	<div class="form-floating">
-	  {% render_field filter.form.query class+="form-control" hx-get="." id="search" hx-trigger="keyup changed delay:500ms" _='on focus select() me' placeholder="Type to search..." %}
-	  <label for="search" class="form-label">Type to search</label>
-	</div>
-      </form>
-    </div>
+  <h2>Search</h2>
+
+  <div hx-target="div.table-container">
+    {% crispy filter.form %}
   </div>
 
   <div class="row">
     <div class="col" hx-get="" hx-trigger="cartUpdated from:body" hx-target="div.table-container">
+      <h2>Results</h2>
       {% block table %}
 	{% render_table table %}
       {% endblock %}

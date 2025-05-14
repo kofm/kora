@@ -21,7 +21,7 @@ class UserUpdateForm(UserChangeForm):
 
 class HTMXFormMixin:
     """
-    Adds your standard htmx+crispy GET‐filter helper to any Form or ModelForm.
+    Adds standard htmx+crispy GET‐filter helper to any Form or ModelForm.
     """
 
     hx_url: str = ""
@@ -38,18 +38,18 @@ class HTMXFormMixin:
         self.helper.form_method = self.form_method
 
 
-def generate_form_layout(fields: list[Field]):
+def generate_form_layout(fields: list[Field], cols_lg=4):
     if not all([isinstance(field, Field) for field in fields]):
         raise Exception("fields should be a list of crispy_forms.layout.Field objects")
     layout = Layout(
         Div(
-            *[Div(field, css_class="col-3") for field in fields],
-            css_class="row row-cols-lg-4 g-3 align-items-center",
+            *[Div(field, css_class="col") for field in fields],
+            css_class=f"row row-cols-lg-{cols_lg} align-items-top",
         ),
         Div(
-            Div(Submit("search", "Search"), css_class="col-12"),
-            HTML('<a class="btn btn-secondary" href=".">Clear</a>'),
-            css_class="row row-cols-lg-auto",
+            Submit("search", "Search", css_class="btn-sm"),
+            HTML('<a class="btn btn-sm btn-secondary" href=".">Clear</a>'),
+            css_class="mt-0 mb-3",
         ),
     )
     return layout

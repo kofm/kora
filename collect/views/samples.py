@@ -37,7 +37,7 @@ from frontpage.views_decorators import htmx_render_blocks
 @htmx_render_blocks(["table"])
 @permission_required("collect.view_sample")
 def sample_list(request):
-    flt = SampleFilter(request.GET)
+    flt = SampleFilter(request.GET, queryset=Sample.objects.all())
     queryset = flt.qs.with_availability().with_germination()
 
     table = SampleTable(queryset)

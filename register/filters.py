@@ -112,7 +112,7 @@ class PlantVarietyFilter(FilterSet):
         return queryset
 
 
-class EntityFormFilter(HTMXFormMixin, forms.ModelForm):
+class EntityFilterForm(HTMXFormMixin, forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper.layout = generate_form_layout([Field("name"), Field("country"), Field("type")])
@@ -131,7 +131,7 @@ class EntityFilter(FilterSet):
         return filter_name_generic(queryset, name, value)
 
     class Meta:
-        form = EntityFormFilter
+        form = EntityFilterForm
 
 
 class ProtectionOmniFilterForm(HTMXFormMixin, forms.Form):
