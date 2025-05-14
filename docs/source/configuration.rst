@@ -74,18 +74,22 @@ When in doubt, use quotes.
 Site Visibility
 ~~~~~~~~~~~~~~~
 
+
+.. option:: PUBLIC
+
+    Boolean. Determines whether accessing your *kora* installation
+    requires a password. By default (False), the application restricts
+    access to logged-in users with a username and password.When set to
+    `true`, the following sections will be accessible **read-only** by
+    anyone:
+
+    - Plants > Species, Varieties, and Protections
+
+    - Describe > Descriptions, Protocols, and Entities
+
 ::
 
     PUBLIC='false'
-
-Boolean. Determines whether accessing your *kora* installation
-requires a password. By default (False), the application restricts
-access to logged-in users with a username and password.When set to
-`true`, the following sections will be accessible **read-only** by
-anyone:
-
-- Plants > Species, Varieties, and Protections
-- Describe > Descriptions, Protocols, and Entities
 
 Auditing Interaction
 ~~~~~~~~~~~~~~~~~~~~
@@ -98,78 +102,105 @@ following environment variables control auditing features that log
 operations, user access, and page views. Useful for detailed tracking
 and auditing of user activity within your *kora* instance.
 
+.. option:: DJANGO_EASY_AUDIT_WATCH_AUTH_EVENTS
+
+    Boolean. Determines whether to log user authentication events such as
+    logins, logouts, and failed login attempts.
+
 ::
 
    DJANGO_EASY_AUDIT_WATCH_AUTH_EVENTS='false'  
 
-Boolean. Determines whether to log user authentication events such as
-logins, logouts, and failed login attempts.
+   
+.. option:: DJANGO_EASY_AUDIT_WATCH_REQUEST_EVENTS
+
+	    Boolean. Determines whether to log URL requests made by users, i.e.,
+	    which pages they visit.
 
 ::
 
    DJANGO_EASY_AUDIT_WATCH_REQUEST_EVENTS='false'
 
-Boolean. Determines whether to log URL requests made by users, i.e.,
-which pages they visit.
+.. option:: DJANGO_EASY_AUDIT_WATCH_MODEL_EVENTS
+
+	    Boolean. Determines whether to log when objects are created, updated,
+	    or deleted.
 
 ::
 
     DJANGO_EASY_AUDIT_WATCH_MODEL_EVENTS='true'
 
-Boolean. Determines whether to log when objects are created, updated,
-or deleted.
+.. option:: DJANGO_EASY_AUDIT_UNREGISTERED_CLASSES_EXTRA
+
+	    List. Specifies models whose CRUD operations should not be
+	    logged.
 
 ::
 
    DJANGO_EASY_AUDIT_UNREGISTERED_CLASSES_EXTRA='auth.group'
 
-List. Specifies models whose CRUD operations should not be
-logged.
-
 Django-Related Settings
 ~~~~~~~~~~~~~~~~~~~~~~~
+
+.. option:: DEV
+
+	    Boolean. Indicates whether the application is running in
+	    development mode.  When set to `false` (the default), the
+	    application runs in production mode, which disables
+	    debugging features and enables performance improvements.
+	    Use `true` only during development or troubleshooting.
 
 ::
 
    DEV='false'
 
-Boolean. Indicates whether the application is running in development mode.
-When set to `false` (the default), the application runs in production mode,
-which disables debugging features and enables performance improvements.
-Use `true` only during development or troubleshooting.
+.. option:: SECRET_KEY
+
+	    String. A secret key used by Django for security purposes
+	    such as sessions and password resets.  This key should be
+	    unique and kept private to protect your application.
 
 ::
 
    SECRET_KEY='foo'
 
-String. A secret key used by Django for security purposes such as
-sessions and password resets.  This key should be unique and kept
-private to protect your application.
+.. option:: ALLOWED_HOSTS
+
+    List. Specifies the host/domain names that Django considers valid for
+    serving the application. Requests with a Host header not matching an
+    entry in this list will be blocked. This helps prevent HTTP Host
+    header attacks and ensures your application only responds to expected
+    hosts.
+
+    In the default containerized setup, `'web'` corresponds to the service
+    name defined within the Docker network, allowing internal routing and
+    communication between containers.
+
+    When deploying *kora* in different environments, such as on a local
+    machine, network server, or cloud instance, it is important to adjust
+    `ALLOWED_HOSTS` accordingly. 
+
+    Failing to set `ALLOWED_HOSTS` properly may result in "Bad Request
+    (400)" errors when accessing the application from outside the default
+    container network.
+
 
 ::
 
    ALLOWED_HOSTS='web'
-
    # Example configuration for a local network deployment
    ALLOWED_HOSTS='web localhost 192.168.1.50'
 
-List. Specifies the host/domain names that Django considers valid for
-serving the application. Requests with a Host header not matching an
-entry in this list will be blocked. This helps prevent HTTP Host
-header attacks and ensures your application only responds to expected
-hosts.
+.. option:: CSRF_TRUSTED_ORIGINS
 
-In the default containerized setup, `'web'` corresponds to the service
-name defined within the Docker network, allowing internal routing and
-communication between containers.
+    List of URLs. These are trusted addresses allowed to submit forms or
+    requests to Django, helping protect against certain web attacks. The
+    defaults cover typical local and container access.
 
-When deploying *kora* in different environments, such as on a local
-machine, network server, or cloud instance, it is important to adjust
-`ALLOWED_HOSTS` accordingly. 
-
-Failing to set `ALLOWED_HOSTS` properly may result in "Bad Request
-(400)" errors when accessing the application from outside the default
-container network.
+    When deploying *kora* in a local area network (LAN) using the
+    containerized *kora-docker* bundle, the setting `CSRF_TRUSTED_ORIGINS`
+    must be edited to specify the IP of the host machine to make requests
+    without triggering CSRF protection errors.
 
 ::
 
@@ -178,49 +209,50 @@ container network.
    # Example configuration for a typical LAN install might look like this:
    CSRF_TRUSTED_ORIGINS='http://localhost:8002/* http://web http://192.168.1.50:8002'
 
-List of URLs. These are trusted addresses allowed to submit forms or
-requests to Django, helping protect against certain web attacks. The
-defaults cover typical local and container access.
-
-When deploying *kora* in a local area network (LAN) using the
-containerized *kora-docker* bundle, the setting `CSRF_TRUSTED_ORIGINS`
-must be edited to specify the IP of the host machine to make requests
-without triggering CSRF protection errors.
-
 
 `kora-docker` Settings
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 These settings control aspects of the *kora-docker* bundle, which packages *kora* in a containerized environment for easy deployment and management.
 
+.. option:: POSTGRES_PASSWORD
+
+	    String. Password for the PostgreSQL database administrator.
+	    The default `'postgres'` is adequate for local development, but you should change it for production.
+
 ::
 
    POSTGRES_PASSWORD='postgres'
 
-String. Password for the PostgreSQL database administrator.
-The default `'postgres'` is adequate for local development, but you should change it for production.
+.. option:: NGINX_PORT
+
+	    Number. The port on your computer where the web server listens for incoming requests.
+
+	    Default `8002` is a sensible choice that avoids conflicts with common services.
 
 ::
 
    NGINX_PORT=8002
 
-Number. The port on your computer where the web server listens for incoming requests.
-Default `8002` is a sensible choice that avoids conflicts with common services.
+.. option:: DB_HOST
+
+	    String. The name of the database host or service.
+	    In Docker setups, `'db'` usually refers to the database container and works without changes.
 
 ::
 
    DB_HOST='db'
 
-String. The name of the database host or service.
-In Docker setups, `'db'` usually refers to the database container and works without changes.
+.. option:: DB_PORT
+
+    Number. The port on which the PostgreSQL database is listening inside the container.
+
+    Port `5432` is the standard PostgreSQL port and typically does not need to be changed.
+    Because this port is not exposed outside the containers, using the default keeps things secure.
 
 ::
 
    DB_PORT=5432
-
-Number. The port on which the PostgreSQL database is listening inside the container.
-Port `5432` is the standard PostgreSQL port and typically does not need to be changed.
-Because this port is not exposed outside the containers, using the default keeps things secure.
 
 .. note::
 

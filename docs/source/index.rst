@@ -3,7 +3,9 @@ Kora
 
 .. toctree::
    self
+   installation
    configuration
+   security
    cropmodels
    :maxdepth: 2
    :caption: Contents:

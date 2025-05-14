@@ -75,11 +75,25 @@ format = ["I"]
 name = "cz_conventional_commits"
 tag_format = "$version"
 changelog_start_rev = "0.1.0"
+annotated_tag = true
 version_scheme = "semver2"
 version_files = ["pyproject.toml", "uv.lock"]
 version_provider = "pep621"
 update_changelog_on_bump = true
 major_version_zero = true
+change_type_order = [
+    "BREAKING CHANGE",
+    "Added",
+    "Fixed",
+    "Changed",
+    "Documentation"
+]
+
+[tool.commitizen.change_type_map]
+feat = "Added"
+fix = "Fixed"
+refactor = "Changed"
+docs = "Documentation"
 
 [dependency-groups]
 dev = [
