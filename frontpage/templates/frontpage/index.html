@@ -1,28 +1,18 @@
 {% extends "frontpage/base.html" %}
 {% block title %}
-    Home
+  Home
 {% endblock %}
 
 {% block container %}
 
-    <div class="row wd-flex justify-content-center align-items-center vh-100">
-        <div class="col-6">
-            <figure class="text-center">
-	            <blockquote class="blockquote mt-5">
-		            <p>
-		                “I learned this, at least, by my experiment: that if one advances
-		                confidently in the direction of his dreams, and endeavors to live the life
-		                which he has imagined, he will meet with a success unexpected in common
-		                hours.”
-		            </p>
-	            </blockquote>
-	            <figcaption class="blockquote-footer">
-		            David Henry Thoreau in <cite title="Source Title">Walden; or, Life in the Woods</cite>
-	            </figcaption>
-	        </figure>
-        </div>
-    </div>
-
-    </div>
+<section class="vh-100 d-flex flex-column justify-content-center align-items-center text-center px-3">
+  <div class="col-lg-8">
+    <h1 class="display-4 fw-semibold">Kora</h1>
+    <p class="lead text-secondary">
+      Record, manage, and work with crop data.
+    </p>
+    <a href="/docs/" class="btn btn-primary btn-lg mt-3">View Documentation</a>
+  </div>
+</section>
 
 {% endblock %}
