@@ -7,15 +7,17 @@
 
   {% render_breadcrumbs %}
 
-  <h1 class="display-3">
-    {% block heading %}
-    {% endblock %}
-  </h1>
+  <div class="mb-3">
+    <h1 class="mb-0">
+      {% block heading %}
+      {% endblock %}
+    </h1>
 
-  <p class="lead">
-    {% block subheading %}
-    {% endblock %}
-  </p>
+    <p class="text-body-secondary my-0 fs-3">
+      {% block subheading %}
+      {% endblock %}
+    </p>
+  </div>
 
   {% block help %}
   {% endblock %}

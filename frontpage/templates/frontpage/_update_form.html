@@ -1,21 +1,17 @@
 {% extends "frontpage/_form.html" %}
 
 {% block title %}
-    Update {{ object }}
+  Update {{ object }}
 {% endblock %}
 
 {% block heading %}
-    {% if title and subtitle %}
-        Update: {{ title }}
-        <small class="text-body-secondary h3">{{ subtitle }}</small>
-    {% else %}
-        Update: <i>{{ object }}</i>
-    {% endif %}
+  Update: <i>{{ object }}</i>
 {% endblock %}
 
 {% block subheading %}
+  {{ subtitle }}
 {% endblock %}
 
 {% block buttons %}
-    <input class="btn btn-primary me-2" type="submit" value="Update">
+  <input class="btn btn-primary me-2" type="submit" value="Update">
 {% endblock %}

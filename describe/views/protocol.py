@@ -46,7 +46,7 @@ def protocol_detail(request, pk):
 @permission_required("describe.change_protocol", raise_exception=True)
 def protocol_update(request, pk):
     context = {}
-    protocol = get_object_or_404(Protocol, pk=pk)
+    protocol = get_object_or_404(Protocol.objects.prefetch_related("traits"), pk=pk)
     trait = protocol.traits.first()
     if trait:
         context["trait_next"] = trait.get_next_in_protocol()
@@ -60,7 +60,7 @@ def protocol_update(request, pk):
             "protocol": protocol,
             "object": protocol,
             "title": protocol.name,
-            "subtitle": protocol.plantspecies.latin_name,
+            "subtitle": protocol.plantspecies,
             "current_trait": trait,
             "form": form,
         }
@@ -70,8 +70,6 @@ def protocol_update(request, pk):
 
 
 class ProtocolCreate(CreateBreadcrumbsMixin, NavDescribeActiveContext, CreateView):
-    """View to create a new Protocol."""
-
     model = Protocol
     fields = ["name", "plantspecies", "url_ref"]
     template_name = "frontpage/_create_form.html"
