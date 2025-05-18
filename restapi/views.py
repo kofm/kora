@@ -13,6 +13,7 @@ from collect.serializers import SampleWeightSerializer
 from describe.models import (
     Description,
     Protocol,
+    State,
     Trait,
     Workspace,
     WorkspaceElement,
@@ -30,6 +31,7 @@ from restapi.serializers import (
     ProtectionSerializer,
     ProtocolSerializer,
     SampleSerializer,
+    StateSerializer,
     StoragePositionSerializer,
     StorageSerializer,
     TraitSerializer,
@@ -105,6 +107,12 @@ class TraitViewSet(viewsets.ModelViewSet):
     serializer_class = TraitSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = TraitFilter
+
+
+class StateViewSet(viewsets.ModelViewSet):
+    queryset = State.objects.select_related("trait").all()
+    serializer_class = StateSerializer
+    filter_backends = [DjangoFilterBackend]
 
 
 class DescriptionViewSet(viewsets.ModelViewSet):
