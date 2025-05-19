@@ -3,6 +3,14 @@
 {% load crispy_forms_tags %}
 {% load breadcrumbs %}
 
+{% block title %}
+  {% if obj %}
+    Update: {{ obj }}
+  {% else %}
+    Create {{ model_name }}
+  {% endif %}
+{% endblock %}
+
 {% block container %}
 
   {% render_breadcrumbs %}
@@ -10,6 +18,11 @@
   <div class="mb-3">
     <h1 class="mb-0">
       {% block heading %}
+	{% if obj %}
+	  Update: {{ obj }}
+	{% else %}
+	  Create {{ model_name }}
+	{% endif %}
       {% endblock %}
     </h1>
 
