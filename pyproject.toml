@@ -1,6 +1,6 @@
 [project]
 name = "kora"
-version = "0.3.1"
+version = "0.4.0"
 description = "An open-source web app to manage plant genetic resources data."
 readme = "README.md"
 authors = [

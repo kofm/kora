@@ -1,3 +1,38 @@
+## 0.4.0 (2025-05-21)
+
+### Added
+
+- **restapi**: add new API endpoint for States of Expressions
+- **frontpage**: new homepage layout
+- **frontpage**: Django Admin interface is now accessible from the Admin page
+- **spaces**: add permission checks and signals for user groups and model permissions
+- **spaces**: refactor area duplication and reorder URL patterns
+- add django-easy-audit integration
+- **spaces**: rename URL patterns to use snake_case
+- **spaces**: enhance location detail view with area grid and update models
+- **django_sortable_htmx**: add sortable grid and update card div templates
+- **collect,frontpage,register**: add model factories and provide some testing
+- **restapi**: add Cart model API endpoints and serializer
+- **spaces**: refactor spaces app with HTMX support, improve UI, breadcrumbs, and permissions
+- **register**: enhance entity list with filters, HTMX, and pagination consistency
+- **user**: introduce authentication, permission system, and UI enhancements
+
+### Fixed
+
+- **protocol**: refine protocol update view and templates UI
+- **collect**: enhance sample filtering and UI, rename form in register filters
+- **describe**: refactor and improve expression forms and views
+- **frontpage**: make logger dedicated to failed login attempts
+- **describe**: remove unused import templates
+- cleanup and typing improvements across multiple apps
+- **breadcrumbs**: skip breadcrumb generation for HTMX requests and handle empty breadcrumbs
+- **collect**: improve sample weight display and retrieval
+
+### Documentation
+
+- **frontpage**: add installation and security documentation; enhance configuration docs
+- add Sphinx documentation setup and initial docs content
+
 ## 0.3.1 (2025-04-30)
 
 ### Feat
