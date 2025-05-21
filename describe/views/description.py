@@ -251,7 +251,7 @@ def description_create(request):
             return redirect(reverse("describe:description_expression_update", args=(description.pk,)))
     else:
         form = DescriptionForm()
-        form.fields["variety"].queryset = PlantVariety.objects.all()[0:10]
+        form.fields["variety"].queryset = PlantVariety.objects.all()
         form.fields["protocol"].disabled = True
 
     variety_id = request.GET.get("variety", None)
