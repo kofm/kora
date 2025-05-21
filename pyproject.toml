@@ -73,7 +73,7 @@ format = ["I"]
 
 [tool.commitizen]
 name = "cz_customize"
-version_files = ["pyproject.toml", "uv.lock"]
+version_files = ["pyproject.toml", "uv.lock", "docs/source/conf.py:release"]
 version_provider = "pep621"
 tag_format = "$version"
 update_changelog_on_bump = true
