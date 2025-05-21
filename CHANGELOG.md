@@ -1,3 +1,9 @@
+## 0.4.1 (2025-05-21)
+
+### Fixed
+
+- **describe**: resolved missing varieties bug in Description creation
+
 ## 0.4.0 (2025-05-21)
 
 ### Added
