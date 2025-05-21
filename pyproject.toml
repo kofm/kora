@@ -72,14 +72,14 @@ enabled = true
 format = ["I"]
 
 [tool.commitizen]
-name = "cz_conventional_commits"
-tag_format = "$version"
-changelog_start_rev = "0.1.0"
-annotated_tag = true
-version_scheme = "semver2"
+name = "cz_customize"
 version_files = ["pyproject.toml", "uv.lock"]
 version_provider = "pep621"
+tag_format = "$version"
 update_changelog_on_bump = true
+annotated_tag = true
+changelog_start_rev = "0.1.0"
+version_scheme = "semver2"
 major_version_zero = true
 change_type_order = [
     "BREAKING CHANGE",
@@ -88,6 +88,10 @@ change_type_order = [
     "Changed",
     "Documentation"
 ]
+
+[tool.commitizen.customize]
+commit_parser = "^((?P<change_type>feat|fix|perf|docs|BREAKING CHANGE)(?:\\((?P<scope>[^()\r\n]*)\\)|\\()?(?P<breaking>!)?|\\w+!):\\s(?P<message>.*)?"
+changelog_pattern = "^(?![\\s\\S]*\\[skip changelog\\])((BREAKING[\\- ]CHANGE|\\w+)(\\([^)]*\\))?!?):"
 
 [tool.commitizen.change_type_map]
 feat = "Added"
