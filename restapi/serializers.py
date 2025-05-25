@@ -15,40 +15,49 @@ from parameters.models import Parameter, VarietalParameter
 from register.models import Entity, PlantSpecies, PlantVariety, PlantVarietyName, Protection
 
 
-class PlantSpeciesSerializer(serializers.HyperlinkedModelSerializer):
+class BulkListSerializer(serializers.ListSerializer):
+    def create(self, validated_data):
+        model_class = self.child.Meta.model
+        return model_class.objects.bulk_create([model_class(**item) for item in validated_data])
+
+
+class BulkModelSerializer(serializers.ModelSerializer):
+    class Meta:
+        list_serializer_class = BulkListSerializer
+
+
+class PlantSpeciesSerializer(BulkModelSerializer):
     class Meta:
         model = PlantSpecies
-        fields = ["pk", "common_name", "latin_name", "plant_type", "url"]
-        extra_kwargs = {"url": {"view_name": "register:plantspecies_detail"}}
+        fields = ("pk", "common_name", "latin_name", "plant_type")
 
 
-class PlantVarietyNameSerializer(serializers.ModelSerializer):
+class PlantVarietyNameSerializer(BulkModelSerializer):
     class Meta:
         model = PlantVarietyName
-        fields = ["name", "change_date"]
+        fields = ("name", "change_date")
 
 
-class PlantVarietySerializer(serializers.HyperlinkedModelSerializer):
+class PlantVarietyListSerializer(serializers.ListSerializer):
+    def create(self, validated_data):
+        varieties = PlantVariety.objects.bulk_create([PlantVariety(**item) for item in validated_data])
+        PlantVarietyName.objects.bulk_create(
+            [PlantVarietyName(variety=variety, name=variety.name) for variety in varieties]
+        )
+        return varieties
+
+
+class PlantVarietySerializer(serializers.ModelSerializer):
     names = PlantVarietyNameSerializer(many=True, read_only=True)
 
-    class Meta:
+    class Meta(BulkModelSerializer.Meta):
+        list_serializer_class = PlantVarietyListSerializer
         model = PlantVariety
-        fields = [
-            "pk",
-            "name",
-            "species",
-            "species_id",
-            "names",
-            "url",
-        ]
-        extra_kwargs = {
-            "url": {"view_name": "register:variety_detail"},
-            "species": {"view_name": "register:plantspecies_detail"},
-        }
+        fields = ("pk", "name", "species", "names")
 
 
-class EntitySerializer(CountryFieldMixin, serializers.HyperlinkedModelSerializer):
-    class Meta:
+class EntitySerializer(BulkModelSerializer, CountryFieldMixin, serializers.ModelSerializer):
+    class Meta(BulkModelSerializer.Meta):
         model = Entity
         fields = (
             "pk",
@@ -57,13 +66,11 @@ class EntitySerializer(CountryFieldMixin, serializers.HyperlinkedModelSerializer
             "country",
             "contact",
             "email",
-            "url",
         )
-        extra_kwargs = {"url": {"view_name": "register:entity_detail"}}
 
 
-class ProtectionSerializer(CountryFieldMixin, serializers.ModelSerializer):
-    class Meta:
+class ProtectionSerializer(CountryFieldMixin, BulkModelSerializer):
+    class Meta(BulkModelSerializer.Meta):
         model = Protection
         fields = (
             "pk",
@@ -79,19 +86,19 @@ class ProtectionSerializer(CountryFieldMixin, serializers.ModelSerializer):
         )
 
 
-class ProtocolSerializer(serializers.ModelSerializer):
+class ProtocolSerializer(BulkModelSerializer):
     class Meta:
         model = Protocol
         fields = ("pk", "name", "plantspecies", "url_ref")
 
 
-class StateSerializer(serializers.ModelSerializer):
+class StateSerializer(BulkModelSerializer):
     class Meta:
         model = State
         fields = ("pk", "numeric_id", "description", "trait")
 
 
-class TraitSerializer(serializers.ModelSerializer):
+class TraitSerializer(BulkModelSerializer):
     states = StateSerializer(many=True, read_only=True)
 
     class Meta:
@@ -110,7 +117,7 @@ class DescriptionExpressionSerializer(serializers.ModelSerializer):
         fields = ("state", "state_id", "trait", "trait_id", "state_description", "note")
 
 
-class DescriptionSerializer(serializers.ModelSerializer):
+class DescriptionSerializer(BulkModelSerializer):
     variety_name = serializers.CharField(source="variety.name", read_only=True)
     species = serializers.StringRelatedField(source="variety.species.latin_name", read_only=True)
     protocol_name = serializers.StringRelatedField(source="protocol.name", read_only=True)
@@ -130,19 +137,19 @@ class DescriptionSerializer(serializers.ModelSerializer):
         )
 
 
-class ExpressionSerializer(serializers.ModelSerializer):
+class ExpressionSerializer(BulkModelSerializer):
     class Meta:
         model = Expression
         fields = ("description", "state", "note")
 
 
-class ParameterSerializer(serializers.ModelSerializer):
+class ParameterSerializer(BulkModelSerializer):
     class Meta:
         model = Parameter
         fields = ("pk", "code", "name", "description", "measure_unit")
 
 
-class VarietalParameterSerializer(serializers.ModelSerializer):
+class VarietalParameterSerializer(BulkModelSerializer):
     parameter_code = serializers.StringRelatedField(many=False, source="parameter", read_only=True)
 
     class Meta:
@@ -150,6 +157,7 @@ class VarietalParameterSerializer(serializers.ModelSerializer):
         fields = (
             "value",
             "variety",
+            "parameter",
             "parameter_code",
             "created_at",
             "updated_at",
@@ -158,13 +166,13 @@ class VarietalParameterSerializer(serializers.ModelSerializer):
         )
 
 
-class StorageSerializer(serializers.ModelSerializer):
+class StorageSerializer(BulkModelSerializer):
     class Meta:
         model = Storage
         fields = ("pk", "name", "order")
 
 
-class StoragePositionSerializer(serializers.ModelSerializer):
+class StoragePositionSerializer(BulkModelSerializer):
     storage = serializers.StringRelatedField(many=False, read_only=True)
 
     class Meta:
@@ -175,7 +183,7 @@ class StoragePositionSerializer(serializers.ModelSerializer):
         return str(obj)
 
 
-class SampleSerializer(serializers.ModelSerializer):
+class SampleSerializer(BulkModelSerializer):
     storage = serializers.StringRelatedField(many=False, read_only=True, source="position.storage")
     position_name = serializers.StringRelatedField(many=False, source="position.name")
     last_weight = serializers.FloatField(read_only=True)
@@ -199,7 +207,7 @@ class SampleSerializer(serializers.ModelSerializer):
         )
 
 
-class CartItemSerializer(serializers.ModelSerializer):
+class CartItemSerializer(BulkModelSerializer):
     sample_id = serializers.IntegerField(source="sample.sample_id", read_only=True)
     variety_name = serializers.CharField(source="sample.variety.name", read_only=True)
     species = serializers.CharField(source="sample.variety.species.common_name", read_only=True)
@@ -222,19 +230,19 @@ class CartItemSerializer(serializers.ModelSerializer):
         )
 
 
-class WorkspaceSerializer(serializers.ModelSerializer):
+class WorkspaceSerializer(BulkModelSerializer):
     class Meta:
         model = Workspace
         fields = ("id", "name")
 
 
-class CartSerializer(serializers.ModelSerializer):
+class CartSerializer(BulkModelSerializer):
     class Meta:
         model = Cart
         fields = ("id", "name")
 
 
-class WorkspaceElementSerializer(serializers.ModelSerializer):
+class WorkspaceElementSerializer(BulkModelSerializer):
     description = DescriptionSerializer(read_only=True)
 
     class Meta:

@@ -1,27 +1,9 @@
 from django.contrib.auth.models import Permission, User
 from django.test import TestCase
 from django.urls import reverse
-from factory.declarations import SubFactory
-from factory.django import DjangoModelFactory
 
 from register import models
-
-
-class PlantSpeciesFactory(DjangoModelFactory):
-    class Meta:
-        model = models.PlantSpecies
-
-    common_name = "Tomato"
-    latin_name = "Solanum lycopersicon"
-    plant_type = "vegetable"
-
-
-class PlantVarietyFactory(DjangoModelFactory):
-    class Meta:
-        model = models.PlantVariety
-
-    name = "Cherry Tomato"
-    species = SubFactory(PlantSpeciesFactory)
+from register.factories import PlantSpeciesFactory
 
 
 class PlantVarietyCreateViewTests(TestCase):

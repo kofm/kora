@@ -2,6 +2,7 @@
 Kora API
 """
 
+from django.db import transaction
 from django.db.models.query import Prefetch
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status, viewsets
@@ -55,18 +56,27 @@ from .filters import (
 )
 
 
-class PlantSpeciesViewSet(viewsets.ModelViewSet):
-    """
-    API endpoint to view/edit a Crop
-    """
+class BulkCreateMixin:
+    @transaction.atomic
+    def create(self, request, *args, **kwargs):
+        is_many = isinstance(request.data, list)
+        serializer = self.get_serializer(data=request.data, many=is_many)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+    def perform_create(self, serializer):
+        serializer.save()
+
+
+class PlantSpeciesViewSet(BulkCreateMixin, viewsets.ModelViewSet):
     queryset = PlantSpecies.objects.all()
     serializer_class = PlantSpeciesSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = PlantSpeciesFilter
 
 
-class PlantVarietyViewSet(viewsets.ModelViewSet):
+class PlantVarietyViewSet(BulkCreateMixin, viewsets.ModelViewSet):
     queryset = PlantVariety.objects.all().prefetch_related("names").order_by("created_at")
     serializer_class = PlantVarietySerializer
     filter_backends = [DjangoFilterBackend]
@@ -74,14 +84,14 @@ class PlantVarietyViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
 
-class EntityViewSet(viewsets.ModelViewSet):
+class EntityViewSet(BulkCreateMixin, viewsets.ModelViewSet):
     queryset = Entity.objects.all()
     serializer_class = EntitySerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = EntityFilter
 
 
-class ProtectionViewSet(viewsets.ModelViewSet):
+class ProtectionViewSet(BulkCreateMixin, viewsets.ModelViewSet):
     serializer_class = ProtectionSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = ProtectionFilter
@@ -95,27 +105,27 @@ class ProtectionViewSet(viewsets.ModelViewSet):
         )
 
 
-class ProtocolViewSet(viewsets.ModelViewSet):
+class ProtocolViewSet(BulkCreateMixin, viewsets.ModelViewSet):
     queryset = Protocol.objects.select_related("plantspecies").all()
     serializer_class = ProtocolSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = ProtocolFilter
 
 
-class TraitViewSet(viewsets.ModelViewSet):
+class TraitViewSet(BulkCreateMixin, viewsets.ModelViewSet):
     queryset = Trait.objects.select_related("protocol").prefetch_related("states").all()
     serializer_class = TraitSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = TraitFilter
 
 
-class StateViewSet(viewsets.ModelViewSet):
+class StateViewSet(BulkCreateMixin, viewsets.ModelViewSet):
     queryset = State.objects.select_related("trait").all()
     serializer_class = StateSerializer
     filter_backends = [DjangoFilterBackend]
 
 
-class DescriptionViewSet(viewsets.ModelViewSet):
+class DescriptionViewSet(BulkCreateMixin, viewsets.ModelViewSet):
     serializer_class = DescriptionSerializer
     queryset = (
         Description.objects.select_related("variety__species", "protocol")
@@ -126,38 +136,38 @@ class DescriptionViewSet(viewsets.ModelViewSet):
     filterset_class = DescriptionFilter
 
 
-class ParameterViewSet(viewsets.ModelViewSet):
+class ParameterViewSet(BulkCreateMixin, viewsets.ModelViewSet):
     queryset = Parameter.objects.all()
     serializer_class = ParameterSerializer
 
 
-class VarietalParameterViewSet(viewsets.ModelViewSet):
+class VarietalParameterViewSet(BulkCreateMixin, viewsets.ModelViewSet):
     queryset = VarietalParameter.objects.select_related("parameter").all()
     serializer_class = VarietalParameterSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = VarietalParameterFilter
 
 
-class StorageViewSet(viewsets.ModelViewSet):
+class StorageViewSet(BulkCreateMixin, viewsets.ModelViewSet):
     queryset = Storage.objects.all()
     serializer_class = StorageSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = StorageFilter
 
 
-class StoragePositionViewSet(viewsets.ModelViewSet):
+class StoragePositionViewSet(BulkCreateMixin, viewsets.ModelViewSet):
     queryset = StoragePosition.objects.all()
     serializer_class = StoragePositionSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = StoragePositionFilter
 
 
-class SampleViewSet(viewsets.ModelViewSet):
+class SampleViewSet(BulkCreateMixin, viewsets.ModelViewSet):
     queryset = Sample.objects.with_availability().with_germination()
     serializer_class = SampleSerializer
 
 
-class SampleWeightViewSet(viewsets.ModelViewSet):
+class SampleWeightViewSet(BulkCreateMixin, viewsets.ModelViewSet):
     queryset = SampleWeight.objects.select_related("sample").all()
     serializer_class = SampleWeightSerializer
     filter_backends = [DjangoFilterBackend]

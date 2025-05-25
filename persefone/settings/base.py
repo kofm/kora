@@ -131,11 +131,12 @@ DJANGO_TABLES2_PAGE_RANGE = 10
 
 # rest_framework
 REST_FRAMEWORK = {
-    "DEFAULT_PAGINATION_CLASS": "restapi.pagination.OptionalPagination",
     "PAGE_SIZE": 10,
+    "DEFAULT_PAGINATION_CLASS": "restapi.pagination.OptionalPagination",
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
     ],
+    "TEST_REQUEST_DEFAULT_FORMAT": "json",
 }
 
 # Authentication

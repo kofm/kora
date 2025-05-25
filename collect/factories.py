@@ -5,14 +5,14 @@ from factory.django import DjangoModelFactory
 
 from collect.models import Cart, CartItem, Sample, SampleWeight, Storage, StoragePosition
 from frontpage.factories import UserFactory
-from register.tests import PlantVarietyFactory
+from register.factories import PlantVarietyFactory
 
 
 class StorageFactory(DjangoModelFactory):
     class Meta:
         model = Storage
 
-    name = Sequence(lambda n: "B%s" % n)
+    name = Sequence(lambda n: f"B{n}")
     order = Sequence(lambda n: n)
 
 
@@ -20,7 +20,7 @@ class StoragePositionFactory(DjangoModelFactory):
     class Meta:
         model = StoragePosition
 
-    name = Sequence(lambda n: "%s" % n)
+    name = Sequence(lambda n: str(n))
     storage = SubFactory(StorageFactory)
 
 
