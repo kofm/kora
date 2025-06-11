@@ -16,7 +16,7 @@ class CountryRenderer:
 
 
 class ProtectionTable(tables.Table, CountryRenderer):
-    class Meta:
+    class Meta(TableHoverFixed.Meta):
         model = Protection
         exclude = ("id", "variety")
         per_page = 5
