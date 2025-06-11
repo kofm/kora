@@ -2,8 +2,8 @@ from django.contrib.auth.models import Permission, User
 from django.test import TestCase
 from django.urls import reverse
 
-from register import models
 from register.factories import PlantSpeciesFactory
+from register.models import PlantVariety
 
 
 class PlantVarietyCreateViewTests(TestCase):
@@ -39,4 +39,4 @@ class PlantVarietyCreateViewTests(TestCase):
             {"name": "Cherry Tomato", "species": self.species.pk},
         )
         self.assertEqual(response.status_code, 302)
-        self.assertTrue(models.PlantVariety.objects.filter(name="Cherry Tomato").exists())
+        self.assertTrue(PlantVariety.objects.filter(name="Cherry Tomato").exists())

@@ -1,10 +1,10 @@
 import datetime
 
 from factory import faker
-from factory.declarations import Iterator, LazyFunction, Sequence, SubFactory
+from factory.declarations import Iterator, LazyFunction, SubFactory
 from factory.django import DjangoModelFactory
 
-from register.models import Entity, PlantSpecies, PlantVariety, PlantVarietyName
+from register.models import Entity, PlantSpecies, PlantVariety, PlantVarietyName, Protection
 
 PLANT_SPECIES = [
     ("Tomato", "Solanum lycopersicum", "vegetable"),
@@ -21,16 +21,16 @@ class PlantSpeciesFactory(DjangoModelFactory):
     class Meta:
         model = PlantSpecies
 
-    common_name = Sequence(lambda n: f"Species Common Name {n}")
-    latin_name = Sequence(lambda n: f"Species Latin Name {n}")
-    plant_type = Iterator(["vegetable", "tree", "shrub", "herbaceous"])
+    common_name = Iterator([species[0] for species in PLANT_SPECIES])
+    latin_name = Iterator([species[1] for species in PLANT_SPECIES])
+    plant_type = Iterator([species[2] for species in PLANT_SPECIES])
 
 
 class PlantVarietyFactory(DjangoModelFactory):
     class Meta:
         model = PlantVariety
 
-    name = "Cherry Tomato"
+    name = faker.Faker("first_name")
     species = SubFactory(PlantSpeciesFactory)
 
 
@@ -52,3 +52,13 @@ class EntityFactory(DjangoModelFactory):
     country = "US"
     contact = "123 Seed St"
     email = "contact@seedco.com"
+
+
+class ProtectionFactory(DjangoModelFactory):
+    class Meta:
+        model = Protection
+
+    type = "NLI"
+    status = "G"
+    country = "IT"
+    variety = SubFactory(PlantVarietyFactory)

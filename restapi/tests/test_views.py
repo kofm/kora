@@ -4,7 +4,6 @@ from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
 
 from describe.factories import (
-    DescriptionFactory,
     ExpressionFactory,
     ProtocolFactory,
     TraitFactory,
@@ -15,7 +14,7 @@ from register.factories import EntityFactory, PlantSpeciesFactory, PlantVarietyF
 from register.models import PlantVarietyName
 
 
-class RegisterAPITests(APITestCase):
+class APITests(APITestCase):
     def setUp(self):
         self.client = APIClient()
         self.user = User.objects.create_user(username="testuser", password="testpass")
@@ -189,7 +188,3 @@ class RegisterAPITests(APITestCase):
         resp = self.client.post(reverse("restapi:states-list"), data)
         self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
         self.assertEqual(len(resp.data), 3)
-
-    def test_bulk_create_expression(self):
-        description = DescriptionFactory()
-        data = []

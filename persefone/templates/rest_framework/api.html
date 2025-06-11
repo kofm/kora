@@ -1,11 +1,21 @@
 {% extends 'rest_framework/api.html'  %}
 
-{% load rest_framework drf_redesign %}
+{% load static %}
 
 {% block title %}Kora | {% if name %}{{ name }} - {% endif %}API{% endblock %}
 
-{% block navbar %}
-    <header>
-	{% include 'frontpage/navbar.html' %}
-    </header>
+
+{% block style %}
+  {{ block.super }}
+  <style>.navbar {min-height: 65px;}</style>
+{% endblock %}
+
+
+{% block branding %}
+  <a class='navbar-brand' rel="nofollow" href='/'>
+    <div>
+      <img alt="Logo" src="{% static 'frontpage/kora-logo.png' %}" width="40" height="40"/>
+      Kora
+    </div>
+  </a>
 {% endblock %}

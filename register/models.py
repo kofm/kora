@@ -126,6 +126,7 @@ class PlantVariety(ModelIsDeletableMixin, models.Model):
         ordering = ("name",)
         verbose_name = "variety"
         verbose_name_plural = "varieties"
+        unique_together = ("name", "species")
 
     def __str__(self):
         return f"{self.name} ({self.species.common_name})"

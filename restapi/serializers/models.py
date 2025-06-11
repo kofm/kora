@@ -13,17 +13,7 @@ from describe.models import (
 )
 from parameters.models import Parameter, VarietalParameter
 from register.models import Entity, PlantSpecies, PlantVariety, PlantVarietyName, Protection
-
-
-class BulkListSerializer(serializers.ListSerializer):
-    def create(self, validated_data):
-        model_class = self.child.Meta.model
-        return model_class.objects.bulk_create([model_class(**item) for item in validated_data])
-
-
-class BulkModelSerializer(serializers.ModelSerializer):
-    class Meta:
-        list_serializer_class = BulkListSerializer
+from restapi.serializers.generic import BulkModelSerializer
 
 
 class PlantSpeciesSerializer(BulkModelSerializer):
@@ -84,6 +74,62 @@ class ProtectionSerializer(CountryFieldMixin, BulkModelSerializer):
             "date_start",
             "date_end",
         )
+
+
+# class ProtectionImportSerializer(BaseExcelImportSerializer):
+#     required_columns = ["type", "variety_name", "species_id"]
+
+#     def validate(self, data):
+#         df = self.parse_excel(data["file"], parse_dates=False)
+#         data["df"] = self.parse_semicolon_fields(df, ["applicants", "maintainers"])
+
+#         # self.validate_foreignkey_query(df, PlantSpecies, {"species_id": "pk"})
+#         data["variety_map"] = self.validate_foreignkey_query(
+#             df,
+#             PlantVariety,
+#             {"variety_name": "name", "species_id": "species_id"},
+#             create_missing=True,
+#         )
+#         entities = []
+#         for col in ["applicants", "maintainers"]:
+#             if col in df.columns:
+#                 entities += df[col].tolist()
+#         data["entity_map"] = self.validate_m2m(entities, Entity, "name", create_missing=True)
+
+#         return data
+
+#     def save(self):
+#         variety_map = self.validated_data["variety_map"]
+#         entity_map = self.validated_data["entity_map"]
+#         return variety_map, entity_map
+
+
+# class ProtectionRowSerializer(serializers.Serializer):
+#     type = ChoiceColumnField(choices=["CAT", "NLI", "PBR"])
+#     status = ChoiceColumnField(choices=["G", "T", "S", "W"], required=False)
+#     variety_name = serializers.CharField()
+#     species_id = serializers.IntegerField()
+#     applicants = serializers.ListField(required=False)
+#     maintainers = serializers.ListField(required=False)
+#     country = CountryColumnField(required=False)
+#     date_start = DateColumnField(required=False)
+#     date_end = DateColumnField(required=False)
+#     reference = serializers.CharField(required=False)
+#     note = serializers.CharField(required=False)
+
+#     def map_entity_list(self, lst, mapping):
+#         if lst:
+#             return [mapping[n] for n in lst]
+#         return []
+
+#     def create(self, data):
+#         variety_map, entity_map = data.pop("variety_map"), data.pop("entity_map")
+#         variety_key = (data.pop("variety_name"), data.pop("species_id"))
+#         data["variety"] = variety_map[variety_key]
+#         applicants = self.map_entity_list(data.pop("applicants", None), entity_map)
+#         maintainers = self.map_entity_list(data.pop("maintainers", None), entity_map)
+#         maintainers = []
+#         return Protection(**data), applicants, maintainers
 
 
 class ProtocolSerializer(BulkModelSerializer):

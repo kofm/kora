@@ -18,7 +18,6 @@ INSTALLED_APPS = [
     "django.contrib.postgres",
     "django_tables2",
     "django_filters",
-    "drf_redesign",
     "rest_framework",
     "crispy_forms",
     "crispy_bootstrap5",
@@ -32,6 +31,7 @@ INSTALLED_APPS = [
     "spaces.apps.SpacesConfig",
     "calculator.apps.CalculatorConfig",
     "collect.apps.CollectConfig",
+    "restapi",
     "django_sortable_htmx",
     "breadcrumbs",
     "render_block",
@@ -133,6 +133,9 @@ DJANGO_TABLES2_PAGE_RANGE = 10
 REST_FRAMEWORK = {
     "PAGE_SIZE": 10,
     "DEFAULT_PAGINATION_CLASS": "restapi.pagination.OptionalPagination",
+    "DEFAULT_FILTER_BACKENDS": [
+        "django_filters.rest_framework.DjangoFilterBackend",
+    ],
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
     ],

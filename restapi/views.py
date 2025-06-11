@@ -4,9 +4,8 @@ Kora API
 
 from django.db import transaction
 from django.db.models.query import Prefetch
-from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status, viewsets
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from collect.models import Cart, CartItem, Sample, SampleWeight, Storage, StoragePosition
@@ -20,8 +19,9 @@ from describe.models import (
     WorkspaceElement,
 )
 from parameters.models import Parameter, VarietalParameter
-from register.models import Entity, PlantSpecies, PlantVariety, Protection
-from restapi.serializers import (
+from register.models import Entity, PlantSpecies, PlantVariety, PlantVarietyName, Protection
+from register.serializers import EntityImportSerializer, PlantVarietyImportSerializer, ProtectionExcelImportSerializer
+from restapi.serializers.models import (
     CartItemSerializer,
     CartSerializer,
     DescriptionSerializer,
@@ -72,28 +72,75 @@ class BulkCreateMixin:
 class PlantSpeciesViewSet(BulkCreateMixin, viewsets.ModelViewSet):
     queryset = PlantSpecies.objects.all()
     serializer_class = PlantSpeciesSerializer
-    filter_backends = [DjangoFilterBackend]
     filterset_class = PlantSpeciesFilter
 
 
 class PlantVarietyViewSet(BulkCreateMixin, viewsets.ModelViewSet):
     queryset = PlantVariety.objects.all().prefetch_related("names").order_by("created_at")
     serializer_class = PlantVarietySerializer
-    filter_backends = [DjangoFilterBackend]
     filterset_class = PlantVarietyFilter
-    permission_classes = [IsAuthenticated]
+
+    @action(
+        detail=False,
+        methods=["post"],
+        serializer_class=PlantVarietyImportSerializer,
+    )
+    def excel_import(self, request):
+        """Import varieties from an Excel table.
+
+        Only the name of the variety and the species it belongs are required.
+        The columns should be named as following, in lower case:
+
+        - `name`: the name of the variety;
+        - `species`: the PRIMARY KEY of the species;
+        - `breeder`: the PRIMARY KEY of the entity.
+
+        NOTE: if a variety of the same species with the same name
+          already exists, it will not be imported. If you really need
+          a variety with the same name you will have to add it through
+          the user interface.
+
+        """
+        ser = PlantVarietyImportSerializer(data=request.data)
+
+        if ser.is_valid():
+            objs = ser.save()
+            with transaction.atomic():
+                created = PlantVariety.objects.bulk_create([obj for obj in objs if obj])
+                PlantVarietyName.objects.bulk_create([PlantVarietyName(name=obj.name, variety=obj) for obj in created])
+                varieties = PlantVariety.objects.filter(pk__in=[obj.pk for obj in created])
+                out = PlantVarietySerializer(varieties, many=True).data
+                if ser.validated_data["validate_only"]:
+                    transaction.set_rollback(True)
+                    return Response(out, status.HTTP_202_ACCEPTED)
+                return Response(out, status.HTTP_201_CREATED)
+        return Response(ser.errors, status.HTTP_400_BAD_REQUEST)
 
 
 class EntityViewSet(BulkCreateMixin, viewsets.ModelViewSet):
     queryset = Entity.objects.all()
     serializer_class = EntitySerializer
-    filter_backends = [DjangoFilterBackend]
     filterset_class = EntityFilter
+
+    @action(detail=False, methods=["post"], serializer_class=EntityImportSerializer)
+    def excel_import(self, request):
+        ser = EntityImportSerializer(data=request.data)
+        if ser.is_valid():
+            objs = ser.save()
+            with transaction.atomic():
+                created = Entity.objects.bulk_create([obj for obj in objs if obj])
+                out = EntitySerializer(created, many=True)
+                if ser.validated_data["validate_only"]:
+                    transaction.set_rollback(True)
+                    return Response(out.data, status.HTTP_202_ACCEPTED)
+                else:
+                    return Response(out.data, status.HTTP_201_CREATED)
+        else:
+            return Response(ser.errors, status.HTTP_400_BAD_REQUEST)
 
 
 class ProtectionViewSet(BulkCreateMixin, viewsets.ModelViewSet):
     serializer_class = ProtectionSerializer
-    filter_backends = [DjangoFilterBackend]
     filterset_class = ProtectionFilter
 
     def get_queryset(self):
@@ -104,25 +151,43 @@ class ProtectionViewSet(BulkCreateMixin, viewsets.ModelViewSet):
             .select_related("variety__species")
         )
 
+    @action(
+        detail=False,
+        methods=["post"],
+        serializer_class=ProtectionExcelImportSerializer,
+    )
+    def excel_import(self, request):
+        sr = ProtectionExcelImportSerializer(data=request.data)
+        if sr.is_valid():
+            objs = sr.save()
+            with transaction.atomic():
+                created_objs = Protection.objects.bulk_create([obj for obj, _, _ in objs if obj])
+                qs = Protection.objects.select_related("variety").prefetch_related("maintainers", "applicants")
+                created = qs.filter(pk__in=(o.pk for o in created_objs))
+                out = ProtectionSerializer(created, many=True)
+                if sr.validated_data["validate_only"]:
+                    transaction.set_rollback(True)
+                    return Response(out.data, status=status.HTTP_202_ACCEPTED)
+                else:
+                    return Response(out.data, status=status.HTTP_201_CREATED)
+        return Response(sr.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class ProtocolViewSet(BulkCreateMixin, viewsets.ModelViewSet):
     queryset = Protocol.objects.select_related("plantspecies").all()
     serializer_class = ProtocolSerializer
-    filter_backends = [DjangoFilterBackend]
     filterset_class = ProtocolFilter
 
 
 class TraitViewSet(BulkCreateMixin, viewsets.ModelViewSet):
     queryset = Trait.objects.select_related("protocol").prefetch_related("states").all()
     serializer_class = TraitSerializer
-    filter_backends = [DjangoFilterBackend]
     filterset_class = TraitFilter
 
 
 class StateViewSet(BulkCreateMixin, viewsets.ModelViewSet):
     queryset = State.objects.select_related("trait").all()
     serializer_class = StateSerializer
-    filter_backends = [DjangoFilterBackend]
 
 
 class DescriptionViewSet(BulkCreateMixin, viewsets.ModelViewSet):
@@ -132,7 +197,6 @@ class DescriptionViewSet(BulkCreateMixin, viewsets.ModelViewSet):
         .prefetch_related("expressions__state__trait")
         .all()
     )
-    filter_backends = [DjangoFilterBackend]
     filterset_class = DescriptionFilter
 
 
@@ -144,21 +208,18 @@ class ParameterViewSet(BulkCreateMixin, viewsets.ModelViewSet):
 class VarietalParameterViewSet(BulkCreateMixin, viewsets.ModelViewSet):
     queryset = VarietalParameter.objects.select_related("parameter").all()
     serializer_class = VarietalParameterSerializer
-    filter_backends = [DjangoFilterBackend]
     filterset_class = VarietalParameterFilter
 
 
 class StorageViewSet(BulkCreateMixin, viewsets.ModelViewSet):
     queryset = Storage.objects.all()
     serializer_class = StorageSerializer
-    filter_backends = [DjangoFilterBackend]
     filterset_class = StorageFilter
 
 
 class StoragePositionViewSet(BulkCreateMixin, viewsets.ModelViewSet):
     queryset = StoragePosition.objects.all()
     serializer_class = StoragePositionSerializer
-    filter_backends = [DjangoFilterBackend]
     filterset_class = StoragePositionFilter
 
 
@@ -170,13 +231,11 @@ class SampleViewSet(BulkCreateMixin, viewsets.ModelViewSet):
 class SampleWeightViewSet(BulkCreateMixin, viewsets.ModelViewSet):
     queryset = SampleWeight.objects.select_related("sample").all()
     serializer_class = SampleWeightSerializer
-    filter_backends = [DjangoFilterBackend]
     filterset_class = SampleWeightFilter
 
 
 class CartItemViewSet(viewsets.ModelViewSet):
     serializer_class = CartItemSerializer
-    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         user = self.request.user
@@ -217,7 +276,6 @@ class CartViewSet(viewsets.ModelViewSet):
 
 class WorkspaceElementViewSet(viewsets.ModelViewSet):
     serializer_class = WorkspaceElementSerializer
-    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         user = self.request.user
