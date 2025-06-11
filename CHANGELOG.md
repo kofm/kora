@@ -1,3 +1,16 @@
+## 0.5.0 (2025-06-11)
+
+### Added
+
+- **frontpage**: add API link to user menu for superusers
+- **restapi**: add Excel import endpoints and serializers for PlantVariety, Entity, and Protection
+- **restapi**: support bulk create in main viewsets and serializers
+
+### Fixed
+
+- **register**: restore Protection table functionality in Variety detail page
+- **describe**: make protocol queryset dynamic in RelatedStateForm
+
 ## 0.4.1 (2025-05-21)
 
 ### Fixed

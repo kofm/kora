@@ -1,7 +1,7 @@
 project = "kora"
 copyright = "2025, Gabriele Mongiano"
 author = "Gabriele Mongiano"
-release = "0.4.1"
+release = "0.5.0"
 version = release
 
 extensions = []
