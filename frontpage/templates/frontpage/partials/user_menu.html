@@ -13,8 +13,12 @@
       <h6 class="dropdown-header">{{ user.username }}</h6>
 
       {% if user.is_superuser %}
+
 	{% url 'frontpage:admin' as admin_url %}
 	{% dropdown_item "Admin" href=admin_url %}
+
+	{% url 'restapi:api-root' as api_root_url %}
+	{% dropdown_item "API" href=api_root_url %}
       {% endif %}
 
       {% url 'logout' as logout_url %}
