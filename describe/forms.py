@@ -134,7 +134,7 @@ class RelatedStateForm(DynamicFormMixin, forms.Form):
 
     protocol = DynamicField(
         forms.ModelChoiceField,
-        queryset=protocol_choices,
+        queryset=lambda form: form.protocol_choices(form),
     )
     trait = DynamicField(
         forms.ModelChoiceField,
