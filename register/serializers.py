@@ -29,7 +29,9 @@ class PlantVarietyImportRowSerializer(sr.Serializer):
         list_serializer_class = PlantVarietyListSerializer
 
     def create(self, validated_data):
-        if (validated_data["name"], validated_data["species"]) not in self.context["variety_map"]:
+        name = validated_data.get("name")
+        species = validated_data.get("species")
+        if (name, species) not in self.context["variety_map"]:
             return PlantVariety(**validated_data)
         return None
 
@@ -59,7 +61,7 @@ class ProtectionListSerializer(ModelInBulkMixin, sr.ListSerializer):
         self.context["entity_map"] = self.to_mapping(Entity.objects.all(), ["name"], entities)
         self.context["protection_map"] = self.to_mapping(
             Protection.objects.select_related("variety").prefetch_related("applicants", "maintainers"),
-            ["type", "variety"],
+            ["type", "variety", "country"],
             data,
         )
         self.context["variety_map"] = self.to_mapping(PlantVariety.objects.all(), ["name", "species_id"], data)
@@ -89,7 +91,8 @@ class ProtectionRowSerializer(sr.Serializer):
     def create(self, validated_data):
         ptype = validated_data["type"]
         variety = validated_data["variety"]
-        if (ptype, variety) in self.context["protection_map"]:
+        country = validated_data["country"]
+        if (ptype, variety, country) in self.context["protection_map"]:
             return None, [], []
         applicants = validated_data.pop("applicants", [])
         maintainers = validated_data.pop("maintainers", [])
@@ -104,7 +107,7 @@ class EntityListSerializer(ModelInBulkMixin, sr.ListSerializer):
     def to_internal_value(self, data):
         self.context["entity_map"] = self.to_mapping(
             queryset=Entity.objects.all(),
-            lf=["name"],
+            lookup_fields=["name"],
             data=data,
         )
         return super().to_internal_value(data)

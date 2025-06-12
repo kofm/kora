@@ -7,6 +7,7 @@ from django.db.models.query import Prefetch
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.serializers import ValidationError
 
 from collect.models import Cart, CartItem, Sample, SampleWeight, Storage, StoragePosition
 from collect.serializers import SampleWeightSerializer
@@ -93,7 +94,6 @@ class PlantVarietyViewSet(BulkCreateMixin, viewsets.ModelViewSet):
 
         - `name`: the name of the variety;
         - `species`: the PRIMARY KEY of the species;
-        - `breeder`: the PRIMARY KEY of the entity.
 
         NOTE: if a variety of the same species with the same name
           already exists, it will not be imported. If you really need
@@ -102,19 +102,30 @@ class PlantVarietyViewSet(BulkCreateMixin, viewsets.ModelViewSet):
 
         """
         ser = PlantVarietyImportSerializer(data=request.data)
+        if not ser.is_valid():
+            return Response(ser.errors, status.HTTP_400_BAD_REQUEST)
 
-        if ser.is_valid():
+        try:
             objs = ser.save()
-            with transaction.atomic():
-                created = PlantVariety.objects.bulk_create([obj for obj in objs if obj])
-                PlantVarietyName.objects.bulk_create([PlantVarietyName(name=obj.name, variety=obj) for obj in created])
-                varieties = PlantVariety.objects.filter(pk__in=[obj.pk for obj in created])
-                out = PlantVarietySerializer(varieties, many=True).data
-                if ser.validated_data["validate_only"]:
-                    transaction.set_rollback(True)
-                    return Response(out, status.HTTP_202_ACCEPTED)
-                return Response(out, status.HTTP_201_CREATED)
-        return Response(ser.errors, status.HTTP_400_BAD_REQUEST)
+        except ValidationError as exc:
+            errors = ser.catch_row_serializer_errors(exc)
+            return Response(errors, status.HTTP_400_BAD_REQUEST)
+
+        if not objs:
+            return Response({"success": "all rows valid"}, status.HTTP_202_ACCEPTED)
+
+        with transaction.atomic():
+            created = PlantVariety.objects.bulk_create([obj for obj in objs if obj])
+            PlantVarietyName.objects.bulk_create([PlantVarietyName(name=obj.name, variety=obj) for obj in created])
+
+        varieties = (
+            PlantVariety.objects.select_related("species")
+            .prefetch_related("names")
+            .filter(pk__in=[obj.pk for obj in created])[:100]
+        )
+        out_ser = PlantVarietySerializer(varieties, many=True)
+
+        return Response(out_ser.data, status.HTTP_201_CREATED)
 
 
 class EntityViewSet(BulkCreateMixin, viewsets.ModelViewSet):
@@ -125,18 +136,22 @@ class EntityViewSet(BulkCreateMixin, viewsets.ModelViewSet):
     @action(detail=False, methods=["post"], serializer_class=EntityImportSerializer)
     def excel_import(self, request):
         ser = EntityImportSerializer(data=request.data)
-        if ser.is_valid():
-            objs = ser.save()
-            with transaction.atomic():
-                created = Entity.objects.bulk_create([obj for obj in objs if obj])
-                out = EntitySerializer(created, many=True)
-                if ser.validated_data["validate_only"]:
-                    transaction.set_rollback(True)
-                    return Response(out.data, status.HTTP_202_ACCEPTED)
-                else:
-                    return Response(out.data, status.HTTP_201_CREATED)
-        else:
+
+        if not ser.is_valid():
             return Response(ser.errors, status.HTTP_400_BAD_REQUEST)
+
+        try:
+            objs = ser.save()
+        except ValidationError as exc:
+            errors = ser.catch_row_serializer_errors(exc)
+            return Response(errors, status.HTTP_400_BAD_REQUEST)
+
+        if not objs:
+            return Response({"success": "all rows are valid"}, status.HTTP_202_ACCEPTED)
+
+        created = Entity.objects.bulk_create([obj for obj in objs if obj])
+        out = EntitySerializer(created, many=True)
+        return Response(out.data, status.HTTP_201_CREATED)
 
 
 class ProtectionViewSet(BulkCreateMixin, viewsets.ModelViewSet):
@@ -158,19 +173,38 @@ class ProtectionViewSet(BulkCreateMixin, viewsets.ModelViewSet):
     )
     def excel_import(self, request):
         sr = ProtectionExcelImportSerializer(data=request.data)
-        if sr.is_valid():
+        if not sr.is_valid():
+            return Response(sr.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
             objs = sr.save()
-            with transaction.atomic():
-                created_objs = Protection.objects.bulk_create([obj for obj, _, _ in objs if obj])
-                qs = Protection.objects.select_related("variety").prefetch_related("maintainers", "applicants")
-                created = qs.filter(pk__in=(o.pk for o in created_objs))
-                out = ProtectionSerializer(created, many=True)
-                if sr.validated_data["validate_only"]:
-                    transaction.set_rollback(True)
-                    return Response(out.data, status=status.HTTP_202_ACCEPTED)
+        except ValidationError as exc:
+            errors = sr.catch_row_serializer_errors(exc)
+            return Response(errors, status=status.HTTP_400_BAD_REQUEST)
+
+        if not objs:
+            return Response({"success": "all rows are valid"}, status.HTTP_202_ACCEPTED)
+
+        with transaction.atomic():
+            to_bulk_create = []
+            created_objs = []
+            for obj, applicants, maintainers in objs:
+                if not obj:
+                    continue
+                if not applicants and not maintainers:
+                    to_bulk_create.append(obj)
                 else:
-                    return Response(out.data, status=status.HTTP_201_CREATED)
-        return Response(sr.errors, status=status.HTTP_400_BAD_REQUEST)
+                    obj.save()
+                    created_objs.append(obj)
+                    for applicant in applicants:
+                        obj.applicants.add(applicant)
+                    for maintainer in maintainers:
+                        obj.maintainers.add(maintainer)
+            bulk_created_objs = Protection.objects.bulk_create(to_bulk_create)
+        qs = Protection.objects.select_related("variety").prefetch_related("maintainers", "applicants")
+        created = qs.filter(pk__in=(o.pk for o in bulk_created_objs + created_objs))[:100]
+        out_ser = ProtectionSerializer(created, many=True)
+        return Response(out_ser.data, status=status.HTTP_201_CREATED)
 
 
 class ProtocolViewSet(BulkCreateMixin, viewsets.ModelViewSet):

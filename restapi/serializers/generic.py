@@ -49,6 +49,22 @@ class BaseExcelImportSerializer(sr.Serializer):
 
     row_serializer: type[sr.Serializer]
 
+    @staticmethod
+    def catch_row_serializer_errors(exc):
+        MAX_ERRORS = 100
+        errors = []
+        error_count = len([error for error in exc.detail if error])
+        if error_count > 20:
+            errors.append(
+                {"non_field_errors": f"There are {error_count} errors; only the first {MAX_ERRORS} are shown."}
+            )
+        for index, error in enumerate(exc.detail, start=2):
+            if error:
+                errors.append({"row": index, "error": error})
+            if len(errors) > MAX_ERRORS:
+                break
+        return errors
+
     def validate_file(self, value):
         try:
             pd.read_excel(value, nrows=0)
@@ -76,5 +92,7 @@ class BaseExcelImportSerializer(sr.Serializer):
         rows = validated_data.pop("_rows", [])
         row_serializer = self.row_serializer(data=rows, many=True)
         row_serializer.is_valid(raise_exception=True)
+        if validated_data.get("validate_only"):
+            return []
         objs = row_serializer.save()
         return objs
