@@ -1,3 +1,9 @@
+## 0.5.1 (2025-06-12)
+
+### Fixed
+
+- **restapi**: improve excel import validation and error handling
+
 ## 0.5.0 (2025-06-11)
 
 ### Added
