@@ -1,3 +1,14 @@
+## 0.5.2 (2025-06-13)
+
+### Added
+
+- **register**: add species filter in Protection listing
+- **restapi**: enhance Excel import with better error handling and performance
+
+### Fixed
+
+- **register**: correct queryset filtering in ProtectionOmniFilter
+
 ## 0.5.1 (2025-06-12)
 
 ### Fixed
