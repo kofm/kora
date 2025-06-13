@@ -1,5 +1,15 @@
+from datetime import datetime
+
 from django.db.models import Model
+from rest_framework import serializers
 from rest_framework import serializers as sr
+
+
+class ExcelSafeDateField(serializers.DateField):
+    def to_internal_value(self, value):
+        if isinstance(value, datetime):
+            value = value.date()
+        return super().to_internal_value(value)
 
 
 class MappedPrimaryKeyRelatedField(sr.PrimaryKeyRelatedField):

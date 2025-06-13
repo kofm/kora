@@ -101,22 +101,25 @@ class PlantVarietyViewSet(BulkCreateMixin, viewsets.ModelViewSet):
           the user interface.
 
         """
-        ser = PlantVarietyImportSerializer(data=request.data)
-        if not ser.is_valid():
-            return Response(ser.errors, status.HTTP_400_BAD_REQUEST)
+        serializer = PlantVarietyImportSerializer(data=request.data)
+
+        if not serializer.is_valid():
+            return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
         try:
-            objs = ser.save()
+            objs = serializer.save()
         except ValidationError as exc:
-            errors = ser.catch_row_serializer_errors(exc)
+            errors = serializer.catch_row_serializer_errors(exc)
             return Response(errors, status.HTTP_400_BAD_REQUEST)
 
         if not objs:
             return Response({"success": "all rows valid"}, status.HTTP_202_ACCEPTED)
 
         with transaction.atomic():
-            created = PlantVariety.objects.bulk_create([obj for obj in objs if obj])
-            PlantVarietyName.objects.bulk_create([PlantVarietyName(name=obj.name, variety=obj) for obj in created])
+            created = PlantVariety.objects.bulk_create([obj for obj in objs if obj], batch_size=1000)
+            PlantVarietyName.objects.bulk_create(
+                [PlantVarietyName(name=obj.name, variety=obj) for obj in created], batch_size=1000
+            )
 
         varieties = (
             PlantVariety.objects.select_related("species")
@@ -149,7 +152,7 @@ class EntityViewSet(BulkCreateMixin, viewsets.ModelViewSet):
         if not objs:
             return Response({"success": "all rows are valid"}, status.HTTP_202_ACCEPTED)
 
-        created = Entity.objects.bulk_create([obj for obj in objs if obj])
+        created = Entity.objects.bulk_create([obj for obj in objs if obj], batch_size=1000)
         out = EntitySerializer(created, many=True)
         return Response(out.data, status.HTTP_201_CREATED)
 
@@ -186,25 +189,28 @@ class ProtectionViewSet(BulkCreateMixin, viewsets.ModelViewSet):
             return Response({"success": "all rows are valid"}, status.HTTP_202_ACCEPTED)
 
         with transaction.atomic():
-            to_bulk_create = []
-            created_objs = []
-            for obj, applicants, maintainers in objs:
-                if not obj:
-                    continue
-                if not applicants and not maintainers:
-                    to_bulk_create.append(obj)
-                else:
-                    obj.save()
-                    created_objs.append(obj)
-                    for applicant in applicants:
-                        obj.applicants.add(applicant)
-                    for maintainer in maintainers:
-                        obj.maintainers.add(maintainer)
-            bulk_created_objs = Protection.objects.bulk_create(to_bulk_create)
-        qs = Protection.objects.select_related("variety").prefetch_related("maintainers", "applicants")
-        created = qs.filter(pk__in=(o.pk for o in bulk_created_objs + created_objs))[:100]
-        out_ser = ProtectionSerializer(created, many=True)
-        return Response(out_ser.data, status=status.HTTP_201_CREATED)
+            Protection.objects.bulk_create([obj for obj, apps, mains in objs if obj])
+
+            apps_through = Protection.applicants.through
+            mains_through = Protection.maintainers.through
+            apps_rels = []
+            mains_rels = []
+            for prot, apps, mains in objs:
+                for entity in apps:
+                    apps_rels.append(apps_through(protection_id=prot.id, entity_id=entity.id))
+                for entity in mains:
+                    mains_rels.append(mains_through(protection_id=prot.id, entity_id=entity.id))
+            apps_through.objects.bulk_create(apps_rels, batch_size=1000)
+            mains_through.objects.bulk_create(mains_rels, batch_size=1000)
+
+        ids = [obj.id for obj, _, _ in objs if obj]
+        protections = (
+            Protection.objects.filter(id__in=ids)
+            .select_related("variety")
+            .prefetch_related("applicants", "maintainers")
+        )
+        out = ProtectionSerializer(protections, many=True)
+        return Response(out.data, status=status.HTTP_201_CREATED)
 
 
 class ProtocolViewSet(BulkCreateMixin, viewsets.ModelViewSet):

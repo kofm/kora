@@ -54,14 +54,16 @@ class BaseExcelImportSerializer(sr.Serializer):
         MAX_ERRORS = 100
         errors = []
         error_count = len([error for error in exc.detail if error])
-        if error_count > 20:
+        if error_count > MAX_ERRORS:
             errors.append(
                 {"non_field_errors": f"There are {error_count} errors; only the first {MAX_ERRORS} are shown."}
             )
+        appended = 0
         for index, error in enumerate(exc.detail, start=2):
             if error:
                 errors.append({"row": index, "error": error})
-            if len(errors) > MAX_ERRORS:
+                appended += 1
+            if appended >= MAX_ERRORS:
                 break
         return errors
 

@@ -1,3 +1,4 @@
+
 from django_countries.serializer_fields import CountryField
 from rest_framework import serializers as sr
 
@@ -10,7 +11,7 @@ from register.models import (
     PlantVariety,
     Protection,
 )
-from restapi.fields import CSV2ListQueryField, MappedPrimaryKeyRelatedField, QueryField
+from restapi.fields import CSV2ListQueryField, ExcelSafeDateField, MappedPrimaryKeyRelatedField, QueryField
 from restapi.serializers.generic import BaseExcelImportSerializer, ModelInBulkMixin
 
 
@@ -79,8 +80,8 @@ class ProtectionRowSerializer(sr.Serializer):
     reference = sr.CharField(required=False, allow_blank=True)
     status = sr.ChoiceField(choices=PROTECTION_STATUS_CHOICES, required=False)
     country = CountryField(required=False)
-    date_start = sr.DateTimeField(required=False, allow_null=True)
-    date_end = sr.DateTimeField(required=False, allow_null=True)
+    date_start = ExcelSafeDateField(required=False, allow_null=True)
+    date_end = ExcelSafeDateField(required=False, allow_null=True)
     applicants = CSV2ListQueryField(mapping_key="entity_map", column_mapping={"applicants": "name"}, required=False)
     maintainers = CSV2ListQueryField(mapping_key="entity_map", column_mapping={"maintainers": "name"}, required=False)
     note = sr.CharField(required=False, allow_blank=True)
@@ -89,9 +90,9 @@ class ProtectionRowSerializer(sr.Serializer):
         list_serializer_class = ProtectionListSerializer
 
     def create(self, validated_data):
-        ptype = validated_data["type"]
-        variety = validated_data["variety"]
-        country = validated_data["country"]
+        ptype = validated_data.get("type")
+        variety = validated_data.get("variety")
+        country = validated_data.get("country")
         if (ptype, variety, country) in self.context["protection_map"]:
             return None, [], []
         applicants = validated_data.pop("applicants", [])
