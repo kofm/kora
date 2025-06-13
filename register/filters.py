@@ -8,6 +8,7 @@ from django_filters import (
     ChoiceFilter,
     Filter,
     FilterSet,
+    ModelChoiceFilter,
     ModelMultipleChoiceFilter,
 )
 
@@ -116,11 +117,21 @@ class EntityFilter(FilterSet):
 class ProtectionOmniFilterForm(HTMXFormMixin, forms.Form):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.helper.layout = generate_form_layout([Field("omni"), Field("type"), Field("status"), Field("country")])
+        self.helper.layout = generate_form_layout(
+            [
+                Field("omni"),
+                Field("variety__species"),
+                Field("type"),
+                Field("status"),
+                Field("country"),
+            ],
+            cols_lg=5,
+        )
 
 
 class ProtectionOmniFilter(FilterSet):
     omni = CharFilter(method="omni_search", label="Search")
+    variety__species = ModelChoiceFilter(queryset=PlantSpecies.objects.all(), label="Species")
     type = ChoiceFilter(choices=PROTECTION_TYPE_CHOICES)
     status = ChoiceFilter(choices=PROTECTION_STATUS_CHOICES)
     country = ChoiceFilter(choices=CountryField().get_choices(include_blank=False), widget=TomSelect)
