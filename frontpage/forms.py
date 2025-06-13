@@ -39,7 +39,7 @@ class HTMXFormMixin:
 
 
 def generate_form_layout(fields: list[Field], cols_lg=4):
-    if not all([isinstance(field, Field) for field in fields]):
+    if not all(isinstance(field, Field) for field in fields):
         raise Exception("fields should be a list of crispy_forms.layout.Field objects")
     layout = Layout(
         Div(

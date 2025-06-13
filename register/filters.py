@@ -16,34 +16,13 @@ from frontpage.widgets import TomSelect, TomSelectMultiple
 from register.models import (
     ENTITY_TYPE_CHOICES,
     PROTECTION_STATUS_CHOICES,
+    PROTECTION_TYPE_CHOICES,
     Entity,
     PlantSpecies,
     PlantVariety,
-    Protection,
 )
 
 TRIGRAM_SEARCH_THRESHOLD = 7
-
-PBR = "PBR"
-NLI = "NLI"
-CAT = "CAT"
-
-PROTECTION_TYPE_CHOICES = [
-    (None, "Any type"),
-    (PBR, "Plant Breeders' Right"),
-    (NLI, "National Listing"),
-    (CAT, "Common Catalogue"),
-]
-
-PROTECTION_STATUS_CHOICES = [
-    (None, "Any status"),
-    ("G", "Granted"),
-    ("T", "Terminated"),
-    ("A", "Active Application"),
-    ("W", "Withdrawn"),
-    ("R", "Refused"),
-    ("S", "Surrendered"),
-]
 
 
 def filter_name_generic(queryset, name, value):
@@ -153,4 +132,4 @@ class ProtectionOmniFilter(FilterSet):
         query = Q(variety__names__name__icontains=value)
         query |= Q(note__icontains=value)
         query |= Q(reference__icontains=value)
-        return Protection.objects.filter(query)
+        return queryset.filter(query)
