@@ -20,19 +20,19 @@ ENTITY_TYPE_CHOICES = (
 PBR = "PBR"
 NLI = "NLI"
 CAT = "CAT"
-PROTECTION_TYPE_CHOICES = (
+PROTECTION_TYPE_CHOICES = [
     (PBR, "Plant Breeders' Rights"),
     (NLI, "National Listing"),
     (CAT, "Common Catalogue"),
-)
-PROTECTION_STATUS_CHOICES = (
+]
+PROTECTION_STATUS_CHOICES = [
     ("G", "Granted"),
     ("T", "Terminated"),
     ("A", "Active Application"),
     ("W", "Withdrawn"),
     ("R", "Refused"),
     ("S", "Surrendered"),
-)
+]
 
 
 class Entity(ModelIsDeletableMixin, models.Model):

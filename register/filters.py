@@ -1,6 +1,7 @@
-from crispy_forms.layout import Field
+from crispy_forms.layout import HTML, Div, Field, Layout, MultiWidgetField, Submit
 from django import forms
 from django.db.models import Q
+from django.urls import reverse
 from django_countries.fields import CountryField
 from django_filters import (
     BooleanFilter,
@@ -23,10 +24,9 @@ from register.models import (
     PlantVariety,
 )
 
-TRIGRAM_SEARCH_THRESHOLD = 7
-
 
 def filter_name_generic(queryset, name, value):
+    TRIGRAM_SEARCH_THRESHOLD = 7
     lookup_icontains = f"{name}__unaccent__icontains"
     lookup_trigram = f"{name}__unaccent__lower__trigram_similar"
     if value:
@@ -39,19 +39,22 @@ def filter_name_generic(queryset, name, value):
 
 class ProtectionFilterWidget(forms.MultiValueField):
     def __init__(self, *args, **kwargs):
+        status_choices = PROTECTION_STATUS_CHOICES + [(None, "Any status")]
+        type_choices = PROTECTION_TYPE_CHOICES + [(None, "Any type")]
+        country_choices = CountryField().get_choices()
         fields = (
-            forms.ChoiceField(choices=PROTECTION_STATUS_CHOICES),
-            forms.ChoiceField(choices=PROTECTION_TYPE_CHOICES),
-            forms.ChoiceField(choices=CountryField().get_choices()),
+            forms.ChoiceField(choices=status_choices),
+            forms.ChoiceField(choices=type_choices),
+            forms.ChoiceField(choices=country_choices),
         )
         widget = forms.MultiWidget(
             widgets=[
-                forms.Select(choices=PROTECTION_STATUS_CHOICES),
-                forms.Select(attrs={"class": "mt-1"}, choices=PROTECTION_TYPE_CHOICES),
-                forms.Select(attrs={"class": "mt-1"}, choices=CountryField().get_choices()),
+                forms.Select(choices=status_choices),
+                forms.Select(choices=type_choices),
+                TomSelect(choices=country_choices),
             ]
         )
-        super().__init__(fields=fields, widget=widget, *args, **kwargs)
+        super().__init__(fields=fields, widget=widget, **kwargs)
 
     def compress(self, data_list):
         if data_list:
@@ -65,9 +68,31 @@ class ProtectionFilter(Filter):
 
     def filter(self, qs, values):
         if values:
-            filters = {k: v for k, v in values.items() if v != ""}  # Ignore empty values
+            # Ignore empty values
+            filters = {k: v for k, v in values.items() if v}
             return qs.filter(**filters).distinct()
         return qs
+
+
+class PlantVarietyFilterForm(HTMXFormMixin, forms.Form):
+    hx_url: str = ""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper.form_method = "get"
+        self.helper.layout = Layout(
+            Field("name"),
+            Field("breeder"),
+            Field("species"),
+            Field("has_descriptions"),
+            Field("has_accessions"),
+            MultiWidgetField("protection", attrs=({"class": "mt-1"})),
+            Div(
+                Submit("search", "Search", css_class="btn-sm"),
+                HTML(f'<a class="btn btn-sm btn-secondary" href="{reverse("register:variety_list")}">Clear</a>'),
+                css_class="mt-0 mb-3",
+            ),
+        )
 
 
 class PlantVarietyFilter(FilterSet):
@@ -81,6 +106,7 @@ class PlantVarietyFilter(FilterSet):
     class Meta:
         model = PlantVariety
         fields = ("name", "breeder")
+        form = PlantVarietyFilterForm
 
     def filter_name(self, queryset, name, value):
         return filter_name_generic(queryset, name, value)

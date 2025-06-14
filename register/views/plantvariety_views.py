@@ -1,6 +1,7 @@
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.paginator import Paginator
+from django.db.models import Exists, F, OuterRef, Prefetch
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.urls import reverse
@@ -20,9 +21,10 @@ from breadcrumbs.utils import (
     list_breadcrumb,
     update_breadcrumb,
 )
+from calculator.models import Crop
 from collect.models import Sample
 from describe.models import Description
-from frontpage.views_decorators import NavPlantActiveContext, nav_plant_active_context
+from frontpage.views_decorators import NavPlantActiveContext, htmx_render_blocks, nav_plant_active_context
 from parameters.models import VarietalParameter
 from register.filters import PlantVarietyFilter
 from register.forms import PlantVarietyForm, PlantVarietyNameForm
@@ -152,18 +154,18 @@ def plantvarietyname_delete(request, pk):
 
 
 @nav_plant_active_context
+@htmx_render_blocks(["cards"])
 def plantvariety_list(request):
     queryset = (
-        PlantVariety.objects.prefetch_related(
-            "names",
-            "description_set",
-            "sample_set",
-            "parameters",
-            "crop_set",
-            "protection_set",
+        PlantVariety.objects.annotate(
+            has_descriptions=Exists(Description.objects.filter(variety=OuterRef("pk"))),
+            has_samples=Exists(Sample.objects.filter(variety=OuterRef("pk"))),
+            has_parameters=Exists(VarietalParameter.objects.filter(variety=OuterRef("pk"))),
+            has_crops=Exists(Crop.objects.filter(variety=OuterRef("pk"))),
+            has_protections=Exists(Protection.objects.filter(variety=OuterRef("pk"))),
         )
-        .select_related("species", "breeder")
-        .all()
+        .prefetch_related(Prefetch("names", queryset=PlantVarietyName.objects.exclude(name=F("variety__name"))))
+        .select_related("species")
         .order_by("-created_at")
         .distinct()
     )
