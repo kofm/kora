@@ -117,7 +117,7 @@
 
 		{% get_proper_elided_page_range page_obj.paginator page_obj.number on_each_side=3 on_ends=1 as page_range %}
 		{% for p in page_range %}
-		  <li class="page-item {% if p == page.number %}active{% endif %}">
+		  <li class="page-item {% if p == page_obj.number %}active{% endif %}">
 		    {% querystring page=p as page_qs %}
 		    <a class="page-link" hx-get="{{ page_qs }}" href="{{ page_qs }}">{{ p }}</a>
 		  </li>

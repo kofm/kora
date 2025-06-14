@@ -43,14 +43,9 @@
   <div class="row">
     <!-- Left Column: Search and Filters -->
     <div class="col">
-      <h2>Search</h2>
+      <h2 class="fs-4">Search</h2>
 
-      <a href="{% querystring reset='false' export='true' %}" class="btn btn-sm btn-outline-secondary my-2">
-	<i class="bi bi-download me-1"></i>
-	Export
-      </a>
-
-      <div class="sticky-top overflow-auto p-2" style="max-height: calc(100vh - 300px);">
+      <div class="sticky-top overflow-auto pe-2" style="max-height: calc(100vh - 300px);">
 	<form id="varietyForm" class="mb-2" hx-get=".{% querystring reset='true' %}" hx-trigger="keyup delay:500ms" hx-target="#table" _="on change from #expressionForm or change from #protocolForm or change from #strictForm reset() the #varietyForm">
 	  <label class="form-label" for="{{ form_variety.variety.id_for_label }}">
 	    {{ form_variety.variety.label }}:
@@ -129,8 +124,24 @@
       {% block description_table %}
 	<div id="table" hx-target="#table" class="position-relative">
 
-	  <div class="d-flex justify-content-between align-items-center">
-	    <h2>Results <span class="badge rounded-pill shadow-sm text-bg-secondary">{{ table.data|length }}</span></h2>
+	  <div class="d-inline-flex flex-column justify-content-start">
+	    <h2 class="fs-4">Results</h2>
+	    <small class="text-muted">
+	      {% with num_pages=table.paginator.count %}
+		{{ num_pages }} matches.
+		{% if num_pages %}
+		  <a href="{% querystring reset='false' export='true' %}" class="icon-link icon-link-hover text-decoration-none link-body-emphasis">
+		    Download
+		    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-down-circle" viewBox="0 0 16 16">
+		      <path fill-rule="evenodd" d="M1 8a7 7 0 1 0 14 0A7 7 0 0 0 1 8m15 0A8 8 0 1 1 0 8a8 8 0 0 1 16 0M8.5 4.5a.5.5 0 0 0-1 0v5.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293z"/>
+		    </svg>
+		  </a>
+		{% endif %}
+	      {% endwith %}
+	    </small>
+
+
+
 	  </div>
 
 
