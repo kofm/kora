@@ -5,3 +5,7 @@
    .table-hover tbody tr:hover .row-action {
        opacity: 1;
    }
+
+.border-hover:hover {
+  border-color: var(--bs-primary-border-subtle);
+}

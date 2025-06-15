@@ -17,8 +17,8 @@
       <small class="text-muted">{{ page_obj.paginator.count }} matches.</small>
       <div class="row row-cols-1 row-cols-md-3 mt-2">
 	{% for species in page_obj %}
-	  <div class="col">
-	    <div class="card mt-2 text-center shadow-sm border-secondary-subtle">
+	  <div class="col" style="cursor: pointer;">
+	    <div class="card mt-2 text-center shadow-sm border-hover" _="on click go to url {{ species.get_absolute_url }}">
 	      <div class="card-body d-flex flex-column">
 		<h5 class="card-title text-truncate p-1">
 		  <a class="link-body-emphasis text-decoration-none" href="{{ species.get_absolute_url }}">{{ species.common_name }}</a>
