@@ -110,14 +110,11 @@ class VarietalParameterTable(tables.Table):
 class PlantSpeciesTable(tables.Table):
     common_name = tables.Column(linkify=True)
     latin_name = tables.Column(verbose_name="Latin name")
-    num_varieties = tables.Column(verbose_name="Varieties")
-    num_accessions = tables.Column(verbose_name="Accessions")
-    num_parameters = tables.Column(verbose_name="Parameters")
 
     class Meta:
         model = PlantSpecies
-        fields = ("common_name", "latin_name", "num_varieties", "num_accessions", "num_parameters")
-        order_by = ("-num_varieties", "common_name")
+        fields = ("common_name", "latin_name")
+        order_by = "common_name"
 
     def render_latin_name(self, value):
         return format_html("<i>{}</i>", value)

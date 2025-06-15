@@ -94,6 +94,26 @@ class PlantVarietyFilterForm(HTMXFormMixin, forms.Form):
         )
 
 
+class PlantSpeciesFilterForm(HTMXFormMixin, forms.Form):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper.layout = Layout(Field("common_name"))
+
+
+class PlantSpeciesFilter(FilterSet):
+    common_name = CharFilter(label="Search", method="omni_search")
+
+    class Meta:
+        model = PlantSpecies
+        fields = ("common_name",)
+        form = PlantSpeciesFilterForm
+
+    def omni_search(self, queryset, name, value):
+        query = Q(common_name__icontains=value)
+        query |= Q(latin_name__icontains=value)
+        return queryset.filter(query)
+
+
 class PlantVarietyFilter(FilterSet):
     name = CharFilter(label="Denomination", method="filter_name", field_name="names__name")
     species = ModelMultipleChoiceFilter(label="Species", queryset=PlantSpecies.objects.all(), widget=TomSelectMultiple)

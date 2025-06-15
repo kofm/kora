@@ -4,7 +4,6 @@
 {% load crispy_forms_tags %}
 {% load breadcrumbs %}
 {% load components %}
-{% load frontpage_extras %}
 
 {% block title %}Varieties{% endblock %}
 
@@ -40,9 +39,8 @@
 		<div class="card-body d-flex flex-column">
 
                   <h5 class="card-title text-truncate p-1">
-                    <a class="link-body-emphasis text-decoration-none" href="{% url 'register:variety_detail' variety.pk %}">
+                    <a class="link-body-emphasis text-decoration-none" href="{{ variety_detail_url }}">
                       {{ variety.name }}
-
                     </a>
                   </h5>
 
@@ -92,9 +90,9 @@
                     {% with parameters=variety.has_parameters %}
                       <a
 			href="{{ variety_detail_url }}#parameters"
-			class="mx-1 bi bi-calculator {{ parameters|yesno:"link-primary,text-muted" }}"
-			data-bs-toggle="tooltip"
-			data-bs-title="{{ parameters|yesno:"Parameters present,No parameters" }}"
+			      class="mx-1 bi bi-calculator {{ parameters|yesno:"link-primary,text-muted" }}"
+			      data-bs-toggle="tooltip"
+			      data-bs-title="{{ parameters|yesno:"Parameters present,No parameters" }}"
                       ></a>
                     {% endwith %}
                   </p>
@@ -103,35 +101,11 @@
             </div>
           {% endfor %}
 	</div>
-	<div class="col mt-3 d-flex justify-content-end">
-	  {% if page_obj.paginator.num_pages > 1 %}
-	    <nav aria-label="Variety Navigation" hx-target="#cards">
-	      <ul class="pagination justify-content-center">
-		{% if page_obj.has_previous %}
-		  <li class="page-item">
-		    <a class="page-link" href="{% querystring page=page_obj.previous_page_number %}" hx-get="{% querystring page=page_obj.previous_page_number %}">
-		      &laquo;
-		    </a>
-		  </li>
-		{% endif %}
 
-		{% get_proper_elided_page_range page_obj.paginator page_obj.number on_each_side=3 on_ends=1 as page_range %}
-		{% for p in page_range %}
-		  <li class="page-item {% if p == page_obj.number %}active{% endif %}">
-		    {% querystring page=p as page_qs %}
-		    <a class="page-link" hx-get="{{ page_qs }}" href="{{ page_qs }}">{{ p }}</a>
-		  </li>
-		{% endfor %}
-		{% if page_obj.has_next %}
-		  {% querystring page=page_obj.next_page_number as next_page_qs %}
-		  <li class="page-item"> <a class="page-link" href="#" hx-get="{{ next_page_qs }}">&raquo;</a> </li>
-		{% else %}
+	<div class="col mt-3 d-flex justify-content-end" hx-target="#cards">
+	  {% include "frontpage/partials/paginator.html" %}
+	</div>
 
-		{% endif %}
-	      </ul>
-	    </nav>
-	  {% endif %}
-        </div>
       {% endblock %}
     </div>
   </div>

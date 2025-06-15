@@ -1,0 +1,31 @@
+{% load frontpage_extras %}
+
+
+  {% if page_obj.paginator.num_pages > 1 %}
+    <nav aria-label="Variety Navigation">
+      <ul class="pagination justify-content-center">
+	{% if page_obj.has_previous %}
+	  <li class="page-item">
+	    <a class="page-link" href="{% querystring page=page_obj.previous_page_number %}" hx-get="{% querystring page=page_obj.previous_page_number %}">
+	      &laquo;
+	    </a>
+	  </li>
+	{% endif %}
+
+	{% get_proper_elided_page_range page_obj.paginator page_obj.number on_each_side=3 on_ends=1 as page_range %}
+	{% for p in page_range %}
+	  <li class="page-item {% if p == page_obj.number %}active{% endif %}">
+	    {% querystring page=p as page_qs %}
+	    <a class="page-link" hx-get="{{ page_qs }}" href="{{ page_qs }}">{{ p }}</a>
+	  </li>
+	{% endfor %}
+	{% if page_obj.has_next %}
+	  {% querystring page=page_obj.next_page_number as next_page_qs %}
+	  <li class="page-item"> <a class="page-link" href="#" hx-get="{{ next_page_qs }}">&raquo;</a> </li>
+	{% else %}
+
+	{% endif %}
+      </ul>
+    </nav>
+  {% endif %}
+

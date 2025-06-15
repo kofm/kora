@@ -1,13 +1,16 @@
 from django.contrib.auth.mixins import PermissionRequiredMixin
-from django.db.models import Count
+from django.core.paginator import Paginator
+from django.template.response import TemplateResponse
 from django.urls import reverse_lazy
 from django.views.generic import CreateView, DeleteView, DetailView, UpdateView
-from django_tables2 import RequestConfig, SingleTableView
+from django_tables2 import RequestConfig
 
 import breadcrumbs.generic as crumbs
-from frontpage.views_decorators import NavPlantActiveContext
+from breadcrumbs.utils import generate_breadcrumbs
+from frontpage.views_decorators import NavPlantActiveContext, htmx_render_blocks
+from register.filters import PlantSpeciesFilter
 from register.models import PlantSpecies
-from register.tables import PlantSpeciesTable, PlantVarietyTable
+from register.tables import PlantVarietyTable
 
 
 class PlantSpeciesCreate(PermissionRequiredMixin, crumbs.CreateBreadcrumbsMixin, NavPlantActiveContext, CreateView):
@@ -17,17 +20,16 @@ class PlantSpeciesCreate(PermissionRequiredMixin, crumbs.CreateBreadcrumbsMixin,
     permission_required = ["register.add_plantspecies"]
 
 
-class PlantSpeciesList(crumbs.ListBreadcrumbsMixin, NavPlantActiveContext, SingleTableView):
-    model = PlantSpecies
-    table_class = PlantSpeciesTable
-    paginate_by = 10
-
-    def get_queryset(self):
-        return PlantSpecies.objects.all().annotate(
-            num_varieties=Count("variety", distinct=True),
-            num_accessions=Count("variety__sample", distinct=True),
-            num_parameters=Count("parameters", distinct=True),
-        )
+@htmx_render_blocks(["cards"])
+def plantspecies_list(request):
+    queryset = PlantSpecies.objects.all()
+    flt = PlantSpeciesFilter(request.GET, queryset)
+    paginator = Paginator(flt.qs, 12)
+    page = request.GET.get("page", 1)
+    page_obj = paginator.page(page)
+    context = {"page_obj": page_obj, "filter": flt}
+    context.update(generate_breadcrumbs(request, PlantSpecies))
+    return TemplateResponse(request, "register/plantspecies_list.html", context)
 
 
 class PlantSpeciesDetailView(crumbs.DetailBreadcrumbsMixin, NavPlantActiveContext, DetailView):
