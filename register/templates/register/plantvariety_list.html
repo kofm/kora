@@ -9,30 +9,30 @@
 {% block title %}Varieties{% endblock %}
 
 {% block container %}
-  {% render_breadcrumbs %}
 
+  {% render_breadcrumbs %}
   {% list_page_header "Varieties" create_url='register:variety_create'  permission="register.add_plantvariety" %}
 
-  <div class="row my-3">
+  <div class="row">
     <div class="col">
       <h2 class="fs-4">Search</h2>
-      <div hx-target="#cards">
+      <div class="mt-3" hx-target="#cards">
 	{% crispy filter.form %}
       </div>
     </div>
-    <div id="cards" class="col-8">
+    <div id="cards" class="col-lg-9">
       {% block cards %}
 
 	<div class="row">
 
-          <div class="col d-flex flex-column">
-	    <h2 class="fs-4 position-relative">Results</h2>
+          <div class="col d-inline flex-column">
+	    <h2 class="fs-4">Results</h2>
 	    <small class="text-muted">{{ page_obj.paginator.count }} matches.</small>
           </div>
 
 	</div>
 
-	<div class="row row-cols-1 row-cols-md-3 g-4">
+	<div class="row row-cols-1 row-cols-md-3 mt-2">
           {% for variety in page_obj %}
             {% url 'register:variety_detail' variety.pk as variety_detail_url %}
             <div class="col">

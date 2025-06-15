@@ -14,17 +14,18 @@
 {% block container %}
 
   {% render_breadcrumbs %}
-
   {% list_page_header "Protections" %}
 
-  <h2>Search</h2>
-  <div hx-target="#table">
-    {% crispy filter.form %}
-  </div>
-
-  <div class="row my-3">
+  <div class="row">
     <div class="col">
+      <h2>Search</h2>
+      <div class="mt-3" hx-target="#table">
+	{% crispy filter.form %}
+      </div>
+    </div>
+    <div class="col-lg-9">
       <h2>Results</h2>
+      <small class="text-muted">{{ table.paginator.count }} matches.</small>
       {% block table %}
 	<div id="table" hx-target="#table">
 	  {% render_table table %}
@@ -32,6 +33,4 @@
       {% endblock %}
     </div>
   </div>
-
-
 {% endblock %}

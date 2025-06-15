@@ -1,10 +1,10 @@
-from crispy_forms.layout import Field
+from crispy_forms.layout import Field, Layout
 from django import forms
 from django.db.models import Q
 from django_filters import CharFilter, FilterSet, ModelMultipleChoiceFilter
 
 from collect.models import Sample
-from frontpage.forms import HTMXFormMixin, generate_form_layout
+from frontpage.forms import HTMXFormMixin
 from frontpage.widgets import TomSelectMultiple
 from register.models import PlantSpecies
 
@@ -15,7 +15,8 @@ class SampleFilterForm(HTMXFormMixin, forms.Form):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.helper.layout = generate_form_layout([Field("omni"), Field("variety__species")], 3)
+        # self.helper.layout = generate_form_layout([Field("omni"), Field("variety__species")], 3)
+        self.helper.layout = Layout(Field("omni"), Field("variety__species"))
 
 
 class SampleFilter(FilterSet):

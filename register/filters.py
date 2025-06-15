@@ -13,7 +13,7 @@ from django_filters import (
     ModelMultipleChoiceFilter,
 )
 
-from frontpage.forms import HTMXFormMixin, generate_form_layout
+from frontpage.forms import HTMXFormMixin
 from frontpage.widgets import TomSelect, TomSelectMultiple
 from register.models import (
     ENTITY_TYPE_CHOICES,
@@ -82,7 +82,6 @@ class PlantVarietyFilterForm(HTMXFormMixin, forms.Form):
         self.helper.form_method = "get"
         self.helper.layout = Layout(
             Field("name"),
-            Field("breeder"),
             Field("species"),
             Field("has_descriptions"),
             Field("has_accessions"),
@@ -97,7 +96,6 @@ class PlantVarietyFilterForm(HTMXFormMixin, forms.Form):
 
 class PlantVarietyFilter(FilterSet):
     name = CharFilter(label="Denomination", method="filter_name", field_name="names__name")
-    breeder = CharFilter(label="Breeder", method="filter_name", field_name="breeder__name")
     species = ModelMultipleChoiceFilter(label="Species", queryset=PlantSpecies.objects.all(), widget=TomSelectMultiple)
     has_descriptions = BooleanFilter(label="Described", field_name="description", method="filter_has_records")
     has_accessions = BooleanFilter(label="Accession", field_name="sample", method="filter_has_records")
@@ -121,7 +119,7 @@ class PlantVarietyFilter(FilterSet):
 class EntityFilterForm(HTMXFormMixin, forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.helper.layout = generate_form_layout([Field("name"), Field("country"), Field("type")])
+        self.helper.layout = Layout(Field("name"), Field("country"), Field("type"))
 
     class Meta:
         model = Entity
@@ -143,15 +141,12 @@ class EntityFilter(FilterSet):
 class ProtectionOmniFilterForm(HTMXFormMixin, forms.Form):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.helper.layout = generate_form_layout(
-            [
-                Field("omni"),
-                Field("variety__species"),
-                Field("type"),
-                Field("status"),
-                Field("country"),
-            ],
-            cols_lg=5,
+        self.helper.layout = Layout(
+            Field("omni"),
+            Field("variety__species"),
+            Field("type"),
+            Field("status"),
+            Field("country"),
         )
 
 

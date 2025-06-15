@@ -32,11 +32,9 @@ class ProtectionListTable(ProtectionTable):
             "type",
             "status",
             "country",
-            "reference",
-            "date_start",
-            "date_end",
             "note",
         )
+        exclude = ("date_start", "date_end", "reference")
         template_name = "register/partials/protection_table.html"
         per_page = 10
 
