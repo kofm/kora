@@ -70,7 +70,7 @@ class VarietalParameterCreate(PermissionRequiredMixin, NavPlantActiveContext, Cr
 
 
 @nav_plant_active_context
-@htmx_render_blocks(["table"])
+@htmx_render_blocks(["main"])
 def protection_list(request):
     queryset = Protection.objects.select_related("variety", "variety__species").all()
     flt = ProtectionOmniFilter(request.GET, queryset=queryset)
@@ -192,7 +192,7 @@ class EntityDeleteView(PermissionRequiredMixin, NavDescribeActiveContext, Delete
 
 
 @nav_describe_active_context
-@htmx_render_blocks(["table"])
+@htmx_render_blocks(["main"])
 def entity_list(request):
     flt = EntityFilter(request.GET, queryset=Entity.objects.all())
     table = EntityTable(flt.qs)

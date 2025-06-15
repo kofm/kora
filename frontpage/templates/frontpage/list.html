@@ -1,0 +1,53 @@
+{% extends "frontpage/base.html" %}
+
+{% load breadcrumbs %}
+{% load components %}
+{% load crispy_forms_tags %}
+{% load render_table from django_tables2 %}
+
+{% block container %}
+
+  {% block breadcrumbs %}
+    {% render_breadcrumbs %}
+  {% endblock %}
+
+  {% block page_header %}
+  {% endblock %}
+
+  <div class="row h-100">
+
+    <div class="col border-end">
+      {% block sidebar %}
+
+	{% block sidebar_title %}
+	  <h2 class="fs-4">Search</h2>
+	{% endblock %}
+
+	<div class="mt-3" hx-target="#results">
+	  {% block sidebar_body %}
+	    {% crispy filter.form %}
+	  {% endblock %}
+	</div>
+
+      {% endblock %}
+    </div>
+
+    {% block main_div %}
+      <div id="results" class="col-lg-9">
+	{% block main %}
+	  {% block main_title %}
+	    <h2 class="fs-4">Results</h2>
+	    <small class="text-muted">{{ table.paginator.count }} matches.</small>
+	  {% endblock %}
+	  {% block main_body %}
+	    <div hx-target="#results">
+	      {% render_table table %}
+	    </div>
+	  {% endblock %}
+	{% endblock %}
+      </div>
+    {% endblock %}
+
+  </div>
+
+{% endblock %}

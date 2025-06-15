@@ -23,7 +23,7 @@ from .models import Parameter, SpeciesParameter, VarietalParameter
 
 
 @nav_active("nav_plan")
-@htmx_render_blocks(["table"])
+@htmx_render_blocks(["main"])
 def parameter_list(request):
     queryset = Parameter.objects.all()
     flt = ParameterFilter(request.GET, queryset=queryset)

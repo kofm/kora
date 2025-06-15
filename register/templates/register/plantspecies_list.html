@@ -1,4 +1,4 @@
-{% extends "frontpage/base.html" %}
+{% extends "frontpage/list.html" %}
 
 {% load crispy_forms_tags %}
 {% load breadcrumbs %}
@@ -6,43 +6,35 @@
 
 {% block title %}Plant Species{% endblock %}
 
-{% block container %}
-  {% render_breadcrumbs %}
+{% block page_header %}
+  {% list_page_header "Species" create_url='register:plantspecies_create' permission="register.add_plantspecies" %}
+{% endblock %}
 
-  {% list_page_header "Plant Species" create_url='register:plantspecies_create' permission="register.add_plantspecies" %}
-
-  <div class="row">
-    <div class="col">
-      <h2 class="fs-4">Search</h2>
-      <div hx-target="#cards">
-	{% crispy filter.form %}
-      </div>
-    </div>
-
-    <div id="cards" class="col-lg-9">
-      {% block cards %}
-	<h2 class="fs-4">Results</h2>
-	<small class="text-muted">{{ page_obj.paginator.count }} matches.</small>
-	<div class="row row-cols-1 row-cols-md-3 mt-2">
-	  {% for species in page_obj %}
-	    <div class="col">
-	      <div class="card mt-2 text-center shadow-sm border-secondary-subtle">
-		<div class="card-body d-flex flex-column">
-		  <h5 class="card-title text-truncate p-1">
-		    <a class="link-body-emphasis text-decoration-none" href="{{ species.get_absolute_url }}">{{ species.common_name }}</a>
-		  </h5>
-		  <small class="card-subtitle text-truncate">
-		    <em>{{ species.latin_name }}</em>
-		  </small>
-		</div>
+{% block main_div %}
+  <div id="results" class="col-lg-9">
+    {% block cards %}
+      <h2 class="fs-4">Results</h2>
+      <small class="text-muted">{{ page_obj.paginator.count }} matches.</small>
+      <div class="row row-cols-1 row-cols-md-3 mt-2">
+	{% for species in page_obj %}
+	  <div class="col">
+	    <div class="card mt-2 text-center shadow-sm border-secondary-subtle">
+	      <div class="card-body d-flex flex-column">
+		<h5 class="card-title text-truncate p-1">
+		  <a class="link-body-emphasis text-decoration-none" href="{{ species.get_absolute_url }}">{{ species.common_name }}</a>
+		</h5>
+		<small class="card-subtitle text-truncate">
+		  <em>{{ species.latin_name }}</em>
+		</small>
 	      </div>
 	    </div>
-	  {% endfor %}
-	</div>
-	<div class="col mt-3 d-flex justify-content-end" hx-target="#cards">
-	  {% include "frontpage/partials/paginator.html" %}
-	</div>
-      {% endblock %}
-    </div>
+	  </div>
+	{% endfor %}
+      </div>
+      <div class="col mt-3 d-flex justify-content-end" hx-target="#results">
+	{% include "frontpage/partials/paginator.html" %}
+      </div>
+    {% endblock %}
+  </div>
   </div>
 {% endblock %}

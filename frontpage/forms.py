@@ -1,8 +1,9 @@
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import HTML, Div, Field, Layout, Submit
+from crispy_forms.layout import HTML, Div, Field, Layout, LayoutObject, Submit
 from django import forms
 from django.contrib.auth.forms import UserChangeForm
 from django.contrib.auth.models import Group, User
+from django.utils.safestring import mark_safe
 
 from frontpage.widgets import TomSelectMultiple
 
@@ -53,3 +54,19 @@ def generate_form_layout(fields: list[Field], cols_lg=4):
         ),
     )
     return layout
+
+
+class SearchAndClearButtons(LayoutObject):
+    def __init__(self, submit_name="search", submit_label="Search", clear_url=".", css_class="mt-0 mb-3"):
+        self.submit_name = submit_name
+        self.submit_label = submit_label
+        self.clear_url = clear_url
+        self.css_class = css_class
+
+    def render(self, form, form_style, context, template_pack=None, **kwargs):
+        layout = Div(
+            Submit(self.submit_name, self.submit_label, css_class="btn-sm"),
+            HTML(f'<a class="btn btn-sm btn-secondary" href="{self.clear_url}">Clear</a>'),
+            css_class=self.css_class,
+        )
+        return mark_safe(layout.render(form, form_style, context, template_pack))

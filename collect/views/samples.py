@@ -34,7 +34,7 @@ from frontpage.utils.htmx import htmx_response_trigger_close_modal
 from frontpage.views_decorators import htmx_render_blocks
 
 
-@htmx_render_blocks(["table"])
+@htmx_render_blocks(["main"])
 @permission_required("collect.view_sample")
 def sample_list(request):
     flt = SampleFilter(request.GET, queryset=Sample.objects.all())

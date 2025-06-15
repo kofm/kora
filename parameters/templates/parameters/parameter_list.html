@@ -1,29 +1,10 @@
-{% extends "frontpage/base.html" %}
+{% extends "frontpage/list.html" %}
 
-{% load breadcrumbs %}
 {% load components %}
-{% load crispy_forms_tags %}
 {% load render_table from django_tables2 %}
 
 {% block title %}Parameters{% endblock %}
 
-{% block container %}
-
-  {% render_breadcrumbs %}
-
+{% block page_header %}
   {% list_page_header title="Parameters" create_url="parameters:parameter_create" permission="parameters:add_parameter" %}
-
-  <h2>Search</h2>
-  <div hx-target="#table">
-    {% crispy filter.form %}
-  </div>
-
-  <div class="mt-3">
-    <h2>Results</h2>
-    {% block table %}
-      <div id="table" hx-target="#table">
-	{% render_table table %}
-      </div>
-    {% endblock %}
-  </div>
 {% endblock %}

@@ -1,7 +1,7 @@
-from crispy_forms.layout import HTML, Div, Field, Layout, MultiWidgetField, Submit
+
+from crispy_forms.layout import Field, Layout, MultiWidgetField
 from django import forms
 from django.db.models import Q
-from django.urls import reverse
 from django_countries.fields import CountryField
 from django_filters import (
     BooleanFilter,
@@ -13,7 +13,7 @@ from django_filters import (
     ModelMultipleChoiceFilter,
 )
 
-from frontpage.forms import HTMXFormMixin
+from frontpage.forms import HTMXFormMixin, SearchAndClearButtons
 from frontpage.widgets import TomSelect, TomSelectMultiple
 from register.models import (
     ENTITY_TYPE_CHOICES,
@@ -86,18 +86,14 @@ class PlantVarietyFilterForm(HTMXFormMixin, forms.Form):
             Field("has_descriptions"),
             Field("has_accessions"),
             MultiWidgetField("protection", attrs=({"class": "mt-1"})),
-            Div(
-                Submit("search", "Search", css_class="btn-sm"),
-                HTML(f'<a class="btn btn-sm btn-secondary" href="{reverse("register:variety_list")}">Clear</a>'),
-                css_class="mt-0 mb-3",
-            ),
+            SearchAndClearButtons(),
         )
 
 
 class PlantSpeciesFilterForm(HTMXFormMixin, forms.Form):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.helper.layout = Layout(Field("common_name"))
+        self.helper.layout = Layout(Field("common_name"), SearchAndClearButtons())
 
 
 class PlantSpeciesFilter(FilterSet):
@@ -139,7 +135,7 @@ class PlantVarietyFilter(FilterSet):
 class EntityFilterForm(HTMXFormMixin, forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.helper.layout = Layout(Field("name"), Field("country"), Field("type"))
+        self.helper.layout = Layout(Field("name"), Field("country"), Field("type"), SearchAndClearButtons())
 
     class Meta:
         model = Entity
@@ -167,6 +163,7 @@ class ProtectionOmniFilterForm(HTMXFormMixin, forms.Form):
             Field("type"),
             Field("status"),
             Field("country"),
+            SearchAndClearButtons(),
         )
 
 

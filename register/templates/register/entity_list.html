@@ -1,4 +1,4 @@
-{% extends "frontpage/base.html" %}
+{% extends "frontpage/list.html" %}
 
 {% load crispy_forms_tags %}
 {% load render_table from django_tables2 %}
@@ -10,31 +10,8 @@
   <link rel="stylesheet" href="{% static 'flags/sprite.css' %}">
 {% endblock %}
 
-{% block title %}
-  Entities
-{% endblock %}
+{% block title %}Entities{% endblock %}
 
-{% block container %}
-
-  {% render_breadcrumbs %}
+{% block page_header %}
   {% list_page_header "Entities" create_url='register:entity_create'  permission="register.add_entity" %}
-
-  <div class="row">
-    <div class="col">
-      <h2 class="fs-4">Search</h2>
-      <div class="mt-3" hx-target="#table">
-	{% crispy filter.form %}
-      </div>
-    </div>
-
-    <div id="table" class="col-lg-9">
-      {% block table %}
-	<h2 class="fs-4">Results</h2>
-	<small class="text-muted">{{ table.paginator.count }} matches.</small>
-	<div hx-target="#table">
-	  {% render_table table %}
-	</div>
-      {% endblock %}
-    </div>
-  </div>
 {% endblock %}
