@@ -281,7 +281,9 @@ class WorkspaceUpdateForm(WorkspaceInputForm):
 
 class ExpressionFilterForm(forms.Form):
     trait = forms.IntegerField(widget=forms.HiddenInput())
-    expressions = forms.MultipleChoiceField(choices=[], widget=forms.CheckboxSelectMultiple(), required=False)
+    expressions = forms.MultipleChoiceField(
+        choices=[], widget=forms.CheckboxSelectMultiple(attrs={"class": "form-check-input"}), required=False
+    )
 
     def __init__(self, *args, **kwargs):
         state_choices = kwargs.pop("state_choices", [])

@@ -1,8 +1,8 @@
 import django_tables2 as tables
-from crispy_forms.helper import mark_safe
 
 from collect.models import Sample
 from frontpage.tables import TableHoverFixed
+from frontpage.utils.text import smart_truncate_string
 
 
 class SampleBaseTable(tables.Table):
@@ -29,15 +29,8 @@ class SampleBaseTable(tables.Table):
         empty_text = "There are no corresponding seed samples to be displayed."
 
     def render_notes(self, record):
-        notes = record.notes or ""
-        return mark_safe(
-            f"""
-            <span class="d-inline-block text-truncate" 
-                style="max-width: 150px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
-                {notes}
-            </span>
-            """
-        )
+        notes = smart_truncate_string(record.notes)
+        return f"{notes}"
 
     def render_position(self, record):
         return f"{record.position.storage.name}-{record.position.name}"
