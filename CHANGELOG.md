@@ -1,3 +1,13 @@
+## 0.5.3 (2025-06-16)
+
+### Added
+
+- **register**: enhance plant species and variety lists cards UI
+- **register**: add searchable Plant Species list with card view and pagination
+- **register**: improve search UI and layout consistency across listing pages
+- **describe**: improve UI and export link formatting in description list
+- **register**: improve Plant Variety search, filter, and listing UI
+
 ## 0.5.2 (2025-06-13)
 
 ### Added
