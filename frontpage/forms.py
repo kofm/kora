@@ -57,7 +57,7 @@ def generate_form_layout(fields: list[Field], cols_lg=4):
 
 
 class SearchAndClearButtons(LayoutObject):
-    def __init__(self, submit_name="search", submit_label="Search", clear_url=".", css_class="mt-0 mb-3"):
+    def __init__(self, submit_name="search", submit_label="Search", clear_url="", css_class="mt-0 mb-3"):
         self.submit_name = submit_name
         self.submit_label = submit_label
         self.clear_url = clear_url
