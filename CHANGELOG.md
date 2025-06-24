@@ -1,3 +1,10 @@
+## 0.5.4 (2025-06-24)
+
+### Fixed
+
+- **describe**: enforce unique Trait numeric ID per protocol and improve Trait form UI
+- **frontpage**: make clear button URL default empty to avoid reload issues
+
 ## 0.5.3 (2025-06-16)
 
 ### Added
