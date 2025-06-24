@@ -1,3 +1,9 @@
+## 0.5.5 (2025-06-24)
+
+### Fixed
+
+- pin Django to 5.2 and downgrade sqlparse to 0.5.3 for compatibility
+
 ## 0.5.4 (2025-06-24)
 
 ### Fixed
