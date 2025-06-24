@@ -1,121 +1,132 @@
+{% load frontpage_extras %}
+
 <div class="mb-3">
-    <div class="btn-group" role="group" aria-label="Navigation button group">
-        {% if trait_prev %}
-            <button type="button" class="btn btn-outline-secondary fw-bold"
-                    hx-get="{% url 'describe:trait_update' trait_prev.pk %}"
-                    hx-target="#formPanel">
-                <i class="bi bi-arrow-bar-left"></i> Prev
-            </button>
-        {% else %}
-            <button type="button" class="btn btn-outline-secondary fw-bold disabled">
-                <i class="bi bi-arrow-bar-left"></i> Prev
-            </button>
-        {% endif %}
-        {% if trait_next %}
-            <button type="button" class="btn btn-outline-secondary fw-bold"
-                    hx-get="{% url 'describe:trait_update' trait_next.pk %}"
-                    hx-target="#formPanel"
-            >
-                <i class="bi bi-arrow-bar-right"></i> Next
-            </button>
-        {% else %}
-            <button type="button" class="btn btn-outline-secondary fw-bold disabled">
-                <i class="bi bi-arrow-bar-right"></i> Next
-            </button>
-        {% endif %}
-    </div>
-    <button class="btn btn-outline-primary fw-bold"
-            hx-get="{% url 'describe:trait_create' protocol.pk %}" hx-target="#formPanel">
-        <i class="bi bi-plus-circle"></i> Create
-    </button>
+  <div class="btn-group" role="group" aria-label="Navigation button group">
+    {% if trait_prev %}
+      <button type="button" class="btn btn-outline-secondary fw-bold"
+        hx-get="{% url 'describe:trait_update' trait_prev.pk %}"
+        hx-target="#formPanel">
+        <i class="bi bi-arrow-bar-left"></i> Prev
+      </button>
+    {% else %}
+      <button type="button" class="btn btn-outline-secondary fw-bold disabled">
+        <i class="bi bi-arrow-bar-left"></i> Prev
+      </button>
+    {% endif %}
+    {% if trait_next %}
+      <button type="button" class="btn btn-outline-secondary fw-bold"
+        hx-get="{% url 'describe:trait_update' trait_next.pk %}"
+        hx-target="#formPanel"
+      >
+        <i class="bi bi-arrow-bar-right"></i> Next
+      </button>
+    {% else %}
+      <button type="button" class="btn btn-outline-secondary fw-bold disabled">
+        <i class="bi bi-arrow-bar-right"></i> Next
+      </button>
+    {% endif %}
+  </div>
+  <button class="btn btn-outline-primary fw-bold"
+    hx-get="{% url 'describe:trait_create' protocol.pk %}" hx-target="#formPanel">
+    <i class="bi bi-plus-circle"></i> Create
+  </button>
 </div>
 
 <div class="card">
-    <form
-        {% if current_trait %}
-            hx-post="{% url 'describe:trait_update' current_trait.pk %}"
-        {% else %}
-            hx-post="{% url 'describe:trait_create' protocol.pk %}"
-        {% endif %}
-        hx-target="#formPanel"
-    >
-        <div class="card-header">
-            <h4>Descriptor</h4>
-            <div class="row g-2 m-2">
-                {{ form.protocol }}
-                <div class="col-2">
-                    <div class="form-floating">
-
-                        {{ form.numeric_id }}
-                        {{ form.numeric_id.label_tag }}
-                    </div>
-                    <div id="numericIdHelp" class="form-text">
-                        {{form.numeric_id.help_text}}
-                    </div>
-                </div>
-                <div class="col">
-                    <div class="form-floating">
-                        {{ form.description }}
-                        {{ form.description.label_tag }}
-                    </div>
-                    <div id="descriptorHelp" class="form-text">
-                        {{form.description.help_text}}
-                    </div>
-                </div>
-            </div>
-            <div class="row g-2 m-2">
-                <div class="col">
-                    <div class="form-check form-check-reverse">
-                        {{ form.grouping }}
-                        <label class="form-check-label" for="{{ form.grouping.id_for_label }}">
-                            <i class="bi bi-asterisk"></i> Grouping
-                        </label>
-                        <div class="form-text">{{ form.grouping.help_text }}</div>
-                    </div>
-                </div>
-
-
-            </div>
-        </div>
-
-        <div class="card-body">
-            {% if formset %}
-                <h5>States</h5>
-                <p class="text-muted">
-                    Enter the descriptor states and their
-                    corresponding numeric codes. Each state reflects a
-                    clearly definable expression of the
-                    characteristic.
-                </p>
-                {{ formset.management_form }}
-                {% for form in formset %}
-                    {% include "describe/partials/state_form.html" %}
-                {% endfor %}
-            {% endif %}
-        </div>
-        <div class="card-footer d-flex justify-content-end">
-            <button class="btn btn-primary me-2 fw-bold" type="submit"><i class="bi bi-check"></i> Save</button>
-            <button class="btn btn-secondary me-2 fw-bold" type="reset"><i class="bi bi-x"></i> Reset</button>
-
-            {% if form.instance.pk and form.instance.is_deletable %}
-	            <a
-		            href="#"
-		            class="btn btn-danger"
-		            hx-post="{% url 'describe:trait_delete' form.instance.pk %}"
-		            hx-target="#formPanel"
-                    hx-confirm="Are you sure?"
-	            >
-		            <i class="bi bi-trash"></i>
-                    Delete
-	            </a>
-            {% endif %}
-        </div>
-    </form>
-
-    {% if oob %}
-        <div id="traitNavigation" hx-swap-oob="true">
-            {% include "describe/partials/trait_update_navigation.html" %}
-        </div>
+  <form
+    {% if current_trait %}
+    hx-post="{% url 'describe:trait_update' current_trait.pk %}"
+    {% else %}
+    hx-post="{% url 'describe:trait_create' protocol.pk %}"
     {% endif %}
+    hx-target="#formPanel"
+  >
+    <div class="card-header">
+      <h4>Descriptor</h4>
+      <div class="row g-2 m-2">
+        {{ form.protocol }}
+        <div class="col-2">
+
+          <label class="form-label" for="{{ form.numeric_id.id_for_label }}">ID:</label>
+          {{ form.numeric_id|add_validation_classes }}
+	  {% if form.numeric_id.errors %}
+	    <div class="invalid-feedback">
+	      {{ form.errors.numeric_id|join:", "|escape }}
+	    </div>
+	  {% else %}
+            <div id="numericIdHelp" class="form-text">
+              {{ form.numeric_id.help_text }}
+            </div>
+	  {% endif %}
+        </div>
+        <div class="col">
+
+	  <label class="form-label" for="{{ form.description.id_for_label }}">Description:</label>
+          {{ form.description|add_validation_classes }}
+	  {% if form.numeric_id.errors %}
+	    <div class="invalid-feedback">
+	      {{ form.errors.description|join:", "|escape }}
+	    </div>
+	  {% else %}
+            <div id="descriptorHelp" class="form-text">
+              {{ form.description.help_text }}
+            </div>
+	  {% endif %}
+        </div>
+      </div>
+      <div class="row g-2 m-2">
+        <div class="col">
+          <div class="form-check form-check-reverse">
+            {{ form.grouping }}
+            <label class="form-check-label" for="{{ form.grouping.id_for_label }}">
+              <i class="bi bi-asterisk"></i> Grouping
+            </label>
+            <div class="form-text">{{ form.grouping.help_text }}</div>
+          </div>
+        </div>
+
+
+      </div>
+    </div>
+
+    <div class="card-body">
+      {% if formset %}
+        <h5>States</h5>
+        <p class="text-muted">
+          Enter the descriptor states and their
+          corresponding numeric codes. Each state reflects a
+          clearly definable expression of the
+          characteristic.
+        </p>
+        {{ formset.management_form }}
+        {% for form in formset %}
+          {% include "describe/partials/state_form.html" %}
+        {% endfor %}
+      {% endif %}
+    </div>
+    <div class="card-footer d-flex justify-content-end">
+      <button class="btn btn-primary me-2 fw-bold" type="submit"><i class="bi bi-check"></i> Save</button>
+      <button class="btn btn-secondary me-2 fw-bold" type="reset"><i class="bi bi-x"></i> Reset</button>
+
+      {% if form.instance.pk and form.instance.is_deletable %}
+	<a
+	  href="#"
+	  class="btn btn-danger"
+	  hx-post="{% url 'describe:trait_delete' form.instance.pk %}"
+	  hx-target="#formPanel"
+          hx-confirm="Are you sure?"
+	>
+	  <i class="bi bi-trash"></i>
+          Delete
+	</a>
+      {% endif %}
+    </div>
+  </form>
+
+  {% if oob %}
+    <div id="traitNavigation" hx-swap-oob="true">
+      {% include "describe/partials/trait_update_navigation.html" %}
+    </div>
+  {% endif %}
 
 </div>

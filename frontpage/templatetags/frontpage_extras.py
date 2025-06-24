@@ -28,6 +28,15 @@ def add_valid_class(field, css_class):
     return field
 
 
+@register.filter("add_validation_classes")
+def add_validation_classes(field):
+    if field.form.is_bound and not (hasattr(field, "errors") and field.errors):
+        return add_class(field, "is-valid")
+    if field.form.is_bound and hasattr(field, "errors") and field.errors:
+        return add_class(field, "is-invalid")
+    return field
+
+
 @register.filter("add_suffix")
 def add_suffix(value, suffix):
     if not isinstance(value, str):

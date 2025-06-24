@@ -2,7 +2,7 @@
 
 from django.contrib.auth.models import User
 from django.db import models
-from django.db.models import F
+from django.db.models import F, UniqueConstraint
 from django.db.models.aggregates import Count
 from django.db.models.functions import Coalesce
 from django.db.models.query_utils import Q
@@ -181,15 +181,13 @@ class TraitQuerySet(models.QuerySet):
 
 class Trait(models.Model):
     numeric_id = models.IntegerField(
-        null=True,
-        blank=True,
         verbose_name="ID",
-        help_text="Numbering code.",
+        help_text="Numbering code",
     )
     description = models.CharField(
         max_length=200,
         verbose_name="name",
-        help_text="A descriptive, unique, and unambiguous name.",
+        help_text="A descriptive, unique, and unambiguous name",
     )
     protocol = models.ForeignKey(
         Protocol,
@@ -203,6 +201,7 @@ class Trait(models.Model):
 
     class Meta:
         ordering = ("numeric_id",)
+        constraints = [UniqueConstraint("numeric_id", "protocol", name="unique_numeric_id_per_protocol")]
 
     def __str__(self):
         """Return string representation of a Trait as `ID. DESCRIPTION`."""
