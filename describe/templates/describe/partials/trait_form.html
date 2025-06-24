@@ -43,10 +43,18 @@
   >
     <div class="card-header">
       <h4>Descriptor</h4>
+      {% if form.non_field_errors %}
+
+	<div class="text-danger text-center">
+	  <small>
+	    {{ form.non_field_errors|join:", "|escape }}
+	  </small>
+	</div>
+
+      {% endif %}
       <div class="row g-2 m-2">
         {{ form.protocol }}
         <div class="col-2">
-
           <label class="form-label" for="{{ form.numeric_id.id_for_label }}">ID:</label>
           {{ form.numeric_id|add_validation_classes }}
 	  {% if form.numeric_id.errors %}
@@ -105,8 +113,8 @@
       {% endif %}
     </div>
     <div class="card-footer d-flex justify-content-end">
-      <button class="btn btn-primary me-2 fw-bold" type="submit"><i class="bi bi-check"></i> Save</button>
-      <button class="btn btn-secondary me-2 fw-bold" type="reset"><i class="bi bi-x"></i> Reset</button>
+      <button class="btn btn-primary me-2 fw-bold" type="submit"><i class="bi bi-check me-2"></i>Save</button>
+      <button class="btn btn-secondary me-2 fw-bold" type="reset"><i class="bi bi-x me-2"></i>Reset</button>
 
       {% if form.instance.pk and form.instance.is_deletable %}
 	<a

@@ -201,7 +201,14 @@ class Trait(models.Model):
 
     class Meta:
         ordering = ("numeric_id",)
-        constraints = [UniqueConstraint("numeric_id", "protocol", name="unique_numeric_id_per_protocol")]
+        constraints = [
+            UniqueConstraint(
+                "numeric_id",
+                "protocol",
+                name="unique_numeric_id_per_protocol",
+                violation_error_message="Each protocol must have unique Descriptor IDs. This one is already used.",
+            )
+        ]
 
     def __str__(self):
         """Return string representation of a Trait as `ID. DESCRIPTION`."""
