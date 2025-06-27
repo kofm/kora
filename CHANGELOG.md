@@ -1,3 +1,9 @@
+## 0.5.9 (2025-06-27)
+
+### Fixed
+
+- **register**: redirect to entity list after deletion instead of detail view
+
 ## 0.5.8 (2025-06-27)
 
 ### Fixed
