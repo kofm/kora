@@ -1,3 +1,14 @@
+## 0.5.6 (2025-06-27)
+
+### Added
+
+- **register**: add entity filtering to ProtectionOmniFilter
+
+### Fixed
+
+- **register**: add missing permission requirement for ProtectionDeleteView
+- **describe**: improve error display on Trait form
+
 ## 0.5.5 (2025-06-24)
 
 ### Fixed
