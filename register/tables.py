@@ -122,17 +122,10 @@ class PlantSpeciesTable(tables.Table):
 
 class PlantVarietyEntityTable(tables.Table):
     name = tables.Column(linkify=True)
-    country = tables.TemplateColumn(
-        "<i class='{{ record.protection_set.last.country.flag_css }}'></i>",
-        verbose_name="Country",
-    )
 
     class Meta:
         model = PlantVariety
-        fields = (
-            "name",
-            "species",
-        )
+        fields = ("name", "species")
 
 
 def render_icon(value):
