@@ -142,9 +142,6 @@ class ProtectionDeleteView(PermissionRequiredMixin, DeleteBreadcrumbsMixin, NavP
     permission_required = ["register.delete_protection"]
     success_url = reverse_lazy("register:protection_list")
 
-    def get_success_url(self):
-        return reverse_lazy("register:variety_detail", args=[self.object.variety.pk])
-
 
 @nav_plant_active_context
 def protection_detail(request, pk):
@@ -196,6 +193,7 @@ class EntityDeleteView(PermissionRequiredMixin, NavDescribeActiveContext, Delete
     model = Entity
     template_name = "frontpage/confirm_delete.html"
     permission_required = ["register.delete_entity"]
+    success_url = reverse_lazy("register:entity_detail")
 
 
 @nav_describe_active_context
