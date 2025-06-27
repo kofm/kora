@@ -138,6 +138,7 @@ def protection_update(request, pk):
 class ProtectionDeleteView(PermissionRequiredMixin, DeleteBreadcrumbsMixin, NavPlantActiveContext, DeleteView):
     object: Protection
     model = Protection
+    permission_required = ["register.delete_protection"]
 
     def get_success_url(self):
         return reverse_lazy("register:variety_detail", args=[self.object.variety.pk])
