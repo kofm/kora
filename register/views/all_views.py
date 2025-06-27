@@ -1,5 +1,6 @@
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.db.models import Q
 from django.http import HttpRequest
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
@@ -172,7 +173,11 @@ class EntityCreateView(PermissionRequiredMixin, CreateBreadcrumbsMixin, NavDescr
 @nav_describe_active_context
 def entity_detail(request, pk):
     entity = get_object_or_404(Entity, pk=pk)
-    table = PlantVarietyEntityTable(entity.plantvariety_set.all())
+    query = Q()
+    query |= Q(protection__applicants=pk)
+    query |= Q(protection__maintainers=pk)
+    qs = PlantVariety.objects.select_related("species").prefetch_related("protection_set").filter(query).distinct()
+    table = PlantVarietyEntityTable(qs)
     RequestConfig(request).configure(table)
     context = {"entity": entity, "table": table}
     context.update(generate_breadcrumbs(request, Entity, entity))

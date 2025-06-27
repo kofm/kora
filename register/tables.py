@@ -128,8 +128,11 @@ class PlantVarietyEntityTable(tables.Table):
     )
 
     class Meta:
-        model = Entity
-        fields = ("name", "species", "country")
+        model = PlantVariety
+        fields = (
+            "name",
+            "species",
+        )
 
 
 def render_icon(value):
