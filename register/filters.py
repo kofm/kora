@@ -1,4 +1,3 @@
-
 from crispy_forms.layout import Field, Layout, MultiWidgetField
 from django import forms
 from django.db.models import Q
@@ -160,6 +159,7 @@ class ProtectionOmniFilterForm(HTMXFormMixin, forms.Form):
         self.helper.layout = Layout(
             Field("omni"),
             Field("variety__species"),
+            Field("entities"),
             Field("type"),
             Field("status"),
             Field("country"),
@@ -170,6 +170,9 @@ class ProtectionOmniFilterForm(HTMXFormMixin, forms.Form):
 class ProtectionOmniFilter(FilterSet):
     omni = CharFilter(method="omni_search", label="Search")
     variety__species = ModelChoiceFilter(queryset=PlantSpecies.objects.all(), label="Species")
+    entities = ModelChoiceFilter(
+        queryset=Entity.objects.all(), label="Entity", widget=TomSelect, method="entity_search"
+    )
     type = ChoiceFilter(choices=PROTECTION_TYPE_CHOICES)
     status = ChoiceFilter(choices=PROTECTION_STATUS_CHOICES)
     country = ChoiceFilter(choices=CountryField().get_choices(include_blank=False), widget=TomSelect)
@@ -181,4 +184,10 @@ class ProtectionOmniFilter(FilterSet):
         query = Q(variety__names__name__icontains=value)
         query |= Q(note__icontains=value)
         query |= Q(reference__icontains=value)
+        return queryset.filter(query)
+
+    def entity_search(self, queryset, name, value):
+        query = Q()
+        query |= Q(applicants=value)
+        query |= Q(maintainers=value)
         return queryset.filter(query)
