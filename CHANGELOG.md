@@ -1,3 +1,10 @@
+## 0.5.8 (2025-06-27)
+
+### Fixed
+
+- **register**: simplify PlantVarietyEntityTable by removing country column
+- **register**: correct success_url in ProtectionDeleteView and EntityDeleteView
+
 ## 0.5.7 (2025-06-27)
 
 ### Fixed
