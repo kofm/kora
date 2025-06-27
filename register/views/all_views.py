@@ -193,7 +193,7 @@ class EntityDeleteView(PermissionRequiredMixin, NavDescribeActiveContext, Delete
     model = Entity
     template_name = "frontpage/confirm_delete.html"
     permission_required = ["register.delete_entity"]
-    success_url = reverse_lazy("register:entity_detail")
+    success_url = reverse_lazy("register:entity_list")
 
 
 @nav_describe_active_context
