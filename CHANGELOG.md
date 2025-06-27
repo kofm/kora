@@ -1,3 +1,10 @@
+## 0.5.7 (2025-06-27)
+
+### Fixed
+
+- **register**: correctly display related plant varieties on entity detail page
+- **register**: set correct success URL after protection deletion
+
 ## 0.5.6 (2025-06-27)
 
 ### Added
