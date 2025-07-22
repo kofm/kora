@@ -19545,7 +19545,7 @@ textarea.form-control-lg {
   }
 }
 /*!
- * Bootstrap Icons v1.11.3 (https://icons.getbootstrap.com/)
+ * Bootstrap Icons v1.13.1 (https://icons.getbootstrap.com/)
  * Copyright 2019-2024 The Bootstrap Authors
  * Licensed under MIT (https://github.com/twbs/icons/blob/main/LICENSE)
  */
@@ -27769,6 +27769,118 @@ textarea.form-control-lg {
   content: "賈";
 }
 
+.bi-bluesky::before {
+  content: "\\f7f9";
+}
+
+.bi-tux::before {
+  content: "滑";
+}
+
+.bi-beaker-fill::before {
+  content: "串";
+}
+
+.bi-beaker::before {
+  content: "句";
+}
+
+.bi-flask-fill::before {
+  content: "龜";
+}
+
+.bi-flask-florence-fill::before {
+  content: "龜";
+}
+
+.bi-flask-florence::before {
+  content: "契";
+}
+
+.bi-flask::before {
+  content: "金";
+}
+
+.bi-leaf-fill::before {
+  content: "喇";
+}
+
+.bi-leaf::before {
+  content: "奈";
+}
+
+.bi-measuring-cup-fill::before {
+  content: "懶";
+}
+
+.bi-measuring-cup::before {
+  content: "癩";
+}
+
+.bi-unlock2-fill::before {
+  content: "羅";
+}
+
+.bi-unlock2::before {
+  content: "蘿";
+}
+
+.bi-battery-low::before {
+  content: "螺";
+}
+
+.bi-anthropic::before {
+  content: "裸";
+}
+
+.bi-apple-music::before {
+  content: "邏";
+}
+
+.bi-claude::before {
+  content: "樂";
+}
+
+.bi-openai::before {
+  content: "洛";
+}
+
+.bi-perplexity::before {
+  content: "烙";
+}
+
+.bi-css::before {
+  content: "珞";
+}
+
+.bi-javascript::before {
+  content: "落";
+}
+
+.bi-typescript::before {
+  content: "酪";
+}
+
+.bi-fork-knife::before {
+  content: "駱";
+}
+
+.bi-globe-americas-fill::before {
+  content: "亂";
+}
+
+.bi-globe-asia-australia-fill::before {
+  content: "卵";
+}
+
+.bi-globe-central-south-asia-fill::before {
+  content: "欄";
+}
+
+.bi-globe-europe-africa-fill::before {
+  content: "爛";
+}
+
 /**
  * Tom Select Bootstrap 5
  */
@@ -29197,7 +29309,7 @@ module.exports = "data:image/svg+xml,%3csvg xmlns=%27http://www.w3.org/2000/svg%
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
-module.exports = __webpack_require__.p + "b7bcc075b395c14ce8c2.woff2?24e3eb84d0bcaf83d77f904c78ac1f47";
+module.exports = __webpack_require__.p + "92ea18a81d737146ff04.woff2?24e3eb84d0bcaf83d77f904c78ac1f47";
 
 /***/ }),
 
@@ -29208,7 +29320,7 @@ module.exports = __webpack_require__.p + "b7bcc075b395c14ce8c2.woff2?24e3eb84d0b
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
-module.exports = __webpack_require__.p + "39795c0b4513de014cf8.woff?24e3eb84d0bcaf83d77f904c78ac1f47";
+module.exports = __webpack_require__.p + "1295669cd4e305c97f2c.woff?24e3eb84d0bcaf83d77f904c78ac1f47";
 
 /***/ }),
 
