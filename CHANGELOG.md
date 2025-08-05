@@ -1,3 +1,17 @@
+## 0.5.10 (2025-08-05)
+
+### Added
+
+- **frontpage**: update Bootstrap Icons to v1.13.1 and add new icon fonts
+
+### Fixed
+
+- **describe**: add unique constraint on Trait numeric_id per protocol
+
+### Documentation
+
+- add detailed API documentation for Excel Import feature
+
 ## 0.5.9 (2025-06-27)
 
 ### Fixed
