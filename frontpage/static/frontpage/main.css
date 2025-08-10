@@ -1,4 +1,3 @@
-/* Your previous SCSS extras, now in plain CSS */
 .ts-dropdown, .ts-control, .ts-control input {
   color: var(--bs-body-color);
 }
@@ -10,3 +9,15 @@
   right: 60px;
 }
 .ts-dropdown { z-index: 1060; }
+
+.table-hover .row-action {
+    opacity: 0;
+    transition: opacity .15s ease;
+}
+.table-hover tbody tr:hover .row-action {
+    opacity: 1;
+}
+
+.border-hover:hover {
+    border-color: var(--bs-primary-border-subtle);
+}
