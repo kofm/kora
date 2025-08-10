@@ -13,7 +13,6 @@ urlpatterns = [
     path("varieties", views.plantvariety_list, name="variety_list"),
     path("varieties/<int:pk>", views.plantvariety_detail, name="variety_detail"),
     path("varieties/create", views.PlantVarietyCreate.as_view(), name="variety_create"),
-    path("varieties/<int:pk>/update", views.PlantVarietyUpdateView.as_view(), name="variety_update"),
     path("varieties/<int:pk>/delete", views.PlantVarietyDelete.as_view(), name="variety_delete"),
     path("varieties/<int:pk>/parameters", views.PlantVarietyParametersList.as_view(), name="parameter_list"),
     path("varieties/name/<int:pk>/delete", views.plantvarietyname_delete, name="denomination_delete"),

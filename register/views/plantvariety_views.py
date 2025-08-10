@@ -71,13 +71,6 @@ def plantvariety_detail(request, pk):
     return TemplateResponse(request, "register/plantvariety_detail.html", context)
 
 
-class PlantVarietyUpdateView(PermissionRequiredMixin, NavPlantActiveContext, CrumbsUpdateView):
-    model = PlantVariety
-    fields = ("breeder",)
-    template_name = "register/plantvariety_update_form.html"
-    permission_required = ["register.change_plantvariety"]
-
-
 class PlantVarietyDelete(PermissionRequiredMixin, NavPlantActiveContext, CrumbsDeleteView):
     object: PlantVariety
     model = PlantVariety

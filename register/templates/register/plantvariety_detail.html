@@ -18,8 +18,7 @@
 
   {% render_breadcrumbs %}
 
-  {% url 'register:variety_update' variety.pk as update_url %}
-  {% detail_page_header variety title=variety.name subtitle=variety.species.common_name update_url=update_url %}
+  {% detail_page_header variety title=variety.name subtitle=variety.species.common_name %}
 
   <div class="row mt-5">
     <div class="col">
