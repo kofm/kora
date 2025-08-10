@@ -1,11 +1,12 @@
-   .table-hover .row-action {
-       opacity: 0;
-       transition: opacity .15s ease;
-   }
-   .table-hover tbody tr:hover .row-action {
-       opacity: 1;
-   }
-
-.border-hover:hover {
-  border-color: var(--bs-primary-border-subtle);
+/* Your previous SCSS extras, now in plain CSS */
+.ts-dropdown, .ts-control, .ts-control input {
+  color: var(--bs-body-color);
 }
+.ts-wrapper.plugin-remove_button .item .remove {
+  color: var(--bs-danger);
+}
+.plugin-clear_button .clear-button {
+  color: var(--bs-danger);
+  right: 60px;
+}
+.ts-dropdown { z-index: 1060; }

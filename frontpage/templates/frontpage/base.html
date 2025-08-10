@@ -1,37 +1,49 @@
 {% load static %}
 {% load components %}
 
-<!DOCTYPE html>
-<html lang="en" >
-  <head>
-    <script src="{% static 'frontpage/main.bundle.js' %}"></script>
-    <script src="{% static 'django_sortable_htmx/sortable.bundle.js' %}" type="text/javascript" defer></script>
-    <link href="{% static 'frontpage/main.css' %}" rel="stylesheet"/>
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    {% block javascript %}
-    {% endblock %}
-    <meta charset="UTF-8">
-    <title>Kora - {% block title %}{% endblock %}</title>
-  </head>
+        <link rel="stylesheet" href="{% static 'frontpage/vendor/bootstrap.min.css' %}">
+        <link rel="stylesheet" href="{% static 'frontpage/vendor/bootstrap-icons.css' %}">
+        <link rel="stylesheet" href="{% static 'frontpage/vendor/tom-select.bootstrap5.css' %}">
+        <link rel="stylesheet" href="{% static 'frontpage/main.css' %}">
 
-  <body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' data-bs-theme="{{ request.session.appearance|default:"light" }}" _="on fetch:beforeRequest(headers) set headers['X-CSRFToken'] to '{{ csrf_token }}'">
+        {% block javascript %}
+        {% endblock %}
+        <meta charset="UTF-8">
+        <title>Kora - {% block title %}{% endblock %}</title>
+    </head>
 
-    {% include 'frontpage/navbar.html' %}
+    <body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' data-bs-theme="{{ request.session.appearance|default:"light" }}" _="on fetch:beforeRequest(headers) set headers['X-CSRFToken'] to '{{ csrf_token }}'">
 
-    <main class="container">
-      {% block container %}
-      {% endblock %}
-    </main>
+        {% include 'frontpage/navbar.html' %}
 
-    {% offcanvas "workspace" "Workspace" "describe/partials/workspace_offcanvas.html" %}
-    {% offcanvas "cart" "Cart" "collect/partials/cart_offcanvas.html" %}
+        <main class="container">
+            {% block container %}
+            {% endblock %}
+        </main>
 
-    {% include "frontpage/modal.html" %}
-    {% include "frontpage/partials/toasts.html" %}
+        {% offcanvas "workspace" "Workspace" "describe/partials/workspace_offcanvas.html" %}
+        {% offcanvas "cart" "Cart" "collect/partials/cart_offcanvas.html" %}
 
-    <div id="tray-indicator" class="position-fixed top-0 end-0 p-3 htmx-indicator">
-      <div class="spinner-border spinner-border"></div>
-    </div>
+        {% include "frontpage/modal.html" %}
+        {% include "frontpage/partials/toasts.html" %}
 
-  </body>
+        <div id="tray-indicator" class="position-fixed top-0 end-0 p-3 htmx-indicator">
+            <div class="spinner-border spinner-border"></div>
+        </div>
+
+        <script src="{% static 'frontpage/vendor/htmx.min.js' %}" defer></script>
+        <script src="{% static 'frontpage/vendor/hyperscript.min.js' %}" defer></script>
+        <script src="{% static 'frontpage/vendor/bootstrap.bundle.min.js' %}" defer></script>
+        <script src="{% static 'frontpage/vendor/tom-select.complete.js' %}" defer></script>
+        <script src="{% static 'frontpage/vendor/Sortable.min.js' %}" defer></script>
+
+        <script src="{% static 'frontpage/main.js' %}" defer></script>
+
+    </body>
 </html>
