@@ -133,7 +133,7 @@ def protection_update(request, pk):
     breadcrumbs = generate_breadcrumbs(request, Protection, protection)
     breadcrumbs = add_plantvariety_breadcrumbs(breadcrumbs, protection.variety)
     context.update(breadcrumbs)
-    return TemplateResponse(request, "register/protection_update.html", context)
+    return TemplateResponse(request, "frontpage/_update_form.html", context)
 
 
 class ProtectionDeleteView(PermissionRequiredMixin, DeleteBreadcrumbsMixin, NavPlantActiveContext, DeleteView):
