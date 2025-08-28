@@ -1,3 +1,9 @@
+## 0.5.11 (2025-08-28)
+
+### Fixed
+
+- **restapi**: include 'note' field in ProtectionSerializer
+
 ## 0.5.10 (2025-08-05)
 
 ### Added
