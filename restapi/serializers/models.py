@@ -73,6 +73,7 @@ class ProtectionSerializer(CountryFieldMixin, BulkModelSerializer):
             "maintainers",
             "date_start",
             "date_end",
+            "note",
         )
 
 
