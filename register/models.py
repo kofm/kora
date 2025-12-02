@@ -51,7 +51,11 @@ class Entity(ModelIsDeletableMixin, models.Model):
         default="",
         help_text="Contact details of the entity, such as phone number or address.",
     )
-    email = models.EmailField(default="", help_text="Email address of the entity. E.g., 'john.doe@example.com'.")
+    email = models.EmailField(
+        blank=True,
+        default="",
+        help_text="Email address of the entity. E.g., 'john.doe@example.com'.",
+    )
 
     class Meta:
         ordering = ("name",)
@@ -126,7 +130,6 @@ class PlantVariety(ModelIsDeletableMixin, models.Model):
         ordering = ("name",)
         verbose_name = "variety"
         verbose_name_plural = "varieties"
-        unique_together = ("name", "species")
 
     def __str__(self):
         return f"{self.name} ({self.species.common_name})"
