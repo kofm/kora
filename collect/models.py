@@ -295,7 +295,7 @@ class Germinability(models.Model):
 class SampleWeight(models.Model):
     sample = models.ForeignKey(Sample, on_delete=models.CASCADE)
     weight = models.FloatField("sample weight (g)", validators=[MinValueValidator(0.0)])
-    created_at = models.DateField(default=timezone.localdate)
+    created_at = models.DateField("recorded at", default=timezone.localdate)
 
     class Meta:
         ordering = ("created_at",)

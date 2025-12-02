@@ -21,7 +21,7 @@ from frontpage.widgets import TomSelect, YearInput
 class SampleForm(forms.ModelForm):
     class Meta:
         model = Sample
-        fields = ("sample_id", "variety", "position", "growing_season")
+        fields = ("sample_id", "variety", "position", "growing_season", "notes")
         widgets = {
             "variety": TomSelect,
             "position": TomSelect,
