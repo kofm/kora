@@ -1,3 +1,15 @@
+## 0.5.12 (2025-12-04)
+
+### Fixed
+
+- **register**: improve variety search by displaying results ranked by similarity (exact matches at the top)
+- **register**: email is not anymore required when creating a new Entity
+- **register**: fix inconsistent naming of Protection reference
+- **register**: fix country display in Protection detail view
+- **collect**: restore notes field to Sample form
+- **frontpage**: restore css for table interaction
+- **register**: remove obsolete protection update template and simplify view rendering
+
 ## 0.5.11 (2025-08-28)
 
 ### Fixed
