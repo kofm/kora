@@ -12,4 +12,3 @@ class ViewSmokeTests(TestCase):
     def test_admin_view(self):
         response = self.client.get(reverse("frontpage:admin"))
         self.assertEqual(response.status_code, 200)
-        response.render()

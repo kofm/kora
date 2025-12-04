@@ -1,6 +1,9 @@
 from crispy_forms.layout import Field, Layout, MultiWidgetField
 from django import forms
-from django.db.models import Q
+from django.contrib.postgres.lookups import Unaccent
+from django.contrib.postgres.search import TrigramSimilarity
+from django.db.models import Case, F, IntegerField, Q, Value, When
+from django.db.models.functions import Lower
 from django_countries.fields import CountryField
 from django_filters import (
     BooleanFilter,
@@ -23,17 +26,36 @@ from register.models import (
     PlantVariety,
 )
 
+TRIGRAM_SEARCH_THRESHOLD = 3
 
-def filter_name_generic(queryset, name, value):
-    TRIGRAM_SEARCH_THRESHOLD = 7
-    lookup_icontains = f"{name}__unaccent__icontains"
-    lookup_trigram = f"{name}__unaccent__lower__trigram_similar"
-    if value:
-        if len(value) < TRIGRAM_SEARCH_THRESHOLD:
-            queryset = queryset.filter(**{lookup_icontains: value})
-        else:
-            queryset = queryset.filter(**{lookup_trigram: value})
-    return queryset
+
+def filter_name_generic(queryset, field_name, value):
+    if not value:
+        return queryset
+
+    search_expr = Lower(Unaccent(F(field_name)))
+
+    qs = queryset.annotate(
+        search_name=search_expr,
+        similarity=TrigramSimilarity("search_name", value),
+    )
+
+    if len(value) < TRIGRAM_SEARCH_THRESHOLD:
+        qs = qs.filter(search_name__icontains=value)
+    else:
+        qs = qs.filter(similarity__gt=0.1)
+
+    qs = qs.annotate(
+        rank=Case(
+            When(search_name__iexact=value, then=Value(0)),
+            When(search_name__istartswith=value, then=Value(1)),
+            When(search_name__icontains=value, then=Value(2)),
+            default=Value(3),
+            output_field=IntegerField(),
+        )
+    )
+
+    return qs.order_by("rank", "-similarity", "search_name")
 
 
 class ProtectionFilterWidget(forms.MultiValueField):
