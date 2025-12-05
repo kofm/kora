@@ -198,16 +198,14 @@ def storage_update(request, pk):
 def storage_delete(request, pk):
     storage = get_object_or_404(Storage, pk=pk)
 
-    if storage.stored_samples:
+    if not storage.is_deletable():
         return redirect(reverse_lazy("collect:storage_list"))
 
     if request.POST:
         storage.delete()
         return redirect(reverse_lazy("collect:storage_list"))
 
-    context = {"storage": storage}
-    context.update(generate_breadcrumbs(request, Storage, storage))
-
+    context = {"storage": storage, **generate_breadcrumbs(request, Storage, storage)}
     return TemplateResponse(request, "collect/storage_confirm_delete.html", context)
 
 
