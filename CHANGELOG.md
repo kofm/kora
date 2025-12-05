@@ -1,3 +1,9 @@
+## 0.5.13 (2025-12-05)
+
+### Fixed
+
+- **collect**: restore the storage deletion functionality
+
 ## 0.5.12 (2025-12-04)
 
 ### Fixed
