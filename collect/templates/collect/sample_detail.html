@@ -30,8 +30,7 @@
 
   {% render_breadcrumbs %}
 
-  {% url 'collect:sample_update' sample.pk as update_url %}
-  {% detail_page_header sample subtitle=sample.variety update_url=update_url %}
+  {% detail_page_header sample subtitle=sample.variety %}
 
 
   <div class="my-3">

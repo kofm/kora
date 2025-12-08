@@ -67,6 +67,10 @@ class Storage(models.Model):
     def is_deletable(self):
         return self.stored_positions == 0
 
+    @property
+    def cant_delete_msg(self):
+        return "You can't delete this storage because it is not empty."
+
     def increase_positions(self, value):
         if value <= self.total_positions:
             return
@@ -209,6 +213,9 @@ class Sample(ModelIsDeletableMixin, models.Model):
 
     def get_absolute_url(self):
         return reverse("collect:sample_detail", kwargs={"pk": self.pk})
+
+    def get_update_url(self):
+        return reverse("collect:sample_update", kwargs={"pk": self.pk})
 
     def get_delete_url(self):
         return reverse("collect:sample_delete", kwargs={"pk": self.pk})

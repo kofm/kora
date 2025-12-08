@@ -68,6 +68,9 @@ class Entity(ModelIsDeletableMixin, models.Model):
     def get_absolute_url(self):
         return reverse("register:entity_detail", args=(self.pk,))
 
+    def get_update_url(self):
+        return reverse("register:entity_update", args=(self.pk,))
+
     def get_delete_url(self):
         return reverse("register:entity_delete", args=(self.pk,))
 

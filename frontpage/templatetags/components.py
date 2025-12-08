@@ -103,37 +103,29 @@ def get_permission_from_instance(action, instance):
 
 
 @register.inclusion_tag("frontpage/partials/detail_page_header.html", takes_context=True)
-def detail_page_header(
-    context,
-    instance,
-    title="",
-    title_class="",
-    subtitle="",
-    subtitle_emphasis=False,
-    update_url=None,
-    update_permission=None,
-    delete_url=None,
-    delete_permission=None,
-    **kwargs,
-):
+def detail_page_header(context, instance, title="", subtitle="", subtitle_emphasis=False):
     user = context["request"].user
-    title = title or instance.__str__()
-    update_permission = update_permission or get_permission_from_instance("change", instance)
-    delete_permission = delete_permission or get_permission_from_instance("delete", instance)
+    title = title or str(instance)
+    update_permission = get_permission_from_instance("change", instance)
+    delete_permission = get_permission_from_instance("delete", instance)
+
     if user.has_perm(update_permission):
-        update_url = update_url or get_action_url_from_instance("update", instance)
+        update_url = get_action_url_from_instance("update", instance)
     else:
         update_url = None
+
     if user.has_perm(delete_permission):
-        delete_url = delete_url or get_action_url_from_instance("delete", instance)
+        delete_url = get_action_url_from_instance("delete", instance)
     else:
         delete_url = None
-    cant_delete_msg = kwargs.get(
-        "cant_delete_msg", "You can't remove this entry because it is referenced by other data."
-    )
+
+    if hasattr(instance, "cant_delete_msg"):
+        cant_delete_msg = instance.cant_delete_msg
+    else:
+        cant_delete_msg = "You can't remove this entry because it is associated to other data."
+
     return {
         "title": title,
-        "title_class": title_class,
         "subtitle": subtitle,
         "object": instance,
         "update_url": update_url,
@@ -178,8 +170,7 @@ def modal_attrs():
 
 @register.simple_tag
 def offcanvas_toggle(offcanvas_id: str, content: str):
-    """
-    Creates a Bootstrap offcanvas toggle button.
+    """Creates a Bootstrap offcanvas toggle button.
 
     Usage:
     {% load components %}
@@ -188,14 +179,15 @@ def offcanvas_toggle(offcanvas_id: str, content: str):
     Parameters:
     - offcanvas_id: The ID of the offcanvas element (without the '#' prefix)
     - content: Optional HTML content for the toggle. Defaults to a collection icon.
+
     """
 
     cap_id = offcanvas_id.capitalize()
 
-    # Build the HTML string
-    html = f"""<a id="offcanvas{cap_id}Toggle" data-bs-toggle="offcanvas" href="#offcanvas{cap_id}"
-       role="button" aria-controls="offcanvas{cap_id}">
-    {content}
+    html = f"""
+<a id="offcanvas{cap_id}Toggle" data-bs-toggle="offcanvas" href="#offcanvas{cap_id}"
+  role="button" aria-controls="offcanvas{cap_id}">
+  {content}
 </a>"""
 
     return mark_safe(html)
