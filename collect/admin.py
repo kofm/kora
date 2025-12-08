@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from collect.models import Cart, CartItem, Storage, StoragePosition
+from collect.models import Cart, CartItem, Sample, Storage, StoragePosition
 
 
 class CartAdmin(admin.ModelAdmin):
@@ -20,6 +20,7 @@ class CartAdmin(admin.ModelAdmin):
         return super().has_delete_permission(request, obj)
 
 
+admin.site.register(Sample)
 admin.site.register(Cart)
 admin.site.register(CartItem)
 admin.site.register(Storage)
