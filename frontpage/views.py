@@ -7,10 +7,12 @@ from django.contrib.auth.models import User
 from django.contrib.auth.views import LoginView
 from django.http import HttpResponse
 from django.template.response import TemplateResponse
+from django.urls import reverse
 from django_tables2 import RequestConfig
 
 from frontpage.forms import UserUpdateForm
 from frontpage.tables import UserTable
+from frontpage.templatetags.components import ListPageHeader
 from frontpage.utils.htmx import htmx_response_trigger
 from frontpage.utils.logging import get_client_ip
 from frontpage.views_decorators import htmx_render_block_from_params
@@ -35,7 +37,8 @@ def admin(request):
     queryset = User.objects.prefetch_related("groups").all()
     table_user = UserTable(queryset)
     RequestConfig(request).configure(table_user)
-    context = {"table_user": table_user, "page_obj": queryset}
+    header = ListPageHeader(page_title="Users", create_url=reverse("frontpage:user_create"), create_modal=True)
+    context = {"table_user": table_user, "page_obj": queryset, "header": header}
     return TemplateResponse(request, "frontpage/admin.html", context)
 
 

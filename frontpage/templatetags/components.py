@@ -1,11 +1,24 @@
+from dataclasses import dataclass
+from typing import Protocol, runtime_checkable
+
 from django import template
+from django.contrib.auth import get_permission_codename
+from django.template.exceptions import TemplateSyntaxError
 from django.urls import NoReverseMatch, reverse
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 
+from frontpage.utils.models import model_from_label
+from frontpage.utils.permissions import get_permission_from_instance
 from persefone import settings
 
 register = template.Library()
+
+
+@runtime_checkable
+class HasCreateUrl(Protocol):
+    @classmethod
+    def get_create_url(cls) -> str: ...
 
 
 def _join_attrs(attrs: dict):
@@ -34,7 +47,12 @@ def dropdown_item(label, **kwargs):
     if querystring:
         href += querystring
     attrs = _join_attrs(kwargs)
-    return {"label": label, "href": href, "attrs": attrs, "disabled": disabled}
+    return {
+        "label": label,
+        "href": href,
+        "attrs": attrs,
+        "disabled": disabled,
+    }
 
 
 @register.inclusion_tag("frontpage/partials/dropdown_item.html")
@@ -45,24 +63,64 @@ def dropdown_item_to_modal(label, **kwargs):
     return {"label": label, "attrs": attrs, "disabled": disabled}
 
 
-@register.inclusion_tag("frontpage/partials/list_page_header.html", takes_context=True)
-def list_page_header(context, title, subtitle=None, create_url=None, permission=None, create_modal=False, **kwargs):
-    user = context["request"].user
-    if user.has_perm(permission):
+@dataclass(slots=True)
+class ListPageHeader:
+    page_title: str
+    subtitle: str | None = None
+    create_url: str | None = None
+    create_modal: bool = False
+
+    @classmethod
+    def from_model_label(
+        cls,
+        request,
+        model_label: str,
+        *,
+        title: str = "",
+        subtitle: str = "",
+        modal: bool = False,
+    ) -> "ListPageHeader":
+        user = request.user
+
         try:
-            create_url = reverse(create_url) if create_url else None
-        except NoReverseMatch:
-            pass
-    else:
-        create_url = None
-    title_class = kwargs.pop("title_class", "")
-    return {
-        "page_title": title,
-        "subtitle": subtitle,
-        "create_url": create_url,
-        "title_class": title_class,
-        "create_modal": create_modal,
-    }
+            model = model_from_label(model_label)
+        except (ValueError, LookupError) as exc:
+            raise TemplateSyntaxError(str(exc)) from exc
+
+        meta = model._meta
+
+        verbose_plural = meta.verbose_name_plural or ""
+        page_title = title or verbose_plural.title()
+
+        permission_codename = get_permission_codename("add", meta)
+        add_permission = f"{meta.app_label}.{permission_codename}"
+
+        create_url: str | None = None
+        if user.has_perm(add_permission) and isinstance(model, HasCreateUrl):
+            create_url = model.get_create_url()
+
+        return cls(
+            page_title=page_title,
+            subtitle=subtitle,
+            create_url=create_url,
+            create_modal=modal,
+        )
+
+
+@register.inclusion_tag("frontpage/partials/list_page_header.html", takes_context=True)
+def list_page_header(context, model_label: str, title: str = "", subtitle: str = "", modal: bool = False):
+    """
+    model_label: 'app_label.ModelName' or model._meta.label_lower
+    Example: 'plants.PlantVariety' or 'plants.plantvariety'
+    """
+    header = ListPageHeader.from_model_label(
+        context["request"],
+        model_label,
+        title=title,
+        subtitle=subtitle,
+        modal=modal,
+    )
+    return {"header": header}
 
 
 @register.inclusion_tag("frontpage/partials/detail_section_header.html", takes_context=True)
@@ -94,12 +152,6 @@ def get_action_url_from_instance(action, instance):
     if instance and hasattr(instance, method):
         return getattr(instance, method)
     return None
-
-
-def get_permission_from_instance(action, instance):
-    app_label = instance._meta.app_label
-    model_name = instance._meta.model_name
-    return f"{app_label}.{action}_{model_name}"
 
 
 @register.inclusion_tag("frontpage/partials/detail_page_header.html", takes_context=True)

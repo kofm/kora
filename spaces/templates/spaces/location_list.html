@@ -12,7 +12,7 @@
 
   {% render_breadcrumbs %}
 
-  {% list_page_header title="Locations" create_url="spaces:location_create" %}
+  {% list_page_header "spaces.Location" %}
 
   <div class="row">
     {% render_sortable object_list "locations" "row" "spaces:location_sort" "spaces/partials/location_card.html" "True" %}

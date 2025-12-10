@@ -18,6 +18,10 @@ class Location(models.Model):
     def get_absolute_url(self):
         return reverse("spaces:location_detail", args=[self.pk])
 
+    @classmethod
+    def get_create_url(cls):
+        return reverse("spaces:location_create")
+
     def get_update_url(self):
         return reverse("spaces:location_update", args=[self.pk])
 

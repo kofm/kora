@@ -68,6 +68,10 @@ class Entity(ModelIsDeletableMixin, models.Model):
     def get_absolute_url(self):
         return reverse("register:entity_detail", args=(self.pk,))
 
+    @classmethod
+    def get_create_url(cls):
+        return reverse("register:entity_create")
+
     def get_update_url(self):
         return reverse("register:entity_update", args=(self.pk,))
 
@@ -96,6 +100,10 @@ class PlantSpecies(ModelIsDeletableMixin, models.Model):
 
     def get_absolute_url(self):
         return reverse("register:plantspecies_detail", args=[self.pk])
+
+    @classmethod
+    def get_create_url(cls):
+        return reverse("register:plantspecies_create")
 
     @property
     def total_descriptions(self):
@@ -142,6 +150,10 @@ class PlantVariety(ModelIsDeletableMixin, models.Model):
 
     def get_list_url(self):
         return reverse("register:variety_list")
+
+    @classmethod
+    def get_create_url(cls):
+        return reverse("register:variety_create")
 
     def get_delete_url(self):
         return reverse("register:variety_delete", args=[self.pk])

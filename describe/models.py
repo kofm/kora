@@ -44,6 +44,10 @@ class Protocol(ModelIsDeletableMixin, models.Model):
     def get_absolute_url(self):
         return reverse("describe:protocol_detail", kwargs={"pk": self.pk})
 
+    @classmethod
+    def get_create_url(cls):
+        return reverse("describe:protocol_create")
+
     def get_update_url(self):
         return reverse("describe:protocol_update", args=(self.pk,))
 
@@ -154,6 +158,10 @@ class Description(ModelIsDeletableMixin, models.Model):
 
     def get_absolute_url(self):
         return reverse("describe:description_detail", args=(self.pk,))
+
+    @classmethod
+    def get_create_url(cls):
+        return reverse("describe:description_create")
 
     def get_update_url(self):
         return reverse("describe:description_expression_update", args=(self.pk,))

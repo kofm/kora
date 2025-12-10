@@ -8,7 +8,7 @@
 {% block title %}Varieties{% endblock %}
 
 {% block page_header %}
-  {% list_page_header "Varieties" create_url='register:variety_create'  permission="register.add_plantvariety" %}
+  {% list_page_header "register.PlantVariety" %}
 {% endblock %}
 
 {% block main_div %}
@@ -52,33 +52,33 @@
                   {% with descriptions=variety.has_descriptions %}
                     <a
 		      href="{{ variety_detail_url }}#descriptions"
-			    class="mx-1 bi bi-file-text {{ descriptions|yesno:"link-primary,text-muted" }}"
-			    data-bs-toggle="tooltip"
-			    data-bs-title="{{ descriptions|yesno:"Descriptions present,No descriptions" }}"
+		      class="mx-1 bi bi-file-text {{ descriptions|yesno:"link-primary,text-muted" }}"
+		      data-bs-toggle="tooltip"
+		      data-bs-title="{{ descriptions|yesno:"Descriptions present,No descriptions" }}"
                     ></a>
                   {% endwith %}
                   {% with accessions=variety.has_samples %}
                     <a
 		      href="{{ variety_detail_url }}#samples"
-			    class="mx-1 bi bi-box-seam {{ accessions|yesno:"link-primary,text-muted" }}"
-			    data-bs-toggle="tooltip"
-			    data-bs-title="{{ accessions|yesno:"Samples present,No samples" }}"
+		      class="mx-1 bi bi-box-seam {{ accessions|yesno:"link-primary,text-muted" }}"
+		      data-bs-toggle="tooltip"
+		      data-bs-title="{{ accessions|yesno:"Samples present,No samples" }}"
                     ></a>
                   {% endwith %}
                   {% with protections=variety.has_protections %}
                     <a
 		      href="{{ variety_detail_url }}#protections"
-			    class="mx-1 bi bi-shield-lock {{ protections|yesno:"link-primary,text-muted" }}"
-			    data-bs-toggle="tooltip"
-			    data-bs-title="{{ protections|yesno:"Protections present,No protections" }}"
+		      class="mx-1 bi bi-shield-lock {{ protections|yesno:"link-primary,text-muted" }}"
+		      data-bs-toggle="tooltip"
+		      data-bs-title="{{ protections|yesno:"Protections present,No protections" }}"
                     ></a>
                   {% endwith %}
                   {% with crops=variety.has_crops %}
                     <a
 		      href="{{ variety_detail_url }}#crops"
-			    class="mx-1 bi bi-tree {{ crops|yesno:"link-primary,text-muted" }}"
-			    data-bs-toggle="tooltip"
-			    data-bs-title="{{ crops|yesno:"Crops present,No crops" }}"
+		      class="mx-1 bi bi-tree {{ crops|yesno:"link-primary,text-muted" }}"
+		      data-bs-toggle="tooltip"
+		      data-bs-title="{{ crops|yesno:"Crops present,No crops" }}"
                     ></a>
                   {% endwith %}
                   {% with parameters=variety.has_parameters %}

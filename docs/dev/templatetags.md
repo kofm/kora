@@ -12,9 +12,61 @@ Found in `frontpage.templatetags.components`.
 ### `list_page_header`
 
 Render a standardized header for listing views.
-It displays a title, an optional subtitle, and a Create action button.
+The component displays a header consisting of:
+
+* a title
+* an optional subtitle
+* an optional Create action button
+
+Setting `modal` to True enables modal behaviour on to the Create button (See `modal_attrs` templatetag).
+
+``` html
+{% list_page_header "register.PlantVariety" title="Title Override" subtitle="Subtitle" modal=True %}
+```
 
 The tag renders `frontpage/partials/list_page_header.html`.
+
+#### Parameters
+
+* `model_label` (`str`, required)
+  Django model label in the form `"app_label.ModelName"` or `"app_label.modelname"`
+  (e.g. `"register.PlantVariety"`)
+
+* `title` (`str`, optional)
+  Override for the page title. Defaults to `model._meta.verbose_name_plural.title()`.
+
+* `subtitle` (`str`, optional)
+  Optional subtitle rendered below the title.
+
+* `modal` (`bool`, optional, default `False`)
+  Enable modal behavior for the Create action button.
+
+#### Behavior
+
+* The header title defaults to the model’s `verbose_name_plural` if not explicitly provided.
+* The Create button is shown only if:
+  * the current user has the model's `add` permission, and
+  * the model defines a class method `get_create_url()`.
+* When `modal=True`, modal-related attributes are added to the Create button.
+
+This templatetag is a simple wrapper around the `ListPageHeader` dataclass. For advanced or view-specific customization, the dataclass can be instantiated directly in the view.
+
+``` python
+def a_view(request):
+    header = ListPageHeader(
+        page_title="Users",
+        create_url=reverse("frontpage:user_create"),
+        create_modal=True,
+    )
+	context = {"my_header": header}
+	return TemplateResponse(request, "app/view.html", context)
+```
+
+Then, in the view just include the template:
+
+``` html
+{% include 'frontpage/partials/list_page_header.html' with header=my_header %}
+```
 
 ### `detail_page_header`
 

@@ -58,6 +58,10 @@ class Storage(models.Model):
     def get_absolute_url(self):
         return reverse("collect:storage_detail", args=(self.pk,))
 
+    @classmethod
+    def get_create_url(cls):
+        return reverse("collect:storage_create")
+
     def get_update_url(self):
         return reverse("collect:storage_update", args=(self.pk,))
 
@@ -213,6 +217,10 @@ class Sample(ModelIsDeletableMixin, models.Model):
 
     def get_absolute_url(self):
         return reverse("collect:sample_detail", kwargs={"pk": self.pk})
+
+    @classmethod
+    def get_create_url(cls):
+        return reverse("collect:sample_create")
 
     def get_update_url(self):
         return reverse("collect:sample_update", kwargs={"pk": self.pk})

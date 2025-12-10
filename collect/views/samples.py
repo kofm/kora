@@ -177,7 +177,7 @@ def storage_create(request):
             for i in range(positions_count):
                 StoragePosition.objects.create(name=f"{i + 1}", storage=storage)
         if "btn-another" in request.POST:
-            return redirect(reverse("collect:storage-create"))
+            return redirect(reverse("collect:storage_create"))
         return redirect(reverse("collect:storage_detail", args=[storage.pk]))
     return TemplateResponse(request, "collect/storage_form.html", {"form": form})
 

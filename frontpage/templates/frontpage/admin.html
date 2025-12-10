@@ -10,28 +10,30 @@
 
 {% block container %}
   <div class="row mt-3">
-    <div class="col-3">
-      <h1>Admin</h1>
-
-      <nav id="navbar-admin" class="h-100 flex-column align-items-stretch pe-4 border-end">
-	<nav class="nav nav-pills flex-column">
+    <aside class="col-3">
+      <nav
+	id="navbar-admin" aria-labelledby="admin-nav-title" class="h-100 flex-column align-items-stretch pe-4 border-end">
+	<h2 id="admin-nav-title" class="visually-hidden">Adminstration</h2>
+	<div class="nav nav-pills flex-column">
           <a class="nav-link" href="#users">Users</a>
           <a class="nav-link" href="/admin">Django Admin</a>
-	</nav>
+	</div>
       </nav>
-    </div>
-    <div class="col">
+    </aside>
+
+    <section class="col">
       <div data-bs-spy="scroll" data-bs-target="#navbar-admin" data-bs-smooth-scroll="true" class="" tabindex="0">
 	{% block users %}
 	  <div id="users" hx-get="" hx-trigger="usersUpdated from:body" hx-vals='{"use_block": "users"}'>
-	    {% list_page_header "Users" create_url="frontpage:user_create" title_class="fs-2" create_modal=True %}
+	    {% include 'frontpage/partials/list_page_header.html' %}
 	    <div hx-target="#users" hx-swap="outerHTML">
 	      {% render_table table_user %}
 	    </div>
 	  </div>
 	{% endblock %}
+
       </div>
-    </div>
+    </section>
   </div>
 
 {% endblock %}
