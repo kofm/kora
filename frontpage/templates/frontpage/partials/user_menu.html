@@ -12,6 +12,9 @@
 
       <h6 class="dropdown-header">{{ user.username }}</h6>
 
+      {% url 'frontpage:user_detail' as profile_url %}
+      {% dropdown_item "Profile" href=profile_url %}
+
       {% if user.is_superuser %}
 
 	{% url 'frontpage:admin' as admin_url %}

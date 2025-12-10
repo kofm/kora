@@ -1,16 +1,21 @@
 import logging
 
 from django.contrib.admin.sites import login_not_required
-from django.contrib.auth.decorators import user_passes_test
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.forms import PasswordChangeForm, UserCreationForm
 from django.contrib.auth.models import User
 from django.contrib.auth.views import LoginView
 from django.http import HttpResponse
+from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 from django.urls import reverse
+from django.views.decorators.csrf import csrf_protect
+from django.views.decorators.debug import sensitive_post_parameters
 from django_tables2 import RequestConfig
 
-from frontpage.forms import UserUpdateForm
+from breadcrumbs.utils import generate_breadcrumbs
+from frontpage.forms import AdminUserUpdateForm, UserUpdateForm
 from frontpage.tables import UserTable
 from frontpage.templatetags.components import ListPageHeader
 from frontpage.utils.htmx import htmx_response_trigger
@@ -55,15 +60,15 @@ def user_create(request):
 
 
 @user_passes_test(lambda user: user.is_superuser)
-def user_update(request, username):
+def admin_user_update(request, username):
     user = User.objects.get(username=username)
     if request.method == "POST":
-        form = UserUpdateForm(request.POST, instance=user)
+        form = AdminUserUpdateForm(request.POST, instance=user)
         if form.is_valid():
             form.save()
             return htmx_response_trigger(["usersUpdated", "closeModal"])
     else:
-        form = UserUpdateForm(instance=user)
+        form = AdminUserUpdateForm(instance=user)
     return TemplateResponse(request, "frontpage/user_create.html", {"form": form, "instance": user})
 
 
@@ -74,6 +79,45 @@ def user_delete(request, username):
         user.delete()
         return htmx_response_trigger(["usersUpdated", "closeModal"])
     return TemplateResponse(request, "frontpage/user_confirm_delete.html", {"instance": user})
+
+
+@login_required
+def user_detail(request):
+    return TemplateResponse(request, "frontpage/user_detail.html", generate_breadcrumbs(request, User, request.user))
+
+
+@login_required
+def user_update(request):
+    user = request.user
+    if request.method == "POST":
+        form = UserUpdateForm(request.POST, instance=user)
+        if form.is_valid():
+            form.save()
+            return redirect("frontpage:user_detail")
+    else:
+        form = UserUpdateForm(instance=user)
+    crumbs = generate_breadcrumbs(request, User, request.user)
+    context = {"form": form, **crumbs}
+    return TemplateResponse(request, "frontpage/user_update.html", context)
+
+
+@sensitive_post_parameters("old_password", "new_password1", "new_password2")
+@csrf_protect
+@login_required
+def change_password(request):
+    if request.method == "POST":
+        form = PasswordChangeForm(request.user, request.POST)
+        if form.is_valid():
+            user = form.save()
+            update_session_auth_hash(request, user)
+            return redirect("frontpage:user_detail")
+    else:
+        form = PasswordChangeForm(request.user)
+
+    crumbs = generate_breadcrumbs(request, User, request.user, additional=[("Change password", "")])
+    context = {"form": form, **crumbs}
+
+    return TemplateResponse(request, "frontpage/password_change_form.html", context)
 
 
 class KoraLoginView(LoginView):

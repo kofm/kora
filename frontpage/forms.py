@@ -1,14 +1,13 @@
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Div, Field, Layout, LayoutObject, Submit
 from django import forms
-from django.contrib.auth.forms import UserChangeForm
 from django.contrib.auth.models import Group, User
 from django.utils.safestring import mark_safe
 
 from frontpage.widgets import TomSelectMultiple
 
 
-class UserUpdateForm(UserChangeForm):
+class AdminUserUpdateForm(forms.ModelForm):
     groups = forms.ModelMultipleChoiceField(
         queryset=Group.objects.all(),
         required=False,
@@ -18,6 +17,12 @@ class UserUpdateForm(UserChangeForm):
     class Meta:
         model = User
         fields = ("first_name", "last_name", "email", "is_staff", "is_superuser", "groups")
+
+
+class UserUpdateForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ("first_name", "last_name", "email")
 
 
 class HTMXFormMixin:

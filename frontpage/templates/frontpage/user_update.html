@@ -1,0 +1,24 @@
+{% extends "frontpage/base.html" %}
+
+{% load breadcrumbs %}
+{% load components %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+  Update Profile
+{% endblock %}
+
+{% block container %}
+
+  {% render_breadcrumbs %}
+
+  {% detail_page_header request.user subtitle="User" %}
+
+  <form method="post">
+    {% csrf_token %}
+    {{ form|crispy }}
+    <button class="btn btn-primary" type="submit">Update</button>
+    <a href="{% url 'frontpage:user_detail' %}" class="btn btn-secondary">Cancel</a>
+  </form>
+
+{% endblock %}
