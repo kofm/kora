@@ -36,7 +36,7 @@ def appearance_set(request):
     return HttpResponse()
 
 
-@user_passes_test(lambda user: user.is_superuser)
+@user_passes_test(lambda user: user.is_staff)
 @htmx_render_block_from_params()
 def admin(request):
     queryset = User.objects.prefetch_related("groups").all()
@@ -47,7 +47,7 @@ def admin(request):
     return TemplateResponse(request, "frontpage/admin.html", context)
 
 
-@user_passes_test(lambda user: user.is_superuser)
+@user_passes_test(lambda user: user.is_staff)
 def user_create(request):
     if request.method == "POST":
         form = UserCreationForm(request.POST)
@@ -59,7 +59,7 @@ def user_create(request):
     return TemplateResponse(request, "frontpage/user_create.html", {"form": form})
 
 
-@user_passes_test(lambda user: user.is_superuser)
+@user_passes_test(lambda user: user.is_staff)
 def admin_user_update(request, username):
     user = User.objects.get(username=username)
     if request.method == "POST":
@@ -72,7 +72,7 @@ def admin_user_update(request, username):
     return TemplateResponse(request, "frontpage/user_create.html", {"form": form, "instance": user})
 
 
-@user_passes_test(lambda user: user.is_superuser)
+@user_passes_test(lambda user: user.is_staff)
 def user_delete(request, username):
     user = User.objects.get(username=username)
     if request.method == "POST":
