@@ -12,29 +12,54 @@
 
   {% render_breadcrumbs %}
 
-  {% detail_page_header request.user subtitle="User" %}
+  {% detail_page_header request.user %}
 
-  <section class="d-flex justify-content-center align-items-center">
-    <div class="card" style="width: 28rem;">
+  <section class="d-flex justify-content-center align-items-center mt-5">
+    <div class="card shadow" style="width: 28rem;">
       <div class="card-header">
-	User Profile
+	<h5>Profile</h5>
       </div>
       <ul class="list-group list-group-flush">
-	<li class="list-group-item d-flex justify-content-between"><span>{{ request.user.first_name|default:"-" }}</span><span class="text-muted">First name</span></li>
-	<li class="list-group-item d-flex justify-content-between"><span>{{ request.user.last_name|default:"-" }}</span><span class="text-muted">Last name</span></li>
-	<li class="list-group-item d-flex justify-content-between"><span>{{ request.user.email|default:"-" }}</span><span class="text-muted">Email</span></li>
+	<li class="list-group-item d-flex justify-content-between"><strong>{{ request.user.username }}</strong><small class="text-muted">Username</small></li>
+	<li class="list-group-item d-flex justify-content-between"><span>{{ request.user.first_name|default:"-" }}</span><small class="text-muted">First name</small></li>
+	<li class="list-group-item d-flex justify-content-between"><span>{{ request.user.last_name|default:"-" }}</span><small class="text-muted">Last name</small></li>
+	<li class="list-group-item d-flex justify-content-between"><span>{{ request.user.email|default:"-" }}</span><small class="text-muted">Email</small></li>
 	{% if request.user.is_staff or request.user.is_superuser %}
 	  <li class="list-group-item d-flex justify-content-between">
 	    <span>
-	      {% if request.user.is_staff %}Staff{% endif %}
-	      {% if request.user.is_superuser %}Admin{% endif %}
+	      {% if request.user.is_staff %}
+		<span class="badge rounded-pill text-bg-info">Staff</span>
+	      {% endif %}
+	      {% if request.user.is_superuser %}
+		<span class="badge rounded-pill text-bg-info">Superuser</span>
+	      {% endif %}
 	    </span>
-	    <span class="text-muted">Flags</span>
+	    <small class="text-muted">Privileges</small>
 	  </li>
 	{% endif %}
-	<li class="list-group-item d-flex justify-content-center"><a class="card-link" href="{% url 'frontpage:user_update' %}">Update profile</a>
-	  <a class="card-link" href="{% url 'frontpage:password_change' %}">Change password</a></li>
+	{% with groups=request.user.groups.all %}
+	  {% if groups %}
+	    <li class="list-group-item d-flex justify-content-between">
+	      <span>
+	      {% for group in groups %}
+		<span class="badge rounded-pill text-bg-secondary">
+		  {{ group.name }}
+		</span>
+	      {% endfor %}
+	      </span>
+	      <small class="text-muted">Permissions</small>
+	    </li>
+	  {% endif %}
+	{% endwith %}
       </ul>
+      <div class="card-footer d-flex justify-content-center gap-3">
+
+	<a href="{% url 'frontpage:user_update' %}">
+	  Update profile
+	</a>
+	<a href="#" hx-get="{% url 'frontpage:password_update' %}" {% modal_attrs %}>Change password</a>
+
+      </div>
     </div>
   </section>
 

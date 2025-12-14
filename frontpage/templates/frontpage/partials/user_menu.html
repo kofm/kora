@@ -15,7 +15,7 @@
       {% url 'frontpage:user_detail' as profile_url %}
       {% dropdown_item "Profile" href=profile_url %}
 
-      {% if user.is_superuser %}
+      {% if user.is_staff %}
 
 	{% url 'frontpage:admin' as admin_url %}
 	{% dropdown_item "Admin" href=admin_url %}
@@ -23,18 +23,17 @@
 	{% url 'restapi:api-root' as api_root_url %}
 	{% dropdown_item "API" href=api_root_url %}
       {% endif %}
-
-      {% url 'logout' as logout_url %}
-      {% dropdown_item "Logout" hx_post=logout_url%}
-
-    {% else %}
-      
-	{% url 'login' as login_url %}
-	{% dropdown_item "Login" href=login_url %}
-      
     {% endif %}
 
     {% dropdown_item "Help" href="/docs/" %}
+
+    {% if user.is_authenticated %}
+      {% url 'logout' as logout_url %}
+      {% dropdown_item "Logout" hx_post=logout_url%}
+    {% else %}
+	{% url 'login' as login_url %}
+	{% dropdown_item "Login" href=login_url %}
+    {% endif %}
   </div>
 
 </div>

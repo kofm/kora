@@ -7,7 +7,7 @@ from frontpage.views import KoraLoginView
 from persefone import settings
 
 urlpatterns = [
-    path("admin/", admin.site.urls),
+    path("django-admin/", admin.site.urls),
     path("accounts/login/", KoraLoginView.as_view(), name="login"),
     path("accounts/", include("django.contrib.auth.urls")),
     path("", include("frontpage.urls")),

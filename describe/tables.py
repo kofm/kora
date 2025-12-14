@@ -24,7 +24,7 @@ class DescriptionTable(tables.Table):
         per_page = 10
 
     def render_name(self, record, value):
-        return format_html(f'<span class="badge rounded-pill text-bg-info">{value}</span>')
+        return format_html('<span class="badge rounded-pill text-bg-info">{}</span>', value)
 
 
 class RelatedStatesTable(tables.Table):

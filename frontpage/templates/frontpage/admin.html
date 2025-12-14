@@ -2,26 +2,40 @@
 
 {% load crispy_forms_tags %}
 {% load components %}
+{% load breadcrumbs %}
 {% load render_table from django_tables2 %}
+
+{% block javascript %}
+  <style>
+   .admin-nav { border-right: 0; }
+
+   @media (min-width: 992px) {
+     .admin-nav { border-right: 1px solid var(--bs-border-color); }
+   }
+  </style>
+{% endblock %}
 
 {% block title %}
   Admin
 {% endblock %}
 
 {% block container %}
-  <div class="row mt-3">
-    <aside class="col-3">
+
+  {% render_breadcrumbs %}
+
+  <div class="row mt-4">
+    <aside class="col-12 col-md-12 col-lg-3 mb-3">
       <nav
-	id="navbar-admin" aria-labelledby="admin-nav-title" class="h-100 flex-column align-items-stretch pe-4 border-end">
-	<h2 id="admin-nav-title" class="visually-hidden">Adminstration</h2>
+	id="navbar-admin" aria-labelledby="admin-nav-title" class="h-100 flex-column align-items-stretch pe-4 admin-nav">
+	<h2 id="admin-nav-title" class="visually-hidden">Administration</h2>
 	<div class="nav nav-pills flex-column">
           <a class="nav-link" href="#users">Users</a>
-          <a class="nav-link" href="/admin">Django Admin</a>
+          <a class="nav-link" href="{% url 'admin:index' %}">Django Admin</a>
 	</div>
       </nav>
     </aside>
 
-    <section class="col">
+    <section class="col-12 col-md-12 col-lg-8">
       <div data-bs-spy="scroll" data-bs-target="#navbar-admin" data-bs-smooth-scroll="true" class="" tabindex="0">
 	{% block users %}
 	  <div id="users" hx-get="" hx-trigger="usersUpdated from:body" hx-vals='{"use_block": "users"}'>

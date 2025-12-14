@@ -26,6 +26,7 @@ class UserTable(tables.Table):
             "last_name",
             "is_staff",
             "is_superuser",
+            "is_active",
             "actions",
         )
         template_name = "frontpage/partials/htmx_table.html"
