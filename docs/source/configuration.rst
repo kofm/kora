@@ -21,6 +21,8 @@ The `kora-docker` bundle includes a `env.example` template you can
 copy and use with default options or modify to suit your configuration
 preferences. There can be different types of setting:
 
+.. _bools:
+
 - **Booleans**. For boolean variables (true/false or yes/no), the
   following values will enable the setting: `true`, `yes`, `1`, or
   `on`. Any other value will be treated as `false`, and disable the

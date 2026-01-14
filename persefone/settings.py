@@ -1,9 +1,21 @@
 import os
+import sys
 from pathlib import Path
 
 from django.contrib import messages
 
-from persefone.settings.env_utils import getenv_bool, getenv_list
+from frontpage.utils.env_utils import getenv_bool, getenv_list
+
+# Environment-fetched settings
+
+SECRET_KEY = os.getenv("SECRET_KEY")
+DEV = getenv_bool("DEV")
+ALLOWED_HOSTS = getenv_list("ALLOWED_HOSTS")
+CSRF_TRUSTED_ORIGINS = getenv_list("CSRF_TRUSTED_ORIGINS")
+
+PUBLIC = getenv_bool("PUBLIC")
+USE_HTTPS = getenv_bool("USE_HTTPS", False)
+AUTHLOG_ENABLED = getenv_bool("AUTHLOG_ENABLED", False)
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 TEMPLATE_DIR = Path(BASE_DIR) / "templates"
@@ -37,7 +49,9 @@ INSTALLED_APPS = [
     "render_block",
 ]
 
-PUBLIC = getenv_bool("PUBLIC")
+# Conditionally add authentication logging
+if AUTHLOG_ENABLED:
+    INSTALLED_APPS.append("authlog")
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -108,9 +122,6 @@ DATABASES = {
 
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
-ALLOWED_HOSTS = getenv_list("ALLOWED_HOSTS")
-CSRF_TRUSTED_ORIGINS = getenv_list("CSRF_TRUSTED_ORIGINS")
-
 # Internationalization
 LANGUAGE_CODE = "en-GB"
 TIME_ZONE = "UTC"
@@ -159,32 +170,17 @@ MESSAGE_TAGS = {
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
-    "handlers": {
-        "auth_fail_file": {
-            "class": "logging.FileHandler",
-            "filename": "kora_auth.log",
-            "level": "WARNING",
-            "formatter": "simple",
-        },
-    },
-    "loggers": {
-        "": {
-            "handlers": [],
-            "level": "WARNING",
-        },
-        "kora.failed_login": {
-            "handlers": ["auth_fail_file"],
-            "level": "WARNING",
-            "propagate": False,
-        },
-    },
-    "formatters": {
-        "simple": {
-            "format": "{levelname} {message}",
-            "style": "{",
-        },
-    },
+    "handlers": {},
+    "loggers": {},
+    "formatters": {},
 }
+
+if AUTHLOG_ENABLED:
+    from authlog.logging import AUTHLOG_FORMATTER, AUTHLOG_HANDLER, AUTHLOG_LOGGER
+
+    LOGGING["handlers"].update(AUTHLOG_HANDLER)
+    LOGGING["loggers"].update(AUTHLOG_LOGGER)
+    LOGGING["formatters"].update(AUTHLOG_FORMATTER)
 
 # easy_audit
 # Defines whether to log model related events, such as when an object
@@ -203,3 +199,37 @@ DJANGO_EASY_AUDIT_UNREGISTERED_CLASSES_EXTRA = getenv_list(
     "DJANGO_EASY_AUDIT_UNREGISTERED_CLASSES_EXTRA",
     ["auth.group"],
 )
+
+# Conditional settings
+
+if DEV:
+    DEBUG = True
+    STATIC_ROOT = "static/"
+    INTERNAL_IPS = ["127.0.0.1", "localhost"]
+
+    SHELL_PLUS = "ipython"
+
+    DEBUG_TOOLBAR_ENABLED = DEBUG and "test" not in sys.argv
+    DEBUG_TOOLBAR_CONFIG = {"SHOW_TOOLBAR_CALLBACK": lambda r: True}
+    if DEBUG_TOOLBAR_ENABLED:
+        INSTALLED_APPS = [
+            "debug_toolbar",
+            "django_extensions",
+            "django_browser_reload",
+            *INSTALLED_APPS,
+        ]
+        MIDDLEWARE = [
+            "debug_toolbar.middleware.DebugToolbarMiddleware",
+            "django_browser_reload.middleware.BrowserReloadMiddleware",
+            *MIDDLEWARE,
+        ]
+
+else:
+    DEBUG = False
+    STATIC_ROOT = "/var/www/static/"
+
+    DEBUG_TOOLBAR_ENABLED = False
+
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https") if USE_HTTPS else None
+    SESSION_COOKIE_SECURE = USE_HTTPS
+    CSRF_COOKIE_SECURE = USE_HTTPS

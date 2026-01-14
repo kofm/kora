@@ -1,11 +1,12 @@
-import logging
-
 from django.contrib import messages
 from django.contrib.auth import update_session_auth_hash
-from django.contrib.auth.decorators import login_not_required, login_required, user_passes_test
+from django.contrib.auth.decorators import (
+    login_not_required,  # ty:ignore[unresolved-import]
+    login_required,
+    user_passes_test,
+)
 from django.contrib.auth.forms import AdminPasswordChangeForm, PasswordChangeForm, UserCreationForm
 from django.contrib.auth.models import User
-from django.contrib.auth.views import LoginView
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
@@ -19,10 +20,7 @@ from frontpage.forms import AdminUserUpdateForm, UserUpdateForm
 from frontpage.tables import UserTable
 from frontpage.templatetags.components import ListPageHeader
 from frontpage.utils.htmx import htmx_response_trigger
-from frontpage.utils.logging import get_client_ip
 from frontpage.views_decorators import htmx_render_block_from_params, is_htmx
-
-logger = logging.getLogger("kora.failed_login")
 
 
 def index(request):
@@ -140,10 +138,3 @@ def password_update(request):
         form = PasswordChangeForm(request.user)
 
     return TemplateResponse(request, "frontpage/password_update_form.html", {"form": form})
-
-
-class KoraLoginView(LoginView):
-    def form_invalid(self, form):
-        client_ip = get_client_ip(self.request)
-        logger.warning("FAILED LOGIN for user '%s' from %s", form.cleaned_data["username"], client_ip)
-        return super().form_invalid(form)
