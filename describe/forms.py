@@ -207,10 +207,11 @@ class DescriptionUpdateForm(forms.ModelForm):
         choices=Description.names(),
         widget=TomSelect,
     )
+    notes = forms.CharField(widget=forms.Textarea)
 
     class Meta:
         model = Description
-        fields = ("variety", "name")
+        fields = ("variety", "name", "notes")
 
 
 class ExpressionForm(forms.ModelForm):

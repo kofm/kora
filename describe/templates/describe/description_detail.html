@@ -14,8 +14,13 @@
   <p class="lead">Compiled according to
     <a href="{% url 'describe:protocol_detail' description.protocol.id %}">
       {{ description.protocol.name }}
-    </a></p>
-
+    </a>
+  </p>
+  {% if description.notes %}
+    <p>
+      {{ description.notes }}
+    </p>
+  {% endif %}
   <div class="my-3">
     <a class="btn btn-sm btn-outline-secondary" href="{% url 'describe:description_find_similar' %}{% querystring description_id=description.pk %}">
       <i class="bi bi-search"></i>
@@ -69,6 +74,8 @@
       </tbody>
     </table>
 
+
   </div>
+    <p class="text-end text-muted">Created: {{ description.created_at|date }} - Last updated: {{ description.updated_at|date }}</p>
 
 {% endblock %}

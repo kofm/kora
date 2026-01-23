@@ -46,6 +46,8 @@ class ProtectionListTable(ProtectionTable):
 class PlantVarietyDescriptionTable(tables.Table):
     name = tables.Column(linkify=True)
     protocol__name = tables.Column("Protocol")
+    updated_at = tables.DateTimeColumn(verbose_name="Last updated", short=False)
+    notes = tables.Column("Notes")
     actions = tables.TemplateColumn(
         template_name="register/partials/description_table_actions.html",
         verbose_name="",
@@ -56,6 +58,10 @@ class PlantVarietyDescriptionTable(tables.Table):
         model = Description
         fields = ("name", "protocol__name")
         per_page = 5
+
+    def render_notes(self, record):
+        notes = smart_truncate_string(record.notes, min_length=25)
+        return f"{notes}"
 
 
 class PlantVarietySampleTable(BaseSampleTable):

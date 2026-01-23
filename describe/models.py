@@ -148,6 +148,11 @@ class Description(ModelIsDeletableMixin, models.Model):
         help_text="The variety to which the description refers to",
     )
 
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    notes = models.CharField(max_length=500, help_text="Notes relative to the description", default="", blank=True)
+
     objects = DescriptionQuerySet.as_manager()
 
     class Meta:

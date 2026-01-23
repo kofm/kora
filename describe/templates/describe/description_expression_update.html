@@ -58,10 +58,15 @@
 		  {{ form.variety.errors }}
 		  {{ form.variety|add_class:'form-select'|add_valid_class:'is-valid' }}
 		</div>
-		<div>
+		<div class="mb-3">
 		  {{ form.name.label_tag }}
 		  {{ form.name.errors }}
 		  {{ form.name|add_class:'form-select'|add_valid_class:'is-valid' }}
+		</div>
+		<div>
+		  {{ form.notes.label_tag }}
+		  {{ form.notes.errors }}
+		  {{ form.notes|add_class:'form-control'|add_valid_class:'is-valid' }}
 		</div>
 		<small class="ms-auto d-flex justify-content-center mt-2">
 		  <a id="submit" href="#" class="link-secondary link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover">Update</a> 
