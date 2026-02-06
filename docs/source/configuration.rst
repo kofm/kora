@@ -73,74 +73,6 @@ When in doubt, use quotes.
 
     The following code snippets show the default values.
 
-Site Visibility
-~~~~~~~~~~~~~~~
-
-
-.. option:: PUBLIC
-
-    Boolean. Determines whether accessing your *kora* installation
-    requires a password. By default (False), the application restricts
-    access to logged-in users with a username and password.When set to
-    `true`, the following sections will be accessible **read-only** by
-    anyone:
-
-    - Plants > Species, Varieties, and Protections
-
-    - Describe > Descriptions, Protocols, and Entities
-
-::
-
-    PUBLIC='false'
-
-Auditing Interaction
-~~~~~~~~~~~~~~~~~~~~
-
-(Provided by the third-party `django-easy-audit
-<https://github.com/soynatan/django-easy-audit>`_ module). The
-following environment variables control auditing features that log
-`CRUD
-<https://en.wikipedia.org/wiki/Create,_read,_update_and_delete>`_
-operations, user access, and page views. Useful for detailed tracking
-and auditing of user activity within your *kora* instance.
-
-.. option:: DJANGO_EASY_AUDIT_WATCH_AUTH_EVENTS
-
-    Boolean. Determines whether to log user authentication events such as
-    logins, logouts, and failed login attempts.
-
-::
-
-   DJANGO_EASY_AUDIT_WATCH_AUTH_EVENTS='false'  
-
-   
-.. option:: DJANGO_EASY_AUDIT_WATCH_REQUEST_EVENTS
-
-	    Boolean. Determines whether to log URL requests made by users, i.e.,
-	    which pages they visit.
-
-::
-
-   DJANGO_EASY_AUDIT_WATCH_REQUEST_EVENTS='false'
-
-.. option:: DJANGO_EASY_AUDIT_WATCH_MODEL_EVENTS
-
-	    Boolean. Determines whether to log when objects are created, updated,
-	    or deleted.
-
-::
-
-    DJANGO_EASY_AUDIT_WATCH_MODEL_EVENTS='true'
-
-.. option:: DJANGO_EASY_AUDIT_UNREGISTERED_CLASSES_EXTRA
-
-	    List. Specifies models whose CRUD operations should not be
-	    logged.
-
-::
-
-   DJANGO_EASY_AUDIT_UNREGISTERED_CLASSES_EXTRA='auth.group'
-
 Django-Related Settings
 ~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -211,6 +143,102 @@ Django-Related Settings
    # Example configuration for a typical LAN install might look like this:
    CSRF_TRUSTED_ORIGINS='http://localhost:8002/* http://web http://192.168.1.50:8002'
 
+.. option:: DB_NAME
+
+	    String. The name of the database used by kora.
+	    Defaults to `postgres` when not set.
+
+::
+
+   DB_HOST='db'
+
+.. option:: DB_HOST
+
+	    String. The name of the database host or service.
+	    In Docker setups, `'db'` usually refers to the database container and works without changes.
+
+::
+
+   DB_HOST='db'
+
+.. option:: DB_PORT
+
+    Number. The port on which the PostgreSQL database is listening inside the container.
+
+    Port `5432` is the standard PostgreSQL port and typically does not need to be changed.
+    Because this port is not exposed outside the containers, using the default keeps things secure.
+
+::
+
+   DB_PORT=5432
+
+Site Visibility
+~~~~~~~~~~~~~~~
+
+
+.. option:: PUBLIC
+
+    Boolean. Determines whether accessing your *kora* installation
+    requires a password. By default (False), the application restricts
+    access to logged-in users with a username and password.When set to
+    `true`, the following sections will be accessible **read-only** by
+    anyone:
+
+    - Plants > Species, Varieties, and Protections
+
+    - Describe > Descriptions, Protocols, and Entities
+
+::
+
+    PUBLIC='false'
+
+Auditing Interaction
+~~~~~~~~~~~~~~~~~~~~
+
+(Provided by the third-party `django-easy-audit
+<https://github.com/soynatan/django-easy-audit>`_ module). The
+following environment variables control auditing features that log
+`CRUD
+<https://en.wikipedia.org/wiki/Create,_read,_update_and_delete>`_
+operations, user access, and page views. Useful for detailed tracking
+and auditing of user activity within your *kora* instance.
+
+.. option:: DJANGO_EASY_AUDIT_WATCH_AUTH_EVENTS
+
+    Boolean. Determines whether to log user authentication events such as
+    logins, logouts, and failed login attempts.
+
+::
+
+   DJANGO_EASY_AUDIT_WATCH_AUTH_EVENTS='false'  
+
+   
+.. option:: DJANGO_EASY_AUDIT_WATCH_REQUEST_EVENTS
+
+	    Boolean. Determines whether to log URL requests made by users, i.e.,
+	    which pages they visit.
+
+::
+
+   DJANGO_EASY_AUDIT_WATCH_REQUEST_EVENTS='false'
+
+.. option:: DJANGO_EASY_AUDIT_WATCH_MODEL_EVENTS
+
+	    Boolean. Determines whether to log when objects are created, updated,
+	    or deleted.
+
+::
+
+    DJANGO_EASY_AUDIT_WATCH_MODEL_EVENTS='true'
+
+.. option:: DJANGO_EASY_AUDIT_UNREGISTERED_CLASSES_EXTRA
+
+	    List. Specifies models whose CRUD operations should not be
+	    logged.
+
+::
+
+   DJANGO_EASY_AUDIT_UNREGISTERED_CLASSES_EXTRA='auth.group'
 
 `kora-docker` Settings
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -235,26 +263,6 @@ These settings control aspects of the *kora-docker* bundle, which packages *kora
 ::
 
    NGINX_PORT=8002
-
-.. option:: DB_HOST
-
-	    String. The name of the database host or service.
-	    In Docker setups, `'db'` usually refers to the database container and works without changes.
-
-::
-
-   DB_HOST='db'
-
-.. option:: DB_PORT
-
-    Number. The port on which the PostgreSQL database is listening inside the container.
-
-    Port `5432` is the standard PostgreSQL port and typically does not need to be changed.
-    Because this port is not exposed outside the containers, using the default keeps things secure.
-
-::
-
-   DB_PORT=5432
 
 .. note::
 

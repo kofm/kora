@@ -102,7 +102,7 @@ Create ./logs/ on the host and ensure it is writable by the container. This allo
 
 ``filter.d/kora-login.conf``
 
-.. code-block:: conf
+.. code-block:: ini
 
     [Definition]
     failregex   = ^\s*FAILED LOGIN user='.*' client_ip=<HOST>$
@@ -111,7 +111,7 @@ Create ./logs/ on the host and ensure it is writable by the container. This allo
 
 ``jail.d/kora-login.local``
 
-.. code-block:: conf
+.. code-block:: ini
 
     [kora-login]
     enabled = true
@@ -126,14 +126,14 @@ Create ./logs/ on the host and ensure it is writable by the container. This allo
 
 Recommended basic ``nginx`` headers configuration:
 
-.. code-block:: conf
+.. code-block:: shell
 
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-Proto $scheme;
 
 Common misconfigurations
-=======================
+========================
 
 If fail2ban does not trigger as expected:
 
