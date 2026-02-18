@@ -36,7 +36,10 @@ PROTECTION_STATUS_CHOICES = [
 
 
 class Entity(ModelIsDeletableMixin, models.Model):
-    name = models.CharField(max_length=200, help_text="Name of the entity. E.g., 'John Doe', 'Doe & Partners', etc.")
+    name = models.CharField(
+        max_length=200,
+        help_text="Name of the entity. E.g., 'John Doe', 'Doe & Partners', etc.",
+    )
     type = models.CharField(
         max_length=2,
         choices=ENTITY_TYPE_CHOICES,
@@ -44,7 +47,11 @@ class Entity(ModelIsDeletableMixin, models.Model):
         default="",
         help_text="Type of the entity. Choose from the available options.",
     )
-    country = CountryField(blank=True, null=True, help_text="Country where the entity is based or operates.")
+    country = CountryField(
+        blank=True,
+        null=True,
+        help_text="Country where the entity is based or operates.",
+    )
     contact = models.CharField(
         max_length=500,
         blank=True,

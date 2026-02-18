@@ -44,7 +44,7 @@ class APITests(APITestCase):
         self.assertEqual(response.data["name"], "Better Tomato")
         self.assertEqual(response.data["species"], self.species.pk)
 
-        variety_id = response.data["pk"]
+        variety_id = response.data["id"]
         denomination_exists = PlantVarietyName.objects.filter(variety__pk=variety_id, name="Better Tomato").exists()
         self.assertTrue(denomination_exists)
 
@@ -60,7 +60,7 @@ class APITests(APITestCase):
         ]
         response = self.client.post(self.plantvariety_list_url, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        variety_ids = [item["pk"] for item in response.data]
+        variety_ids = [item["id"] for item in response.data]
         variety_names = PlantVarietyName.objects.filter(variety__in=variety_ids)
         self.assertEqual(len(response.data), 2)
         self.assertEqual(len(variety_names), 2)
@@ -83,7 +83,7 @@ class APITests(APITestCase):
         workspace = WorkspaceFactory(user=self.user, name="Test Workspace", is_active=True)
         workspace_element = WorkspaceElementFactory(workspace=workspace)
         ExpressionFactory.create_batch(3, description=workspace_element.description)
-        response = self.client.get(reverse("restapi:workspaces", args=(workspace.pk,)), {"no_pagination": 1})
+        response = self.client.get(reverse("restapi:workspace_elements", args=(workspace.pk,)), {"no_pagination": 1})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 1)
         self.assertEqual(len(response.data[0]["description"]["expressions"]), 3)

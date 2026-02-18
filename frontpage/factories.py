@@ -36,7 +36,7 @@ class UserFactory(DjangoModelFactory):
 
 
 class AdminFactory(UserFactory):
-    is_superuser = True
+    is_staff = True
 
 
 class GroupFactory(DjangoModelFactory):

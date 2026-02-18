@@ -6,7 +6,7 @@ from rest_framework import serializers as sr
 
 class BulkListSerializer(sr.ListSerializer):
     def create(self, validated_data):
-        model_class = self.child.Meta.model
+        model_class = self.child.Meta.model  # ty:ignore[unresolved-attribute]
         return model_class.objects.bulk_create([model_class(**item) for item in validated_data])
 
 

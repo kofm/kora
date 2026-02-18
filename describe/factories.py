@@ -18,7 +18,7 @@ class TraitFactory(DjangoModelFactory):
     class Meta:
         model = Trait
 
-    numeric_id = Sequence(lambda n: n)
+    numeric_id = Sequence(lambda n: n + 1)
     description = "Leaf: colour"
     protocol = SubFactory(ProtocolFactory)
 
@@ -27,7 +27,7 @@ class StateFactory(DjangoModelFactory):
     class Meta:
         model = State
 
-    numeric_id = Sequence(lambda n: n)
+    numeric_id = Sequence(lambda n: n + 1)
     trait = SubFactory(TraitFactory)
     description = "light"
 

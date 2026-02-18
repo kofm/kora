@@ -13,6 +13,7 @@ from collect.models import Cart, CartItem, Sample, SampleWeight, Storage, Storag
 from collect.serializers import SampleWeightSerializer
 from describe.models import (
     Description,
+    Expression,
     Protocol,
     State,
     Trait,
@@ -27,6 +28,7 @@ from restapi.serializers.models import (
     CartSerializer,
     DescriptionSerializer,
     EntitySerializer,
+    ExpressionSerializer,
     ParameterSerializer,
     PlantSpeciesSerializer,
     PlantVarietySerializer,
@@ -45,11 +47,15 @@ from restapi.serializers.models import (
 from .filters import (
     DescriptionFilter,
     EntityFilter,
+    ExpressionFilter,
+    ParameterFilter,
     PlantSpeciesFilter,
     PlantVarietyFilter,
     ProtectionFilter,
     ProtocolFilter,
+    SampleFilter,
     SampleWeightFilter,
+    StateFilter,
     StorageFilter,
     StoragePositionFilter,
     TraitFilter,
@@ -63,11 +69,8 @@ class BulkCreateMixin:
         is_many = isinstance(request.data, list)
         serializer = self.get_serializer(data=request.data, many=is_many)
         serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-    def perform_create(self, serializer):
         serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 class PlantSpeciesViewSet(BulkCreateMixin, viewsets.ModelViewSet):
@@ -99,7 +102,6 @@ class PlantVarietyViewSet(BulkCreateMixin, viewsets.ModelViewSet):
           already exists, it will not be imported. If you really need
           a variety with the same name you will have to add it through
           the user interface.
-
         """
         serializer = PlantVarietyImportSerializer(data=request.data)
 
@@ -118,7 +120,8 @@ class PlantVarietyViewSet(BulkCreateMixin, viewsets.ModelViewSet):
         with transaction.atomic():
             created = PlantVariety.objects.bulk_create([obj for obj in objs if obj], batch_size=1000)
             PlantVarietyName.objects.bulk_create(
-                [PlantVarietyName(name=obj.name, variety=obj) for obj in created], batch_size=1000
+                [PlantVarietyName(name=obj.name, variety=obj) for obj in created],
+                batch_size=1000,
             )
 
         varieties = (
@@ -163,10 +166,8 @@ class ProtectionViewSet(BulkCreateMixin, viewsets.ModelViewSet):
 
     def get_queryset(self):
         entity_qs = Entity.objects.all().order_by("name")
-        return (
-            Protection.objects.select_related("variety__species")
-            .prefetch_related(Prefetch("applicants", queryset=entity_qs), Prefetch("maintainers", queryset=entity_qs))
-            .select_related("variety__species")
+        return Protection.objects.prefetch_related(
+            Prefetch("applicants", queryset=entity_qs), Prefetch("maintainers", queryset=entity_qs)
         )
 
     @action(
@@ -220,7 +221,7 @@ class ProtocolViewSet(BulkCreateMixin, viewsets.ModelViewSet):
 
 
 class TraitViewSet(BulkCreateMixin, viewsets.ModelViewSet):
-    queryset = Trait.objects.select_related("protocol").prefetch_related("states").all()
+    queryset = Trait.objects.all()
     serializer_class = TraitSerializer
     filterset_class = TraitFilter
 
@@ -228,21 +229,25 @@ class TraitViewSet(BulkCreateMixin, viewsets.ModelViewSet):
 class StateViewSet(BulkCreateMixin, viewsets.ModelViewSet):
     queryset = State.objects.select_related("trait").all()
     serializer_class = StateSerializer
+    filterset_class = StateFilter
 
 
 class DescriptionViewSet(BulkCreateMixin, viewsets.ModelViewSet):
     serializer_class = DescriptionSerializer
-    queryset = (
-        Description.objects.select_related("variety__species", "protocol")
-        .prefetch_related("expressions__state__trait")
-        .all()
-    )
+    queryset = Description.objects.select_related("variety__species", "protocol").all()
     filterset_class = DescriptionFilter
+
+
+class ExpressionViewSet(BulkCreateMixin, viewsets.ModelViewSet):
+    serializer_class = ExpressionSerializer
+    queryset = Expression.objects.select_related("description", "state__trait").all()
+    filterset_class = ExpressionFilter
 
 
 class ParameterViewSet(BulkCreateMixin, viewsets.ModelViewSet):
     queryset = Parameter.objects.all()
     serializer_class = ParameterSerializer
+    filterset_class = ParameterFilter
 
 
 class VarietalParameterViewSet(BulkCreateMixin, viewsets.ModelViewSet):
@@ -266,6 +271,7 @@ class StoragePositionViewSet(BulkCreateMixin, viewsets.ModelViewSet):
 class SampleViewSet(BulkCreateMixin, viewsets.ModelViewSet):
     queryset = Sample.objects.with_availability().with_germination()
     serializer_class = SampleSerializer
+    filterset_class = SampleFilter
 
 
 class SampleWeightViewSet(BulkCreateMixin, viewsets.ModelViewSet):
@@ -298,20 +304,20 @@ class CartItemViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
 
-class WorkspaceViewSet(viewsets.ModelViewSet):
-    serializer_class = WorkspaceSerializer
-
-    def get_queryset(self):
-        user = self.request.user
-        return Workspace.objects.filter(user=user)
-
-
 class CartViewSet(viewsets.ModelViewSet):
     serializer_class = CartSerializer
 
     def get_queryset(self):
         user = self.request.user
         return Cart.objects.filter(user=user)
+
+
+class WorkspaceViewSet(viewsets.ModelViewSet):
+    serializer_class = WorkspaceSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        return Workspace.objects.filter(user=user)
 
 
 class WorkspaceElementViewSet(viewsets.ModelViewSet):
