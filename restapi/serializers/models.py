@@ -85,19 +85,19 @@ class ProtectionSerializer(CountryFieldMixin, BulkModelSerializer):
 
 
 class ProtocolSerializer(BulkModelSerializer):
-    class Meta:
+    class Meta(BulkModelSerializer.Meta):
         model = Protocol
         fields = ("id", "name", "plantspecies", "url_ref")
 
 
 class StateSerializer(BulkModelSerializer):
-    class Meta:
+    class Meta(BulkModelSerializer.Meta):
         model = State
         fields = ("id", "numeric_id", "description", "trait")
 
 
 class TraitSerializer(BulkModelSerializer):
-    class Meta:
+    class Meta(BulkModelSerializer.Meta):
         model = Trait
         fields = (
             "id",
@@ -131,7 +131,7 @@ class ExpressionSerializer(BulkModelSerializer):
     trait_numeric_id = serializers.IntegerField(source="state.trait.numeric_id", read_only=True)
     state_description = serializers.StringRelatedField(many=False, source="state", read_only=True)
 
-    class Meta:
+    class Meta(BulkModelSerializer.Meta):
         model = Expression
         fields = (
             "description",
@@ -144,7 +144,7 @@ class ExpressionSerializer(BulkModelSerializer):
 
 
 class ParameterSerializer(BulkModelSerializer):
-    class Meta:
+    class Meta(BulkModelSerializer.Meta):
         model = Parameter
         fields = ("id", "code", "name", "description", "measure_unit")
 
@@ -152,7 +152,7 @@ class ParameterSerializer(BulkModelSerializer):
 class VarietalParameterSerializer(BulkModelSerializer):
     parameter_code = serializers.StringRelatedField(many=False, source="parameter", read_only=True)
 
-    class Meta:
+    class Meta(BulkModelSerializer.Meta):
         model = VarietalParameter
         fields = (
             "value",
@@ -167,7 +167,7 @@ class VarietalParameterSerializer(BulkModelSerializer):
 
 
 class StorageSerializer(BulkModelSerializer):
-    class Meta:
+    class Meta(BulkModelSerializer.Meta):
         model = Storage
         fields = ("id", "name", "order")
 
@@ -175,7 +175,7 @@ class StorageSerializer(BulkModelSerializer):
 class StoragePositionSerializer(BulkModelSerializer):
     storage = serializers.StringRelatedField(many=False, read_only=True)
 
-    class Meta:
+    class Meta(BulkModelSerializer.Meta):
         model = StoragePosition
         fields = ("id", "name", "storage")
 
@@ -190,7 +190,7 @@ class SampleSerializer(BulkModelSerializer):
     available_weight = serializers.FloatField(read_only=True)
     last_germinability = serializers.FloatField(read_only=True)
 
-    class Meta:
+    class Meta(BulkModelSerializer.Meta):
         model = Sample
         fields = (
             "id",
@@ -215,7 +215,7 @@ class CartItemSerializer(BulkModelSerializer):
     storage = serializers.CharField(source="sample.position.storage", read_only=True)
     position = serializers.CharField(source="sample.position.name", read_only=True)
 
-    class Meta:
+    class Meta(BulkModelSerializer.Meta):
         model = CartItem
         fields = (
             "sample",
@@ -231,13 +231,13 @@ class CartItemSerializer(BulkModelSerializer):
 
 
 class WorkspaceSerializer(BulkModelSerializer):
-    class Meta:
+    class Meta(BulkModelSerializer.Meta):
         model = Workspace
         fields = ("id", "name")
 
 
 class CartSerializer(BulkModelSerializer):
-    class Meta:
+    class Meta(BulkModelSerializer.Meta):
         model = Cart
         fields = ("id", "name")
 
@@ -248,7 +248,7 @@ class ExpressionNestedSerializer(serializers.ModelSerializer):
     state_id = serializers.IntegerField(source="state.numeric_id")
     state_description = serializers.StringRelatedField(many=False, source="state.description")
 
-    class Meta:
+    class Meta(BulkModelSerializer.Meta):
         model = Expression
         fields = ("trait_id", "trait_description", "state_id", "state_description", "note")
 
@@ -256,7 +256,7 @@ class ExpressionNestedSerializer(serializers.ModelSerializer):
 class DescriptionNestedSerializer(serializers.ModelSerializer):
     expressions = ExpressionNestedSerializer(many=True, read_only=True)
 
-    class Meta:
+    class Meta(BulkModelSerializer.Meta):
         model = Description
         fields = ("name", "expressions")
 
@@ -264,6 +264,6 @@ class DescriptionNestedSerializer(serializers.ModelSerializer):
 class WorkspaceElementSerializer(BulkModelSerializer):
     description = DescriptionNestedSerializer(read_only=True)
 
-    class Meta:
+    class Meta(BulkModelSerializer.Meta):
         model = WorkspaceElement
         fields = ("id", "description")
