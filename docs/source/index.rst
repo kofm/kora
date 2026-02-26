@@ -6,8 +6,9 @@ Kora
    installation
    configuration
    security
-   api
+   collect
    cropmodels
+   api
    :maxdepth: 2
    :caption: Contents:
 
