@@ -2,7 +2,7 @@ import django_tables2 as tables
 from django.utils.html import format_html
 
 from collect.models import Sample
-from collect.tables import SampleBaseTable
+from collect.tables import BaseSampleTable
 from describe.models import Description
 from frontpage.tables import TableHoverFixed
 from frontpage.utils.text import smart_truncate_string
@@ -58,14 +58,14 @@ class PlantVarietyDescriptionTable(tables.Table):
         per_page = 5
 
 
-class PlantVarietySampleTable(SampleBaseTable):
+class PlantVarietySampleTable(BaseSampleTable):
     actions = tables.TemplateColumn(
         template_name="collect/partials/sample_table_actions.html",
         verbose_name="",
         orderable=False,
     )
 
-    class Meta(SampleBaseTable.Meta):
+    class Meta(BaseSampleTable.Meta):
         model = Sample
         fields = (
             "sample_id",

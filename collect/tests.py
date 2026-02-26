@@ -1,7 +1,90 @@
 from django.core.exceptions import ValidationError
+from django.db import IntegrityError
 from django.test import TestCase
+from django.utils import timezone
+from factory.declarations import Iterator
 
-from collect.factories import CartItemFactory, SampleFactory, SampleWeightFactory
+from collect.exceptions import SampleDiscardError
+from collect.factories import CartFactory, CartItemFactory, SampleFactory, SampleWeightFactory
+from collect.models import CartKind, Sample, SampleStatus
+
+
+class SampleTests(TestCase):
+    def setUp(self):
+        self.samples = SampleFactory.create_batch(3)
+        s2 = self.samples[2]
+        SampleWeightFactory(sample=s2, weight=10)
+        self.cartitem = CartItemFactory(sample=s2)
+
+    def test_sample_id_unique_validation_sees_discarded(self):
+        s = self.samples[0]
+        s.discard()
+        s.refresh_from_db()
+
+        s2 = SampleFactory.build(sample_id=s.sample_id)
+        with self.assertRaises(ValidationError):
+            s2.full_clean()
+
+    def test_samples_are_created_active(self):
+        self.assertTrue(all(s.status == SampleStatus.ACTIVE for s in self.samples))
+        self.assertTrue(all(s.discarded_at is None for s in self.samples))
+
+    def test_sample_are_discarded(self):
+        s = self.samples[0]
+        s.discard()
+        s.refresh_from_db()
+
+        self.assertEqual(s.status, SampleStatus.DISCARDED)
+        self.assertIsNotNone(s.discarded_at)
+
+    def test_samples_status_discarded_at_constraints(self):
+        s = self.samples[0]
+        s.status = SampleStatus.DISCARDED
+        with self.assertRaises(IntegrityError):
+            s.save()
+
+    def test_default_sample_manager_returns_only_active(self):
+        s0 = self.samples[0]
+        s0.discard()
+        qs = Sample.objects.all()
+        self.assertEqual(qs.count(), 2)
+        self.assertFalse(qs.filter(pk=s0.pk).exists())
+
+    def test_samples_are_bulk_discarded_if_not_referenced_by_any_cartitem(self):
+        Sample.objects.all().discard()
+        self.assertTrue(Sample.objects.exists())  # The Sample referenced by CartItem is not deleted
+        self.assertEqual(Sample.objects.count(), 1)
+
+    def test_samples_in_cart_are_not_discarded(self):
+        s2 = self.samples[2]
+        with self.assertRaises(SampleDiscardError) as e:
+            s2.discard()
+        self.assertEqual(e.exception.code, "in_cart")
+
+        s2.refresh_from_db()
+        self.assertEqual(s2.status, SampleStatus.ACTIVE)
+        self.assertIsNone(s2.discarded_at)
+
+    def test_sample_status_position_invariant(self):
+        s1 = self.samples[1]
+        s1.status = SampleStatus.DISCARDED
+        s1.discarded_at = timezone.now()
+        with self.assertRaises(IntegrityError):
+            s1.save()
+
+
+class CartItemDiscardTests(TestCase):
+    def setUp(self):
+        self.cart1 = CartFactory()
+        self.cart2 = CartFactory(kind=CartKind.DISCARD)
+        self.samples = SampleFactory.create_batch(3)
+        SampleWeightFactory.create_batch(3, sample=Iterator(self.samples), weight=100)
+        CartItemFactory(cart=self.cart1, sample=self.samples[0])
+        CartItemFactory.create_batch(3, cart=self.cart2, sample=Iterator(self.samples), weight=None)
+
+    def test_cart_discard_only_if_not_referenced_by_any_cartitem(self):
+        self.cart2.discard()
+        self.assertEqual(self.cart2.cartitem_set.count(), 1)
 
 
 class CartItemCleanTests(TestCase):

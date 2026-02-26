@@ -1,7 +1,14 @@
 {% if user.is_authenticated %}
   <div class="d-flex justify-content-center">
-    <a class="row-action" hx-post="{% url "collect:cartitem_create" %}" hx-vals='{"sample_id": "{{ record.pk }}"}' hx-target="#cartBody" href="#" hx-indicator="#tray-indicator">
-      <span class="badge rounded-pill text-bg-secondary">Add</span>
+    <a class="row-action"
+      href="#"
+      hx-post="{% url "collect:cartitem_create" %}"
+      hx-vals='{"sample_id": "{{ record.pk }}"}'
+      hx-target="#cartBody"
+      hx-indicator="#tray-indicator">
+      <span class="badge rounded-pill text-bg-secondary">
+	<i class="bi bi-inbox-fill"></i>
+      </span>
     </a>
   </div>
 {% endif %}

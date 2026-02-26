@@ -1,0 +1,26 @@
+{% extends "frontpage/list.html" %}
+
+{% load crispy_forms_tags %}
+{% load widget_tweaks %}
+{% load static %}
+{% load render_table from django_tables2 %}
+{% load breadcrumbs %}
+{% load components %}
+
+{% block title %}Discarded Samples{% endblock %}
+
+{% block additional_results %}
+  {% if table.paginator.count %}
+    <a href="#"
+      class="link-danger link-opacity-75 text-decoration-none"
+      hx-get="{% url 'collect:discarded_sample_bulk_delete' %}{% querystring %}"
+      {% modal_attrs %}>
+      <i class="bi bi-x-circle"></i>
+      Delete
+    </a>
+  {% endif %}
+{% endblock %}
+
+{% block page_header %}
+  {% include "frontpage/partials/list_page_header.html" %}
+{% endblock %}

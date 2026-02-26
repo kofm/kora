@@ -1,0 +1,14 @@
+{% extends "frontpage/modal_confirm_delete.html" %}
+
+{% block body %}
+  <p>Do you really want to <b><span class="mark">permanently delete</span></b> the matching discarded samples? This operation <b>cannot be undone</b>.</p>
+{% endblock %}
+
+{% block footer %}
+  <button type="button" class="btn btn-danger" data-bs-dismiss="modal"
+    hx-post="{{ request.path }}"
+    hx-include="#sampleFilterForm">
+    Delete
+  </button>
+  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+{% endblock %}

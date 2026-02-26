@@ -5,7 +5,7 @@ from frontpage.tables import TableHoverFixed
 from frontpage.utils.text import smart_truncate_string
 
 
-class SampleBaseTable(tables.Table):
+class BaseSampleTable(tables.Table):
     weight = tables.Column(
         verbose_name="Stock",
         orderable=False,
@@ -26,7 +26,7 @@ class SampleBaseTable(tables.Table):
             "growing_season",
             "notes",
         )
-        empty_text = "There are no corresponding seed samples to be displayed."
+        empty_text = "There are no matching seed samples to be displayed."
 
     def render_notes(self, record):
         notes = smart_truncate_string(record.notes)
@@ -46,7 +46,7 @@ class SampleBaseTable(tables.Table):
         return str(record.germinability) + "%"
 
 
-class SampleTable(SampleBaseTable):
+class SampleTable(BaseSampleTable):
     """Extension of the SampleBaseTable for the Accession List.
 
     It uses HTMX for dynamic content display. See the template for
@@ -59,7 +59,7 @@ class SampleTable(SampleBaseTable):
     position = tables.Column()
     growing_season = tables.Column("Grown")
 
-    class Meta(SampleBaseTable.Meta):
+    class Meta(BaseSampleTable.Meta):
         model = Sample
         fields = (
             "sample_id",
@@ -74,10 +74,42 @@ class SampleTable(SampleBaseTable):
         template_name = "collect/partials/sample_table.html"
 
 
-class SampleDuplicatesTable(SampleBaseTable):
+class DiscardedSampleTable(BaseSampleTable):
+    """Extension of the SampleBaseTable for the Accession List.
+
+    It uses HTMX for dynamic content display. See the template for
+    details.  It also has (HTMX) action buttons to add Accessions to
+    the selected cart.
+    """
+
+    variety__name = tables.Column("Variety")
+    variety__species__common_name = tables.Column("Species")
+    growing_season = tables.Column("Grown")
+    actions = tables.TemplateColumn(
+        template_name="collect/partials/discarded_sample_table_actions.html",
+        verbose_name="",
+        orderable=False,
+    )
+
+    class Meta(BaseSampleTable.Meta):
+        model = Sample
+        fields = (
+            "sample_id",
+            "variety__name",
+            "variety__species__common_name",
+            "growing_season",
+            "weight",
+            "notes",
+            "actions",
+        )
+        template_name = "collect/partials/discarded_sample_table.html"
+        row_attrs = {}
+
+
+class DuplicatedSampleTable(BaseSampleTable):
     orderable: bool = False
 
-    class Meta(SampleBaseTable.Meta):
+    class Meta(BaseSampleTable.Meta):
         fields = (
             "sample_id",
             "position",
@@ -88,8 +120,8 @@ class SampleDuplicatesTable(SampleBaseTable):
         )
 
 
-class SampleInStorageTable(SampleBaseTable):
-    class Meta(SampleBaseTable.Meta):
+class SampleInStorageTable(BaseSampleTable):
+    class Meta(BaseSampleTable.Meta):
         fields = (
             "sample_id",
             "variety",

@@ -37,10 +37,15 @@
 	{% block main %}
 	  {% block main_title %}
 	    <h2 class="fs-4">Results</h2>
-	    <small class="text-muted">{{ table.paginator.count }} matches.</small>
+	    <small class="text-muted">{{ table.paginator.count }} matches. {% block additional_results %}{% endblock %}</small>
 	  {% endblock %}
 	  {% block main_body %}
-	    <div hx-target="#results">
+	    <div
+	      {% if hx_get %}
+	      hx-trigger="resultsChanged from:body"
+	      hx-get="{{ hx_get }}"
+	      {% endif %}
+	      hx-target="#results">
 	      {% render_table table %}
 	    </div>
 	  {% endblock %}

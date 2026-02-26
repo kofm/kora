@@ -3,7 +3,6 @@ from django import forms
 from django.db.models import Q
 from django_filters import CharFilter, FilterSet, ModelMultipleChoiceFilter
 
-from collect.models import Sample
 from frontpage.forms import HTMXFormMixin, SearchAndClearButtons
 from frontpage.widgets import TomSelectMultiple
 from register.models import PlantSpecies
@@ -16,6 +15,7 @@ class SampleFilterForm(HTMXFormMixin, forms.Form):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper.layout = Layout(Field("omni"), Field("variety__species"), SearchAndClearButtons())
+        self.helper.form_id = "sampleFilterForm"
 
 
 class SampleFilter(FilterSet):
@@ -33,5 +33,7 @@ class SampleFilter(FilterSet):
     class Meta:
         form = SampleFilterForm
 
-    def omni_search(self, queryset, name, value):
-        return Sample.objects.filter(Q(variety__names__name__icontains=value) | Q(notes__icontains=value))
+    def omni_search(self, queryset, _, value):
+        if not value:
+            return queryset
+        return queryset.filter(Q(variety__names__name__icontains=value) | Q(notes__icontains=value)).distinct()

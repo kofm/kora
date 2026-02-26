@@ -9,6 +9,16 @@
 
 {% block title %}Samples{% endblock %}
 
+{% block additional_results %}
+  {% if discarded_count %}
+    There {{ discarded_count|pluralize:"is,are" }}
+    <a class="link-body-emphasis"
+      href="{% url 'collect:discarded_sample_list'  %}{% querystring %}" ><i class="bi bi-arrow-right-short"></i>
+      {{ discarded_count }} discarded</a>
+    sample{{ discarded_count|pluralize }} matching.
+  {% endif %}
+{% endblock %}
+
 {% block page_header %}
   {% list_page_header "collect.Sample" %}
 {% endblock %}

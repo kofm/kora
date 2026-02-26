@@ -1,36 +1,37 @@
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.db import transaction
+from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.response import TemplateResponse
 from django.urls import reverse, reverse_lazy
 from django.views.generic import DetailView, ListView
-from django.views.generic.edit import DeleteView
 from django_tables2 import RequestConfig
 
 from breadcrumbs.generic import (
-    DeleteBreadcrumbsMixin,
     DetailBreadcrumbsMixin,
     ListBreadcrumbsMixin,
 )
-from breadcrumbs.utils import add_plantvariety_breadcrumbs, generate_breadcrumbs
+from breadcrumbs.utils import add_plantvariety_breadcrumbs, breadcrumbs_context, generate_breadcrumbs, list_breadcrumb
 from collect.filters import SampleFilter
 from collect.forms import (
     GerminabilityForm,
     SampleForm,
+    SampleRestoreForm,
     SampleWeightForm,
     StorageCreateForm,
     StorageUpdateForm,
 )
-from collect.models import Germinability, Sample, SampleWeight, Storage, StoragePosition
+from collect.models import Germinability, Sample, SampleStatus, SampleWeight, Storage, StoragePosition
 from collect.tables import (
-    SampleDuplicatesTable,
+    DiscardedSampleTable,
+    DuplicatedSampleTable,
     SampleInStorageTable,
     SampleTable,
 )
 from django_sortable_htmx.views import SortableView
 from frontpage.templatetags.components import get_action_url_from_instance, get_permission_from_instance
-from frontpage.utils.htmx import htmx_response_trigger_close_modal
+from frontpage.utils.htmx import htmx_response_trigger, htmx_response_trigger_close_modal
 from frontpage.views_decorators import htmx_render_blocks
 
 
@@ -40,13 +41,85 @@ def sample_list(request):
     flt = SampleFilter(request.GET, queryset=Sample.objects.all())
     queryset = flt.qs.with_availability().with_germination()
 
+    discarded_flt = SampleFilter(request.GET, queryset=Sample.all_objects.discarded())
+    discarded_count = discarded_flt.qs.count()
+
     table = SampleTable(queryset)
     RequestConfig(request, paginate={"per_page": 15}).configure(table)
 
-    context = {"table": table, "filter": flt}
+    context = {
+        "table": table,
+        "filter": flt,
+        "hx_get": reverse("collect:sample_list"),
+        "discarded_count": discarded_count,
+    }
     context.update(generate_breadcrumbs(request, Sample))
 
     return TemplateResponse(request, "collect/sample_list.html", context)
+
+
+@htmx_render_blocks(["main"])
+@permission_required("collect.view_sample")
+def discarded_sample_list(request):
+    flt = SampleFilter(request.GET, queryset=Sample.all_objects.discarded())
+    queryset = flt.qs.with_availability().with_germination()
+
+    table = DiscardedSampleTable(queryset)
+    RequestConfig(request, paginate={"per_page": 15}).configure(table)
+
+    header = {
+        "page_title": "Discarded Samples",
+        "subtitle": "Samples removed from collection",
+        "create_url": None,
+    }
+    context = {
+        "table": table,
+        "filter": flt,
+        "hx_get": reverse("collect:discarded_sample_list"),
+        "header": header,
+    }
+    breadcrumbs = [list_breadcrumb(Sample), ("Discarded", "")]
+    context.update(breadcrumbs_context(breadcrumbs))
+
+    return TemplateResponse(request, "collect/discarded_sample_list.html", context)
+
+
+@permission_required("collect.delete_sample", raise_exception=True)
+def discarded_sample_bulk_delete(request):
+    if request.method == "POST":
+        flt = SampleFilter(request.POST, queryset=Sample.all_objects.discarded())
+        flt.qs.delete()
+        return htmx_response_trigger(["resultsChanged"])
+    return TemplateResponse(request, "collect/discarded_sample_confirm_bulk_delete.html", {})
+
+
+@permission_required("collect.delete_sample", raise_exception=True)
+def discarded_sample_delete(request, pk):
+    instance = Sample.all_objects.get(pk=pk)
+    if request.method == "POST":
+        instance.delete()
+        return htmx_response_trigger(["closeModal", "resultsChanged"])
+    context = {"instance": instance}
+    return TemplateResponse(request, "frontpage/modal_confirm_delete.html", context)
+
+
+@permission_required("collect.change_sample", raise_exception=True)
+def discarded_sample_restore(request, pk):
+    instance = get_object_or_404(Sample.all_objects, pk=pk)
+
+    if instance.status != SampleStatus.DISCARDED:
+        raise Http404()
+
+    if request.method == "POST":
+        form = SampleRestoreForm(request.POST, instance=instance)
+        if form.is_valid():
+            position = form.cleaned_data["position"]
+            instance.restore(position=position)
+            return htmx_response_trigger(["closeModal", "resultsChanged"])
+    else:
+        form = SampleRestoreForm(instance=instance)
+
+    return TemplateResponse(request, "frontpage/modal_form.html", {"form": form})
 
 
 @htmx_render_blocks(["log", "weight", "germinability"])
@@ -73,7 +146,7 @@ def sample_detail(request, pk):
             }
         )
 
-    duplicates_table = SampleDuplicatesTable(sample.duplicate_samples)
+    duplicates_table = DuplicatedSampleTable(sample.duplicate_samples)
     crumbs = generate_breadcrumbs(request, Sample, sample)
     crumbs = add_plantvariety_breadcrumbs(crumbs, sample.variety)
 
@@ -127,11 +200,13 @@ def sample_update(request, pk):
     return TemplateResponse(request, "collect/sample_update.html", context)
 
 
-class SampleDeleteView(PermissionRequiredMixin, DeleteBreadcrumbsMixin, DeleteView):
-    object: Sample
-    model = Sample
-    success_url = reverse_lazy("collect:sample_list")
-    permission_required = ["collect.delete_sample"]
+def sample_delete(request, pk):
+    instance = get_object_or_404(Sample, pk=pk)
+    if request.method == "POST":
+        instance.discard()
+        return redirect(reverse("collect:sample_list"))
+    context = {"instance": instance}
+    return TemplateResponse(request, "collect/sample_confirm_delete.html", context)
 
 
 class StorageListView(PermissionRequiredMixin, ListBreadcrumbsMixin, ListView):

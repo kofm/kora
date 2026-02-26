@@ -17,7 +17,7 @@ from collect.forms import (
     CartSelectForm,
     CartUpdateForm,
 )
-from collect.models import Cart, CartItem, Sample, SampleWeight
+from collect.models import Cart, CartItem, CartKind, Sample, SampleWeight
 from django_sortable_htmx.views import SortableView
 from frontpage.utils.htmx import htmx_response_trigger
 
@@ -72,8 +72,8 @@ def cart_create(request):
             cart.user = request.user
             Cart.objects.filter(user=request.user).deactivate_all()
             cart.save()
-            return redirect(reverse("collect:cart_detail"))
-    return render(request, "collect/cart_detail.html", {"cart_form": form})
+            return htmx_response_trigger(["cartUpdated", "closeModal"])
+    return render(request, "frontpage/modal_form.html", {"form": form})
 
 
 @permission_required("collect.change_cart", raise_exception=True)
@@ -85,14 +85,23 @@ def cart_update(request, pk):
             instance = form.save(commit=False)
             instance.user = request.user
             instance.save()
-            return redirect(reverse("collect:cart_detail"))
+            return htmx_response_trigger(["cartUpdated", "closeModal"])
     else:
         form = CartUpdateForm(instance=instance)
-    return render(request, "collect/cart_detail.html", {"cart_form": form})
+    return render(request, "frontpage/modal_form.html", {"form": form})
+
+
+def cart_discard(request, pk):
+    instance = get_object_or_404(Cart, pk=pk)
+    context = {"cart": instance}
+    if request.method == "POST":
+        instance.discard()
+        return htmx_response_trigger(["cartUpdated", "closeModal", "resultsChanged"])
+    return TemplateResponse(request, "frontpage/modal_confirm_delete.html", context)
 
 
 @permission_required("collect.view_cart", raise_exception=True)
-def cart_retrieve(request, pk):
+def cart_withdraw(request, pk):
     context = {}
     cart = get_object_or_404(Cart, pk=pk, user=request.user)
     if request.method == "POST":
@@ -117,10 +126,10 @@ def cart_retrieve(request, pk):
 
         SampleWeight.objects.bulk_create(sampleweights)
         cart.delete()
-        return htmx_response_trigger(["cartUpdated"])
+        return htmx_response_trigger(["cartUpdated", "closeModal", "resultsChanged"])
 
     context = {"cart": cart}
-    return render(request, "collect/cart_confirm_retrieve.html", context)
+    return render(request, "collect/cart_confirm_withdraw.html", context)
 
 
 @permission_required("collect.change_cart", raise_exception=True)
@@ -138,7 +147,7 @@ def cart_delete(request, pk):
     cart = get_object_or_404(Cart, pk=pk)
     if request.method == "POST":
         cart.delete()
-        return redirect(reverse("collect:cart_detail"))
+        return htmx_response_trigger(["cartUpdated", "closeModal", "resultsChanged"])
     return render(request, "collect/cart_confirm_delete.html", {"cart": cart})
 
 
@@ -158,7 +167,11 @@ def cart_set_default_weight(request, pk):
 @permission_required("collect.add_cartitem", raise_exception=True)
 @require_POST
 def cartitem_create(request):
-    cart = Cart.objects.filter(user=request.user, is_active=True).first()
+    try:
+        cart = Cart.objects.get(user=request.user, is_active=True)
+    except Cart.DoesNotExist:
+        cart = None
+
     sample_id = request.POST.get("sample_id", None)
 
     if not sample_id:
@@ -170,19 +183,33 @@ def cartitem_create(request):
 
     try:
         with transaction.atomic():
+            order_max = CartItem.objects.filter(cart=cart).aggregate(Max("order"))["order__max"] or 0
+            defaults = {"order": order_max + 1}
+            if cart.kind == CartKind.WITHDRAWAL:
+                defaults["weight"] = cart.default_weight
+
             cartitem, created = CartItem.objects.get_or_create(
                 sample_id=sample_id,
                 cart=cart,
+                defaults=defaults,
             )
+
             if not created:
-                messages.warning(request, f"{cartitem.weight} g of this sample are already in your cart.")
+                if cart.kind == CartKind.WITHDRAWAL:
+                    messages.warning(request, f"{cartitem.weight:g} g of this sample are already in your cart.")
+                else:
+                    messages.warning(request, "This sample is already in your disposal cart.")
                 return HttpResponse(headers={"HX-Reswap": "none"})
-            cartitem.weight = cart.default_weight
-            order_max = CartItem.objects.filter(cart=cart).aggregate(Max("order"))["order__max"]
-            cartitem.order = order_max + 1 if order_max else 1
+
+            if cart.kind == CartKind.WITHDRAWAL:
+                message = f"{cart.default_weight} g added to {cart.name}."
+            else:
+                message = f"Sample added to {cart.name} for disposal."
             cartitem.save()
-            messages.success(request, f"{cart.default_weight} g added to {cart.name}")
-            return htmx_response_trigger(["cartUpdated", "logItemUpdated"])
+            messages.success(request, message)
+
+            return htmx_response_trigger(["cartUpdated", "logItemUpdated", "resultsChanged"])
+
     except ValidationError as e:
         for msg in e.messages:
             messages.error(request, msg)
@@ -205,7 +232,7 @@ def cartitem_delete(request, pk):
     cartitem = get_object_or_404(CartItem, pk=pk)
     if request.user.pk == cartitem.cart.user_id:
         cartitem.delete()
-        return htmx_response_trigger(["cartUpdated", "logItemUpdated"])
+        return htmx_response_trigger(["cartUpdated", "logItemUpdated", "resultsChanged"])
 
 
 @permission_required("collect.change_cartitem", raise_exception=True)
@@ -216,7 +243,7 @@ def cartitem_update(request, pk):
         form = CartItemUpdateForm(request.POST, instance=cartitem)
         if form.is_valid():
             form.save()
-            return htmx_response_trigger(["cartUpdated", "logItemUpdated"])
+            return htmx_response_trigger(["cartUpdated", "logItemUpdated", "closeModal", "resultsChanged"])
     return TemplateResponse(request, "collect/partials/cartitem_update.html", {"form": form})
 
 

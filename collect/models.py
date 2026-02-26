@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models, transaction
 from django.db.models import ExpressionWrapper, F, FloatField, IntegerField, OuterRef, Subquery
@@ -6,11 +7,11 @@ from django.db.models.aggregates import Coalesce, Count, Max, Sum
 from django.db.models.functions import Concat
 from django.db.models.query import Cast, Value
 from django.db.models.query_utils import Q
-from django.forms import ValidationError
 from django.forms.widgets import format_html
 from django.urls import reverse
 from django.utils import timezone
 
+from collect.exceptions import SampleDiscardError
 from frontpage.generic import ModelIsDeletableMixin
 from register.models import PlantVariety
 
@@ -108,7 +109,7 @@ class Storage(models.Model):
 
 
 class StoragePositionQuerySet(models.QuerySet):
-    def empty_positions_for_accession(self, sample_id: int | None = None):
+    def empty_positions_for_sample(self, sample_id: int | None = None):
         query = Q(sample__isnull=True)
         if sample_id:
             query |= Q(sample=sample_id)
@@ -127,8 +128,8 @@ class StoragePositionManager(models.Manager):
     def get_queryset(self):
         return StoragePositionQuerySet(self.model, using=self._db).select_related("storage")
 
-    def empty_positions_for_accession(self, *args, **kwargs):
-        return self.get_queryset().empty_positions_for_accession(*args, **kwargs)
+    def empty_positions_for_sample(self, *args, **kwargs):
+        return self.get_queryset().empty_positions_for_sample(*args, **kwargs)
 
 
 class StoragePosition(models.Model):
@@ -144,9 +145,31 @@ class StoragePosition(models.Model):
         return reverse("collect:storage_detail", args=(self.storage.pk,))
 
 
+class SampleStatus(models.TextChoices):
+    ACTIVE = "A", "Active"
+    DISCARDED = "D", "Discarded"
+
+
 class SampleQueryset(models.QuerySet):
+    def active(self):
+        return self.filter(status=SampleStatus.ACTIVE)
+
+    def discarded(self):
+        return self.filter(status=SampleStatus.DISCARDED)
+
+    def discard(self):
+        """Bulk discard.  Samples which are referenced by CartItem
+        (thus, are in a Cart) are not updated.
+        """
+        now = timezone.now()
+        return (
+            self.active()
+            .exclude(cartitem__isnull=False)
+            .update(status=SampleStatus.DISCARDED, discarded_at=now, position=None)
+        )
+
     def with_availability(self, excluded_cartitem_pk=None):
-        latest_weight_sq = (
+        latest_weight_qs = (
             SampleWeight.objects.filter(sample=OuterRef("pk")).order_by("-created_at").values("weight")[:1]
         )
 
@@ -154,14 +177,22 @@ class SampleQueryset(models.QuerySet):
         if excluded_cartitem_pk:
             reserved_filter &= ~Q(cartitem__pk=excluded_cartitem_pk)
 
-        qs = self.select_related("variety", "variety__species", "position", "position__storage").annotate(
+        qs = self.select_related(
+            "variety",
+            "variety__species",
+            "position",
+            "position__storage",
+        ).annotate(
             reserved=Coalesce(
                 Sum("cartitem__weight", filter=reserved_filter),
                 Value(0),
                 output_field=FloatField(),
             ),
             last_weight=Coalesce(
-                Subquery(latest_weight_sq, output_field=FloatField()),
+                Subquery(
+                    latest_weight_qs,
+                    output_field=FloatField(),
+                ),
                 Value(0),
                 output_field=FloatField(),
             ),
@@ -176,40 +207,80 @@ class SampleQueryset(models.QuerySet):
         return qs
 
     def detail(self):
-        return self.select_related("variety", "variety__species", "position", "position__storage").prefetch_related(
-            "germinability_set", "sampleweight_set"
-        )
+        return self.select_related(
+            "variety",
+            "variety__species",
+            "position",
+            "position__storage",
+        ).prefetch_related("germinability_set", "sampleweight_set")
 
     def next_id(self):
-        qs = self.aggregate(Max("sample_id", default=1))
-        return qs["sample_id__max"] + 1
+        current_id = self.aggregate(Max("sample_id", default=1))["sample_id__max"]
+        return current_id + 1
 
     def with_germination(self):
-        latest_germinability_sq = (
+        latest_germinability_qs = (
             Germinability.objects.filter(sample=OuterRef("pk")).order_by("-performed_at").values("germinability")[:1]
         )
 
         return self.detail().annotate(
             last_germinability=Coalesce(
-                Subquery(latest_germinability_sq, output_field=FloatField()),
+                Subquery(latest_germinability_qs, output_field=FloatField()),
                 Value(0),
                 output_field=FloatField(),
             ),
         )
 
 
+class ActiveSampleManager(models.Manager.from_queryset(SampleQueryset)):  # ty:ignore[unsupported-base]
+    """
+    Default manager that exposes only active samples.
+    """
+
+    def get_queryset(self):
+        return super().get_queryset().active()
+
+
 class Sample(ModelIsDeletableMixin, models.Model):
     sample_id = models.PositiveIntegerField(
-        verbose_name="ID", help_text="An unique identificative number of the seed sample", unique=True
+        verbose_name="ID",
+        help_text="An unique identificative number of the seed sample",
+        unique=True,
     )
     variety = models.ForeignKey(PlantVariety, on_delete=models.PROTECT)
     notes = models.CharField(max_length=500, help_text="Notes relative to the seed sample", default="", blank=True)
     growing_season = models.IntegerField(blank=True, null=True)
-    position = models.ForeignKey(StoragePosition, on_delete=models.PROTECT)
+    position = models.ForeignKey(StoragePosition, on_delete=models.PROTECT, blank=False, null=True)
+    status = models.CharField(
+        max_length=1,
+        choices=SampleStatus.choices,
+        default=SampleStatus.ACTIVE,
+        db_index=True,
+    )
+    discarded_at = models.DateTimeField(blank=True, null=True)
 
-    objects = SampleQueryset.as_manager()
+    objects = ActiveSampleManager()
+    all_objects = SampleQueryset.as_manager()
 
     class Meta:
+        constraints = [
+            # - Active samples must have no discarded_at and a storage position
+            # - Discarded samples must have discarded_at set and no storage position
+            models.CheckConstraint(
+                name="sample_status_discarded_at_consistent",
+                check=(
+                    (models.Q(status=SampleStatus.ACTIVE) & models.Q(discarded_at__isnull=True))
+                    | (models.Q(status=SampleStatus.DISCARDED) & models.Q(discarded_at__isnull=False))
+                ),
+            ),
+            models.CheckConstraint(
+                name="sample_status_position_consistent",
+                check=(
+                    (models.Q(status=SampleStatus.ACTIVE) & models.Q(position__isnull=False))
+                    | (models.Q(status=SampleStatus.DISCARDED) & models.Q(position__isnull=True))
+                ),
+            ),
+        ]
         ordering = ("-sample_id",)
 
     def __str__(self):
@@ -217,6 +288,18 @@ class Sample(ModelIsDeletableMixin, models.Model):
 
     def get_absolute_url(self):
         return reverse("collect:sample_detail", kwargs={"pk": self.pk})
+
+    def validate_unique(self, exclude=None):
+        super().validate_unique(exclude=exclude)
+
+        if exclude and "sample_id" in exclude:
+            return
+
+        qs = Sample.all_objects.filter(sample_id=self.sample_id)
+        if self.pk:
+            qs = qs.exclude(pk=self.pk)
+        if qs.exists():
+            raise ValidationError({"sample_id": "Sample with this ID already exists."})
 
     @classmethod
     def get_create_url(cls):
@@ -287,6 +370,27 @@ class Sample(ModelIsDeletableMixin, models.Model):
             )
         return sorted(entries, key=lambda e: e["date"])
 
+    def discard(self):
+        if self.status == SampleStatus.DISCARDED:
+            return
+
+        if CartItem.objects.filter(sample=self.pk).exists():
+            raise SampleDiscardError("Cannot discard: sample is in a cart.", code="in_cart")
+
+        self.status = SampleStatus.DISCARDED
+        self.discarded_at = timezone.now()
+        self.position = None
+        self.save(update_fields=["status", "discarded_at", "position"])
+
+    def restore(self, position: StoragePosition):
+        if self.status == SampleStatus.ACTIVE:
+            return
+
+        self.status = SampleStatus.ACTIVE
+        self.discarded_at = None
+        self.position = position
+        self.save(update_fields=["status", "discarded_at", "position"])
+
 
 class Germinability(models.Model):
     sample = models.ForeignKey(Sample, on_delete=models.CASCADE)
@@ -330,46 +434,90 @@ class CartQuerySet(models.QuerySet):
         return self.update(is_active=False)
 
 
+class CartKind(models.TextChoices):
+    WITHDRAWAL = "W", "Withdrawal"
+    DISCARD = "D", "Discard"
+
+
 class Cart(models.Model):
     name = models.CharField(help_text="An identificative name for your cart", max_length=100, default="Cart")
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="carts")
     is_active = models.BooleanField(default=False)
     created_at = models.DateField(auto_now_add=True)
-    default_weight = models.FloatField(help_text="Default quantity to retrieve (g)", default=10)
+    default_weight = models.FloatField(help_text="Default quantity to withdraw (g)", default=10)
+    kind = models.CharField(max_length=1, choices=CartKind.choices, default=CartKind.WITHDRAWAL, db_index=True)
 
     objects = CartQuerySet.as_manager()
 
     class Meta:
-        constraints = (
+        constraints = [
             models.UniqueConstraint(
                 fields=("user",),
                 condition=Q(is_active=True),
                 name="unique_user_active",
             ),
-        )
+        ]
         ordering = ("-is_active", "name")
 
     def __str__(self) -> str:
-        return self.name
+        return f"{self.name} ({self.get_kind_display()})"
 
     def get_absolute_url(self):
         return reverse("collect:cart-detail", args=[self.pk])
 
+    def can_withdraw(self):
+        return self.kind == CartKind.WITHDRAWAL
+
+    def can_discard(self):
+        return self.kind == CartKind.DISCARD
+
+    @transaction.atomic
+    def discard(self) -> int:
+        if self.kind != CartKind.DISCARD:
+            raise ValidationError("Only discard carts can discard samples.")
+
+        cart_sample_ids = list(self.cartitem_set.values_list("sample_id", flat=True))
+        if not cart_sample_ids:
+            return 0
+
+        blocked_sample_ids = (
+            CartItem.objects.filter(sample_id__in=cart_sample_ids)
+            .exclude(cart_id=self.pk)
+            .values_list("sample_id", flat=True)
+        )
+
+        discardable_sample_ids = set(cart_sample_ids) - set(blocked_sample_ids)
+        if not discardable_sample_ids:
+            return 0
+
+        self.cartitem_set.filter(sample_id__in=discardable_sample_ids).delete()
+        return Sample.objects.filter(pk__in=discardable_sample_ids).discard()
+
 
 class CartItem(models.Model):
     sample = models.ForeignKey(Sample, on_delete=models.PROTECT)
-    weight = models.FloatField("quantity retrieved (g)", default=0)
+    weight = models.FloatField("quantity retrieved (g)", default=None, blank=True, null=True)
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE)
     order = models.PositiveIntegerField(default=0)
 
     class Meta:
         ordering = ("sample__position",)
+        constraints = [models.UniqueConstraint(fields=("cart", "sample"), name="uniq_cart_sample")]
 
     def __str__(self):
         return f"{self.weight} g of Sample #{self.sample.sample_id}"
 
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        return super().save(*args, **kwargs)
+
     def clean(self):
         super().clean()
+
+        if self.cart.kind == CartKind.DISCARD:
+            if self.weight is not None:
+                raise ValidationError({"weight": "Discard carts do not use quantities."})
+            return
 
         sample = Sample.objects.with_availability(excluded_cartitem_pk=self.pk).get(pk=self.sample_id)
         if not sample:
@@ -379,10 +527,6 @@ class CartItem(models.Model):
             raise ValidationError(
                 {"weight": (f"Cannot reserve {self.weight:g} g; only {sample.available:g} g available.")}
             )
-
-    def save(self, *args, **kwargs):
-        self.full_clean()
-        return super().save(*args, **kwargs)
 
     def create_sampleweight(self):
         """

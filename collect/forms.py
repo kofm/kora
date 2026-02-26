@@ -32,7 +32,7 @@ class SampleForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         sample_id = Sample.objects.next_id()
         self.fields["sample_id"].initial = sample_id
-        empty_positions = StoragePosition.objects.empty_positions_for_accession(self.instance.pk)
+        empty_positions = StoragePosition.objects.empty_positions_for_sample(self.instance.pk)
         self.fields["position"].queryset = empty_positions
         self.fields["position"].initial = empty_positions.first()
 
@@ -44,6 +44,20 @@ class SampleWeightForm(forms.ModelForm):
         widgets = {
             "created_at": DateInput(attrs={"type": "date"}),
         }
+
+
+class SampleRestoreForm(forms.ModelForm):
+    class Meta:
+        model = Sample
+        fields = ("position",)
+        widgets = {"position": TomSelect}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        empty_positions = StoragePosition.objects.empty_positions_for_sample(self.instance.pk)
+        self.fields["position"].queryset = empty_positions
+        self.fields["position"].initial = empty_positions.first()
 
 
 class GerminabilityForm(forms.ModelForm):
@@ -89,50 +103,16 @@ class CartItemUpdateForm(forms.ModelForm):
         fields = ("weight",)
 
 
-class CartInputForm(forms.ModelForm):
-    """Base class for CartCreateForm and CartUpdateForm.
+class CartCreateForm(forms.ModelForm):
+    class Meta:
+        model = Cart
+        fields = ("name", "kind")
 
-    It defines the form UI using hyperscript and crispy_forms.
-    """
 
+class CartUpdateForm(forms.ModelForm):
     class Meta:
         model = Cart
         fields = ("name",)
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields["name"].label_suffix = ""
-        self.fields["name"].help_text = ""
-        self.helper = FormHelper(self)
-        script = f"""
-        on click from elsewhere wait 100ms then fetch
-        {reverse("collect:cart_detail")} then put the result into
-        #cartBody then call htmx.process(#cartBody)
-        """
-        self.helper.layout = Layout(
-            FieldWithButtons(
-                Field("name", script=script),
-                StrictButton(
-                    "<i class='bi bi-check'></i>",
-                    css_class="btn btn-outline-success",
-                    type="submit",
-                ),
-            )
-        )
-
-
-class CartCreateForm(CartInputForm):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields["name"].label = "Create Cart"
-        self.helper.attrs = {"hx_post": reverse("collect:cart_create")}
-
-
-class CartUpdateForm(CartInputForm):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields["name"].label = "Rename Cart"
-        self.helper.attrs = {"hx_post": reverse("collect:cart_update", args=(self.instance.pk,))}
 
 
 class CartDefaultWeightForm(forms.ModelForm):

@@ -1,0 +1,23 @@
+{% load components %}
+
+{% if user.is_authenticated %}
+  <div class="d-flex justify-content-center gap-1">
+    <a class="row-action"
+      href="#"
+      hx-get="{% url "collect:discarded_sample_restore" record.pk %}"
+      {% modal_attrs %}>
+      <span class="badge rounded-pill text-bg-success">
+	<i class="bi bi-arrow-counterclockwise"></i>
+      </span>
+    </a>
+    <a class="row-action"
+      href="#"
+      hx-get="{% url "collect:discarded_sample_delete" record.pk %}"
+      {% modal_attrs %}
+    >
+      <span class="badge rounded-pill text-bg-danger">
+	<i class="bi bi-trash"></i>
+      </span>
+    </a>
+  </div>
+{% endif %}

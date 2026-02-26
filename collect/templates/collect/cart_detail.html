@@ -36,16 +36,23 @@
     <div class="dropdown-menu" hx-target="#cartBody">
 
       {% url "collect:cart_create" as create_url %}
-      {% dropdown_item "Create" hx_get=create_url %}
+      {% dropdown_item_to_modal "Create" hx_get=create_url %}
 
       {% url "collect:cart_update" cart.pk as rename_url %}
-      {% dropdown_item "Rename" hx_get=rename_url disabled=cart|yesno:"False,True" %}
+      {% dropdown_item_to_modal "Rename" hx_get=rename_url disabled=cart|yesno:"False,True" %}
 
-      {% url 'collect:cart_retrieve' cart.pk as retrieve_url %}
-      {% dropdown_item_to_modal "Retrieve" hx_get=retrieve_url disabled=cart|yesno:"False,True" %}
+      {% if cart.can_withdraw %}
+	{% url 'collect:cart_withdraw' cart.pk as withdraw_url %}
+	{% dropdown_item_to_modal "Withdraw" hx_get=withdraw_url disabled=cart|yesno:"False,True" %}
+      {% endif %}
+
+      {% if cart.can_discard %}
+	{% url 'collect:cart_discard' cart.pk as discard_url %}
+	{% dropdown_item_to_modal "Discard" hx_get=discard_url disabled=cart|yesno:"False,True" %}
+      {% endif %}
 
       {% url 'collect:cart_empty' cart.pk as empty_url %}
-      {% dropdown_item_to_modal "Empty" hx_get=empty_url disabled=cart|yesno:"False,True" %}
+      {% dropdown_item_to_modal "Clear" hx_get=empty_url disabled=cart|yesno:"False,True" %}
 
       {% url 'restapi:cartitems' cart.pk as download_url %}
       {% querystring no_pagination=1 format="json" as download_querystring %}
@@ -60,7 +67,7 @@
 </div>
 
 <div>
-  {% if default_weight_form %}
+  {% if default_weight_form and cart.can_withdraw %}
     {% crispy default_weight_form %}
   {% endif %}
 </div>
@@ -95,7 +102,7 @@
   </div>
 {% elif cart %}
   <p class="text-muted mt-5">
-    This cart is currently empty. Add samples by clicking the plus symbol next to each sample in the main pane.
+    This cart is currently empty. Add samples by clicking the tray symbol next to each sample in the sample list.
   </p>
 {% else %}
   <p class="text-muted mt-5">

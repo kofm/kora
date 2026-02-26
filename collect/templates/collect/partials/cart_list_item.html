@@ -1,6 +1,6 @@
 {% load components %}
 
-<div class="list-group-item listgroup-item-action flex-column align-item-start">
+<div class="list-group-item listgroup-item-action flex-column align-item-start {% if not object.weight %}bg-danger-subtle border-dark-subtle{% endif %}" style="min-height: 4rem;">
 
   <div class="d-flex w-100 justify-content-between">
 
@@ -18,9 +18,11 @@
       </a>
     </small>
   </div>
-  <a href="#" class="link-body-emphasis text-decoration-none" hx-get="{% url 'collect:cartitem_update' object.pk %}" {% modal_attrs %}>
-    <small class="text-muted">
-      {{ object.weight }} grams
-    </small>
-  </a>
+  {% if object.weight %}
+    <a href="#" class="link-body-emphasis text-decoration-none" hx-get="{% url 'collect:cartitem_update' object.pk %}" {% modal_attrs %}>
+      <small class="text-muted">
+	{{ object.weight }} grams
+      </small>
+    </a>
+  {% endif %}
 </div>

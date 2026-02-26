@@ -1,5 +1,10 @@
 {% extends "frontpage/confirm_delete.html" %}
 
+{% block alert %}{% endblock %}
+
 {% block delete_message %}
-<p>You are deleting a seed sample of the variety <b>{{ object.variety.name }}</b> (#{{ object.id }}), grown in {{ object.growing_season }} and situated in <b>{{ object.position }}</b> position. Maybe you want to <a href="{% url 'collect:sample_update' object.id %}">move it</a> instead?</p>
+  <p>
+    You are discarding a seed sample of the variety <b>{{ instance.variety.name }}</b> (#{{ instance.id }}), {% if instance.growing_season %}grown in {{ instance.growing_season }} and{% endif %} located in <b>{{ instance.position }}</b> position. 
+    Discarded samples are removed from their current storage and marked as <b>discarded</b>.
+  </p>
 {% endblock %}

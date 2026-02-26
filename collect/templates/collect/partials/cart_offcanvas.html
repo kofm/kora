@@ -3,7 +3,8 @@
     class="d-flex flex-column h-100"
     hx-get="{% url 'collect:cart_detail' %}"
     hx-trigger="click from:#offcanvasCartToggle once, cartUpdated from:body"
-    hx-swap="innerHTML">
+    hx-swap="innerHTML"
+  >
   </div>
 {% else %}
   <p class="text-muted">
