@@ -181,24 +181,31 @@ class StoragePositionFilter(FilterSet):
 
 
 class SampleFilter(FilterSet):
+    sample_id__in = NumberInFilter(field_name="sample_id", lookup_expr="in")
+
     class Meta:
         model = Sample
         fields = ("sample_id", "variety", "notes", "growing_season", "position")
 
 
 class SampleWeightFilter(FilterSet):
+    sample__in = NumberInFilter(field_name="sample", lookup_expr="in")
+
     class Meta:
         model = SampleWeight
         fields = (
             "sample",
+            "sample__in",
             "weight",
         )
 
 
 class GerminabilityFilter(FilterSet):
+    sample__in = NumberInFilter(field_name="sample", lookup_expr="in")
+
     class Meta:
         model = Germinability
-        fields = ("sample",)
+        fields = ("sample", "sample__in")
 
 
 class ParameterFilter(FilterSet):
