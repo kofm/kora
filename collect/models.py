@@ -2,7 +2,7 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models, transaction
-from django.db.models import ExpressionWrapper, F, FloatField, IntegerField, OuterRef, Subquery
+from django.db.models import Exists, ExpressionWrapper, F, FloatField, IntegerField, OuterRef, Subquery
 from django.db.models.aggregates import Coalesce, Count, Max, Sum
 from django.db.models.functions import Concat
 from django.db.models.query import Cast, Value
@@ -177,6 +177,11 @@ class SampleQueryset(models.QuerySet):
         if excluded_cartitem_pk:
             reserved_filter &= ~Q(cartitem__pk=excluded_cartitem_pk)
 
+        discard_exists_qs = CartItem.objects.filter(
+            sample=OuterRef("pk"),
+            cart__kind=CartKind.DISCARD,
+        )
+
         qs = self.select_related(
             "variety",
             "variety__species",
@@ -200,6 +205,7 @@ class SampleQueryset(models.QuerySet):
                 F("last_weight") - F("reserved"),
                 output_field=FloatField(),
             ),
+            is_being_discarded=Exists(discard_exists_qs),
         )
 
         if self.model._meta.ordering:
