@@ -2,7 +2,7 @@ import django_filters
 from django_filters import CharFilter, NumberFilter
 from django_filters.rest_framework import FilterSet
 
-from collect.models import Sample, SampleWeight, Storage, StoragePosition
+from collect.models import Germinability, Sample, SampleWeight, Storage, StoragePosition
 from describe.models import Description, Expression, Protocol, State, Trait
 from parameters.models import Parameter, VarietalParameter
 from register.filters import filter_name_generic
@@ -193,6 +193,12 @@ class SampleWeightFilter(FilterSet):
             "sample",
             "weight",
         )
+
+
+class GerminabilityFilter(FilterSet):
+    class Meta:
+        model = Germinability
+        fields = ("sample",)
 
 
 class ParameterFilter(FilterSet):

@@ -9,8 +9,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.serializers import ValidationError
 
-from collect.models import Cart, CartItem, Sample, SampleWeight, Storage, StoragePosition
-from collect.serializers import SampleWeightSerializer
+from collect.models import Cart, CartItem, Germinability, Sample, SampleWeight, Storage, StoragePosition
+from collect.serializers import GerminabilitySerializer, SampleWeightSerializer
 from describe.models import (
     Description,
     Expression,
@@ -48,6 +48,7 @@ from .filters import (
     DescriptionFilter,
     EntityFilter,
     ExpressionFilter,
+    GerminabilityFilter,
     ParameterFilter,
     PlantSpeciesFilter,
     PlantVarietyFilter,
@@ -278,6 +279,12 @@ class SampleWeightViewSet(BulkCreateMixin, viewsets.ModelViewSet):
     queryset = SampleWeight.objects.select_related("sample").all()
     serializer_class = SampleWeightSerializer
     filterset_class = SampleWeightFilter
+
+
+class GerminabilityViewSet(BulkCreateMixin, viewsets.ModelViewSet):
+    queryset = Germinability.objects.select_related("sample").all()
+    serializer_class = GerminabilitySerializer
+    filterset_class = GerminabilityFilter
 
 
 class CartItemViewSet(viewsets.ModelViewSet):

@@ -21,6 +21,7 @@ router.register(r"storages", views.StorageViewSet)
 router.register(r"storagepositions", views.StoragePositionViewSet)
 router.register(r"samples", views.SampleViewSet)
 router.register(r"sampleweights", views.SampleWeightViewSet)
+router.register(r"germinabilities", views.GerminabilityViewSet)
 router.register(r"workspaces", views.WorkspaceViewSet, basename="workspaces")
 router.register(r"carts", views.CartViewSet, basename="cart")
 

@@ -12,13 +12,13 @@ class StoragePositionSerializer(serializers.ModelSerializer):
 class GerminabilitySerializer(serializers.ModelSerializer):
     class Meta:
         model = Germinability
-        fields = ["germinability", "after_days", "performed_at"]
+        fields = ["sample", "germinability", "after_days", "performed_at"]
 
 
 class SampleWeightSerializer(serializers.ModelSerializer):
     class Meta:
         model = SampleWeight
-        fields = ["weight", "sample"]
+        fields = ["sample", "weight", "created_at"]
 
 
 class SampleSerializer(serializers.ModelSerializer):
