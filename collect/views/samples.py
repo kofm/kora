@@ -50,7 +50,6 @@ def sample_list(request):
     context = {
         "table": table,
         "filter": flt,
-        "hx_get": reverse("collect:sample_list"),
         "discarded_count": discarded_count,
     }
     context.update(generate_breadcrumbs(request, Sample))
@@ -75,7 +74,6 @@ def discarded_sample_list(request):
     context = {
         "table": table,
         "filter": flt,
-        "hx_get": reverse("collect:discarded_sample_list"),
         "header": header,
     }
     breadcrumbs = [list_breadcrumb(Sample), ("Discarded", "")]
