@@ -1,7 +1,7 @@
 {% extends "frontpage/modal_content.html" %}
 
 {% block title %}
-  Empty Cart
+  Clear Cart
 {% endblock %}
 
 {% block body %}
@@ -11,7 +11,7 @@
 {% block footer %}
   <button type="button" class="btn btn-primary" data-bs-dismiss="modal"
     hx-post="{% url 'collect:cart_empty' cart.pk %}" hx-target="#cartBody">
-    Empty
+    Clear
   </button>
   {{ block.super }}
 {% endblock %}
