@@ -181,6 +181,22 @@ class DescriptionForm(forms.ModelForm):
         }
 
 
+class DescriptionDuplicateForm(forms.ModelForm):
+    class Meta:
+        model = Description
+        fields = ("name",)
+        widgets = {
+            "name": TomSelect(
+                attrs={
+                    "data-ts-create": "true",
+                    "data-ts-items": json.dumps([]),
+                    "data-ts-placeholder": "Create or select an existing tag...",
+                },
+                choices=Description.names(),
+            ),
+        }
+
+
 class DescriptionUpdateForm(forms.ModelForm):
     variety = forms.ModelChoiceField(
         queryset=PlantVariety.objects.select_related("species").all(),

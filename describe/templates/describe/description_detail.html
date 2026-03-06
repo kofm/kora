@@ -31,6 +31,9 @@
 	<i class="bi bi-star-fill"></i> Add to Workspace
       </a>
     {% endif %}
+    <a class="btn btn-sm btn-outline-secondary" hx-get="{% url 'describe:description_duplicate' description.pk %}" {% modal_attrs %}>
+      <i class="bi bi-copy"></i> Duplicate
+    </a>
   </div>
   <div class="border rounded p-4 my-2">
 

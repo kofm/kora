@@ -23,6 +23,7 @@ urlpatterns = [
     path("workspace/sort", wsp.WorkspaceSortableView.as_view(), name="workspace_sort"),
     path("compare", dsc.description_compare, name="description_compare"),
     path("<int:pk>/", dsc.description_detail, name="description_detail"),
+    path("<int:pk>/duplicate", dsc.description_duplicate, name="description_duplicate"),
     path("<int:pk>/expressions/update", dsc.description_expression_update, name="description_expression_update"),
     path("<int:pk>/update", dsc.description_update, name="description_update"),
     path("create", dsc.description_create, name="description_create"),

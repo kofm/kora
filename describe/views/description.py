@@ -8,6 +8,7 @@ from collections import defaultdict
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.db import transaction
 from django.db.models import CharField, Q
 from django.db.models.functions import Lower
 from django.http import HttpResponseBadRequest, HttpResponseRedirect
@@ -21,6 +22,7 @@ from django_tables2 import RequestConfig
 from breadcrumbs.generic import DeleteBreadcrumbsMixin
 from breadcrumbs.utils import add_parent_breadcrumbs, add_plantvariety_breadcrumbs, generate_breadcrumbs
 from describe.forms import (
+    DescriptionDuplicateForm,
     DescriptionForm,
     DescriptionNameForm,
     DescriptionUpdateForm,
@@ -43,6 +45,8 @@ from describe.views.utils import (
     render_export_file_to_response,
     update_description_filter,
 )
+from frontpage.utils.htmx import htmx_response_redirect
+from frontpage.utils.models import copy_model_concrete_fields
 from frontpage.views_decorators import (
     htmx_render_blocks,
     is_htmx,
@@ -266,6 +270,40 @@ def description_create(request):
     context.update(generate_breadcrumbs(request, Description))
 
     return TemplateResponse(request, "describe/description_create.html", context)
+
+
+@transaction.atomic
+def description_duplicate(request, pk):
+    original = get_object_or_404(Description.objects.select_related("variety__species"), pk=pk)
+
+    if request.method == "POST":
+        form = DescriptionDuplicateForm(request.POST)
+        if form.is_valid():
+            new_description = form.save(commit=False)
+
+            copy_model_concrete_fields(
+                original,
+                new_description,
+                exclude={"name"},
+            )
+            new_description.save()
+
+            Expression.objects.bulk_create(
+                [
+                    Expression(
+                        description=new_description,
+                        state=expr.state,
+                        note=expr.note,
+                    )
+                    for expr in original.expressions.all()
+                ]
+            )
+            messages.success(request, f"{original} duplicated successfully.")
+            return htmx_response_redirect(new_description.get_absolute_url())
+    else:
+        form = DescriptionDuplicateForm()
+
+    return TemplateResponse(request, "describe/description_duplicate.html", {"form": form, "instance": original})
 
 
 class DescriptionDeleteView(PermissionRequiredMixin, DeleteBreadcrumbsMixin, NavDescribeActiveContext, DeleteView):

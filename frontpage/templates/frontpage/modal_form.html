@@ -15,6 +15,7 @@
 {% endblock %}
 
 {% block body %}
+  {% block body_text %}{% endblock %}
   <form id="modal-form" onsubmit="return false;">
     {{ form|crispy }}
   </form>
