@@ -124,8 +124,11 @@ class DuplicatedSampleTable(BaseSampleTable):
 
 
 class SampleInStorageTable(BaseSampleTable):
+    position__name = tables.Column("Position")
+
     class Meta(BaseSampleTable.Meta):
         fields = (
+            "position__name",
             "sample_id",
             "variety",
             "weight",
@@ -133,4 +136,4 @@ class SampleInStorageTable(BaseSampleTable):
             "notes",
             "actions",
         )
-        per_page = 15
+        per_page = 20
