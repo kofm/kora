@@ -168,7 +168,8 @@ def sample_create(request):
                 return redirect(reverse("collect:sample_create"))
             return redirect(reverse("collect:sample_list"))
     else:
-        form = SampleForm()
+        variety_id = request.GET.get("variety_id", None)
+        form = SampleForm(initial={"variety": variety_id})
         form_weight = SampleWeightForm()
     return TemplateResponse(
         request,
