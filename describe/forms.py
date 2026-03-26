@@ -207,7 +207,7 @@ class DescriptionUpdateForm(forms.ModelForm):
         choices=Description.names(),
         widget=TomSelect,
     )
-    notes = forms.CharField(widget=forms.Textarea)
+    notes = forms.CharField(widget=forms.Textarea, required=False)
 
     class Meta:
         model = Description
