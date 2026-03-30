@@ -215,9 +215,13 @@ class ParameterFilter(FilterSet):
 
 
 class VarietalParameterFilter(FilterSet):
+    variety__in = NumberInFilter(field_name="variety", lookup_expr="in")
     parameter_code = CharFilter("parameter__code")
     parameter_code__in = CharInFilter(field_name="parameter__code", lookup_expr="in")
 
     class Meta:
         model = VarietalParameter
-        fields = ("parameter",)
+        fields = (
+            "variety",
+            "parameter",
+        )
