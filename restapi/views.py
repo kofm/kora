@@ -304,7 +304,8 @@ class CartItemViewSet(viewsets.ModelViewSet):
             cart = Cart.objects.get(pk=cart_id, user=user)
         except Cart.DoesNotExist:
             return Response({"detail": "Cart not found."}, status=status.HTTP_404_NOT_FOUND)
-        serializer = self.get_serializer(data=request.data)
+        many = isinstance(request.data, list)
+        serializer = self.get_serializer(data=request.data, many=many)
         serializer.is_valid(raise_exception=True)
         serializer.save(cart=cart)
         headers = self.get_success_headers(serializer.data)
