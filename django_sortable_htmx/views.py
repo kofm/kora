@@ -1,45 +1,50 @@
-from typing import Generic, TypeVar
-
+from django.core.exceptions import ImproperlyConfigured
 from django.db import transaction
 from django.db.models import Model
-from django.http import Http404, HttpResponseBadRequest, JsonResponse
+from django.http import HttpResponse, HttpResponseBadRequest
 from django.views import View
 
-T = TypeVar("T", bound=Model)
 
+class SortableView(View):
+    model: None | type[Model] = None
+    order_field: str = "order"
 
-class SortableView(View, Generic[T]):
-    model: None | type[T] = None
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        if self.model is None:
-            e = "A model must be provided."
-            raise Http404(e)
-        if not issubclass(self.model, Model):
-            e = "Property 'model' should be a Django ORM Model."
-            raise Http404(e)
-        if not hasattr(self.model, "order"):
-            e = "The model must have an 'order' field."
-            raise Http404(e)
+    def _parse_ids(self, request):
+        try:
+            return [int(pk) for pk in request.POST.getlist("order")]
+        except ValueError as exc:
+            raise ValueError("Invalid object ids provided.") from exc
 
     def post(self, request):
+        if self.model is None:
+            exc = "A model must be provided."
+            raise ImproperlyConfigured(exc)
+        if not issubclass(self.model, Model):
+            exc = "Property 'model' should be a Django ORM Model."
+            raise ImproperlyConfigured(exc)
+        if not hasattr(self.model, self.order_field):
+            exc = f"The model must have an {self.order_field} field."
+            raise ImproperlyConfigured(exc)
+
         try:
-            sorted_ids = [int(pk) for pk in request.POST.getlist("order")]
-        except ValueError:
-            return HttpResponseBadRequest("Invalid object ids provided.", content_type="text/plain")
+            sorted_ids = self._parse_ids(request)
+        except ValueError as exc:
+            return HttpResponseBadRequest(exc, content_type="text/plain")
 
-        queryset = self.model.objects.filter(pk__in=sorted_ids)
-
-        if len(sorted_ids) != queryset.count():
-            return HttpResponseBadRequest("Invalid object ids provided.")
-
-        sorted_mapping = {pk: order for order, pk in enumerate(sorted_ids)}
+        if not sorted_ids:
+            return HttpResponseBadRequest("Empty order list.")
 
         with transaction.atomic():
-            for instance in queryset:
-                instance.order = sorted_mapping[instance.pk]  # type: ignore
+            objs = self.model.objects.filter(pk__in=sorted_ids)
 
-            self.model.objects.bulk_update(queryset, ["order"])
+            if len(sorted_ids) != objs.count():
+                return HttpResponseBadRequest("Invalid object ids provided.")
 
-        return JsonResponse({"status": "success"})
+            mapping = {pk: order for order, pk in enumerate(sorted_ids)}
+
+            for obj in objs:
+                setattr(obj, self.order_field, mapping[obj.pk])
+
+            self.model.objects.bulk_update(objs, [self.order_field])
+
+        return HttpResponse()

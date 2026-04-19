@@ -1,8 +1,11 @@
-<div class="border d-flex align-items-center justify-content-center rounded-3 draggable">
-    <h5>
-        <a href="{{ object.get_absolute_url }}" class="link-body-emphasis text-decoration-none">
-            {{ object }}
+<div {{ attrs }} class="border {{ element.css_class }} d-flex flex-column align-items-center justify-content-center rounded-0 grid-item draggable">
+    <em>
+        <a href="{{ element.url }}" class="link-body-emphasis text-decoration-none">
+            {{ element.title }}
         </a>
-    </h5>
-    <input type="hidden" name="order" value="{{ object.pk }}">
+    </em>
+    <div>
+      {{ element.body|truncatechars:15 }}
+    </div>
+    <input type="hidden" name="order" value="{{ element.object.pk }}">
 </div>

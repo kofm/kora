@@ -62,7 +62,7 @@ class BaseListLayout(BaseLayout):
     template_name = "frontpage/partials/list_layout.html"
 
 
-class BaseGridLayout(BaseCardLayout):
+class BaseGridLayout(BaseLayout):
     template_name = "frontpage/partials/grid.html"
     item_template_name = "frontpage/partials/grid_item.html"
 
@@ -103,13 +103,15 @@ class BaseGridLayout(BaseCardLayout):
             elements.append(element)
         return elements
 
-    def get_context_data(self) -> dict:
-        context = {
-            "container_id": self.container_id,
-            "num_columns": self.num_columns,
-            "item_template": self.item_template_name,
-            "elements": self.get_elements(),
-        }
+    def get_context_data(self, **kwargs) -> dict:
+        context = super().get_context_data(**kwargs)
+        context.update(
+            {
+                "container_id": self.container_id,
+                "num_columns": self.num_columns,
+                "item_template": self.item_template_name,
+            }
+        )
         return context
 
     def render(self):
