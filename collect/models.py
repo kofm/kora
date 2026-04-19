@@ -274,14 +274,14 @@ class Sample(ModelIsDeletableMixin, models.Model):
             # - Discarded samples must have discarded_at set and no storage position
             models.CheckConstraint(
                 name="sample_status_discarded_at_consistent",
-                check=(
+                condition=(
                     (models.Q(status=SampleStatus.ACTIVE) & models.Q(discarded_at__isnull=True))
                     | (models.Q(status=SampleStatus.DISCARDED) & models.Q(discarded_at__isnull=False))
                 ),
             ),
             models.CheckConstraint(
                 name="sample_status_position_consistent",
-                check=(
+                condition=(
                     (models.Q(status=SampleStatus.ACTIVE) & models.Q(position__isnull=False))
                     | (models.Q(status=SampleStatus.DISCARDED) & models.Q(position__isnull=True))
                 ),
