@@ -20,6 +20,7 @@ PLANT_SPECIES = [
 class PlantSpeciesFactory(DjangoModelFactory):
     class Meta:
         model = PlantSpecies
+        django_get_or_create = ("common_name",)
 
     common_name = Iterator([species[0] for species in PLANT_SPECIES])
     latin_name = Iterator([species[1] for species in PLANT_SPECIES])
