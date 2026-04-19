@@ -1,0 +1,13 @@
+{% if elements %}
+  <div class="list-group">
+    {% for element in elements %}
+      <a class="list-group-item list-group-item-action {{ element.css_class }}" href="{{ element.url }}">
+	{% block item %}
+	  {{ element.title }}
+	{% endblock %}
+      </a>
+    {% endfor %}
+  </div>
+{% else %}
+  <p class="text-muted mt-3">There are no elements to display.</p>
+{% endif %}

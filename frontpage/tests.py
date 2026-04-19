@@ -1,10 +1,11 @@
 from django.apps import apps
 from django.template import TemplateSyntaxError
-from django.test import TestCase
+from django.test import SimpleTestCase, TestCase
 from django.urls import reverse
 
 from frontpage.factories import AdminFactory
 from frontpage.templatetags.components import list_page_header
+from frontpage.utils.assets import _ensure_assets
 
 
 class ViewSmokeTests(TestCase):
@@ -45,3 +46,13 @@ class ListPageHeaderTests(TestCase):
         response = self.client.get("/")
         with self.assertRaises(TemplateSyntaxError):
             list_page_header(response.context, "not_a_model")
+
+
+class AssetsTest(SimpleTestCase):
+    def setUp(self):
+        self.context = {}
+
+    def test_assets_structure_is_ensured_in_context(self):
+        assets = _ensure_assets(self.context)
+        self.assertEqual({"css": [], "js": [], "hs": []}, assets)
+        self.assertEqual({"template_assets": {"css": [], "js": [], "hs": []}}, self.context)

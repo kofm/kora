@@ -8,6 +8,8 @@ from django.urls import NoReverseMatch, reverse
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 
+from frontpage.layouts import BaseLayout
+from frontpage.navigation import BasePrevNextNav
 from frontpage.utils.models import model_from_label
 from frontpage.utils.permissions import get_permission_from_instance
 from persefone import settings
@@ -243,3 +245,24 @@ def offcanvas_toggle(offcanvas_id: str, content: str):
 </a>"""
 
     return mark_safe(html)
+
+
+@register.simple_tag
+def render_layout(card):
+    if not isinstance(card, BaseLayout):
+        raise TemplateSyntaxError("render_layout: you are trying to render a non-BaseLayout object.")
+    return card.render()
+
+
+@register.simple_tag
+def nav_next(card):
+    if isinstance(card, BasePrevNextNav):
+        return card.render_next()
+    return ""
+
+
+@register.simple_tag
+def nav_previous(card):
+    if isinstance(card, BasePrevNextNav):
+        return card.render_previous()
+    return ""

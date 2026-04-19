@@ -1,0 +1,11 @@
+<div class="border {{ element.css_class }} d-flex flex-column align-items-center justify-content-center rounded-0 grid-item" style="font-size:0.6rem">
+  <em>
+    <a href="{{ element.url }}" class="link-body-emphasis text-decoration-none">
+      {{ element.title }}
+    </a>
+  </em>
+  <div>
+    {{ element.body|truncatechars:15 }}
+  </div>
+  <input type="hidden" name="order" value="{{ element.object.pk }}">
+</div>
