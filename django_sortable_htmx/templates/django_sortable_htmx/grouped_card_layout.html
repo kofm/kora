@@ -1,0 +1,39 @@
+{% load render_sortable %}
+
+{% if elements %}
+
+    <div class="row">
+        <div id="groups-navigation" class="col-12 col-lg-3 border-end">
+            <ul class="nav nav-pills p-1 d-flex flex-column">
+                {% for group in elements %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="#species{{ forloop.counter }}">{{ group.grouper }}</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="col-12 col-lg-9 position-relative grouped-cards-scrollable"
+             data-bs-spy="scroll"
+             data-bs-target="#groups-navigation"
+             data-bs-root-margin="0px 0px -90%"
+             tabindex="0">
+            {% for group in elements %}
+                <div class="row">
+                    <div id="species{{ forloop.counter }}" class="col bg-body-tertiary rounded-3 m-3 p-3 border">
+                        <h2>{{ group.grouper }}</h2>
+                        {% include inner_template_name with elements=group.list %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+{% else %}
+    <section class="border rounded-3 p-5 text-center bg-body-tertiary" aria-live="polite">
+        <h2 class="h5 mb-2">No items yet</h2>
+        <p class="text-body-secondary mb-4">
+            Create your first item to start building this list.
+        </p>
+    </section>
+{% endif %}

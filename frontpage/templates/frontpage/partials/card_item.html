@@ -1,0 +1,16 @@
+<div class="col" style="cursor: pointer;">
+    <div class="card mt-2 text-center shadow-sm {{ element.css_class }}"
+	 {% if element.url %}_="on click go to url {{ element.url }}"{% endif %}>
+	<div class="card-body d-flex flex-column">
+            <h5 class="card-title text-truncate p-1">
+                <a class="link-body-emphasis text-decoration-none" href="{{ element.url }}">
+		    {{ element.title }}
+                </a>
+            </h5>
+            <p class="card-text mt-2">
+                {% block card_body %}
+                {% endblock %}
+            </p>
+	</div>
+    </div>
+</div>

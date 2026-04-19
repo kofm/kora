@@ -7,6 +7,7 @@ from django.utils.safestring import mark_safe
 
 class BaseLayout:
     template_name: str
+    item_template_name: str
 
     def __init__(self, objs: Iterable[Any]):
         self.objs = objs
@@ -48,7 +49,10 @@ class BaseLayout:
         return bool(self.objs)
 
     def get_context_data(self) -> dict:
-        return {"elements": self.get_elements()}
+        return {
+            "item_template_name": self.item_template_name,
+            "elements": self.get_elements(),
+        }
 
     def render(self):
         return render_to_string(self.template_name, self.get_context_data())
@@ -56,6 +60,7 @@ class BaseLayout:
 
 class BaseCardLayout(BaseLayout):
     template_name = "frontpage/partials/card_layout.html"
+    item_template_name = "frontpage/partials/card_item.html"
 
 
 class BaseListLayout(BaseLayout):
@@ -105,13 +110,7 @@ class BaseGridLayout(BaseLayout):
 
     def get_context_data(self, **kwargs) -> dict:
         context = super().get_context_data(**kwargs)
-        context.update(
-            {
-                "container_id": self.container_id,
-                "num_columns": self.num_columns,
-                "item_template": self.item_template_name,
-            }
-        )
+        context.update({"container_id": self.container_id, "num_columns": self.num_columns})
         return context
 
     def render(self):

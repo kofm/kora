@@ -1,26 +1,10 @@
 {% if elements %}
-  <div class="row row-cols-md-4">
-
-    {% for element in elements %}
-
-      <div class="col" style="cursor: pointer;">
-	<div class="card mt-2 text-center shadow-sm {{ element.css_class }}"
-	  {% if element.url %}_="on click go to url {{ element.url }}"{% endif %}>
-	  <div class="card-body d-flex flex-column">
-            <h5 class="card-title text-truncate p-1">
-              <a class="link-body-emphasis text-decoration-none" href="{{ element.url }}">
-		{{ element.title }}
-              </a>
-            </h5>
-            <p class="card-text mt-2"></p>
-	  </div>
-	</div>
-      </div>
-
-    {% endfor %}
-
-  </div>
-
+    <div class="row row-cols-md-4">
+        {% for element in elements %}
+            {# default is 'card_item.html' #}}
+            {% include item_template %}
+        {% endfor %}
+    </div>
 {% else %}
-  <p class="text-muted mt-3">There are no elements to display.</p>
+    <p class="text-muted mt-3">There are no elements to display.</p>
 {% endif %}

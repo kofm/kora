@@ -1,0 +1,16 @@
+<div class="col draggable" style="cursor: pointer;">
+    <div class="card h-100 text-center shadow-sm {{ element.css_class }}" {% if element.url %}_="on click go to url {{ element.url }}"{% endif %}>
+	<div class="card-body d-flex flex-column">
+            <h3 class="card-title text-truncate p-1 fs-6">
+                <a class="link-body-emphasis text-decoration-none" href="{{ element.url }}"  title="{{ element.title }}">
+		    {{ element.title }}
+                </a>
+            </h3>
+            <p class="card-text">
+                {% block card_body %}
+                {% endblock %}
+            </p>
+	    <input type="hidden" name="order" value="{{ element.object.pk }}">
+	</div>
+    </div>
+</div>

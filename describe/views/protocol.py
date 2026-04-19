@@ -16,6 +16,7 @@ from breadcrumbs.generic import (
 from breadcrumbs.utils import generate_breadcrumbs
 from describe.forms import ProtocolMetadataForm, StateFormSet, TraitForm
 from describe.models import Protocol
+from django_sortable_htmx.layouts import GroupedSortableCardLayout
 from django_sortable_htmx.views import SortableView
 from frontpage.views_decorators import (
     NavDescribeActiveContext,
@@ -25,8 +26,15 @@ from frontpage.views_decorators import (
 
 def protocol_list(request):
     context = {}
-    context["object_list"] = Protocol.objects.select_related("plantspecies").all()
+    object_list = Protocol.objects.select_related("plantspecies").order_by("plantspecies", "order")
     context.update(generate_breadcrumbs(request, Protocol))
+    layout = GroupedSortableCardLayout(
+        object_list,
+        group_by="plantspecies",
+        sort_view="describe:protocol_sort",
+        is_sortable=request.user.has_perm("describe.change_protocol"),
+    )
+    context.update({"layout": layout})
     return TemplateResponse(request, "describe/protocol_list.html", context)
 
 

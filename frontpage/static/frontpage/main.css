@@ -21,3 +21,16 @@
 .border-hover:hover {
     border-color: var(--bs-primary-border-subtle);
 }
+
+.navbar-protocol {
+    position: sticky;
+    overflow-y: auto;
+    height: calc(100vh - 200px);
+    top: 50px;
+}
+
+.grouped-cards-scrollable {
+    height: calc(100vh - 200px);
+    overflow-y: auto;
+    padding-bottom: calc(100vh - 400px);
+}
