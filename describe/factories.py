@@ -1,5 +1,6 @@
 from factory.declarations import Sequence, SubFactory
 from factory.django import DjangoModelFactory
+from factory.faker import Faker
 
 from describe.models import Description, Expression, Protocol, State, Trait, Workspace, WorkspaceElement
 from register.factories import PlantSpeciesFactory, PlantVarietyFactory
@@ -29,7 +30,7 @@ class StateFactory(DjangoModelFactory):
 
     numeric_id = Sequence(lambda n: n + 1)
     trait = SubFactory(TraitFactory)
-    description = "light"
+    description = Faker("word", part_of_speech="adjective")
 
 
 class DescriptionFactory(DjangoModelFactory):
