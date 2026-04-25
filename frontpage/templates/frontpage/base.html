@@ -12,8 +12,6 @@
         <link rel="stylesheet" href="{% static 'frontpage/vendor/tom-select.bootstrap5.css' %}">
         <link rel="stylesheet" href="{% static 'frontpage/main.css' %}">
 
-        {% block javascript %}
-        {% endblock %}
         <meta charset="UTF-8">
         <title>Kora - {% block title %}{% endblock %}</title>
     </head>
@@ -45,5 +43,7 @@
 
         <script src="{% static 'frontpage/main.js' %}" defer></script>
 
+        {% block javascript %}
+        {% endblock %}
     </body>
 </html>
