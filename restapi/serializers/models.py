@@ -127,7 +127,8 @@ class DescriptionSerializer(BulkModelSerializer):
 
 class ExpressionSerializer(BulkModelSerializer):
     description = serializers.PrimaryKeyRelatedField(queryset=Description.objects.select_related("variety__species"))
-    trait = serializers.StringRelatedField(many=False, source="state.trait", read_only=True)
+    trait_id = serializers.IntegerField(source="state.trait.id", read_only=True)
+    trait_description = serializers.StringRelatedField(many=False, source="state.trait", read_only=True)
     trait_numeric_id = serializers.IntegerField(source="state.trait.numeric_id", read_only=True)
     state_description = serializers.StringRelatedField(many=False, source="state", read_only=True)
 
@@ -135,8 +136,9 @@ class ExpressionSerializer(BulkModelSerializer):
         model = Expression
         fields = (
             "description",
-            "trait",
+            "trait_id",
             "trait_numeric_id",
+            "trait_description",
             "state",
             "state_description",
             "note",
