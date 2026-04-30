@@ -1,5 +1,6 @@
-Crop Models
-~~~~~~~~~~~
+#############
+ Crop Models
+#############
 
 The crop models framework allows you to define, register, and run models that compute outputs based on crop data and parameters. It is designed to be extensible and to integrate seamlessly with the overall *kora* system.
 

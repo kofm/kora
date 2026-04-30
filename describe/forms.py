@@ -6,11 +6,10 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Field, Layout
 from django import forms
 from django.db.models import QuerySet
-from django.forms import formset_factory, inlineformset_factory
+from django.forms import BaseInlineFormSet, formset_factory, inlineformset_factory
 from django.forms.formsets import BaseFormSet
 from django.urls import reverse
 from django.utils.html import format_html
-from dynamic_forms import DynamicField, DynamicFormMixin
 
 from describe.models import (
     Description,
@@ -69,7 +68,22 @@ class StateForm(forms.ModelForm):
         }
 
 
-StateFormSet = inlineformset_factory(Trait, State, form=StateForm, extra=1, can_delete=False, can_order=False)
+class BaseInlineStateFormSet(BaseInlineFormSet):
+    def save_new(self, form, commit=True):
+        """A new State must be created in a singleton group"""
+        form.instance.reset_group()
+        return super().save_new(form, commit=commit)
+
+
+StateFormSet = inlineformset_factory(
+    Trait,
+    State,
+    form=StateForm,
+    formset=BaseInlineStateFormSet,
+    extra=1,
+    can_delete=False,
+    can_order=False,
+)
 
 
 class ExpressionUpdateForm(forms.Form):
@@ -122,26 +136,6 @@ class ProtocolMetadataForm(forms.ModelForm):
             "url_ref": forms.URLInput(attrs={"class": "form-control"}),
             "order": forms.NumberInput(attrs={"class": "form-control"}),
         }
-
-
-class RelatedStateForm(DynamicFormMixin, forms.Form):
-    def protocol_choices(self, form):
-        state = form["state"].value()
-        state = State.objects.get(pk=state)
-        protocol = state.trait.protocol
-        return Protocol.objects.filter(plantspecies=protocol.plantspecies).exclude(pk=protocol.pk)
-
-    state = forms.IntegerField(widget=forms.HiddenInput())
-
-    protocol = DynamicField(
-        forms.ModelChoiceField,
-        queryset=lambda form: form.protocol_choices(form),
-    )
-    trait = DynamicField(
-        forms.ModelChoiceField,
-        queryset=lambda form: _choices(form, Trait, "protocol"),
-    )
-    related_state = DynamicField(forms.ModelChoiceField, queryset=lambda form: _choices(form, State, "trait"))
 
 
 class DescriptionForm(forms.ModelForm):
@@ -364,3 +358,8 @@ class BaseExpressionFilterFormSet(BaseFormSet):
 
 
 ExpressionFilterFormSet = formset_factory(ExpressionFilterForm, formset=BaseExpressionFilterFormSet, extra=0)
+
+
+class TraitStatesForm(forms.Form):
+    protocol = forms.ChoiceField(choices=[], label="")
+    trait = forms.ChoiceField(choices=[], label="")

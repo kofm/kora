@@ -1,14 +1,15 @@
-=========
-Collect
-=========
+#########
+ Collect
+#########
 
 The **Collect** application manages Plant Genetic Resources (PGR) reproductive material within your collection. It tracks samples, storage, inventory, and viability data, ensuring traceability and controlled stock management. The system supports the lifecycle of a sample.
 
+*******
 Samples
-=======
+*******
 
 Discarding a Sample
--------------------
+===================
 
 To discard a sample:
 
@@ -37,8 +38,9 @@ Permanent deletion is irreversible. Deletion removes the sample and all associat
 
    After permanent deletion, the sample and its associated records cannot be recovered.
 
+*****
 Carts
-=====
+*****
 
 Carts are containers for grouping samples to either withdraw material or discard samples from the active collection.
 
@@ -52,7 +54,7 @@ The **cart sidebar** is accessible via the tray icon beside the user menu in the
 .. _cart-sidebar:
 
 Cart Sidebar
-------------
+============
 
 The selector at the top of the sidebar lets you choose the active cart. Each user can have one active cart at a time. The active cart is the target of all cart-related actions.
 
@@ -67,7 +69,7 @@ You can add a sample to the active cart by:
 A sample cannot be added twice to the same cart.
 
 Withdrawal Carts
-----------------
+================
 
 Withdrawal carts maintain a list of sample quantities to be retrieved. They may be used to locate material before retrieval or to export data (e.g. for label production).
 
@@ -86,7 +88,7 @@ You can modify a reserved quantity while the cart is active by selecting the cor
 To finalize retrieval, use the **Withdraw** command from the cart menu. This deducts the reserved quantities from the samples, updates weight logs, and completes the operation.
 
 Discard Carts
--------------
+=============
 
 Discard carts remove samples from the active collection while preserving their data.
 
@@ -103,7 +105,7 @@ After adding samples to a discard cart, use the **Discard** command from the car
    A sample referenced by any active cart cannot be discarded.
 
 Best Practices
---------------
+==============
 
 - Prefer discarding over permanent deletion unless removal is final.
 - Finalize withdrawal carts promptly to ensure accurate availability.

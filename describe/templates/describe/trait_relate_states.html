@@ -1,0 +1,165 @@
+{% extends "frontpage/base.html" %}
+
+{% partialdef states_list %}
+{% for state in states %}
+  <li
+    class="list-group-item state-item
+           {# The state is from the same Trait #}
+           {% if trait == state.trait %}bg-info-subtle{% endif %}
+           {# The state is not directly related #}
+           {% if parent_state and not state.pk in parent_state.directly_related_state_ids  %}bg-body-tertiary{% endif %}"
+    data-id="{{ state.id }}"
+    data-update-url="{% url 'describe:state_related_states_update' state.id %}">
+    <div class="d-flex w-100 justify-content-between mb-2">
+      <h3 class="mb-1 fs-6">
+        {{ state }}
+      </h3>
+      <div class="remove-button">
+        <div class="dropdown">
+          <a class="text-decoration-none link-body-emphasis" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-three-dots-vertical fs-5" ></i>
+          </a>
+          <ul class="dropdown-menu">
+            {# You cannot delete an indirect relationship #}
+            {% if parent_state and state.pk in parent_state.directly_related_state_ids  %}
+            <li>
+              <a class="dropdown-item"
+                hx-post="{% url 'describe:state_reset_group' state.pk %}"
+                hx-swap="none"
+                hx-vals='js:{target_state_id: this.closest(".target-items").dataset.id}'>
+                Unmap
+              </a>
+            </li>
+            {% endif %}
+            <li>
+              <a class="dropdown-item"
+                hx-post="{% url 'describe:state_related_states_bulk_delete' state.pk %}"
+                hx-swap="none"
+                hx-confirm="Are you sure? This will delete ALL the relations with the state `{{ state }}`. This operation cannot be undone."
+              >
+                Reset
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="d-flex w-100 justify-content-between">
+      <p class="mb-1 fw-light">
+        {% url 'describe:trait_relate_states' state.trait.pk as trait_relate_states_url %}
+        <a class="text-decoration-none link-body-emphasis" href="{{ trait_relate_states_url }}">
+          {{ state.trait }}
+        </a>
+      </p>
+      {% if parent_state and not parent_state.trait.pk == state.trait.pk %}
+        <small class="text-muted">{{ state.trait.protocol.name }}</small>
+      {% endif %}
+    </div>
+
+  </li>
+{% empty %}
+  {% if add_info_when_empty %}
+    <div class="text-muted border bg-body-tertiary border-dashed rounded p-4 text-center">
+      <i class="bi bi-arrow-up-circle fs-4 d-block mb-2"></i>
+      <p class="mb-1 fw-semibold">Select a Trait</p>
+      <p class="mb-0 small">
+        Choose a Trait above to load its States. You can drag them onto the target states to define an equivalence.
+      </p>
+    </div>
+  {% endif %}
+{% endfor %}
+{% endpartialdef %}
+
+{% partialdef target_states %}
+{% for state in target_states %}
+  <div class="list-group-item target bg-body-tertiary">
+    <h5>{{ state }}</h5>
+    {{ state.related_group_states }}
+    <ul class="list-group target-items mt-2 bg-body" data-id="{{ state.id }}">
+      {% with states=state.related parent_state=state %}
+        {% partial states_list %}
+      {% endwith %}
+    </ul>
+  </div>
+{% empty %}
+  <div class="empty-state text-muted border rounded p-4 text-center">
+    <i class="bi bi-inbox fs-4 d-block mb-2"></i>
+    <p class="mb-1 fw-semibold">No States available</p>
+    <p class="mb-0 small">
+      This Trait has no States.
+    </p>
+  </div>
+{% endfor %}
+{% endpartialdef %}
+
+{% load static %}
+{% load breadcrumbs %}
+{% load components %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ trait }}{% endblock %}
+
+{% block container %}
+
+  {% render_breadcrumbs %}
+
+  {% detail_page_header trait subtitle=trait.protocol.name %}
+
+  <section class="row">
+
+    <div class="col border-end">
+      <h2 class="fs-6 text-end me-1">Target</h2>
+      <div class="overflow-y-auto" style="max-height: 70vh;">
+        <div id="targets" class="list-group"
+          hx-get="" hx-trigger="target-states-changed from:body" hx-target="this">
+          {% partial target_states %}
+        </div>
+      </div>
+    </div>
+    <div class="col">
+      <h2 class="fs-6">Source</h2>
+      {{ form|crispy }}
+      <button
+        id="map-button"
+        type="button"
+        class="btn btn-outline-secondary btn-sm disabled"
+        hx-post="{% url 'describe:trait_states_bulk_relate' trait.pk %}"
+        hx-include="#id_trait"
+        hx-swap="none"
+        hx-confirm="Are you sure?"
+      >
+        Map
+      </button>
+      <button
+        id="reset-button"
+        type="button"
+        class="btn btn-outline-danger btn-sm {% if not target_states %}disabled{% endif %}"
+        hx-post="{% url 'describe:trait_states_related_states_reset' trait.pk %}"
+        hx-swap="none"
+        hx-confirm="Are you sure?"
+      >
+        Reset
+      </button>
+
+
+      <div id="available-states" class="list-group mt-3"
+        hx-post="{% url 'describe:state_search' %}" hx-trigger="trait-selected" hx-include="#id_trait" hx-target="this">
+        {% with add_info_when_empty=True %}
+          {% partial states_list %}
+        {% endwith %}
+      </div>
+    </div>
+  </section>
+
+  <input type="hidden" name="relations" id="relations">
+
+  {{ traits_list_url|json_script:"trait-search-url" }}
+  {{ protocols_list_url|json_script:"protocols-list-url" }}
+
+{% endblock %}
+
+
+{% block javascript %}
+  <link href="{% static 'describe/trait_relate_states.css' %}" rel="stylesheet"/>
+  <script src="{% static 'describe/trait_relate_states.js' %}" defer></script>
+{% endblock %}

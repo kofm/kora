@@ -1,16 +1,17 @@
-=====
+#####
  API
-=====
+#####
 
+************
 Excel Import
-============
+************
 
 The Excel Import feature is designed to help non-technical users to
 quickly populate their *kora* database by importing data from in Excel
 Workbook format (xlsx).
 
 Accessing Excel Import
-----------------------
+======================
 
 You can access the Excel Import functionality through the browsable
 web API interface. 
@@ -34,7 +35,7 @@ web API interface.
 This will open the Excel Import page for that type of data.
 
 Importing Protection Data
--------------------------
+=========================
 
 The Excel Import endpoints provide an efficient way to populate your
 *kora* instance with plant genetic resource data by leveraging public
@@ -65,7 +66,7 @@ If validation errors are detected:
    roll back should you encounter undesired effects.
 
 Recommended Import Workflow
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+---------------------------
 
 To maintain data integrity, perform imports in this sequence:
 
@@ -78,7 +79,7 @@ To maintain data integrity, perform imports in this sequence:
 This order ensures relational data can be correctly linked.
 
 Guidelines for Excel Files
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+--------------------------
 
 - **Naming Columns**
 
@@ -171,7 +172,7 @@ Guidelines for Excel Files
     - Use the API directly referencing primary keys.
 
 Valid Choices for Select Fields
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-------------------------------
 
 When preparing your Excel files, ensure the values for choice fields are encoded correctly. Use these mappings for replacement or find-and-replace operations:
 
@@ -214,7 +215,7 @@ Examples:
 - Replace `"Individual"` with `"IN"` in entity type.
 
 Summary
-~~~~~~~
+-------
 
 Remember:
 

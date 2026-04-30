@@ -200,6 +200,8 @@ DJANGO_EASY_AUDIT_UNREGISTERED_CLASSES_EXTRA = getenv_list(
     ["auth.group"],
 )
 
+DJANGO_EASY_AUDIT_UNREGISTERED_CLASSES_EXTRA.append("describe.StateGroup")
+
 # Conditional settings
 
 if DEV:

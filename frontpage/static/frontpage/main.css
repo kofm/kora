@@ -33,4 +33,7 @@
     height: calc(100vh - 200px);
     overflow-y: auto;
     padding-bottom: calc(100vh - 400px);
+
+.border-dashed {
+    border-style: dashed !important;
 }

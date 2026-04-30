@@ -1,3 +1,5 @@
+from typing import Iterable
+
 from django.apps import apps
 from django.db.models import Model
 
@@ -38,3 +40,42 @@ def copy_model_concrete_fields(src, dst, *, exclude=None, include=None):
         setattr(dst, name, getattr(src, name))
 
     return dst
+
+
+def connected_components(ids: Iterable, edges: Iterable) -> list[list]:
+    """Return the connected components given a group of ids and their edges."""
+    ids = set(ids)
+
+    graph = {state_id: set() for state_id in ids}
+
+    for x, y in edges:
+        if x not in ids or y not in ids:
+            continue
+
+        graph[x].add(y)
+        graph[y].add(x)
+
+    visited = set()
+    components = []
+
+    for start_id in ids:
+        if start_id in visited:
+            continue
+
+        component = []
+        stack = [start_id]
+
+        while stack:
+            state_id = stack.pop()
+
+            if state_id in visited:
+                continue
+
+            visited.add(state_id)
+            component.append(state_id)
+
+            stack.extend(graph[state_id] - visited)
+
+        components.append(component)
+
+    return components

@@ -78,12 +78,14 @@ class ProtectionFilter(FilterSet):
 
 
 class ProtocolFilter(FilterSet):
+    exclude_id = NumberFilter(field_name="id", exclude=True)
     name__icontains = CharFilter(field_name="name", lookup_expr="icontains")
     plantspecies__in = NumberInFilter(field_name="plantspecies", lookup_expr="in")
 
     class Meta:
         model = Protocol
         fields = (
+            "exclude_id",
             "name",
             "name__icontains",
             "plantspecies",

@@ -4,13 +4,13 @@ from django.contrib.auth.decorators import permission_required
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.template.response import TemplateResponse
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_http_methods
 
 from describe.forms import ExpressionForm
 from describe.models import Expression, State
 
 
-@require_POST
+@require_http_methods(["POST"])
 @permission_required("describe.change_expression", raise_exception=True)
 def expression_update(request, pk):
     expression = get_object_or_404(Expression.objects.select_related("state"), pk=pk)
@@ -43,7 +43,7 @@ def expression_create(request):
     return TemplateResponse(request, "describe/partials/expression_create.html", {"form": form, "trait": trait})
 
 
-@require_POST
+@require_http_methods(["POST"])
 @permission_required("describe.delete_expression", raise_exception=True)
 def expression_delete(request, pk):
     expression = get_object_or_404(Expression, pk=pk)

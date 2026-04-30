@@ -1,0 +1,43 @@
+.target {
+    transition: background-color 120ms ease, border-color 120ms ease;
+}
+
+.target-items {
+    min-height: 2.5rem;
+    border: 1px dashed var(--bs-border-color);
+    border-radius: var(--bs-border-radius);
+    padding: 0.5rem;
+}
+
+.target.has-relations {
+    background-color: var(--bs-light);
+    border-color: var(--bs-primary);
+}
+
+.target-items:not(:has(> .state-item))::before {
+    content: "Drop a state to specify a relation";
+    display: block;
+    color: var(--bs-secondary-color);
+    font-size: 0.875rem;
+    padding: 0.5rem;
+}
+
+.state-item.is-used {
+    opacity: 0.45;
+}
+
+.sortable-ghost {
+    opacity: 0.4;
+}
+
+.sortable-chosen {
+    background-color: var(--bs-primary-bg-subtle);
+}
+
+#available-states .remove-button {
+    display: none;
+}
+
+.target-items .remove-button {
+    display: inline-flex;
+}

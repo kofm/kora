@@ -1,17 +1,22 @@
 """Characterization-related models."""
 
+from typing import Iterable
+
 from django.contrib.auth.models import User
 from django.db import models
-from django.db.models import F, UniqueConstraint
+from django.db.models import F, Prefetch, UniqueConstraint
 from django.db.models.aggregates import Count
 from django.db.models.functions import Coalesce
-from django.db.models.query_utils import Q
 from django.db.utils import OperationalError, ProgrammingError
 from django.urls import reverse
 from django.utils.functional import cached_property
 
 from frontpage.generic import ModelIsDeletableMixin
+from frontpage.utils.models import connected_components
 from register.models import PlantSpecies, PlantVariety
+
+PREFETCHED_GROUP_STATES_ATTR_NAME = "prefetched_group_states"
+PREFETCHED_RELATED_STATES_ATTR_NAME = "prefetched_related_states"
 
 
 class ProtocolManager(models.Manager):
@@ -80,27 +85,16 @@ class DescriptionQuerySet(models.QuerySet):
 
         An empty filter will return zero Description.
         """
+
         if not expressions_filter:
             return self.none()
 
-        expressions_list = [val for key, val in expressions_filter.items()]
+        result = self.prefetch_related("expressions__state")
 
-        def get_filter_query(expressions: list) -> Q:
-            query = Q(expressions__state__id__in=expressions)
-            query |= Q(expressions__state__related_states__id__in=expressions)
+        for expressions in expressions_filter.values():
+            result = result.filter(expressions__state__group__states__id__in=expressions)
 
-            return query
-
-        query = get_filter_query(expressions_list[0])
-
-        result = self.prefetch_related("expressions__state").filter(query).distinct()
-
-        for expressions in expressions_list[1:]:
-            query = get_filter_query(expressions)
-            query_set = self.filter(query).distinct()
-            result = result.intersection(query_set)
-
-        return result
+        return result.distinct()
 
     def with_expressions(self):
         return (
@@ -236,14 +230,76 @@ class Trait(models.Model):
     def get_previous_in_protocol(self):
         return Trait.objects.filter(protocol=self.protocol, numeric_id__lt=self.numeric_id).last()
 
+    def states_with_related_states(self):
+        """Return the trait's states, with their group relations prefetched.
+
+        Use with `State.related()` to avoid queries duplication when
+        rendering related states.  The group states are stored on each
+        `StateGroup` in the attribute `PREFETCHED_GROUP_STATES_ATTR_NAME`.
+
+        """
+        State = self.states.model  # ty:ignore[unresolved-attribute]
+        states_with_trait_protocol = State.objects.select_related("trait", "trait__protocol").order_by(
+            "trait__protocol__order", "trait__numeric_id", "numeric_id"
+        )
+        prefetched_group_states = Prefetch(
+            "group__states", queryset=states_with_trait_protocol, to_attr=PREFETCHED_GROUP_STATES_ATTR_NAME
+        )
+        prefetched_related_states = Prefetch(
+            "related_states", State.objects.all(), to_attr=PREFETCHED_RELATED_STATES_ATTR_NAME
+        )
+        return self.states.select_related("group").prefetch_related(  # ty:ignore[unresolved-attribute]
+            prefetched_group_states, prefetched_related_states
+        )
+
+
+class StateGroup(models.Model):
+    """Store the grouping between States for relating Expressions from different Protocols."""
+
+    def __str__(self):
+        return f"StateGroup #{self.pk}"
+
+
+class StateQuerySet(models.QuerySet):
+    def rebuild_groups(self):
+        state_ids = list(self.values_list("pk", flat=True))
+
+        if not state_ids:
+            return []
+
+        through = self.model.related_states.through
+
+        edges = list(
+            through.objects.filter(
+                from_state_id__in=state_ids,
+                to_state_id__in=state_ids,
+            ).values_list("from_state_id", "to_state_id")
+        )
+
+        components = connected_components(state_ids, edges)
+
+        groups = []
+
+        for component in components:
+            group = StateGroup.objects.create()
+            self.model.objects.filter(pk__in=component).update(group=group)
+            groups.append(group)
+
+        StateGroup.objects.filter(states__isnull=True).delete()
+
+        return groups
+
 
 class State(models.Model):
-    """Store the possible states of expression related to a Trait."""
+    """Store the possible states of expression of a Trait."""
 
     numeric_id = models.IntegerField(verbose_name="ID", help_text="Numbering code.")
     description = models.CharField(help_text="A descriptive text about the state.", max_length=200)
     trait = models.ForeignKey(Trait, models.CASCADE, related_name="states")
-    related_states = models.ManyToManyField("self")
+    related_states = models.ManyToManyField("self", symmetrical=True, blank=True)
+    group = models.ForeignKey(StateGroup, on_delete=models.CASCADE, related_name="states")
+
+    objects = StateQuerySet.as_manager()
 
     class Meta:
         unique_together = ("numeric_id", "trait")
@@ -255,6 +311,26 @@ class State(models.Model):
 
     def is_deletable(self):
         return not Expression.objects.filter(state=self).exists()
+
+    def related(self) -> Iterable["State"]:
+        """Return only related states.
+
+        Default to using prefetched States in
+        `PREFETCHED_STATES_ATTR_NAME` attribute in `group` to avoid
+        duplicating queries. This is intended to be used with
+        `Trait.states_with_related_states()`.
+
+        """
+
+        prefetched = getattr(self.group, PREFETCHED_GROUP_STATES_ATTR_NAME, None)
+        if prefetched is not None:
+            return [state for state in prefetched if state.pk != self.pk]
+        return self.group.states.exclude(pk=self.pk).select_related("trait", "trait__protocol")
+
+    def reset_group(self):
+        group = StateGroup.objects.create()
+        self.group = group
+        return group
 
 
 class Expression(models.Model):

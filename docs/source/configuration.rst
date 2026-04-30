@@ -1,8 +1,10 @@
-Configuration
-=============
+###############
+ Configuration
+###############
 
+*********************
 Environment Variables
----------------------
+*********************
 
 Many *kora* settings can be customized using `environment variables
 <https://en.wikipedia.org/wiki/Environment_variable>`_. You can define
@@ -74,7 +76,7 @@ When in doubt, use quotes.
     The following code snippets show the default values.
 
 Django-Related Settings
-~~~~~~~~~~~~~~~~~~~~~~~
+=======================
 
 .. option:: DEV
 
@@ -173,7 +175,7 @@ Django-Related Settings
    DB_PORT=5432
 
 Site Visibility
-~~~~~~~~~~~~~~~
+===============
 
 
 .. option:: PUBLIC
@@ -193,7 +195,7 @@ Site Visibility
     PUBLIC='false'
 
 Auditing Interaction
-~~~~~~~~~~~~~~~~~~~~
+====================
 
 (Provided by the third-party `django-easy-audit
 <https://github.com/soynatan/django-easy-audit>`_ module). The
@@ -241,7 +243,7 @@ and auditing of user activity within your *kora* instance.
    DJANGO_EASY_AUDIT_UNREGISTERED_CLASSES_EXTRA='auth.group'
 
 `kora-docker` Settings
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+======================
 
 These settings control aspects of the *kora-docker* bundle, which packages *kora* in a containerized environment for easy deployment and management.
 

@@ -1,3 +1,4 @@
+from django.db import transaction
 from django_countries.serializers import CountryFieldMixin
 from rest_framework import serializers
 
@@ -7,6 +8,7 @@ from describe.models import (
     Expression,
     Protocol,
     State,
+    StateGroup,
     Trait,
     Workspace,
     WorkspaceElement,
@@ -90,10 +92,26 @@ class ProtocolSerializer(BulkModelSerializer):
         fields = ("id", "name", "plantspecies", "url_ref")
 
 
+class StateListSerializer(serializers.ListSerializer):
+    @transaction.atomic
+    def create(self, validated_data):
+        groups = StateGroup.objects.bulk_create(StateGroup() for _ in validated_data)
+        states = [State(group=group, **item) for item, group in zip(validated_data, groups, strict=True)]
+        return State.objects.bulk_create(states)
+
+
 class StateSerializer(BulkModelSerializer):
+    group = serializers.PrimaryKeyRelatedField(read_only=True)
+
     class Meta(BulkModelSerializer.Meta):
         model = State
-        fields = ("id", "numeric_id", "description", "trait")
+        fields = ("id", "numeric_id", "description", "trait", "group")
+        list_serializer_class = StateListSerializer
+
+    @transaction.atomic
+    def create(self, validated_data):
+        validated_data["group"] = StateGroup.objects.create()
+        return super().create(validated_data)
 
 
 class TraitSerializer(BulkModelSerializer):
@@ -131,6 +149,7 @@ class ExpressionSerializer(BulkModelSerializer):
     trait_description = serializers.StringRelatedField(many=False, source="state.trait", read_only=True)
     trait_numeric_id = serializers.IntegerField(source="state.trait.numeric_id", read_only=True)
     state_description = serializers.StringRelatedField(many=False, source="state", read_only=True)
+    state_group = serializers.IntegerField(source="state.group_id", read_only=True)
 
     class Meta(BulkModelSerializer.Meta):
         model = Expression
@@ -141,6 +160,7 @@ class ExpressionSerializer(BulkModelSerializer):
             "trait_description",
             "state",
             "state_description",
+            "state_group",
             "note",
         )
 
