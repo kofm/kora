@@ -11,7 +11,6 @@ from django_tables2 import RequestConfig
 from breadcrumbs.generic import (
     CrumbsCreateView,
     CrumbsDeleteView,
-    CrumbsUpdateView,
 )
 from breadcrumbs.utils import (
     breadcrumbs_context,
@@ -131,7 +130,6 @@ def plantvarietyname_update(request, pk):
 @permission_required("register.delete_plantvarietyname", raise_exception=True)
 def plantvarietyname_delete(request, pk):
     instance = get_object_or_404(PlantVarietyName, pk=pk)
-    context = {"object": instance}
     breadcrumbs = [
         list_breadcrumb(PlantVariety),
         detail_breadcrumb(instance.variety),
@@ -139,7 +137,7 @@ def plantvarietyname_delete(request, pk):
         detail_breadcrumb(instance),
         delete_breadcrumb(instance),
     ]
-    context.update(breadcrumbs_context(breadcrumbs))
+    context = {"object": instance, **breadcrumbs_context(breadcrumbs)}
     if request.method == "POST":
         instance.delete()
         return redirect(reverse_lazy("register:variety_detail", args=[instance.variety.pk]))
@@ -149,25 +147,30 @@ def plantvarietyname_delete(request, pk):
 @nav_plant_active_context
 @htmx_render_blocks(["cards"])
 def plantvariety_list(request):
-    queryset = (
-        PlantVariety.objects.annotate(
+    flt = PlantVarietyFilter(request.GET, queryset=PlantVariety.objects.order_by("-created_at"))
+
+    paginator = Paginator(flt.qs, 12)
+    page_obj = paginator.get_page(request.GET.get("page"))
+
+    prefetch_names = Prefetch(
+        "names",
+        queryset=PlantVarietyName.objects.exclude(name=F("variety__name")),
+    )
+
+    page_obj.object_list = (
+        page_obj.object_list.select_related("species")
+        .prefetch_related(prefetch_names)
+        .annotate(
             has_descriptions=Exists(Description.objects.filter(variety=OuterRef("pk"))),
             has_samples=Exists(Sample.objects.filter(variety=OuterRef("pk"))),
             has_parameters=Exists(VarietalParameter.objects.filter(variety=OuterRef("pk"))),
             has_crops=Exists(Crop.objects.filter(variety=OuterRef("pk"))),
             has_protections=Exists(Protection.objects.filter(variety=OuterRef("pk"))),
         )
-        .prefetch_related(Prefetch("names", queryset=PlantVarietyName.objects.exclude(name=F("variety__name"))))
-        .select_related("species")
-        .order_by("-created_at")
-        .distinct()
     )
-    flt = PlantVarietyFilter(request.GET, queryset=queryset)
-    paginator = Paginator(flt.qs, 12)
-    page = request.GET.get("page", 1)
-    page_obj = paginator.page(page)
-    context = {"filter": flt, "page_obj": page_obj}
-    context.update(generate_breadcrumbs(request, PlantVariety))
+
+    context = {"filter": flt, "page_obj": page_obj, **generate_breadcrumbs(request, PlantVariety)}
+
     return TemplateResponse(
         request,
         "register/plantvariety_list.html",

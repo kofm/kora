@@ -2,7 +2,7 @@ from crispy_forms.layout import Field, Layout, MultiWidgetField
 from django import forms
 from django.contrib.postgres.lookups import Unaccent
 from django.contrib.postgres.search import TrigramSimilarity
-from django.db.models import Case, F, IntegerField, Q, Value, When
+from django.db.models import Case, CharField, Exists, F, FloatField, IntegerField, OuterRef, Q, Subquery, Value, When
 from django.db.models.functions import Lower
 from django_countries.fields import CountryField
 from django_filters import (
@@ -24,6 +24,7 @@ from register.models import (
     Entity,
     PlantSpecies,
     PlantVariety,
+    PlantVarietyName,
 )
 
 TRIGRAM_SEARCH_THRESHOLD = 3
@@ -56,6 +57,34 @@ def filter_name_generic(queryset, field_name, value):
     )
 
     return qs.order_by("rank", "-similarity", "search_name")
+
+
+def ranked_plantvarietyname_subquery(value):
+    value = value.strip().lower()
+
+    search_expr = Lower(Unaccent("name"))
+
+    qs = PlantVarietyName.objects.filter(
+        variety_id=OuterRef("pk"),
+    ).annotate(
+        search_name=search_expr,
+        similarity=TrigramSimilarity(search_expr, value),
+    )
+
+    if len(value) < TRIGRAM_SEARCH_THRESHOLD:
+        qs = qs.filter(search_name__istartswith=value)
+    else:
+        qs = qs.filter(similarity__gt=0.1)
+
+    return qs.annotate(
+        rank=Case(
+            When(search_name__iexact=value, then=Value(0)),
+            When(search_name__istartswith=value, then=Value(1)),
+            When(search_name__icontains=value, then=Value(2)),
+            default=Value(3),
+            output_field=IntegerField(),
+        )
+    ).order_by("rank", "-similarity", "search_name")
 
 
 class ProtectionFilterWidget(forms.MultiValueField):
@@ -144,12 +173,23 @@ class PlantVarietyFilter(FilterSet):
         form = PlantVarietyFilterForm
 
     def filter_name(self, queryset, name, value):
-        return filter_name_generic(queryset, name, value)
+        if not value:
+            return queryset
+
+        name_subquery = ranked_plantvarietyname_subquery(value)
+        name_rank = Subquery(name_subquery.values("rank")[:1], output_field=IntegerField())
+        name_similarity = Subquery(name_subquery.values("similarity")[:1], output_field=FloatField())
+        search_name = Subquery(name_subquery.values("search_name")[:1], output_field=CharField())
+        return (
+            queryset.filter(Exists(name_subquery))
+            .alias(name_rank=name_rank, name_similarity=name_similarity, search_name=search_name)
+            .order_by("name_rank", "-name_similarity", "search_name")
+        )
 
     def filter_has_records(self, queryset, name, value):
         lookup = f"{name}__isnull"
         if value is not None:
-            return queryset.filter(**{lookup: not value}).distinct()
+            return queryset.filter(**{lookup: not value})
         return queryset
 
 
