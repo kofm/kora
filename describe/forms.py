@@ -9,6 +9,7 @@ from django.db.models import QuerySet
 from django.forms import formset_factory, inlineformset_factory
 from django.forms.formsets import BaseFormSet
 from django.urls import reverse
+from django.utils.html import format_html
 from dynamic_forms import DynamicField, DynamicFormMixin
 
 from describe.models import (
@@ -338,7 +339,10 @@ class BaseExpressionFilterFormSet(BaseFormSet):
         return (state.pk, f" {state.numeric_id}. {state.description}")
 
     def _render_label(self, trait: Trait):
-        return f"{trait.numeric_id}. {trait.description}"
+        # Grouping traits should be highlighted
+        if trait.grouping:
+            return format_html("<b>&#10033; {}. {}</b>", trait.numeric_id, trait.description)
+        return format_html("{}. {}", trait.numeric_id, trait.description)
 
     def get_form_kwargs(self, index):
         kwargs = super().get_form_kwargs(index)
