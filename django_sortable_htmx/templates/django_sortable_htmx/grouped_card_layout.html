@@ -19,9 +19,16 @@
              data-bs-root-margin="0px 0px -90%"
              tabindex="0">
             {% for group in elements %}
-                <div class="row">
-                    <div id="species{{ forloop.counter }}" class="col bg-body-tertiary rounded-3 m-3 p-3 border">
-                        <h2>{{ group.grouper }}</h2>
+              <h2 id="species{{ forloop.counter }}" class="fs-5 mb-1 text-end">
+                {{ group.grouper.common_name }}
+                <span class="text-muted fw-light">
+                  <small>{{ group.grouper.latin_name }}</small>
+                </span>
+              </h2>
+              <div class="row mb-4">
+                    <div class="col bg-body-tertiary rounded-3 m-2 p-3 border">
+                      
+                        
                         {% include inner_template_name with elements=group.list %}
                     </div>
                 </div>
