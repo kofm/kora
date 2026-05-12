@@ -149,14 +149,6 @@ class PlantVarietyTable(tables.Table):
         fields = ("name", "breeder")
         empty_text = "No cultivars have been catalogued under this plant species."
 
-    def render_protected(self, record):
-        protected = Protection.objects.filter(variety=record, type="PBR", status="G").exists()
-        return render_icon(protected)
-
-    def render_enlisted(self, record):
-        enlisted = Protection.objects.filter(variety=record, type__in=("CAT", "NLI"), status="G").exists()
-        return render_icon(enlisted)
-
     def render_described(self, record):
         described = Description.objects.filter(variety=record).exists()
         return render_icon(described)
