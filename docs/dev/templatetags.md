@@ -56,7 +56,7 @@ def a_view(request):
     header = ListPageHeader(
         page_title="Users",
         create_url=reverse("frontpage:user_create"),
-        create_modal=True,
+        modal=True,
     )
 	context = {"my_header": header}
 	return TemplateResponse(request, "app/view.html", context)

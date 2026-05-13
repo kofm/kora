@@ -70,7 +70,7 @@ class ListPageHeader:
     page_title: str
     subtitle: str | None = None
     create_url: str | None = None
-    create_modal: bool = False
+    modal: bool = False
 
     @classmethod
     def from_model_label(
@@ -105,7 +105,7 @@ class ListPageHeader:
             page_title=page_title,
             subtitle=subtitle,
             create_url=create_url,
-            create_modal=modal,
+            modal=modal,
         )
 
 
