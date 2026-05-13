@@ -192,8 +192,26 @@ class PlantVarietyName(models.Model):
         return self.variety.names.count() > 1
 
 
+class ProtectionType(ModelIsDeletableMixin, models.Model):
+    code = models.CharField(
+        max_length=3, unique=True, help_text="An identificative three-letter code of the protection type"
+    )
+    name = models.CharField(max_length=100, help_text="An identificative name of the protection type")
+
+    class Meta:
+        ordering = ["code"]
+
+    def __str__(self):
+        return self.name
+
+
+class ProtectionManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().select_related("type")
+
+
 class Protection(ModelIsDeletableMixin, models.Model):
-    type = models.CharField(max_length=3, choices=PROTECTION_TYPE_CHOICES)
+    type = models.ForeignKey(ProtectionType, on_delete=models.PROTECT, related_name="protections")
     status = models.CharField(max_length=1, blank=True, default="", choices=PROTECTION_STATUS_CHOICES)
     country = CountryField(null=True)
     variety = models.ForeignKey(PlantVariety, on_delete=models.CASCADE)
@@ -203,6 +221,8 @@ class Protection(ModelIsDeletableMixin, models.Model):
     date_start = models.DateField(blank=True, null=True)
     date_end = models.DateField(blank=True, null=True)
     note = models.CharField(max_length=512, blank=True, help_text="Add any additional information here.")
+
+    objects = ProtectionManager()
 
     class Meta:
         ordering = ("-date_start",)
@@ -218,3 +238,7 @@ class Protection(ModelIsDeletableMixin, models.Model):
 
     def get_delete_url(self):
         return reverse("register:protection_delete", args=(self.pk,))
+
+    @classmethod
+    def get_configure_url(cls):
+        return reverse("register:protection_configure")

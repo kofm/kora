@@ -4,7 +4,7 @@ from django_countries.fields import CountryField
 
 from frontpage.widgets import TomSelect, TomSelectMultiple
 
-from .models import PlantVariety, PlantVarietyName, Protection
+from .models import PlantVariety, PlantVarietyName, Protection, ProtectionType
 
 
 class PlantVarietyForm(forms.ModelForm):
@@ -44,3 +44,9 @@ class ProtectionForm(forms.ModelForm):
             "date_start": widgets.DateInput(attrs={"type": "date"}),
             "date_end": widgets.DateInput(attrs={"type": "date"}),
         }
+
+
+class ProtectionTypeForm(forms.ModelForm):
+    class Meta:
+        model = ProtectionType
+        fields = ("code", "name")

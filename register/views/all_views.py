@@ -6,6 +6,7 @@ from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.urls.base import reverse_lazy
+from django.views.decorators.http import require_http_methods
 from django.views.generic import CreateView, DetailView
 from django.views.generic.edit import DeleteView, UpdateView
 from django_tables2.config import RequestConfig
@@ -32,8 +33,8 @@ from frontpage.views_decorators import (
 from parameters.forms import VarietalParameterForm
 from parameters.models import VarietalParameter
 from register.filters import EntityFilter, ProtectionOmniFilter
-from register.forms import ProtectionForm
-from register.models import Entity, PlantVariety, Protection
+from register.forms import ProtectionForm, ProtectionTypeForm
+from register.models import Entity, PlantVariety, Protection, ProtectionType
 from register.tables import EntityTable, PlantVarietyEntityTable, ProtectionListTable
 
 
@@ -77,8 +78,7 @@ def protection_list(request):
     flt = ProtectionOmniFilter(request.GET, queryset=queryset)
     table = ProtectionListTable(flt.qs)
     RequestConfig(request).configure(table)
-    context = {"table": table, "filter": flt}
-    context.update(generate_breadcrumbs(request, Protection))
+    context = {"table": table, "filter": flt, **generate_breadcrumbs(request, Protection)}
     return TemplateResponse(request, "register/protection_list.html", context)
 
 
@@ -153,6 +153,32 @@ def protection_detail(request, pk):
         "register/protection_detail.html",
         {"protection": instance, **breadcrumbs},
     )
+
+
+def protection_configure(request):
+    form = ProtectionTypeForm(request.POST or None)
+    if form.is_valid():
+        form.save()
+    protection_types = ProtectionType.objects.all()
+    context = {"form": form, "protection_types": protection_types}
+    return TemplateResponse(request, "register/protection_configure.html", context)
+
+
+def protection_type_update(request, pk):
+    instance = get_object_or_404(ProtectionType, pk=pk)
+    form = ProtectionTypeForm(request.POST or None, instance=instance)
+    if form.is_valid():
+        form.save()
+        return redirect("register:protection_configure")
+    context = {"instance": instance, "form": form}
+    return TemplateResponse(request, "register/partials/protection_type_update.html", context)
+
+
+@require_http_methods(["POST"])
+def protection_type_delete(request, pk):
+    instance = get_object_or_404(ProtectionType, pk=pk)
+    instance.delete()
+    return redirect("register:protection_configure")
 
 
 class EntityCreateView(PermissionRequiredMixin, CreateBreadcrumbsMixin, NavDescribeActiveContext, CreateView):

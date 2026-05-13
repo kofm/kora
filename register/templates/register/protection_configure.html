@@ -1,0 +1,51 @@
+{% extends "frontpage/modal_content.html" %}
+{% load crispy_forms_tags %}
+
+{% partialdef protection_types_list %}
+<h2 class="fs-4">Protection Types</h2>
+<ul class="list-group overflow-y-auto" style="max-height: 25vh;">
+  {% for type in protection_types %}
+    <li class="list-group-item d-inline-flex justify-content-between">
+      <a href="#" hx-get="{% url 'register:protection_type_update' type.pk %}" hx-target="#modal" hx-swap="innerHTML">
+        {{ type.name }}
+      </a>
+      <div class="d-inline-flex justify-content-between gap-3">
+        <small class="text-muted">
+          {{ type.code }}
+        </small>
+        <div class="text-end" style="width: 24px;">
+          {% if type.is_deletable %}
+            <a class="link-body-emphasis" href=""
+              hx-post="{% url 'register:protection_type_delete' type.pk %}"
+              hx-target="#modal" hx-swap="innerHTML">
+              <i class="bi bi-x-lg"></i>
+            </a>
+          {% endif %}
+        </div>
+      </div>
+    </li>
+  {% endfor %}
+</ul>
+{% endpartialdef %}
+
+{% block title %}
+  Protection Settings
+{% endblock %}
+
+{% block body %}
+  <div>
+    <h2 class="fs-4">Create Protection Type</h2>
+    <p>You can create a new protection type by assigning it a name and a three-letters identificative code.</p>
+    <form hx-post="{{ request.get_full_path }}" hx-target="#modal" hx-swap="innerHTML">
+      {{ form|crispy }}
+      <button class="btn btn-primary" type="submit">Create</button>
+    </form>
+  </div>
+  <hr/>
+  <section id="protection-types" class="mt-5">
+    {% partial protection_types_list %}
+  </section>
+{% endblock %}
+
+{% block footer %}
+{% endblock %}

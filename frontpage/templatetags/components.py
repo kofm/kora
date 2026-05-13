@@ -23,6 +23,12 @@ class HasCreateUrl(Protocol):
     def get_create_url(cls) -> str: ...
 
 
+@runtime_checkable
+class HasConfigureUrl(Protocol):
+    @classmethod
+    def get_configure_url(cls) -> str: ...
+
+
 def _join_attrs(attrs: dict):
     return " ".join(f'{key.replace("_", "-")}="{value}"' for key, value in attrs.items())
 
@@ -71,6 +77,7 @@ class ListPageHeader:
     subtitle: str | None = None
     create_url: str | None = None
     modal: bool = False
+    configure_url: str | None = None
 
     @classmethod
     def from_model_label(
@@ -101,11 +108,16 @@ class ListPageHeader:
         if user.has_perm(add_permission) and isinstance(model, HasCreateUrl):
             create_url = model.get_create_url()
 
+        configure_url: str | None = None
+        if user.has_perm(add_permission) and isinstance(model, HasConfigureUrl):
+            configure_url = model.get_configure_url()
+
         return cls(
             page_title=page_title,
             subtitle=subtitle,
             create_url=create_url,
             modal=modal,
+            configure_url=configure_url,
         )
 
 

@@ -39,6 +39,10 @@
 	    <h2 class="fs-4">Results</h2>
 	    <small class="text-muted">{{ table.paginator.count }} matches. {% block additional_results %}{% endblock %}</small>
 	  {% endblock %}
+          <div class="d-flex justify-content-end">
+            {% block secondary_buttons %}
+            {% endblock %}
+          </div>
 	  {% block main_body %}
 	    <div
 	      hx-trigger="resultsChanged from:body"

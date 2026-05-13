@@ -11,9 +11,9 @@
     {% endif %}
   </div>
 
-  <div class="col d-flex justify-content-end align-items-center">
+  <div class="col d-flex justify-content-end align-items-center gap-3">
     {% if header.create_url %}
-      {% if header.create_modal %}
+      {% if header.modal %}
 	<a class="btn btn-outline-primary ms-2" hx-get="{{ header.create_url }}" {% modal_attrs %}>
       {% else %}
 	  <a class="btn btn-outline-primary ms-2" href="{{ header.create_url }}">
@@ -21,6 +21,19 @@
       Create
 	  </a>
     {% endif %}
+    {% if header.configure_url %}
+      {% if header.modal %}
+        <a class="link-body-emphasis" hx-get="{{ header.configure_url }}" {% modal_attrs %}>
+          <i class="bi bi-gear-wide-connected fs-4"></i>
+        </a>
+      {% else %}
+        <a class="link-body-emphasis" href="{{ header.configure_url }}">
+          <i class="bi bi-gear-wide-connected fs-4"></i>
+        </a>
+      {% endif %}
+    {% endif %}
   </div>
+
+
 
 </header>

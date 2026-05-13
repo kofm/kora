@@ -40,7 +40,7 @@ def admin(request):
     queryset = User.objects.all()
     table_user = UserTable(queryset)
     RequestConfig(request).configure(table_user)
-    header = ListPageHeader(page_title="Users", create_url=reverse("frontpage:user_create"), create_modal=True)
+    header = ListPageHeader(page_title="Users", create_url=reverse("frontpage:user_create"), modal=True)
     crumbs = breadcrumbs_context([("Admin", "")])
     context = {"table_user": table_user, "page_obj": queryset, "header": header, **crumbs}
     return TemplateResponse(request, "frontpage/admin.html", context)
