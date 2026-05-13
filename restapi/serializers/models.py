@@ -14,7 +14,7 @@ from describe.models import (
     WorkspaceElement,
 )
 from parameters.models import Parameter, VarietalParameter
-from register.models import Entity, PlantSpecies, PlantVariety, PlantVarietyName, Protection
+from register.models import Entity, PlantSpecies, PlantVariety, PlantVarietyName, Protection, ProtectionType
 from restapi.serializers.generic import BulkModelSerializer
 
 
@@ -69,6 +69,11 @@ class EntitySerializer(BulkModelSerializer, CountryFieldMixin, serializers.Model
 
 
 class ProtectionSerializer(CountryFieldMixin, BulkModelSerializer):
+    type = serializers.SlugRelatedField(
+        slug_field="code",
+        queryset=ProtectionType.objects.all(),
+    )
+
     class Meta(BulkModelSerializer.Meta):
         model = Protection
         fields = (

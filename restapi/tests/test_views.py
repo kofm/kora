@@ -89,7 +89,7 @@ class APITests(APITestCase):
         self.assertEqual(len(response.data[0]["description"]["expressions"]), 3)
 
     def test_bulk_create_plant_species(self):
-        species = (("Tomato", "Solanum lycopersicon"), ("Rice", "Oryza sativa"))
+        species = (("Rye", "Secale cereale"), ("Rice", "Oryza sativa"))
         data = [
             {
                 "common_name": common_name,

@@ -1,15 +1,14 @@
-
 from django_countries.serializer_fields import CountryField
 from rest_framework import serializers as sr
 
 from register.models import (
     ENTITY_TYPE_CHOICES,
     PROTECTION_STATUS_CHOICES,
-    PROTECTION_TYPE_CHOICES,
     Entity,
     PlantSpecies,
     PlantVariety,
     Protection,
+    ProtectionType,
 )
 from restapi.fields import CSV2ListQueryField, ExcelSafeDateField, MappedPrimaryKeyRelatedField, QueryField
 from restapi.serializers.generic import BaseExcelImportSerializer, ModelInBulkMixin
@@ -66,6 +65,7 @@ class ProtectionListSerializer(ModelInBulkMixin, sr.ListSerializer):
             data,
         )
         self.context["variety_map"] = self.to_mapping(PlantVariety.objects.all(), ["name", "species_id"], data)
+        self.context["protection_type_map"] = self.to_mapping(ProtectionType.objects.all(), ["code"], data)
         return super().to_internal_value(data)
 
 
@@ -75,8 +75,7 @@ class ProtectionRowSerializer(sr.Serializer):
         column_mapping={"name": "name", "species_id": "species_id"},
         required=True,
     )
-
-    type = sr.ChoiceField(choices=PROTECTION_TYPE_CHOICES, required=True)
+    type = QueryField(mapping_key="protection_type_map", column_mapping={"type": "code"}, required=True)
     reference = sr.CharField(required=False, allow_blank=True)
     status = sr.ChoiceField(choices=PROTECTION_STATUS_CHOICES, required=False)
     country = CountryField(required=False)
