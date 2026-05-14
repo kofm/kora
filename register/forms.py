@@ -49,4 +49,7 @@ class ProtectionForm(forms.ModelForm):
 class ProtectionTypeForm(forms.ModelForm):
     class Meta:
         model = ProtectionType
-        fields = ("code", "name")
+        fields = ("name", "code")
+
+    def clean_code(self):
+        return self.cleaned_data["code"].strip().upper()

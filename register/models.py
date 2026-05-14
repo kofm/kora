@@ -1,5 +1,6 @@
 from datetime import date
 
+from django.core.validators import RegexValidator
 from django.db import models
 from django.urls.base import reverse
 from django.utils.html import format_html
@@ -194,7 +195,10 @@ class PlantVarietyName(models.Model):
 
 class ProtectionType(ModelIsDeletableMixin, models.Model):
     code = models.CharField(
-        max_length=3, unique=True, help_text="An identificative three-letter code of the protection type"
+        max_length=3,
+        unique=True,
+        help_text="An identificative three-letter code of the protection type",
+        validators=[RegexValidator(r"^[A-Za-z]{3}\Z", "It must be a three-letter code.")],
     )
     name = models.CharField(max_length=100, help_text="An identificative name of the protection type")
 
