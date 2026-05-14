@@ -1,0 +1,29 @@
+{
+    "fmt": {
+        "useTabs": false,
+        "lineWidth": 120,
+        "indentWidth": 4,
+        "semiColons": true,
+        "singleQuote": false,
+        "proseWrap": "preserve"
+    },
+    "compilerOptions": {
+        "checkJs": true,
+        "lib": ["dom", "dom.iterable", "esnext"],
+        "types": ["./static/js/globals.d.ts"]
+    },
+    "lint": {
+        "rules": {
+            "tags": ["recommended"]
+        },
+        "include": [
+            "static/",
+            "*/static/"
+        ],
+        "exclude": [
+            "static/vendor/",
+            "*/static/vendor/",
+            "**/node_modules/"
+        ]
+    }
+}
