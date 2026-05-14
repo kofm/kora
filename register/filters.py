@@ -2,7 +2,20 @@ from crispy_forms.layout import Field, Layout, MultiWidgetField
 from django import forms
 from django.contrib.postgres.lookups import Unaccent
 from django.contrib.postgres.search import TrigramSimilarity
-from django.db.models import Case, CharField, Exists, F, FloatField, IntegerField, OuterRef, Q, Subquery, Value, When
+from django.db.models import (
+    BLANK_CHOICE_DASH,
+    Case,
+    CharField,
+    Exists,
+    F,
+    FloatField,
+    IntegerField,
+    OuterRef,
+    Q,
+    Subquery,
+    Value,
+    When,
+)
 from django.db.models.functions import Lower
 from django_countries.fields import CountryField
 from django_filters import (
@@ -20,11 +33,11 @@ from frontpage.widgets import TomSelect, TomSelectMultiple
 from register.models import (
     ENTITY_TYPE_CHOICES,
     PROTECTION_STATUS_CHOICES,
-    PROTECTION_TYPE_CHOICES,
     Entity,
     PlantSpecies,
     PlantVariety,
     PlantVarietyName,
+    ProtectionType,
 )
 
 TRIGRAM_SEARCH_THRESHOLD = 3
@@ -87,20 +100,19 @@ def ranked_plantvarietyname_subquery(value):
     ).order_by("rank", "-similarity", "search_name")
 
 
-class ProtectionFilterWidget(forms.MultiValueField):
+class ProtectionFilterField(forms.MultiValueField):
     def __init__(self, *args, **kwargs):
-        status_choices = PROTECTION_STATUS_CHOICES + [(None, "Any status")]
-        type_choices = PROTECTION_TYPE_CHOICES + [(None, "Any type")]
+        status_choices = PROTECTION_STATUS_CHOICES + BLANK_CHOICE_DASH
+        status_field = forms.ChoiceField(choices=status_choices)
+        type_field = forms.ModelChoiceField(queryset=ProtectionType.objects.all())
         country_choices = CountryField().get_choices()
-        fields = (
-            forms.ChoiceField(choices=status_choices),
-            forms.ChoiceField(choices=type_choices),
-            forms.ChoiceField(choices=country_choices),
-        )
+        country_field = forms.ChoiceField(choices=country_choices)
+
+        fields = (status_field, type_field, country_field)
         widget = forms.MultiWidget(
             widgets=[
                 forms.Select(choices=status_choices),
-                forms.Select(choices=type_choices),
+                forms.Select(choices=type_field.choices),
                 TomSelect(choices=country_choices),
             ]
         )
@@ -114,7 +126,7 @@ class ProtectionFilterWidget(forms.MultiValueField):
 
 
 class ProtectionFilter(Filter):
-    field_class = ProtectionFilterWidget
+    field_class = ProtectionFilterField
 
     def filter(self, qs, values):
         if values:
@@ -235,7 +247,7 @@ class ProtectionOmniFilter(FilterSet):
     entities = ModelChoiceFilter(
         queryset=Entity.objects.all(), label="Entity", widget=TomSelect, method="entity_search"
     )
-    type = ChoiceFilter(choices=PROTECTION_TYPE_CHOICES)
+    type = ModelChoiceFilter(queryset=ProtectionType.objects.all(), label="Type")
     status = ChoiceFilter(choices=PROTECTION_STATUS_CHOICES)
     country = ChoiceFilter(choices=CountryField().get_choices(include_blank=False), widget=TomSelect)
 
