@@ -159,7 +159,7 @@ def protection_configure(request):
     form = ProtectionTypeForm(request.POST or None)
     if form.is_valid():
         form.save()
-    protection_types = ProtectionType.objects.all()
+    protection_types = ProtectionType.objects.order_by("pk")
     context = {"form": form, "protection_types": protection_types}
     return TemplateResponse(request, "register/protection_configure.html", context)
 
