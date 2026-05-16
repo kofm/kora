@@ -71,12 +71,12 @@
 	  </div>
 	</form>
 
-	<form id="nameForm" class="mb-2" autocomplete="off" hx-post="." hx-trigger="change" hx-target="#table" hx-indicator="#spinner">
-	  <label class="form-label" for="{{ form_name.name.id_for_label }}">
-	    {{ form_name.name.label }}:
+	<form id="labelForm" class="mb-2" autocomplete="off" hx-post="." hx-trigger="change" hx-target="#table" hx-indicator="#spinner">
+	  <label class="form-label" for="{{ form_label.labels.id_for_label }}">
+	    {{ form_label.labels.label }}:
 	  </label>
-	  {{ form_name.name }}
-	  <input name="name_form" type="hidden" value="1"/>
+	  {{ form_label.labels }}
+	  <input name="label_form" type="hidden" value="1"/>
 	</form>
 
 	<div id="expression_filter" hx-swap-oob="true">

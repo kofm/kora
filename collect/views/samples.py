@@ -45,7 +45,7 @@ def sample_list(request):
     discarded_count = discarded_flt.qs.count()
 
     table = SampleTable(queryset)
-    RequestConfig(request, paginate={"per_page": 15}).configure(table)
+    RequestConfig(request, paginate={"per_page": 10}).configure(table)
 
     context = {
         "table": table,

@@ -22,15 +22,15 @@
 	<h1 class="mb-0">
 	  {{ description.variety.name }}
 	</h1>
-	<p class="text-body-secondary my-0 fs-3">{{ description.name }}</p>
-	<p class="lead">Reference protocol <a href="{% url 'describe:protocol_detail' description.protocol.id %}">{{ description.protocol.name }}</a> (<i>{{ description.protocol.plantspecies.latin_name }}</i>)</p>
+	<p class="lead"><span class="badge rounded-pill {{ description.label.colour_class }} me-2">{{ description.label }}</span> Reference protocol <a href="{% url 'describe:protocol_detail' description.protocol.id %}">{{ description.protocol.name }}</a> (<i>{{ description.protocol.plantspecies.latin_name }}</i>)</p>
+        <p class="lead">{{ description.notes|default_if_none:"&nbsp;" }}</p>
       </div>
     </div>
   {% endblock %}
 
   <div class="row mb-5">
 
-    <div class="col-3 navbar-example">
+    <div class="col-3 trait-navbar">
       <div id="simple-list-example" class="d-flex flex-column gap-2 simple-list-example-scrollspy">
 	<a class="p-1 rounded text-decoration-none link-body-emphasis" href="#description-form">0. Description</a>
 	{% for row in formset %}
@@ -41,7 +41,7 @@
       </div>
     </div>
 
-    <div id="accordion" data-bs-spy="scroll" data-bs-target="#navbar-example" data-bs-root-margin="0px 0px -80%" data-bs-smooth-scroll="true" class="col" tabindex="0">
+    <div id="accordion" data-bs-spy="scroll" data-bs-target="#trait-navbar" data-bs-root-margin="0px 0px -80%" data-bs-smooth-scroll="true" class="col" tabindex="0">
       <div id="description-form" class="card mb-2">
 	<div class="card-header bg-secondary text-white">
 	  <a class="text-decoration-none link-light" data-bs-toggle="collapse" data-bs-target="#description-collapse" role="button" aria-expanded="false" aria-controls="description-collapse">
@@ -52,28 +52,22 @@
 	<div id="description-collapse" class="collapse">
 	  <div class="card-body position-relative" hx-ext="tomselect">
 	    {% block description_form %}
-	      <form hx-post="" hx-target="closest .card-body" hx-trigger="click from:#submit">
+	      <form hx-post="" hx-target="closest .card-body">
 		<div class="mb-3">
-		  {{ form.variety.label_tag }}
-		  {{ form.variety.errors }}
-		  {{ form.variety|add_class:'form-select'|add_valid_class:'is-valid' }}
+		  {{ form.label.label_tag }}
+		  {{ form.label.errors }}
+		  {{ form.label|add_class:'form-select'|add_valid_class:'is-valid' }}
 		</div>
 		<div class="mb-3">
-		  {{ form.name.label_tag }}
-		  {{ form.name.errors }}
-		  {{ form.name|add_class:'form-select'|add_valid_class:'is-valid' }}
-		</div>
-		<div>
 		  {{ form.notes.label_tag }}
 		  {{ form.notes.errors }}
 		  {{ form.notes|add_class:'form-control'|add_valid_class:'is-valid' }}
 		</div>
-		<small class="ms-auto d-flex justify-content-center mt-2">
-		  <a id="submit" href="#" class="link-secondary link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover">Update</a> 
-		  {% if undo %}
-		  <a id="undo" href="#" class="pe-auto ms-3 link-secondary link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover">Undo</a>
-		  {% endif %}
-		</small>
+
+		<button class="btn btn-primary" type="submit">
+                  Update
+                </button>
+
 	      </form>
 	      {% if undo %}
 		<form hx-post="" hx-trigger="click from:#undo" hx-target="closest .card-body">
@@ -100,7 +94,10 @@
 	      {% for form in row.forms %}
 		{% include 'describe/partials/expression_update.html' with form=form %}
 	      {% endfor %}
-	      <a href="" class="text-decoration-none link-body-emphasis" hx-get="{% url 'describe:expression-create' %}" hx-swap="beforebegin" hx-target="this" hx-vals='{"description": "{{ description.pk }}", "trait": "{{ row.trait.pk }}"}'>
+	      <a href=""
+                class="text-decoration-none link-body-emphasis"
+                hx-get="{% url 'describe:expression-create' %}" hx-swap="beforebegin" hx-target="this"
+                hx-vals='{"description": "{{ description.pk }}", "trait": "{{ row.trait.pk }}"}'>
 		<i class="bi bi-plus-circle"></i>
 	      </a>
 	    </div>
@@ -109,6 +106,5 @@
       {% endfor %}
     </div>
   </div>
-
-  <a href="{% url 'describe:description_detail' description.pk %}" class="btn btn-primary submit-btn">Back</a>
+  <a href="{% url 'describe:description_detail' description.pk %}" class="btn btn-primary overlay-btn shadow">Back</a>
 {% endblock %}

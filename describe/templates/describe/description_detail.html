@@ -9,13 +9,14 @@
 {% block container %}
 
   {% render_breadcrumbs %}
-  {% detail_page_header description title=description.variety subtitle=description.name %}
+  {% detail_page_header description title=description.variety %}
 
-  <p class="lead">Compiled according to
+  <p class="lead mt-1">Compiled according to
     <a href="{% url 'describe:protocol_detail' description.protocol.id %}">
       {{ description.protocol.name }}
     </a>
   </p>
+  <p class="lead"><span class="badge rounded-pill {{ description.label.colour_class }} me-2">{{ description.label }}</span></p>
   {% if description.notes %}
     <p>
       {{ description.notes }}
@@ -29,10 +30,10 @@
 
     {% if user.is_authenticated %}
       <a href="#"
-	class="btn btn-sm btn-outline-secondary"
-	hx-post="{% url 'describe:workspace_element_create' %}"
-	hx-vals='{"description_id": "{{ description.pk }}"}'
-	hx-target="#workspaceBody">
+	       class="btn btn-sm btn-outline-secondary"
+	       hx-post="{% url 'describe:workspace_element_create' %}"
+	       hx-vals='{"description_id": "{{ description.pk }}"}'
+	       hx-target="#workspaceBody">
 	<i class="bi bi-star-fill"></i> Add to Workspace
       </a>
     {% endif %}
@@ -76,6 +77,6 @@
 
 
   </div>
-    <p class="text-end text-muted">Created: {{ description.created_at|date }} - Last updated: {{ description.updated_at|date }}</p>
+  <p class="text-end text-muted">Created: {{ description.created_at|date }} - Last updated: {{ description.updated_at|date }}</p>
 
 {% endblock %}

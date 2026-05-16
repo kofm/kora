@@ -1,3 +1,4 @@
+from django.forms import TextInput
 from django.forms.widgets import NumberInput, Select, SelectMultiple
 
 
@@ -9,6 +10,24 @@ class TomSelectMixin:
         if attrs:
             default_attrs.update(attrs)
         super().__init__(attrs=default_attrs, choices=choices)
+
+
+class TomSelectColourMixin:
+    def __init__(self, attrs=None, choices=()):
+        default_attrs = {
+            "class": "form-select colour-tomselect",
+        }
+        if attrs:
+            default_attrs.update(attrs)
+        super().__init__(attrs=default_attrs, choices=choices)
+
+
+class TomSelectColour(TomSelectColourMixin, Select):
+    """TomSelect for single choice fields."""
+
+
+class TomSelectMultipleColour(TomSelectColourMixin, SelectMultiple):
+    """TomSelect for single choice fields."""
 
 
 class TomSelect(TomSelectMixin, Select):
@@ -28,6 +47,22 @@ class YearInput(NumberInput):
             "max": "2100",
             "class": "numberinput form-control",
         }
+        if attrs:
+            default_attrs.update(attrs)
+        super().__init__(attrs=default_attrs)
+
+
+class BootstrapNumberInput(NumberInput):
+    def __init__(self, attrs=None):
+        default_attrs = {"class": "form-control"}
+        if attrs:
+            default_attrs.update(attrs)
+        super().__init__(attrs=default_attrs)
+
+
+class BootstrapTextInput(TextInput):
+    def __init__(self, attrs=None):
+        default_attrs = {"class": "form-control"}
         if attrs:
             default_attrs.update(attrs)
         super().__init__(attrs=default_attrs)

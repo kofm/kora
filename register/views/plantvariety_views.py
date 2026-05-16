@@ -53,7 +53,7 @@ def plantvariety_detail(request, pk):
     context = {"variety": variety}
 
     tables = {}
-    descriptions = Description.objects.with_expressions().filter(variety=pk)
+    descriptions = Description.objects.select_related("protocol", "label").filter(variety=pk)
     tables["description"] = PlantVarietyDescriptionTable(descriptions)
     samples = Sample.objects.with_availability().filter(variety=pk)
     tables["sample"] = PlantVarietySampleTable(samples)

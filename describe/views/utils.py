@@ -173,7 +173,7 @@ def init_description_filter(request: HttpRequest):
         request.session["description_filter"] = {
             "protocol": protocol.pk if protocol else None,
             "strict": False,
-            "name": [],
+            "label": [],
             "expressions": {},
         }
     return request.session["description_filter"]
@@ -196,14 +196,14 @@ def update_description_filter(request, **kwargs):
 def process_description_filter(descriptions: QuerySet[Description], description_filter: dict) -> QuerySet[Description]:
     protocol_id = description_filter["protocol"]
     expression_filter = description_filter["expressions"]
-    name_filter = description_filter["name"]
+    label_filter = description_filter["label"]
     strict_filter = description_filter["strict"]
 
     if strict_filter:
         descriptions = descriptions.filter(protocol_id=protocol_id)
 
-    if name_filter:
-        descriptions = descriptions.filter(name__in=name_filter)
+    if label_filter:
+        descriptions = descriptions.filter(label_id__in=label_filter)
 
     if expression_filter:
         descriptions = descriptions.filter_by_expressions(expression_filter)

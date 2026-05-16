@@ -1,4 +1,3 @@
-import json
 from typing import Any
 
 from crispy_forms.bootstrap import FieldWithButtons, StrictButton
@@ -13,34 +12,16 @@ from django.utils.html import format_html
 
 from describe.models import (
     Description,
+    DescriptionLabel,
     Expression,
     Protocol,
     State,
     Trait,
     Workspace,
 )
-from frontpage.widgets import TomSelect, TomSelectMultiple
+from describe.widgets import DescriptionLabelSelect, DescriptionLabelSelectMultiple
+from frontpage.widgets import BootstrapNumberInput, BootstrapTextInput, TomSelect, TomSelectColour
 from register.models import PlantVariety
-
-
-class NumberingCodeInput(forms.TextInput):
-    def __init__(self, attrs=None):
-        default_attrs = {
-            "class": "form-control",
-            "inputmode": "numeric",
-            "placeholder": "ID",
-        }
-        if attrs:
-            default_attrs.update(attrs)
-        super().__init__(attrs=default_attrs)
-
-
-class DescriptorTextInput(forms.TextInput):
-    def __init__(self, attrs=None):
-        default_attrs = {"class": "form-control"}
-        if attrs:
-            default_attrs.update(attrs)
-        super().__init__(attrs=default_attrs)
 
 
 class TraitForm(forms.ModelForm):
@@ -48,9 +29,12 @@ class TraitForm(forms.ModelForm):
         model = Trait
         fields = ("numeric_id", "description", "grouping", "protocol")
         widgets = {
-            "numeric_id": NumberingCodeInput,
-            "description": DescriptorTextInput(
-                attrs={"placeholder": "Description", "aria-describedby": "descriptorHelp"}
+            "numeric_id": BootstrapNumberInput(attrs={"placeholder": "ID"}),
+            "description": BootstrapTextInput(
+                attrs={
+                    "placeholder": "Description",
+                    "aria-describedby": "descriptorHelp",
+                }
             ),
             "grouping": forms.CheckboxInput(attrs={"class": "form-check-input"}),
             "protocol": forms.HiddenInput,
@@ -62,8 +46,8 @@ class StateForm(forms.ModelForm):
         model = State
         fields = ("id", "numeric_id", "description", "trait")
         widgets = {
-            "numeric_id": NumberingCodeInput(),
-            "description": forms.TextInput(attrs={"class": "form-control", "placeholder": "Descriptor state"}),
+            "numeric_id": BootstrapNumberInput(attrs={"placeholder": "ID"}),
+            "description": forms.TextInput(attrs={"class": "form-control", "placeholder": "State"}),
             "trait": forms.HiddenInput(),
         }
 
@@ -92,17 +76,17 @@ class ExpressionUpdateForm(forms.Form):
     note = forms.CharField(required=False)
 
 
-class DescriptionNameForm(forms.Form):
-    name = forms.MultipleChoiceField(
-        label="Tag",
-        choices=[("", "")] + Description.names(),
-        widget=TomSelectMultiple,
+class DescriptionLabelsForm(forms.Form):
+    labels = forms.ModelMultipleChoiceField(
+        label="Label",
+        widget=DescriptionLabelSelectMultiple,
+        queryset=DescriptionLabel.objects.all(),
         required=False,
     )
 
 
 class DescriptionVarietyForm(forms.Form):
-    variety = forms.CharField(widget=DescriptorTextInput(), required=False)
+    variety = forms.CharField(widget=BootstrapTextInput(), required=False)
 
 
 class ProtocolForm(forms.Form):
@@ -162,51 +146,27 @@ class DescriptionForm(forms.ModelForm):
 
     class Meta:
         model = Description
-        fields = ("variety", "protocol", "name")
+        fields = ("variety", "protocol", "label")
         widgets = {
             "protocol": TomSelect,
-            "name": TomSelect(
-                attrs={
-                    "data-ts-create": "true",
-                    "data-ts-items": json.dumps([]),
-                    "data-ts-placeholder": "Create or select an existing tag...",
-                },
-                choices=Description.names(),
-            ),
+            "label": DescriptionLabelSelect,
         }
 
 
 class DescriptionDuplicateForm(forms.ModelForm):
     class Meta:
         model = Description
-        fields = ("name",)
-        widgets = {
-            "name": TomSelect(
-                attrs={
-                    "data-ts-create": "true",
-                    "data-ts-items": json.dumps([]),
-                    "data-ts-placeholder": "Create or select an existing tag...",
-                },
-                choices=Description.names(),
-            ),
-        }
+        fields = ("label",)
+        widgets = {"name": DescriptionLabelSelect}
 
 
 class DescriptionUpdateForm(forms.ModelForm):
-    variety = forms.ModelChoiceField(
-        queryset=PlantVariety.objects.select_related("species").all(),
-        widget=TomSelect,
-    )
-    name = forms.ChoiceField(
-        label="Tag",
-        choices=Description.names(),
-        widget=TomSelect,
-    )
+    label = forms.ModelChoiceField(queryset=DescriptionLabel.objects.all(), widget=DescriptionLabelSelect)
     notes = forms.CharField(widget=forms.Textarea, required=False)
 
     class Meta:
         model = Description
-        fields = ("variety", "name", "notes")
+        fields = ("label", "notes")
 
 
 class ExpressionForm(forms.ModelForm):
@@ -363,3 +323,10 @@ ExpressionFilterFormSet = formset_factory(ExpressionFilterForm, formset=BaseExpr
 class TraitStatesForm(forms.Form):
     protocol = forms.ChoiceField(choices=[], label="")
     trait = forms.ChoiceField(choices=[], label="")
+
+
+class DescriptionLabelForm(forms.ModelForm):
+    class Meta:
+        model = DescriptionLabel
+        fields = ("name", "colour")
+        widgets = {"colour": TomSelectColour}

@@ -22,15 +22,9 @@
 	  </a>
     {% endif %}
     {% if header.configure_url %}
-      {% if header.modal %}
-        <a class="link-body-emphasis" hx-get="{{ header.configure_url }}" {% modal_attrs %}>
-          <i class="bi bi-gear-wide-connected fs-4"></i>
-        </a>
-      {% else %}
-        <a class="link-body-emphasis" href="{{ header.configure_url }}">
-          <i class="bi bi-gear-wide-connected fs-4"></i>
-        </a>
-      {% endif %}
+      <a class="link-body-emphasis" hx-get="{{ header.configure_url }}" {% modal_attrs %} style="cursor:pointer;">
+        <i class="bi bi-gear-wide-connected fs-4"></i>
+      </a>
     {% endif %}
   </div>
 

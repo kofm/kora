@@ -44,7 +44,6 @@ class ProtectionListTable(ProtectionTable):
 
 
 class PlantVarietyDescriptionTable(tables.Table):
-    name = tables.Column(linkify=True)
     protocol__name = tables.Column("Protocol")
     updated_at = tables.DateTimeColumn(verbose_name="Last updated", short=False)
     notes = tables.Column("Notes")
@@ -56,8 +55,15 @@ class PlantVarietyDescriptionTable(tables.Table):
 
     class Meta(TableHoverFixed.Meta):
         model = Description
-        fields = ("name", "protocol__name")
+        fields = ("protocol__name", "label")
         per_page = 5
+
+    def render_label(self, record, value):
+        return format_html(
+            '<span class="badge rounded-pill {} text-nowrap"><small>{}</small></span>',
+            value.colour_class,
+            value,
+        )
 
     def render_notes(self, record):
         notes = smart_truncate_string(record.notes, min_length=25)

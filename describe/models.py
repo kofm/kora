@@ -1,6 +1,6 @@
 """Characterization-related models."""
 
-from typing import Iterable
+from collections.abc import Iterable
 
 from django.contrib.auth.models import User
 from django.db import models
@@ -12,6 +12,7 @@ from django.urls import reverse
 from django.utils.functional import cached_property
 
 from frontpage.generic import ModelIsDeletableMixin
+from frontpage.models import Label
 from frontpage.utils.models import connected_components
 from register.models import PlantSpecies, PlantVariety
 
@@ -127,8 +128,19 @@ class DescriptionQuerySet(models.QuerySet):
         )
 
 
+class DescriptionLabel(Label):
+    pass
+
+
 class Description(ModelIsDeletableMixin, models.Model):
     name = models.CharField(verbose_name="tag", max_length=200, help_text="The identifier of the description")
+    label = models.ForeignKey(
+        DescriptionLabel,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="descriptions",
+    )
     protocol = models.ForeignKey(
         Protocol,
         on_delete=models.PROTECT,
@@ -153,7 +165,7 @@ class Description(ModelIsDeletableMixin, models.Model):
         ordering = ("variety__name",)
 
     def __str__(self):
-        return f"{self.variety.name} ({self.name})"
+        return f"{self.variety.name} (#{self.pk})"
 
     def get_absolute_url(self):
         return reverse("describe:description_detail", args=(self.pk,))
@@ -167,6 +179,10 @@ class Description(ModelIsDeletableMixin, models.Model):
 
     def get_delete_url(self):
         return reverse("describe:description_delete", args=(self.pk,))
+
+    @classmethod
+    def get_configure_url(cls):
+        return reverse("describe:description_configure")
 
     @classmethod
     def names(cls):

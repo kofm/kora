@@ -1,0 +1,49 @@
+{% extends "frontpage/modal_content.html" %}
+{% load crispy_forms_tags %}
+{% load static %}
+
+{% partialdef protection_types_list %}
+<ul class="list-group overflow-y-auto" style="max-height: 18rem;">
+  {% for label in labels %}
+    <li class="list-group-item d-flex align-items-center gap-2">
+      <div class="flex-grow-1">
+        <span class="fw-semibold badge rounded-pill {{ label.colour_class }}">
+          {{ label.name }}
+        </span>
+      </div>
+      <a href="#" hx-get="{% url 'describe:description_label_update' label.pk %}" hx-target="#modal" hx-swap="innerHTML">
+        <span class="badge rounded-pill text-bg-secondary">Edit</span>
+      </a>
+      {% if type.is_deletable %}
+        <a href="#" class=""
+          hx-post=""
+          hx-target="#modal" hx-swap="innerHTML">
+          <span class="badge rounded-pill text-bg-danger">Delete</span>
+        </a>
+      {% endif %}
+    </li>
+  {% endfor %}
+</ul>
+{% endpartialdef %}
+
+{% block title %}
+  Descriptions Settings
+{% endblock %}
+
+{% block body %}
+  <h2 class="fs-6">Description Labels</h2>
+  <section id="protection-types" class="border border rounded">
+    {% partial protection_types_list %}
+  </section>
+  <div class="mt-3">
+    <h2 class="fs-6">Create Description Label</h2>
+    <p>Create a new label by assigning it a name and a colour.</p>
+    <form hx-post="{{ request.get_full_path }}" hx-target="#modal" hx-swap="innerHTML">
+      {{ form|crispy }}
+      <button class="btn btn-primary" type="submit">Create</button>
+    </form>
+  </div>
+{% endblock %}
+
+{% block footer %}
+{% endblock %}

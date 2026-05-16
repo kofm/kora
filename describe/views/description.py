@@ -24,7 +24,8 @@ from breadcrumbs.utils import add_parent_breadcrumbs, add_plantvariety_breadcrum
 from describe.forms import (
     DescriptionDuplicateForm,
     DescriptionForm,
-    DescriptionNameForm,
+    DescriptionLabelForm,
+    DescriptionLabelsForm,
     DescriptionUpdateForm,
     DescriptionVarietyForm,
     ExpressionFilterFormSet,
@@ -32,7 +33,7 @@ from describe.forms import (
     ProtocolForm,
     ProtocolStrictSearchForm,
 )
-from describe.models import Description, Expression, Protocol, Trait, Workspace, WorkspaceElement
+from describe.models import Description, DescriptionLabel, Expression, Protocol, Trait, Workspace, WorkspaceElement
 from describe.tables import DescriptionTable
 from describe.views.protocol import NavDescribeActiveContext
 from describe.views.utils import (
@@ -72,12 +73,12 @@ def _description_list(request):
     protocol_id = description_filter["protocol"]
 
     if request.method == "POST":
-        if "name_form" in request.POST:
-            if "name" in request.POST:
-                form = DescriptionNameForm(request.POST)
+        if "label_form" in request.POST:
+            if "labels" in request.POST:
+                form = DescriptionLabelForm(request.POST)
                 if form.is_valid():
-                    names = form.cleaned_data["name"]
-                    update_description_filter(request, name=names)
+                    labels = form.cleaned_data["labels"]
+                    update_description_filter(request, label=list(labels.values_list("pk", flat=True)))
             else:
                 update_description_filter(request, name=[])
         if "strict_changed" in request.POST:
@@ -97,7 +98,9 @@ def _description_list(request):
 
     context = {}
 
-    descriptions = process_description_filter(Description.objects.with_expressions(), description_filter)
+    descriptions = process_description_filter(
+        Description.objects.with_expressions().select_related("label"), description_filter
+    )
 
     if "variety" in request.GET:
         form = DescriptionVarietyForm(request.GET)
@@ -119,7 +122,7 @@ def _description_list(request):
     context["form_variety"] = DescriptionVarietyForm()
     context["form_protocol"] = ProtocolForm(initial={"protocol": protocol_id})
     context["form_strict"] = ProtocolStrictSearchForm(initial={"strict": description_filter["strict"]})
-    context["form_name"] = DescriptionNameForm(initial={"name": description_filter["name"]})
+    context["form_label"] = DescriptionLabelsForm(initial={"label": description_filter["label"]})
     context["formset"] = ExpressionFilterFormSet(traits=traits, expressions=description_filter["expressions"])
     context["table"] = table
     context.update(generate_breadcrumbs(request, Description))
@@ -316,14 +319,11 @@ class DescriptionDeleteView(PermissionRequiredMixin, DeleteBreadcrumbsMixin, Nav
 @htmx_render_blocks(["header", "description_form"])
 def description_expression_update(request, pk):
     context = {}
-    description = Description.objects.select_related("variety__species", "protocol__plantspecies").get(pk=pk)
+    description = Description.objects.select_related("variety__species", "protocol__plantspecies", "label").get(pk=pk)
     if request.method == "POST":
-        undo = {"variety": description.variety_id, "name": description.name}
         description_form = DescriptionUpdateForm(request.POST, instance=description)
         if description_form.is_valid():
             description_form.save()
-            if "undo" not in request.POST:
-                context.update({"undo": undo})
     else:
         description_form = DescriptionUpdateForm(instance=description)
 
@@ -334,7 +334,7 @@ def description_expression_update(request, pk):
         state_choices = {t.pk: [(s.pk, str(s)) for s in t.states.all()] for t in traits}
         formset = []
         expressions_dict = defaultdict(list)
-        for e in Expression.objects.prefetch_related("state__trait").filter(description=description):
+        for e in Expression.objects.select_related("state__trait").filter(description=description):
             expressions_dict[e.state.trait.pk].append(e)
 
         for trait in traits:
@@ -352,3 +352,23 @@ def description_expression_update(request, pk):
     crumbs = add_parent_breadcrumbs(crumbs, description.variety)
     context.update(crumbs)
     return TemplateResponse(request, "describe/description_expression_update.html", context)
+
+
+def description_configure(request):
+    queryset = DescriptionLabel.objects.all()
+    form = DescriptionLabelForm(request.POST or None)
+    if form.is_valid():
+        form.save()
+        form = DescriptionLabelForm()
+    context = {"labels": queryset, "form": form}
+    return TemplateResponse(request, "describe/partials/description_configure.html", context)
+
+
+def description_label_update(request, pk):
+    instance = get_object_or_404(DescriptionLabel, pk=pk)
+    form = DescriptionLabelForm(request.POST or None, instance=instance)
+    if form.is_valid():
+        form.save()
+        return redirect("describe:description_configure")
+    context = {"description_label": instance, "form": form}
+    return TemplateResponse(request, "describe/partials/description_label_update.html", context)

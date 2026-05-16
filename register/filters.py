@@ -28,6 +28,9 @@ from django_filters import (
     ModelMultipleChoiceFilter,
 )
 
+from collect.models import Sample
+from describe.models import Description, DescriptionLabel
+from describe.widgets import DescriptionLabelSelectMultiple
 from frontpage.forms import HTMXFormMixin, SearchAndClearButtons
 from frontpage.widgets import TomSelect, TomSelectMultiple
 from register.models import (
@@ -37,6 +40,7 @@ from register.models import (
     PlantSpecies,
     PlantVariety,
     PlantVarietyName,
+    Protection,
     ProtectionType,
 )
 
@@ -121,18 +125,19 @@ class ProtectionFilterField(forms.MultiValueField):
     def compress(self, data_list):
         if data_list:
             status, ptype, country = data_list
-            return {"protection__status": status, "protection__type": ptype, "protection__country": country}
+            return {"status": status, "type": ptype, "country": country}
         return None
 
 
 class ProtectionFilter(Filter):
     field_class = ProtectionFilterField
 
-    def filter(self, qs, values):
-        if values:
+    def filter(self, qs, value):
+        if value:
             # Ignore empty values
-            filters = {k: v for k, v in values.items() if v}
-            return qs.filter(**filters).distinct()
+            filters = {k: v for k, v in value.items() if v}
+            protections = Protection.objects.filter(variety=OuterRef("pk"), **filters)
+            return qs.filter(Exists(protections))
         return qs
 
 
@@ -145,8 +150,9 @@ class PlantVarietyFilterForm(HTMXFormMixin, forms.Form):
         self.helper.layout = Layout(
             Field("name"),
             Field("species"),
-            Field("has_descriptions"),
-            Field("has_accessions"),
+            Field("description"),
+            Field("description_label"),
+            Field("sample"),
             MultiWidgetField("protection", attrs=({"class": "mt-1"})),
             SearchAndClearButtons(),
         )
@@ -175,8 +181,14 @@ class PlantSpeciesFilter(FilterSet):
 class PlantVarietyFilter(FilterSet):
     name = CharFilter(label="Denomination", method="filter_name", field_name="names__name")
     species = ModelMultipleChoiceFilter(label="Species", queryset=PlantSpecies.objects.all(), widget=TomSelectMultiple)
-    has_descriptions = BooleanFilter(label="Described", field_name="description", method="filter_has_records")
-    has_accessions = BooleanFilter(label="Accession", field_name="sample", method="filter_has_records")
+    description = BooleanFilter(label="Described", field_name="description", method="filter_description")
+    description_label = ModelMultipleChoiceFilter(
+        label="Description Label",
+        queryset=DescriptionLabel.objects.all(),
+        widget=DescriptionLabelSelectMultiple,
+        method="filter_description_label",
+    )
+    sample = BooleanFilter(label="Sample", field_name="sample", method="filter_sample")
     protection = ProtectionFilter(label="Protection")
 
     class Meta:
@@ -198,11 +210,25 @@ class PlantVarietyFilter(FilterSet):
             .order_by("name_rank", "-name_similarity", "search_name")
         )
 
-    def filter_has_records(self, queryset, name, value):
-        lookup = f"{name}__isnull"
-        if value is not None:
-            return queryset.filter(**{lookup: not value})
-        return queryset
+    def filter_description(self, queryset, name, value):
+        if value == "":
+            return queryset
+
+        has_description = Exists(Description.objects.filter(variety=OuterRef("pk")))
+
+        return queryset.filter(has_description if value else ~has_description)
+
+    def filter_description_label(self, queryset, name, value):
+        if not value:
+            return queryset
+        desc = Exists(Description.objects.filter(variety=OuterRef("pk"), label__in=value))
+        return queryset.filter(desc)
+
+    def filter_sample(self, queryset, name, value):
+        if value == "":
+            return queryset
+        samp = Exists(Sample.objects.filter(variety=OuterRef("pk")))
+        return queryset.filter(samp if value else ~samp)
 
 
 class EntityFilterForm(HTMXFormMixin, forms.ModelForm):
