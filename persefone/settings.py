@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.postgres",
+    "django.forms",
     "django_tables2",
     "django_filters",
     "rest_framework",
@@ -142,7 +143,7 @@ DJANGO_TABLES2_PAGE_RANGE = 10
 
 # rest_framework
 REST_FRAMEWORK = {
-    "PAGE_SIZE": 10,
+    "PAGE_SIZE": 100,
     "DEFAULT_PAGINATION_CLASS": "restapi.pagination.OptionalPagination",
     "DEFAULT_FILTER_BACKENDS": [
         "django_filters.rest_framework.DjangoFilterBackend",

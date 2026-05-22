@@ -1,17 +1,29 @@
 from django import forms
-from django.forms import widgets
+from django.forms import ModelChoiceField, widgets
+from django.urls import reverse_lazy
 from django_countries.fields import CountryField
 
-from frontpage.widgets import TomSelect, TomSelectMultiple
+from frontpage.widgets import ModelTomSelect, TomSelect, TomSelectConfig, TomSelectMultiple
 
-from .models import PlantVariety, PlantVarietyName, Protection, ProtectionType
+from .models import PlantSpecies, PlantVariety, PlantVarietyName, Protection, ProtectionType
 
 
 class PlantVarietyForm(forms.ModelForm):
+    species = ModelChoiceField(
+        queryset=PlantSpecies.objects.all(),
+        widget=ModelTomSelect(
+            ts_config=TomSelectConfig(
+                url=reverse_lazy("register:plantspecies_autocomplete"),
+                value_field="id",
+                label_field="common_name",
+                search_field=["common_name", "latin_name"],
+            )
+        ),
+    )
+
     class Meta:
         model = PlantVariety
-        fields = ["name", "species", "breeder"]
-        widgets = {"species": TomSelect, "breeder": TomSelect}
+        fields = ["name", "species"]
 
 
 class PlantVarietyNameForm(forms.ModelForm):

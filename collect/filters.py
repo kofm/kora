@@ -1,10 +1,11 @@
 from crispy_forms.layout import Field, Layout
 from django import forms
 from django.db.models import Q
+from django.urls import reverse_lazy
 from django_filters import CharFilter, FilterSet, ModelMultipleChoiceFilter
 
 from frontpage.forms import HTMXFormMixin, SearchAndClearButtons
-from frontpage.widgets import TomSelectMultiple
+from frontpage.widgets import ModelTomSelectMultiple, TomSelectConfig
 from register.models import PlantSpecies
 
 
@@ -26,7 +27,15 @@ class SampleFilter(FilterSet):
     )
     variety__species = ModelMultipleChoiceFilter(
         queryset=PlantSpecies.objects.all(),
-        widget=TomSelectMultiple(),
+        widget=ModelTomSelectMultiple(
+            ts_config=TomSelectConfig(
+                url=reverse_lazy("register:plantspecies_autocomplete"),
+                value_field="id",
+                label_field="common_name",
+                search_field=["common_name", "latin_name"],
+                preload="true",
+            )
+        ),
         label="Species",
     )
 

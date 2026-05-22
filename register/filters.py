@@ -17,6 +17,7 @@ from django.db.models import (
     When,
 )
 from django.db.models.functions import Lower
+from django.urls import reverse_lazy
 from django_countries.fields import CountryField
 from django_filters import (
     BooleanFilter,
@@ -26,13 +27,15 @@ from django_filters import (
     FilterSet,
     ModelChoiceFilter,
     ModelMultipleChoiceFilter,
+    MultipleChoiceFilter,
 )
 
 from collect.models import Sample
 from describe.models import Description, DescriptionLabel
 from describe.widgets import DescriptionLabelSelectMultiple
 from frontpage.forms import HTMXFormMixin, SearchAndClearButtons
-from frontpage.widgets import TomSelect, TomSelectMultiple
+from frontpage.widgets import ModelTomSelect, ModelTomSelectMultiple, TomSelect, TomSelectConfig
+from register.fields import PlantSpeciesMultipleChoiceField
 from register.models import (
     ENTITY_TYPE_CHOICES,
     PROTECTION_STATUS_CHOICES,
@@ -178,9 +181,26 @@ class PlantSpeciesFilter(FilterSet):
         return queryset.filter(query)
 
 
+class PlantSpeciesMultipleChoiceFilter(MultipleChoiceFilter):
+    field_class = PlantSpeciesMultipleChoiceField
+
+
 class PlantVarietyFilter(FilterSet):
     name = CharFilter(label="Denomination", method="filter_name", field_name="names__name")
-    species = ModelMultipleChoiceFilter(label="Species", queryset=PlantSpecies.objects.all(), widget=TomSelectMultiple)
+    species = ModelMultipleChoiceFilter(
+        queryset=PlantSpecies.objects.all(),
+        widget=ModelTomSelectMultiple(
+            ts_config=TomSelectConfig(
+                url=reverse_lazy("register:plantspecies_autocomplete"),
+                search_param="common_name__icontains",
+                value_field="id",
+                label_field="common_name",
+                search_field=["common_name", "latin_name"],
+                preload="true",
+            )
+        ),
+        label="Species",
+    )
     description = BooleanFilter(label="Described", field_name="description", method="filter_description")
     description_label = ModelMultipleChoiceFilter(
         label="Description Label",
@@ -271,7 +291,17 @@ class ProtectionOmniFilter(FilterSet):
     omni = CharFilter(method="omni_search", label="Search")
     variety__species = ModelChoiceFilter(queryset=PlantSpecies.objects.all(), label="Species")
     entities = ModelChoiceFilter(
-        queryset=Entity.objects.all(), label="Entity", widget=TomSelect, method="entity_search"
+        queryset=Entity.objects.all(),
+        label="Entity",
+        widget=ModelTomSelect(
+            ts_config=TomSelectConfig(
+                url=reverse_lazy("register:entity_autocomplete"),
+                value_field="id",
+                label_field="name",
+                search_field="name",
+            )
+        ),
+        method="entity_search",
     )
     type = ModelChoiceFilter(queryset=ProtectionType.objects.all(), label="Type")
     status = ChoiceFilter(choices=PROTECTION_STATUS_CHOICES)

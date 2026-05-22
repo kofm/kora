@@ -1,5 +1,6 @@
 from django.urls import path
 
+import describe.views.autocomplete as ac
 import describe.views.description as dsc
 import describe.views.expression as xpr
 import describe.views.protocol as prt
@@ -41,6 +42,7 @@ urlpatterns = [
     path("protocols/<int:pk>/update-metadata", prt.protocol_update_meta, name="protocol_update_meta"),
     path("protocols/create", prt.ProtocolCreate.as_view(), name="protocol_create"),
     path("protocols/<int:pk>/delete", prt.ProtocolDelete.as_view(), name="protocol_delete"),
+    path("protocols/autocomplete", ac.ProtocolAutocompleteView.as_view(), name="protocol_autocomplete"),
     path("traits/<int:pk>/update", trt.trait_update, name="trait_update"),
     path("traits/<int:pk>/delete", trt.trait_delete, name="trait_delete"),
     path("traits/<int:pk>/relate-states", trt.trait_relate_states, name="trait_relate_states"),

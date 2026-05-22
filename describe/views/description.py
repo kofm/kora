@@ -23,9 +23,9 @@ from breadcrumbs.generic import DeleteBreadcrumbsMixin
 from breadcrumbs.utils import add_parent_breadcrumbs, add_plantvariety_breadcrumbs, generate_breadcrumbs
 from describe.forms import (
     DescriptionDuplicateForm,
+    DescriptionFilterLabelForm,
     DescriptionForm,
     DescriptionLabelForm,
-    DescriptionLabelsForm,
     DescriptionUpdateForm,
     DescriptionVarietyForm,
     ExpressionFilterFormSet,
@@ -75,9 +75,10 @@ def _description_list(request):
     if request.method == "POST":
         if "label_form" in request.POST:
             if "labels" in request.POST:
-                form = DescriptionLabelForm(request.POST)
+                form = DescriptionFilterLabelForm(request.POST)
                 if form.is_valid():
                     labels = form.cleaned_data["labels"]
+                    print(labels)
                     update_description_filter(request, label=list(labels.values_list("pk", flat=True)))
             else:
                 update_description_filter(request, name=[])
@@ -122,7 +123,7 @@ def _description_list(request):
     context["form_variety"] = DescriptionVarietyForm()
     context["form_protocol"] = ProtocolForm(initial={"protocol": protocol_id})
     context["form_strict"] = ProtocolStrictSearchForm(initial={"strict": description_filter["strict"]})
-    context["form_label"] = DescriptionLabelsForm(initial={"label": description_filter["label"]})
+    context["form_label"] = DescriptionFilterLabelForm(initial={"label": description_filter["label"]})
     context["formset"] = ExpressionFilterFormSet(traits=traits, expressions=description_filter["expressions"])
     context["table"] = table
     context.update(generate_breadcrumbs(request, Description))
@@ -246,7 +247,6 @@ def description_update(request, pk):
 
 
 @nav_describe
-@htmx_render_blocks(["protocol_form"])
 @permission_required("describe.add_description", raise_exception=True)
 def description_create(request):
     context = {}
@@ -255,24 +255,26 @@ def description_create(request):
         form = DescriptionForm(request.POST)
         if form.is_valid():
             description = form.save()
-            return redirect(reverse("describe:description_expression_update", args=(description.pk,)))
+            url = reverse("describe:description_expression_update", args=(description.pk,))
+            return htmx_response_redirect(url)
     else:
-        form = DescriptionForm()
-        form.fields["variety"].queryset = PlantVariety.objects.all()
-        form.fields["protocol"].disabled = True
+        variety_id = request.GET.get("variety", None)
+        species_id = None
+        if variety_id:
+            variety = get_object_or_404(PlantVariety, pk=variety_id)
+            species_id = variety.species_id
+        form = DescriptionForm(
+            initial={
+                "variety": variety_id,
+                "species": species_id,
+            }
+        )
 
-    variety_id = request.GET.get("variety", None)
-    if variety_id:
-        variety = get_object_or_404(PlantVariety, pk=variety_id)
-        form.initial["variety"] = variety
-        form.fields["protocol"].queryset = Protocol.objects.filter(plantspecies=variety.species_id)
-        form.fields["protocol"].disabled = False
-        context["variety"] = variety
     context["form"] = form
-    context["model_name"] = "Description"
+    context["object_to_create"] = "Description"
     context.update(generate_breadcrumbs(request, Description))
 
-    return TemplateResponse(request, "describe/description_create.html", context)
+    return TemplateResponse(request, "describe/partials/description_create.html", context)
 
 
 @transaction.atomic
@@ -371,4 +373,4 @@ def description_label_update(request, pk):
         form.save()
         return redirect("describe:description_configure")
     context = {"description_label": instance, "form": form}
-    return TemplateResponse(request, "describe/partials/description_label_update.html", context)
+    return TemplateResponse(request, "frontpage/modal_form.html", context)

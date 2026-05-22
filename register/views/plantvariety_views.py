@@ -23,6 +23,7 @@ from breadcrumbs.utils import (
 from calculator.models import Crop
 from collect.models import Sample
 from describe.models import Description
+from frontpage.utils.htmx import htmx_response_redirect
 from frontpage.views_decorators import NavPlantActiveContext, htmx_render_blocks, nav_plant_active_context
 from parameters.models import VarietalParameter
 from register.filters import PlantVarietyFilter
@@ -39,12 +40,23 @@ from register.tables import (
 class PlantVarietyCreate(PermissionRequiredMixin, NavPlantActiveContext, CrumbsCreateView):
     model = PlantVariety
     form_class = PlantVarietyForm
-    template_name = "frontpage/_create_form.html"
+    template_name = "frontpage/modal_form.html"
     permission_required = ["register.add_plantvariety"]
 
     def get_context_data(self, **kwargs):
-        kwargs.update({"model_name": self.model._meta.verbose_name.title()})
+        kwargs.update({"object_to_create": self.model._meta.verbose_name.title()})
         return super().get_context_data(**kwargs)
+
+
+@permission_required(["register.add_plantvariety"])
+@nav_plant_active_context
+def plantvariety_create(request):
+    form = PlantVarietyForm(request.POST or None)
+    if form.is_valid():
+        instance = form.save()
+        return htmx_response_redirect(reverse("register:variety_detail", args=(instance.pk,)))
+    context = {"form": form, "object_to_create": "Variety"}
+    return TemplateResponse(request, "frontpage/modal_form.html", context)
 
 
 @nav_plant_active_context

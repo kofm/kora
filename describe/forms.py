@@ -5,9 +5,9 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Field, Layout
 from django import forms
 from django.db.models import QuerySet
-from django.forms import BaseInlineFormSet, formset_factory, inlineformset_factory
+from django.forms import BaseInlineFormSet, ModelChoiceField, formset_factory, inlineformset_factory
 from django.forms.formsets import BaseFormSet
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 from django.utils.html import format_html
 
 from describe.models import (
@@ -20,8 +20,16 @@ from describe.models import (
     Workspace,
 )
 from describe.widgets import DescriptionLabelSelect, DescriptionLabelSelectMultiple
-from frontpage.widgets import BootstrapNumberInput, BootstrapTextInput, TomSelect, TomSelectColour
-from register.models import PlantVariety
+from frontpage.forms import TomSelectModelFormMixin
+from frontpage.widgets import (
+    BootstrapNumberInput,
+    BootstrapTextInput,
+    ModelTomSelect,
+    TomSelect,
+    TomSelectColour,
+    TomSelectConfig,
+)
+from register.models import PlantSpecies, PlantVariety
 
 
 class TraitForm(forms.ModelForm):
@@ -122,35 +130,61 @@ class ProtocolMetadataForm(forms.ModelForm):
         }
 
 
-class DescriptionForm(forms.ModelForm):
-    """Form used to create or update a Description.
+class TomSelectModelChoiceField(ModelChoiceField):
+    def label_from_instance(self, obj):
+        # We sync the Form label with tomselect rendering for when initial values are set
+        label_field = self.widget.ts_config.options.get("label_field")
+        if label_field:
+            return str(getattr(obj, label_field))
+        return str(obj)
 
-    The model field `name` is a CharField but we want the user to be
-    able to select a value from a pre-populated list of values (to
-    prevent duplication); therefore, in the __init__ method the `name`
-    field widget is set to a `forms.Select` and the available choices
-    to the unique values of the `name` field within the entire
-    database. This allow keeping the correct CharField validation
-    while allowing the creation of a TomSelect widget populated from
-    the original <select> element. Using a ChoiceField directly would
-    have automatically introduced a validation against the available
-    choices, which is not what we want here since the user *can*
-    create new `name` values.
 
-    """
+class DescriptionForm(TomSelectModelFormMixin, forms.ModelForm):
+    """Form used to create or update a Description."""
 
-    variety = forms.ModelChoiceField(
-        queryset=PlantVariety.objects.select_related("species").all(),
-        widget=TomSelect(attrs={"hx-get": "", "hx-target": "#protocolInputDiv"}),
+    species = TomSelectModelChoiceField(
+        queryset=PlantSpecies.objects.all(),
+        widget=ModelTomSelect(
+            ts_config=TomSelectConfig(
+                url=reverse_lazy("register:plantspecies_autocomplete"),
+                value_field="id",
+                label_field="common_name",
+                search_field=["common_name", "latin_name"],
+            )
+        ),
     )
+    variety = TomSelectModelChoiceField(
+        queryset=PlantVariety.objects.none(),
+        widget=ModelTomSelect(
+            ts_config=TomSelectConfig(
+                url=reverse_lazy("register:variety_autocomplete"),
+                value_field="id",
+                label_field="name",
+                search_field="name",
+                depends_on="species",
+                depends_param="species_id",
+            ),
+        ),
+    )
+
+    protocol = ModelChoiceField(
+        queryset=Protocol.objects.none(),
+        widget=ModelTomSelect(
+            ts_config=TomSelectConfig(
+                url=reverse_lazy("describe:protocol_autocomplete"),
+                value_field="id",
+                label_field="name",
+                search_field="name",
+                depends_on="species",
+                depends_param="plantspecies_id",
+            ),
+        ),
+    )
+    label = ModelChoiceField(queryset=DescriptionLabel.objects.all(), widget=DescriptionLabelSelect())
 
     class Meta:
         model = Description
-        fields = ("variety", "protocol", "label")
-        widgets = {
-            "protocol": TomSelect,
-            "label": DescriptionLabelSelect,
-        }
+        fields = ("species", "variety", "protocol", "label")
 
 
 class DescriptionDuplicateForm(forms.ModelForm):
@@ -330,3 +364,10 @@ class DescriptionLabelForm(forms.ModelForm):
         model = DescriptionLabel
         fields = ("name", "colour")
         widgets = {"colour": TomSelectColour}
+
+
+class DescriptionFilterLabelForm(forms.Form):
+    labels = forms.ModelMultipleChoiceField(
+        queryset=DescriptionLabel.objects.all(),
+        widget=DescriptionLabelSelectMultiple,
+    )

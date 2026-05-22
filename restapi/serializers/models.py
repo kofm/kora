@@ -40,6 +40,7 @@ class PlantVarietyListSerializer(serializers.ListSerializer):
 
 
 class PlantVarietySerializer(serializers.ModelSerializer):
+    species_common_name = serializers.CharField(source="species.common_name", read_only=True)
     names = PlantVarietyNameSerializer(many=True, read_only=True)
 
     class Meta(BulkModelSerializer.Meta):
@@ -49,6 +50,7 @@ class PlantVarietySerializer(serializers.ModelSerializer):
             "id",
             "name",
             "species",
+            "species_common_name",
             "names",
             "created_at",
             "updated_at",

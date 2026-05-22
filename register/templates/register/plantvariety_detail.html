@@ -24,7 +24,7 @@
     <div class="col">
       <h2 id="descriptions">
         Descriptions
-        <a class="btn btn-sm btn-outline-primary" href="{% url 'describe:description_create' %}?variety={{ variety.pk }}" >Create</a>
+        <a class="btn btn-sm btn-outline-primary" hx-get="{% url 'describe:description_create' %}?variety={{ variety.pk }}" {% modal_attrs %}>Create</a>
       </h2>
 
       {% render_table tables.description %}

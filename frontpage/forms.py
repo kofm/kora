@@ -5,7 +5,7 @@ from django.contrib.auth.models import Group, User
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 
-from frontpage.widgets import TomSelectMultiple
+from frontpage.widgets import ModelTomSelect, TomSelectMultiple
 
 
 class AdminUserUpdateForm(forms.ModelForm):
@@ -80,3 +80,46 @@ class SearchAndClearButtons(LayoutObject):
             css_class=self.css_class,
         )
         return mark_safe(layout.render(form, form_style, context, template_pack))
+
+
+class TomSelectModelFormMixin:
+    """Initialize querysets for dependent TomSelect fields.
+
+    To provide correct validation to dependant fields when using
+    remote TomSelect widgets it is better to set the initial queryset
+    as `none()`. This mixin correctly initialise the querysets of the
+    dependant fields when the value(s) from which they depend on is
+    set in the form. This ensure that the submitted value is validated
+    against the filtered data instead of the full table. This mixin is
+    not necessary if there are no dependant TomSelect fields.
+
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        fields = self.fields
+        for _, field in fields.items():
+            widget = field.widget
+            if not isinstance(widget, ModelTomSelect):
+                continue
+
+            depends_on = widget.ts_config.depends_on()
+            lookup_field = widget.ts_config.depends_param()
+
+            if not depends_on:
+                continue
+            value = self._field_value(depends_on)
+            if value:
+                field.queryset = field.queryset.model.objects.filter(**{lookup_field: value})
+
+    def _field_value(self, field_name):
+        if self.is_bound:
+            value = self.data.get(self.add_prefix(field_name))
+        else:
+            value = self.initial.get(field_name)
+
+        if hasattr(value, "pk"):
+            return value.pk
+
+        return value

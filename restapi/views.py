@@ -81,7 +81,7 @@ class PlantSpeciesViewSet(BulkCreateMixin, viewsets.ModelViewSet):
 
 
 class PlantVarietyViewSet(BulkCreateMixin, viewsets.ModelViewSet):
-    queryset = PlantVariety.objects.all().prefetch_related("names").order_by("created_at")
+    queryset = PlantVariety.objects.all().select_related("species").prefetch_related("names").order_by("created_at")
     serializer_class = PlantVarietySerializer
     filterset_class = PlantVarietyFilter
 

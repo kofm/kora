@@ -7,17 +7,27 @@ from django_tables2 import RequestConfig
 
 import breadcrumbs.generic as crumbs
 from breadcrumbs.utils import generate_breadcrumbs
+from frontpage.utils.htmx import htmx_response_redirect
 from frontpage.views_decorators import NavPlantActiveContext, htmx_render_blocks
 from register.filters import PlantSpeciesFilter
 from register.models import PlantSpecies
 from register.tables import PlantVarietyTable
 
 
-class PlantSpeciesCreate(PermissionRequiredMixin, crumbs.CreateBreadcrumbsMixin, NavPlantActiveContext, CreateView):
+class PlantSpeciesCreate(PermissionRequiredMixin, NavPlantActiveContext, CreateView):
     model = PlantSpecies
     fields = ("common_name", "latin_name", "plant_type")
-    template_name = "frontpage/_create_form.html"
+    template_name = "frontpage/modal_form.html"
     permission_required = ["register.add_plantspecies"]
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["object_to_create"] = self.model._meta.verbose_name
+        return context
+
+    def form_valid(self, form):
+        self.object = form.save()
+        return htmx_response_redirect(self.object.get_absolute_url())
 
 
 @htmx_render_blocks(["cards"])
