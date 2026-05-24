@@ -1,7 +1,0 @@
-.draggable {
-    cursor: grab;      /* Default cursor when hovering */
-}
-
-.draggable:active {
-    cursor: grabbing;  /* Cursor when the mouse button is held down */
-}
