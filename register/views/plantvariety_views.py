@@ -9,7 +9,6 @@ from django.urls.base import reverse_lazy
 from django_tables2 import RequestConfig
 
 from breadcrumbs.generic import (
-    CrumbsCreateView,
     CrumbsDeleteView,
 )
 from breadcrumbs.utils import (
@@ -37,19 +36,8 @@ from register.tables import (
 )
 
 
-class PlantVarietyCreate(PermissionRequiredMixin, NavPlantActiveContext, CrumbsCreateView):
-    model = PlantVariety
-    form_class = PlantVarietyForm
-    template_name = "frontpage/modal_form.html"
-    permission_required = ["register.add_plantvariety"]
-
-    def get_context_data(self, **kwargs):
-        kwargs.update({"object_to_create": self.model._meta.verbose_name.title()})
-        return super().get_context_data(**kwargs)
-
-
-@permission_required(["register.add_plantvariety"])
 @nav_plant_active_context
+@permission_required(["register.add_plantvariety"], raise_exception=True)
 def plantvariety_create(request):
     form = PlantVarietyForm(request.POST or None)
     if form.is_valid():

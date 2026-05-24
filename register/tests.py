@@ -32,8 +32,8 @@ class PlantVarietyCreateViewTests(TestCase):
         self.client.login(username="permuser", password="password")
         response = self.client.get(self.create_url)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "frontpage/_create_form.html")
-        self.assertIn("model_name", response.context)
+        self.assertTemplateUsed(response, "frontpage/modal_form.html")
+        self.assertIn("object_to_create", response.context)
 
     def test_post_creates_plantvariety(self):
         self.client.login(username="permuser", password="password")
@@ -41,7 +41,7 @@ class PlantVarietyCreateViewTests(TestCase):
             self.create_url,
             {"name": "Cherry Tomato", "species": self.species.pk},
         )
-        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.status_code, 200)
         self.assertTrue(PlantVariety.objects.filter(name="Cherry Tomato").exists())
 
 
