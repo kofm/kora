@@ -26,6 +26,7 @@ urlpatterns = [
     path("storage/<int:pk>/update", views.storage_update, name="storage_update"),
     path("storage/<int:pk>/delete", views.storage_delete, name="storage_delete"),
     path("storage/sort", views.StorageSortView.as_view(), name="storage-sort"),
+    path("storage/autocomplete", views.StoragePositionAutocompleteView.as_view(), name="storage_autocomplete"),
     path("cart/", views.cart_detail, name="cart_detail"),
     path("cart/activate", views.cart_activate, name="cart_activate"),
     path("cart/create", views.cart_create, name="cart_create"),

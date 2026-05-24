@@ -3,8 +3,9 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Field, Layout
 from django import forms
 from django.core.validators import MinValueValidator
+from django.forms import ModelChoiceField
 from django.forms.widgets import DateInput
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 
 from collect.models import (
     Cart,
@@ -15,16 +16,54 @@ from collect.models import (
     Storage,
     StoragePosition,
 )
-from frontpage.widgets import TomSelect, YearInput
+from describe.forms import TomSelectModelChoiceField
+from frontpage.forms import TomSelectModelFormMixin
+from frontpage.widgets import ModelTomSelect, TomSelect, TomSelectConfig, YearInput
+from register.models import PlantSpecies, PlantVariety
 
 
-class SampleForm(forms.ModelForm):
+class SampleForm(TomSelectModelFormMixin, forms.ModelForm):
+    species = TomSelectModelChoiceField(
+        queryset=PlantSpecies.objects.all(),
+        widget=ModelTomSelect(
+            ts_config=TomSelectConfig(
+                url=reverse_lazy("register:plantspecies_autocomplete"),
+                value_field="id",
+                label_field="common_name",
+                search_field=["common_name", "latin_name"],
+            )
+        ),
+    )
+    variety = TomSelectModelChoiceField(
+        queryset=PlantVariety.objects.none(),
+        widget=ModelTomSelect(
+            ts_config=TomSelectConfig(
+                url=reverse_lazy("register:variety_autocomplete"),
+                value_field="id",
+                label_field="name",
+                search_field="name",
+                depends_on="species",
+                depends_param="species_id",
+            ),
+        ),
+    )
+
+    position = ModelChoiceField(
+        queryset=StoragePosition.objects.all(),
+        widget=ModelTomSelect(
+            ts_config=TomSelectConfig(
+                url=reverse_lazy("collect:storage_autocomplete"),
+                value_field="id",
+                label_field="text",
+                search_field=["name", "text"],
+            ),
+        ),
+    )
+
     class Meta:
         model = Sample
-        fields = ("sample_id", "variety", "position", "growing_season", "notes")
+        fields = ("sample_id", "species", "variety", "position", "growing_season", "notes")
         widgets = {
-            "variety": TomSelect,
-            "position": TomSelect,
             "growing_season": YearInput,
         }
 
@@ -32,9 +71,6 @@ class SampleForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         sample_id = Sample.objects.next_id()
         self.fields["sample_id"].initial = sample_id
-        empty_positions = StoragePosition.objects.empty_positions_for_sample(self.instance.pk)
-        self.fields["position"].queryset = empty_positions
-        self.fields["position"].initial = empty_positions.first()
 
 
 class SampleWeightForm(forms.ModelForm):

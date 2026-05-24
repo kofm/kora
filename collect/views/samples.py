@@ -183,12 +183,15 @@ def sample_update(request, pk):
     context = {}
     sample = get_object_or_404(Sample, pk=pk)
     if request.method == "POST":
-        form = SampleForm(request.POST, instance=sample)
+        form = SampleForm(
+            request.POST,
+            instance=sample,
+        )
         if form.is_valid():
             sample = form.save()
-            return redirect(reverse("collect:sample_detail", args=(pk,)))
+            return redirect(reverse("collect:sample_detail", args=(sample.pk,)))
     else:
-        form = SampleForm(instance=sample)
+        form = SampleForm(instance=sample, initial={"species": sample.variety.species})
 
     context.update({"form": form, "object": sample})
 
