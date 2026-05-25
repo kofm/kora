@@ -12,7 +12,6 @@ from django.views.generic.edit import DeleteView, UpdateView
 from django_tables2.config import RequestConfig
 
 from breadcrumbs.generic import (
-    CreateBreadcrumbsMixin,
     CrumbsCreateView,
     DeleteBreadcrumbsMixin,
     UpdateBreadcrumbsMixin,
@@ -33,7 +32,7 @@ from frontpage.views_decorators import (
 from parameters.forms import VarietalParameterForm
 from parameters.models import VarietalParameter
 from register.filters import EntityFilter, ProtectionOmniFilter
-from register.forms import ProtectionForm, ProtectionTypeForm
+from register.forms import EntityForm, ProtectionForm, ProtectionTypeForm
 from register.models import Entity, PlantVariety, Protection, ProtectionType
 from register.tables import EntityTable, PlantVarietyEntityTable, ProtectionListTable
 
@@ -181,15 +180,15 @@ def protection_type_delete(request, pk):
     return redirect("register:protection_configure")
 
 
-class EntityCreateView(PermissionRequiredMixin, CreateBreadcrumbsMixin, NavDescribeActiveContext, CreateView):
+class EntityCreateView(PermissionRequiredMixin, CreateView):
     model = Entity
-    fields = ("name", "type", "country", "contact", "email")
-    template_name = "frontpage/_create_form.html"
+    form_class = EntityForm
+    template_name = "frontpage/modal_form.html"
     permission_required = ["register.add_entity"]
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
-        context["model_name"] = "Entity"
+        context["object_to_create"] = "Entity"
         return context
 
 
@@ -202,14 +201,13 @@ def entity_detail(request, pk):
     qs = PlantVariety.objects.select_related("species").prefetch_related("protection_set").filter(query).distinct()
     table = PlantVarietyEntityTable(qs)
     RequestConfig(request).configure(table)
-    context = {"entity": entity, "table": table}
-    context.update(generate_breadcrumbs(request, Entity, entity))
+    context = {"entity": entity, "table": table, **generate_breadcrumbs(request, Entity, entity)}
     return TemplateResponse(request, "register/entity_detail.html", context)
 
 
 class EntityUpdateView(PermissionRequiredMixin, UpdateBreadcrumbsMixin, NavDescribeActiveContext, UpdateView):
     model = Entity
-    fields = ("name", "type", "country", "contact", "email")
+    form_class = EntityForm
     template_name = "frontpage/_update_form.html"
     permission_required = ["register.change_entity"]
 

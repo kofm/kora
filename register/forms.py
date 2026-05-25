@@ -3,9 +3,9 @@ from django.forms import ModelChoiceField, widgets
 from django.urls import reverse_lazy
 from django_countries.fields import CountryField
 
-from frontpage.widgets import ModelTomSelect, TomSelect, TomSelectConfig, TomSelectMultiple
+from frontpage.widgets import ModelTomSelect, TomSelect, TomSelectConfig
 
-from .models import PlantSpecies, PlantVariety, PlantVarietyName, Protection, ProtectionType
+from .models import Entity, PlantSpecies, PlantVariety, PlantVarietyName, Protection, ProtectionType
 
 
 class PlantVarietyForm(forms.ModelForm):
@@ -51,8 +51,22 @@ class ProtectionForm(forms.ModelForm):
         )
         widgets = {
             "country": TomSelect,
-            "applicants": TomSelectMultiple,
-            "maintainers": TomSelectMultiple,
+            "applicants": ModelTomSelect(
+                ts_config=TomSelectConfig(
+                    url=reverse_lazy("register:entity_autocomplete"),
+                    value_field="id",
+                    label_field="name",
+                    search_field="name",
+                )
+            ),
+            "maintainers": ModelTomSelect(
+                ts_config=TomSelectConfig(
+                    url=reverse_lazy("register:entity_autocomplete"),
+                    value_field="id",
+                    label_field="name",
+                    search_field="name",
+                )
+            ),
             "date_start": widgets.DateInput(attrs={"type": "date"}),
             "date_end": widgets.DateInput(attrs={"type": "date"}),
         }
@@ -65,3 +79,11 @@ class ProtectionTypeForm(forms.ModelForm):
 
     def clean_code(self):
         return self.cleaned_data["code"].strip().upper()
+
+
+class EntityForm(forms.ModelForm):
+    country = CountryField(blank=True).formfield(widget=TomSelect)
+
+    class Meta:
+        model = Entity
+        fields = ("name", "type", "country", "contact", "email")
