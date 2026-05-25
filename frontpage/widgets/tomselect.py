@@ -2,7 +2,7 @@ import json
 
 from django.forms.widgets import Select, SelectMultiple
 
-__all__ = [
+__all__ = (
     "TomSelectConfig",
     "TomSelectMixin",
     "TomSelectColour",
@@ -13,7 +13,7 @@ __all__ = [
     "ModelTomSelectMultiple",
     "TomSelect",
     "TomSelectMultiple",
-]
+)
 
 
 class TomSelectConfig:

@@ -1,11 +1,7 @@
 from django.forms import TextInput
 from django.forms.widgets import NumberInput
 
-__all__ = [
-    "YearInput",
-    "BootstrapNumberInput",
-    "BootstrapTextInput",
-]
+__all__ = ("YearInput", "BootstrapNumberInput", "BootstrapTextInput")
 
 
 class YearInput(NumberInput):

@@ -27,7 +27,6 @@ from django_filters import (
     FilterSet,
     ModelChoiceFilter,
     ModelMultipleChoiceFilter,
-    MultipleChoiceFilter,
 )
 
 from collect.models import Sample
@@ -35,7 +34,6 @@ from describe.models import Description, DescriptionLabel
 from describe.widgets import DescriptionLabelSelectMultiple
 from frontpage.forms import HTMXFormMixin, SearchAndClearButtons
 from frontpage.widgets import ModelTomSelect, ModelTomSelectMultiple, TomSelect, TomSelectConfig
-from register.fields import PlantSpeciesMultipleChoiceField
 from register.models import (
     ENTITY_TYPE_CHOICES,
     PROTECTION_STATUS_CHOICES,
@@ -179,10 +177,6 @@ class PlantSpeciesFilter(FilterSet):
         query = Q(common_name__icontains=value)
         query |= Q(latin_name__icontains=value)
         return queryset.filter(query)
-
-
-class PlantSpeciesMultipleChoiceFilter(MultipleChoiceFilter):
-    field_class = PlantSpeciesMultipleChoiceField
 
 
 class PlantVarietyFilter(FilterSet):
