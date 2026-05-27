@@ -132,8 +132,8 @@ function asOptions(el) {
         };
     }
 
-    if (opts.colour) {
-        delete opts.colour;
+    if (opts.isLabel) {
+        delete opts.isLabel;
 
         opts.render = {
             option: renderLabelOption,

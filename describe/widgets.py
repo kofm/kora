@@ -1,4 +1,4 @@
-from frontpage.widgets import TomSelectColour, TomSelectMultipleColour
+from frontpage.widgets import TomSelectLabel, TomSelectLabelMultiple
 
 
 class DescriptionLabelSelectMixin:
@@ -12,9 +12,9 @@ class DescriptionLabelSelectMixin:
         return option
 
 
-class DescriptionLabelSelect(DescriptionLabelSelectMixin, TomSelectColour):
+class DescriptionLabelSelect(DescriptionLabelSelectMixin, TomSelectLabel):
     pass
 
 
-class DescriptionLabelSelectMultiple(DescriptionLabelSelectMixin, TomSelectMultipleColour):
+class DescriptionLabelSelectMultiple(DescriptionLabelSelectMixin, TomSelectLabelMultiple):
     pass

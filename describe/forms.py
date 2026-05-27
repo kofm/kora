@@ -26,8 +26,8 @@ from frontpage.widgets import (
     BootstrapTextInput,
     ModelTomSelect,
     TomSelect,
-    TomSelectColour,
     TomSelectConfig,
+    TomSelectLabel,
 )
 from register.models import PlantSpecies, PlantVariety
 
@@ -363,7 +363,7 @@ class DescriptionLabelForm(forms.ModelForm):
     class Meta:
         model = DescriptionLabel
         fields = ("name", "colour")
-        widgets = {"colour": TomSelectColour}
+        widgets = {"colour": TomSelectLabel}
 
 
 class DescriptionFilterLabelForm(forms.Form):

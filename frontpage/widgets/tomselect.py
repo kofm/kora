@@ -1,3 +1,5 @@
+"""Fields and widgets to declare TomSelect.js inputs in forms."""
+
 import json
 
 from django.forms.widgets import Select, SelectMultiple
@@ -5,8 +7,8 @@ from django.forms.widgets import Select, SelectMultiple
 __all__ = (
     "TomSelectConfig",
     "TomSelectMixin",
-    "TomSelectColour",
-    "TomSelectMultipleColour",
+    "TomSelectLabel",
+    "TomSelectLabelMultiple",
     "EmptySelect",
     "EmptySelectMultiple",
     "ModelTomSelect",
@@ -17,10 +19,20 @@ __all__ = (
 
 
 class TomSelectConfig:
+    """Represents configuration for a TomSelect.js-powered form input.
+
+    Leverage Django's `attrs` arguments from form fields, but extends
+    its functionality to also allow lists and dictionaries. Set
+    options are stored in in dataset properties of of the associated
+    HTML element for Javascript processing. Used with TomSelect*
+    classes allow declarative syntax to instantiate TomSelect
+    elements.
+
+    """
+
     defaults = {
         "max_options": 100,
         "preload": "true",
-        "clear_after_select": "false",
     }
 
     def __init__(self, **options):
@@ -49,6 +61,8 @@ class TomSelectConfig:
 
 
 class TomSelectMixin:
+    """Merges TomSelectConfig specifications into the widget attributes and sets `tomselect` class."""
+
     ts_config = TomSelectConfig()
 
     def __init__(self, ts_config=None, attrs=None, choices=()):
@@ -59,24 +73,31 @@ class TomSelectMixin:
         super().__init__(attrs=attrs, choices=choices)
 
 
-class TomSelectColour(TomSelectMixin, Select):
-    """TomSelect for single choice fields."""
-
-    ts_config = TomSelectConfig(colour="true")
+class TomSelect(TomSelectMixin, Select):
+    """Render single choice fields with `TomSelect.js`."""
 
 
-class TomSelectMultipleColour(TomSelectMixin, SelectMultiple):
-    """TomSelect for single choice fields."""
+class TomSelectMultiple(TomSelectMixin, SelectMultiple):
+    """Render multiple choice fields with `TomSelect.js`."""
 
-    ts_config = TomSelectConfig(colour="true")
+
+class TomSelectLabel(TomSelectMixin, Select):
+    """Render custom label choice fields."""
+
+    ts_config = TomSelectConfig(is_label="true")
+
+
+class TomSelectLabelMultiple(TomSelectMixin, SelectMultiple):
+    """Render custom label fields with multiple choices possible."""
+
+    ts_config = TomSelectConfig(is_label="true")
 
 
 class EmptySelect(Select):
     def optgroups(self, name, value, attrs=None):
-        """
-        Render no full queryset options.
+        """Render no full queryset options.
 
-        Optionally render only the currently selected value, so redisplay after
+        Conditionally render only the currently selected value, so redisplay after
         validation errors still shows the selected item.
         """
         if not value:
@@ -113,6 +134,12 @@ class EmptySelect(Select):
 
 
 class EmptySelectMultiple(EmptySelect):
+    """Render no full queryset options.
+
+    Conditionally render only the selected values, so redisplay after
+    validation errors still shows the selected item.
+    """
+
     allow_multiple_selected = True
 
     def value_from_datadict(self, data, files, name):
@@ -123,22 +150,38 @@ class EmptySelectMultiple(EmptySelect):
         return getter(name)
 
     def value_omitted_from_data(self, data, files, name):
-        # An unselected <select multiple> doesn't appear in POST data, so it's
-        # never known if the value is actually omitted.
         return False
 
 
 class ModelTomSelect(TomSelectMixin, EmptySelect):
-    pass
+    """Render single choice fields with `TomSelect.js`, using remote loading.
+
+    This will *not* render any option by default, but rather relies on
+    valid `url` configuration for loading data remotely.
+
+    For example:
+
+    ```
+    class MyForm(forms.Form):
+        my_field = TomSelectModelChoiceField(
+            queryset=MyModel.objects.all(),
+            widget=ModelTomSelect(
+                ts_config=TomSelectConfig(
+                    url=reverse_lazy("my_view"),
+                    value_field="id",
+                    label_field="name",
+                    search_field=["name", "foofy"],
+                )
+            ),
+        )
+    ```
+
+    `my_view` can be specified using `AutocompleteModelView`
+
+    """
 
 
 class ModelTomSelectMultiple(TomSelectMixin, EmptySelectMultiple):
-    pass
+    """Render multiple choice fields with `TomSelect.js`, using remote loading.
 
-
-class TomSelect(TomSelectMixin, Select):
-    """TomSelect for single choice fields."""
-
-
-class TomSelectMultiple(TomSelectMixin, SelectMultiple):
-    """TomSelect for multiple choice fields."""
+    For more information see the docstring of `ModelTomSelect`."""

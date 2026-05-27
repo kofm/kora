@@ -54,8 +54,6 @@ class SampleForm(TomSelectModelFormMixin, forms.ModelForm):
             ts_config=TomSelectConfig(
                 url=reverse_lazy("collect:storage_autocomplete"),
                 value_field="id",
-                label_field="text",
-                search_field=["name", "text"],
             ),
         ),
     )
