@@ -22,6 +22,9 @@
 	  <h2 class="fs-4">Results</h2>
 	  <small class="text-muted">{{ page_obj.paginator.count }} matches.</small>
         </div>
+        <div class="col d-flex align-items-end justify-content-end">
+          {% crispy order_form %}
+        </div>
 
       </div>
 

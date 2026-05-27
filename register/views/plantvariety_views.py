@@ -25,7 +25,7 @@ from describe.models import Description
 from frontpage.utils.htmx import htmx_response_redirect
 from frontpage.views_decorators import NavPlantActiveContext, htmx_render_blocks, nav_plant_active_context
 from parameters.models import VarietalParameter
-from register.filters import PlantVarietyFilter
+from register.filters import PlantVarietyCardsOrderForm, PlantVarietyFilter
 from register.forms import PlantVarietyForm, PlantVarietyNameForm
 from register.models import PlantVariety, PlantVarietyName, Protection
 from register.tables import (
@@ -147,9 +147,16 @@ def plantvarietyname_delete(request, pk):
 @nav_plant_active_context
 @htmx_render_blocks(["cards"])
 def plantvariety_list(request):
-    flt = PlantVarietyFilter(request.GET, queryset=PlantVariety.objects.order_by("-created_at"))
+    flt = PlantVarietyFilter(request.GET, queryset=PlantVariety.objects.all())
+    queryset = flt.qs
 
-    paginator = Paginator(flt.qs, 12)
+    order_form = PlantVarietyCardsOrderForm(request.GET or None)
+    ordering = "-created_at"
+    if order_form.is_valid():
+        ordering = order_form.save()
+    queryset = queryset.order_by(ordering)
+
+    paginator = Paginator(queryset, 12)
     page_obj = paginator.get_page(request.GET.get("page"))
 
     prefetch_names = Prefetch(
@@ -169,10 +176,11 @@ def plantvariety_list(request):
         )
     )
 
-    context = {"filter": flt, "page_obj": page_obj, **generate_breadcrumbs(request, PlantVariety)}
+    context = {
+        "filter": flt,
+        "page_obj": page_obj,
+        "order_form": order_form,
+        **generate_breadcrumbs(request, PlantVariety),
+    }
 
-    return TemplateResponse(
-        request,
-        "register/plantvariety_list.html",
-        context,
-    )
+    return TemplateResponse(request, "register/plantvariety_list.html", context)

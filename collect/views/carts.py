@@ -8,7 +8,7 @@ from django.http.response import HttpResponse, HttpResponseBadRequest, JsonRespo
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.response import TemplateResponse
 from django.urls import reverse
-from django.views.decorators.http import require_GET, require_POST
+from django.views.decorators.http import require_http_methods, require_POST
 
 from collect.forms import (
     CartCreateForm,
@@ -218,7 +218,7 @@ def cartitem_create(request):
 
 
 @permission_required("collect.change_cartitem", raise_exception=True)
-@require_GET
+@require_http_methods(["GET"])
 def cartitem_set_sorting(request):
     sort_key = request.GET.get("sort", None)
     if sort_key in CART_SORTING:
@@ -227,7 +227,7 @@ def cartitem_set_sorting(request):
 
 
 @permission_required("collect.delete_cartitem", raise_exception=True)
-@require_GET
+@require_http_methods(["GET"])
 def cartitem_delete(request, pk):
     cartitem = get_object_or_404(CartItem, pk=pk)
     if request.user.pk == cartitem.cart.user_id:

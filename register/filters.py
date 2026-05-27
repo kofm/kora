@@ -1,3 +1,4 @@
+from crispy_forms.bootstrap import InlineField
 from crispy_forms.layout import Field, Layout, MultiWidgetField
 from django import forms
 from django.contrib.postgres.lookups import Unaccent
@@ -17,6 +18,7 @@ from django.db.models import (
     When,
 )
 from django.db.models.functions import Lower
+from django.forms import ChoiceField
 from django.urls import reverse_lazy
 from django_countries.fields import CountryField
 from django_filters import (
@@ -148,6 +150,8 @@ class PlantVarietyFilterForm(HTMXFormMixin, forms.Form):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper.form_method = "get"
+        self.helper.form_id = "variety-filter"
+        self.helper.attrs.update({"hx_include": "#id_order"})
         self.helper.layout = Layout(
             Field("name"),
             Field("species"),
@@ -157,6 +161,32 @@ class PlantVarietyFilterForm(HTMXFormMixin, forms.Form):
             MultiWidgetField("protection", attrs=({"class": "mt-1"})),
             SearchAndClearButtons(),
         )
+
+
+class PlantVarietyCardsOrderForm(HTMXFormMixin, forms.Form):
+    ORDER_CHOICES = [
+        ("created_at:desc", "Created (desc)"),
+        ("created_at:asc", "Created (asc)"),
+        ("name:asc", "Name (asc)"),
+        ("name:desc", "Name (desc)"),
+    ]
+    order = ChoiceField(choices=ORDER_CHOICES, required=False)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper.form_class = "form-inline"
+        self.helper.field_template = "bootstrap5/layout/inline_field.html"
+        self.helper.attrs.update({"hx_target": "#results", "hx_include": "#variety-filter"})
+        self.helper.layout = Layout(InlineField("order", css_class="form-select"))
+
+    def save(self):
+        order = self.cleaned_data["order"]
+        if not order:
+            return "-created_at"
+        ordering, direction = order.split(":")
+        if direction == "desc":
+            ordering = f"-{ordering}"
+        return ordering
 
 
 class PlantSpeciesFilterForm(HTMXFormMixin, forms.Form):

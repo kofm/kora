@@ -32,8 +32,8 @@ class HTMXFormMixin:
     """
 
     hx_url: str = ""
-    hx_trigger: str = "change from:select, keyup changed delay:500ms from:input"
-    form_method: str = "get"
+    hx_trigger: str = "change, input delay:500ms"
+    form_method: str = "GET"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
