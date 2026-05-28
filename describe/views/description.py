@@ -6,7 +6,7 @@ List, Detail, Update, Create, Delete
 from collections import defaultdict
 
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required, permission_required
+from django.contrib.auth.decorators import login_required, permission_required, user_passes_test
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.db import transaction
 from django.db.models import CharField, Q
@@ -356,6 +356,7 @@ def description_expression_update(request, pk):
     return TemplateResponse(request, "describe/description_expression_update.html", context)
 
 
+@user_passes_test(lambda user: user.is_staff)
 def description_configure(request):
     queryset = DescriptionLabel.objects.all()
     form = DescriptionLabelForm(request.POST or None)

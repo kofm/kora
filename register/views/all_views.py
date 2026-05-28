@@ -1,4 +1,4 @@
-from django.contrib.auth.decorators import permission_required
+from django.contrib.auth.decorators import permission_required, user_passes_test
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.db.models import Q
 from django.http import HttpRequest
@@ -154,6 +154,7 @@ def protection_detail(request, pk):
     )
 
 
+@user_passes_test(lambda user: user.is_staff)
 def protection_configure(request):
     form = ProtectionTypeForm(request.POST or None)
     if form.is_valid():
