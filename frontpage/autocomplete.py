@@ -14,7 +14,7 @@ class AutocompleteModelView(View):
     :param value_fiels: the fields to return in the results data
     :param ordering: the ordering to applyt to the results
     :param page_size: the number of results per page
-    :param filter_by: the fields to filter the results by, for dependant widgets
+    :param filter_by: the accepted fields for results filtering, used with dependant widgets
 
     Each results row always include a `text` key (which is the default
     TomSelect's `labelField`), which contains the string
@@ -50,6 +50,13 @@ class AutocompleteModelView(View):
         cond = Q()
         for flt in self.filter_by:
             val = self.request.GET.get(flt)
+            # This allows using the same view both for dependant and
+            # independant fields. If the filter_by values are not
+            # submitted it will return the unfiltered
+            # queryset. Presence of the value in dependent fields is
+            # enforced in the JS code.
+            if not val:
+                continue
             cond &= Q(**{flt: val})
         return queryset.filter(cond)
 

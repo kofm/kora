@@ -1,8 +1,11 @@
+import json
+
 from django.contrib.auth.models import Permission, User
-from django.test import SimpleTestCase, TestCase
+from django.test import RequestFactory, SimpleTestCase, TestCase
 from django.urls import reverse
 from factory.declarations import Iterator
 
+from frontpage.autocomplete import AutocompleteModelView
 from frontpage.factories import AdminFactory
 from register.factories import PlantSpeciesFactory, PlantVarietyFactory
 from register.filters import TRIGRAM_SEARCH_THRESHOLD, PlantVarietyFilter, filter_name_generic
@@ -146,3 +149,38 @@ class PlantVarietyFilterTest(TestCase):
         self.assertIn("Carnarole", variety_names)
         self.assertIn("Carnarolo", variety_names)
         self.assertNotIn("Foo", variety_names)
+
+
+class TestAutocompleteView(AutocompleteModelView):
+    model = PlantVariety
+    filter_by = ["species_id"]
+    ordering = ["pk"]
+
+
+class AutocompleteViewTest(TestCase):
+    def setUp(self) -> None:
+        self.factory = RequestFactory()
+        PlantVarietyFactory.create_batch(4)
+        self.varieties = PlantVariety.objects.order_by("pk")
+
+    def test_get_returns_json_response(self):
+        request = self.factory.get("/autocomplete/?q=")
+
+        response = TestAutocompleteView.as_view()(request)
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.content)
+        self.assertEqual(len(data["results"]), 4)
+        check = [{"id": obj.pk, "name": obj.name, "text": str(obj)} for obj in self.varieties]
+        self.assertEqual(check, data["results"])
+
+    def test_get_returns_json_response_filtered(self):
+        species_id = self.varieties[0].species_id
+        request = self.factory.get(f"/autocomplete/?q=&species_id={species_id}")
+
+        response = TestAutocompleteView.as_view()(request)
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.content)
+        check = [
+            {"id": obj.pk, "name": obj.name, "text": str(obj)} for obj in self.varieties if obj.species_id == species_id
+        ]
+        self.assertEqual(check, data["results"])
