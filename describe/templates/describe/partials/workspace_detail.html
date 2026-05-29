@@ -39,9 +39,8 @@
       {% url 'describe:description_compare' as compare_url %}
       {% dropdown_item "Compare" href=compare_url target="_blank" disabled=workspace|yesno:"False,True" %}
 
-      {% url 'restapi:workspaces' workspace.pk as download_url %}
-      {% querystring no_pagination=1 format="json" as download_querystring %}
-      {% dropdown_item "Download" href=download_url querystring=download_querystring target="_blank" disabled=workspace|yesno:"False,True" %}
+      {% url 'restapi:workspace_elements' workspace.pk as download_url %}
+      {% dropdown_item "Download" href=download_url target="_blank" disabled=workspace|yesno:"False,True" %}
 
       {% url 'describe:workspace_delete' workspace.pk as delete_url %}
       {% dropdown_item_to_modal "Delete" hx_get=delete_url disabled=workspace|yesno:"False,True" %}
