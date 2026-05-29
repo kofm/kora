@@ -128,7 +128,8 @@ class StateFilter(FilterSet):
 
 
 class DescriptionFilter(FilterSet):
-    name__in = CharInFilter(field_name="name", lookup_expr="in")
+    label = CharFilter(field_name="label__name", lookup_expr="iname")
+    label__in = CharInFilter(field_name="label__name", lookup_expr="in")
     protocol__in = NumberInFilter(field_name="protocol", lookup_expr="in")
     variety_name = django_filters.CharFilter(label="Variety Name", method="filter_variety_name")
     variety__in = NumberInFilter(field_name="variety", lookup_expr="in")
@@ -136,8 +137,8 @@ class DescriptionFilter(FilterSet):
     class Meta:
         model = Description
         fields = (
-            "name",
-            "name__in",
+            "label",
+            "label__in",
             "protocol",
             "protocol__in",
             "variety",

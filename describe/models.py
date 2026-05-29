@@ -133,7 +133,6 @@ class DescriptionLabel(Label):
 
 
 class Description(ModelIsDeletableMixin, models.Model):
-    name = models.CharField(verbose_name="tag", max_length=200, help_text="The identifier of the description")
     label = models.ForeignKey(
         DescriptionLabel,
         on_delete=models.PROTECT,

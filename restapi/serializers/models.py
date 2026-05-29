@@ -136,12 +136,14 @@ class DescriptionSerializer(BulkModelSerializer):
     variety_name = serializers.CharField(source="variety.name", read_only=True)
     species = serializers.StringRelatedField(source="variety.species.latin_name", read_only=True)
     protocol_name = serializers.StringRelatedField(source="protocol.name", read_only=True)
+    label = serializers.StringRelatedField(source="label.name", read_only=True)
 
     class Meta:
         model = Description
         fields = (
             "id",
-            "name",
+            "label_id",
+            "label",
             "variety",
             "variety_name",
             "species",
@@ -283,11 +285,12 @@ class ExpressionNestedSerializer(serializers.ModelSerializer):
 
 
 class DescriptionNestedSerializer(serializers.ModelSerializer):
+    label = serializers.StringRelatedField(source="label.name", read_only=True)
     expressions = ExpressionNestedSerializer(many=True, read_only=True)
 
     class Meta(BulkModelSerializer.Meta):
         model = Description
-        fields = ("name", "expressions")
+        fields = ("label_id", "label", "expressions")
 
 
 class WorkspaceElementSerializer(BulkModelSerializer):

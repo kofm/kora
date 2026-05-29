@@ -235,7 +235,7 @@ class StateViewSet(BulkCreateMixin, viewsets.ModelViewSet):
 
 class DescriptionViewSet(BulkCreateMixin, viewsets.ModelViewSet):
     serializer_class = DescriptionSerializer
-    queryset = Description.objects.select_related("variety__species", "protocol").all()
+    queryset = Description.objects.select_related("variety__species", "protocol", "label").all()
     filterset_class = DescriptionFilter
 
 
@@ -335,7 +335,11 @@ class WorkspaceElementViewSet(viewsets.ModelViewSet):
         user = self.request.user
         workspace = self.kwargs["workspace"]
         return (
-            WorkspaceElement.objects.select_related("description__variety__species", "description__protocol")
+            WorkspaceElement.objects.select_related(
+                "description__variety__species",
+                "description__protocol",
+                "description__label",
+            )
             .prefetch_related("description__expressions__state__trait")
             .filter(workspace__user=user, workspace__pk=workspace)
         )
