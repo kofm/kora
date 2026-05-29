@@ -3,8 +3,9 @@ import datetime
 from factory import faker
 from factory.declarations import Iterator, LazyFunction, SubFactory
 from factory.django import DjangoModelFactory
+from factory.fuzzy import FuzzyText
 
-from register.models import Entity, PlantSpecies, PlantVariety, PlantVarietyName, Protection
+from register.models import Entity, PlantSpecies, PlantVariety, PlantVarietyName, Protection, ProtectionType
 
 PLANT_SPECIES = [
     ("Tomato", "Solanum lycopersicum", "vegetable"),
@@ -55,11 +56,28 @@ class EntityFactory(DjangoModelFactory):
     email = "contact@seedco.com"
 
 
-class ProtectionFactory(DjangoModelFactory):
-    class Meta:
-        model = Protection
+class ProtectionTypeFactory(DjangoModelFactory):
+    code = FuzzyText(length=3)
+    name = faker.Faker("word")
 
-    type = "NLI"
+    class Meta:
+        model = ProtectionType
+
+
+class NationalListingFactory(DjangoModelFactory):
+    code = "NLI"
+    name = "National Listing"
+
+    class Meta:
+        model = ProtectionType
+        django_get_or_create = ("code",)
+
+
+class ProtectionFactory(DjangoModelFactory):
+    type = SubFactory(NationalListingFactory)
     status = "G"
     country = "IT"
     variety = SubFactory(PlantVarietyFactory)
+
+    class Meta:
+        model = Protection

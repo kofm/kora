@@ -6,10 +6,59 @@ from django.urls import reverse
 from factory.declarations import Iterator
 
 from frontpage.autocomplete import AutocompleteModelView
-from frontpage.factories import AdminFactory
-from register.factories import PlantSpeciesFactory, PlantVarietyFactory
+from frontpage.factories import UserFactory
+from frontpage.testcases import ViewSmokeTestMixin
+from register.factories import (
+    EntityFactory,
+    PlantSpeciesFactory,
+    PlantVarietyFactory,
+    ProtectionFactory,
+    ProtectionTypeFactory,
+)
 from register.filters import TRIGRAM_SEARCH_THRESHOLD, PlantVarietyFilter, filter_name_generic
 from register.models import PlantVariety
+
+
+class RegisterViewsSmokeTest(ViewSmokeTestMixin, TestCase):
+    def setUp(self):
+        self.user = UserFactory(is_superuser=True)
+        self.client.force_login(self.user)
+        self.plantspecies = PlantSpeciesFactory()
+        self.variety = PlantVarietyFactory()
+        self.protection = ProtectionFactory()
+        self.entity = EntityFactory()
+        self.protection_type = ProtectionTypeFactory()
+        self.app_name = "register"
+
+    def test_register_views(self):
+        self.assert_get(["protection_list", "entity_list", "entity_create", "entity_autocomplete"])
+
+    def test_plantspecies_instance_views(self):
+        self.assert_get(["plantspecies_create", "plantspecies_list", "plantspecies_autocomplete"])
+        self.assert_get(["plantspecies_detail", "plantspecies_delete", "plantspecies_update"], [self.plantspecies.pk])
+        self.assert_post(["plantspecies_update"], [self.plantspecies.pk])
+        self.assert_post(["plantspecies_delete"], [self.plantspecies.pk], status_code=302)
+
+    def test_variety_instance_views(self):
+        self.assert_get(["variety_list", "variety_create", "variety_autocomplete"])
+        self.assert_get(["variety_detail", "variety_delete", "protection_create"], [self.variety.pk])
+        self.assert_post(["variety_delete"], [self.variety.pk], status_code=302)
+
+    def test_protection_instance_views(self):
+        self.assert_get(["protection_list"])
+        self.assert_get(["protection_detail", "protection_update", "protection_delete"], [self.protection.pk])
+        self.assert_post(["protection_update"], [self.protection.pk])
+        self.assert_post(["protection_delete"], [self.protection.pk], status_code=302)
+
+    def test_entity_instance_views(self):
+        self.assert_get(["entity_list", "entity_create", "entity_autocomplete"])
+        self.assert_get(["entity_detail", "entity_update", "entity_delete"], [self.entity.pk])
+        self.assert_post(["entity_update"], [self.entity.pk])
+        self.assert_post(["entity_delete"], [self.entity.pk], status_code=302)
+
+    def test_protection_type_instance_views(self):
+        self.assert_get(["protection_type_update"], [self.protection_type.pk])
+        self.assert_post(["protection_type_delete"], [self.protection_type.pk], status_code=302)
 
 
 class PlantVarietyCreateViewTests(TestCase):
@@ -106,29 +155,12 @@ class FilterNameGenericTest(SimpleTestCase):
         self.assertEqual(self.qs.ordering, [])
 
 
-class RegisterViewsSmokeTest(TestCase):
-    def setUp(self) -> None:
-        self.user = AdminFactory(username="tester", password="pass")
-        self.client.login(username="tester", password="pass")
-
-    def test_variety_list_view(self):
-        response = self.client.get(reverse("register:variety_list"))
-        self.assertEqual(response.status_code, 200)
-
-
 class PlantVarietyFilterTest(TestCase):
     def setUp(self) -> None:
         species = PlantSpeciesFactory()
         self.varieties = PlantVarietyFactory.create_batch(
             4,
-            name=Iterator(
-                [
-                    "Carnaroli",
-                    "Carnarolo",
-                    "Foo",
-                    "Carnarole",
-                ]
-            ),
+            name=Iterator(["Carnaroli", "Carnarolo", "Foo", "Carnarole"]),
             species=species,
         )
 
