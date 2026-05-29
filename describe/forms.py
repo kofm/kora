@@ -19,15 +19,16 @@ from describe.models import (
     Trait,
     Workspace,
 )
-from describe.widgets import DescriptionLabelSelect, DescriptionLabelSelectMultiple
 from frontpage.forms import TomSelectModelFormMixin
 from frontpage.widgets import (
     BootstrapNumberInput,
     BootstrapTextInput,
+    LabelColourSelect,
+    LabelSelect,
+    LabelSelectMultiple,
     ModelTomSelect,
     TomSelect,
     TomSelectConfig,
-    TomSelectLabel,
 )
 from register.models import PlantSpecies, PlantVariety
 
@@ -87,7 +88,7 @@ class ExpressionUpdateForm(forms.Form):
 class DescriptionLabelsForm(forms.Form):
     labels = forms.ModelMultipleChoiceField(
         label="Label",
-        widget=DescriptionLabelSelectMultiple,
+        widget=LabelSelectMultiple(),
         queryset=DescriptionLabel.objects.all(),
         required=False,
     )
@@ -180,7 +181,7 @@ class DescriptionForm(TomSelectModelFormMixin, forms.ModelForm):
             ),
         ),
     )
-    label = ModelChoiceField(queryset=DescriptionLabel.objects.all(), widget=DescriptionLabelSelect())
+    label = ModelChoiceField(queryset=DescriptionLabel.objects.all(), widget=LabelSelect())
 
     class Meta:
         model = Description
@@ -191,11 +192,11 @@ class DescriptionDuplicateForm(forms.ModelForm):
     class Meta:
         model = Description
         fields = ("label",)
-        widgets = {"name": DescriptionLabelSelect}
+        widgets = {"name": LabelSelect()}
 
 
 class DescriptionUpdateForm(forms.ModelForm):
-    label = forms.ModelChoiceField(queryset=DescriptionLabel.objects.all(), widget=DescriptionLabelSelect)
+    label = forms.ModelChoiceField(queryset=DescriptionLabel.objects.all(), widget=LabelSelect())
     notes = forms.CharField(widget=forms.Textarea, required=False)
 
     class Meta:
@@ -363,11 +364,11 @@ class DescriptionLabelForm(forms.ModelForm):
     class Meta:
         model = DescriptionLabel
         fields = ("name", "colour")
-        widgets = {"colour": TomSelectLabel}
+        widgets = {"colour": LabelColourSelect()}
 
 
 class DescriptionFilterLabelForm(forms.Form):
     labels = forms.ModelMultipleChoiceField(
         queryset=DescriptionLabel.objects.all(),
-        widget=DescriptionLabelSelectMultiple,
+        widget=LabelSelectMultiple,
     )

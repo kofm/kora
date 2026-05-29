@@ -33,9 +33,8 @@ from django_filters import (
 
 from collect.models import Sample
 from describe.models import Description, DescriptionLabel
-from describe.widgets import DescriptionLabelSelectMultiple
 from frontpage.forms import HTMXFormMixin, SearchAndClearButtons
-from frontpage.widgets import ModelTomSelect, ModelTomSelectMultiple, TomSelect, TomSelectConfig
+from frontpage.widgets import LabelSelectMultiple, ModelTomSelect, ModelTomSelectMultiple, TomSelect, TomSelectConfig
 from register.models import (
     ENTITY_TYPE_CHOICES,
     PROTECTION_STATUS_CHOICES,
@@ -229,7 +228,7 @@ class PlantVarietyFilter(FilterSet):
     description_label = ModelMultipleChoiceFilter(
         label="Description Label",
         queryset=DescriptionLabel.objects.all(),
-        widget=DescriptionLabelSelectMultiple,
+        widget=LabelSelectMultiple,
         method="filter_description_label",
     )
     sample = BooleanFilter(label="Sample", field_name="sample", method="filter_sample")

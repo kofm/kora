@@ -7,14 +7,17 @@ from django.forms.widgets import Select, SelectMultiple
 __all__ = (
     "TomSelectConfig",
     "TomSelectMixin",
-    "TomSelectLabel",
-    "TomSelectLabelMultiple",
+    "TomSelect",
+    "TomSelectMultiple",
+    "LabelColourSelect",
+    "LabelColourSelectMultiple",
+    "LabelSelectMixin",
+    "LabelSelect",
+    "LabelSelectMultiple",
     "EmptySelect",
     "EmptySelectMultiple",
     "ModelTomSelect",
     "ModelTomSelectMultiple",
-    "TomSelect",
-    "TomSelectMultiple",
 )
 
 
@@ -81,16 +84,62 @@ class TomSelectMultiple(TomSelectMixin, SelectMultiple):
     """Render multiple choice fields with `TomSelect.js`."""
 
 
-class TomSelectLabel(TomSelectMixin, Select):
-    """Render custom label choice fields."""
+class LabelColourSelect(TomSelectMixin, Select):
+    """Select input to choose a label colour."""
 
     ts_config = TomSelectConfig(is_label="true")
 
 
-class TomSelectLabelMultiple(TomSelectMixin, SelectMultiple):
-    """Render custom label fields with multiple choices possible."""
+class LabelColourSelectMultiple(TomSelectMixin, SelectMultiple):
+    """Select input to choose multiple colours."""
 
     ts_config = TomSelectConfig(is_label="true")
+
+
+class LabelSelectMixin:
+    """Add `colour_class` to the HTML element property under `data-colour`."""
+
+    def create_option(
+        self,
+        name,
+        value,
+        label,
+        selected,
+        index,
+        subindex=None,
+        attrs=None,
+    ):
+        option = super().create_option(
+            name,
+            value,
+            label,
+            selected,
+            index,
+            subindex=subindex,
+            attrs=attrs,
+        )
+        if value:
+            label = value.instance
+            colour = label.colour_class
+            option["attrs"]["data-colour"] = colour
+
+        return option
+
+
+class LabelSelect(LabelSelectMixin, LabelColourSelect):
+    """Widget to select a `Label` entity using TomSelect.js.
+
+    Renders color coded labels using the `colour_class` attribute."""
+
+    pass
+
+
+class LabelSelectMultiple(LabelSelectMixin, LabelColourSelectMultiple):
+    """Widget to select multiple `Label` entities using TomSelect.js.
+
+    Renders color coded labels using the `colour_class` attribute."""
+
+    pass
 
 
 class EmptySelect(Select):
