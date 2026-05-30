@@ -78,7 +78,6 @@ def _description_list(request):
                 form = DescriptionFilterLabelForm(request.POST)
                 if form.is_valid():
                     labels = form.cleaned_data["labels"]
-                    print(labels)
                     update_description_filter(request, label=list(labels.values_list("pk", flat=True)))
             else:
                 update_description_filter(request, name=[])
