@@ -146,7 +146,7 @@ REST_FRAMEWORK = {
     "PAGE_SIZE": 100,
     "DEFAULT_PAGINATION_CLASS": "restapi.pagination.OptionalPagination",
     "DEFAULT_FILTER_BACKENDS": [
-        "django_filters.rest_framework.DjangoFilterBackend",
+        "restapi.filters.NoBrowsableAPIFilterBackend",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",

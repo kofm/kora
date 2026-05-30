@@ -1,12 +1,17 @@
 import django_filters
 from django_filters import CharFilter, NumberFilter
-from django_filters.rest_framework import FilterSet
+from django_filters.rest_framework import DjangoFilterBackend, FilterSet
 
 from collect.models import Germinability, Sample, SampleWeight, Storage, StoragePosition
 from describe.models import Description, Expression, Protocol, State, Trait
 from parameters.models import Parameter, VarietalParameter
 from register.filters import filter_name_generic
 from register.models import Entity, PlantSpecies, PlantVariety, Protection
+
+
+class NoBrowsableAPIFilterBackend(DjangoFilterBackend):
+    def to_html(self, request, queryset, view):
+        return ""
 
 
 class CharInFilter(django_filters.BaseInFilter, django_filters.CharFilter):
