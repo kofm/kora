@@ -167,7 +167,7 @@ class ProtectionViewSet(BulkCreateMixin, viewsets.ModelViewSet):
 
     def get_queryset(self):
         entity_qs = Entity.objects.all().order_by("name")
-        return Protection.objects.prefetch_related(
+        return Protection.objects.select_related("type").prefetch_related(
             Prefetch("applicants", queryset=entity_qs), Prefetch("maintainers", queryset=entity_qs)
         )
 
