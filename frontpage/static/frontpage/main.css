@@ -24,6 +24,11 @@
   color: #343a40;
 }
 
+/* HTMX Indicator */
+#tray-indicator {
+  pointer-events: none; /* Prevent the indicator to block the hamburger menu in mobile view */
+}
+
 /* Table Hover */
 
 .table-hover .row-action {

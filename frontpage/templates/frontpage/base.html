@@ -3,47 +3,47 @@
 
 <!doctype html>
 <html lang="en">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <link rel="stylesheet" href="{% static 'frontpage/vendor/bootstrap.min.css' %}">
-        <link rel="stylesheet" href="{% static 'frontpage/vendor/bootstrap-icons.css' %}">
-        <link rel="stylesheet" href="{% static 'frontpage/vendor/tom-select.bootstrap5.css' %}">
-        <link rel="stylesheet" href="{% static 'frontpage/main.css' %}">
+    <link rel="stylesheet" href="{% static 'frontpage/vendor/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'frontpage/vendor/bootstrap-icons.css' %}">
+    <link rel="stylesheet" href="{% static 'frontpage/vendor/tom-select.bootstrap5.css' %}">
+    <link rel="stylesheet" href="{% static 'frontpage/main.css' %}">
 
-        <meta charset="UTF-8">
-        <title>Kora - {% block title %}{% endblock %}</title>
-    </head>
+    <meta charset="UTF-8">
+    <title>Kora - {% block title %}{% endblock %}</title>
+  </head>
 
-    <body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' data-bs-theme="{{ request.session.appearance|default:"light" }}" _="on fetch:beforeRequest(headers) set headers['X-CSRFToken'] to '{{ csrf_token }}'">
+  <body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' data-bs-theme="{{ request.session.appearance|default:"light" }}" _="on fetch:beforeRequest(headers) set headers['X-CSRFToken'] to '{{ csrf_token }}'">
 
-        {% include 'frontpage/navbar.html' %}
+    {% include 'frontpage/navbar.html' %}
 
-        <main class="container">
-            {% block container %}
-            {% endblock %}
-        </main>
+    <main class="container">
+      {% block container %}
+      {% endblock %}
+    </main>
 
-        {% offcanvas "workspace" "Workspace" "describe/partials/workspace_offcanvas.html" %}
-        {% offcanvas "cart" "Cart" "collect/partials/cart_offcanvas.html" %}
+    {% offcanvas "workspace" "Workspace" "describe/partials/workspace_offcanvas.html" %}
+    {% offcanvas "cart" "Cart" "collect/partials/cart_offcanvas.html" %}
 
-        {% include "frontpage/modal.html" %}
-        {% include "frontpage/partials/toasts.html" %}
+    {% include "frontpage/modal.html" %}
+    {% include "frontpage/partials/toasts.html" %}
 
-        <div id="tray-indicator" class="position-fixed top-0 end-0 p-3 htmx-indicator">
-            <div class="spinner-border spinner-border"></div>
-        </div>
+    <div id="tray-indicator" class="position-fixed top-0 end-0 p-3 htmx-indicator">
+      <div class="spinner-border" role="status" aria-hidden="true"></div>
+    </div>
 
-        <script src="{% static 'frontpage/vendor/htmx.min.js' %}" defer></script>
-        <script src="{% static 'frontpage/vendor/hyperscript.min.js' %}" defer></script>
-        <script src="{% static 'frontpage/vendor/bootstrap.bundle.min.js' %}" defer></script>
-        <script src="{% static 'frontpage/vendor/tom-select.complete.js' %}" defer></script>
-        <script src="{% static 'frontpage/vendor/Sortable.min.js' %}" defer></script>
+    <script src="{% static 'frontpage/vendor/htmx.min.js' %}" defer></script>
+    <script src="{% static 'frontpage/vendor/hyperscript.min.js' %}" defer></script>
+    <script src="{% static 'frontpage/vendor/bootstrap.bundle.min.js' %}" defer></script>
+    <script src="{% static 'frontpage/vendor/tom-select.complete.js' %}" defer></script>
+    <script src="{% static 'frontpage/vendor/Sortable.min.js' %}" defer></script>
 
-        <script type="module" src="{% static 'frontpage/main.js' %}" defer></script>
+    <script type="module" src="{% static 'frontpage/main.js' %}" defer></script>
 
-        {% block javascript %}
-        {% endblock %}
-    </body>
+    {% block javascript %}
+    {% endblock %}
+  </body>
 </html>
