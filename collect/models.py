@@ -13,6 +13,7 @@ from django.utils import timezone
 
 from collect.exceptions import SampleDiscardError
 from frontpage.generic import ModelIsDeletableMixin
+from frontpage.utils.numbers import format_decimal
 from register.models import PlantVariety
 
 
@@ -350,9 +351,13 @@ class Sample(ModelIsDeletableMixin, models.Model):
 
     def get_weight_display(self):
         if self.weight and self.weight > self.available:
-            return format_html('{} g <del class="text-muted"><small>{}</small></del>', self.available, self.weight)
+            return format_html(
+                '{} g <del class="text-muted"><small>{}</small></del>',
+                format_decimal(self.available),
+                format_decimal(self.weight),
+            )
         elif self.weight:
-            return format_html("{} g", self.weight)
+            return format_html("{} g", format_decimal(self.weight))
         else:
             return "-"
 
