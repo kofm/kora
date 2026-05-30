@@ -189,10 +189,10 @@ def description_compare(request):
     # Get all the available Descriptions for any of the Variety-Name
     # combinations present in the workspace.
     # This includes descriptions from other protocols, too.
-    pairs = elems.values_list("description__variety_id", "description__name").distinct()
+    pairs = elems.values_list("description__variety_id", "description__label").distinct()
     query = Q()
-    for variety_id, name in pairs:
-        query |= Q(variety_id=variety_id, name=name)
+    for variety_id, label in pairs:
+        query |= Q(variety_id=variety_id, label=label)
     descriptions = Description.objects.filter(query)
 
     protocols = (

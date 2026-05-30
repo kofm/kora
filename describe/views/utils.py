@@ -32,7 +32,7 @@ def list_elems_equal(expressions: list[list]) -> bool:
 def make_species_descriptions_dict(descriptions: QuerySet) -> dict[tuple, dict[tuple, list]]:
     result: dict[tuple, dict[tuple, list]] = {}
 
-    descriptions_dict = descriptions.annotated()  # type: ignore[attr-defined]
+    descriptions_dict = descriptions.annotated()  # ty:ignore[unresolved-attribute]
 
     grouped_species = groupby(
         descriptions_dict,
@@ -49,7 +49,7 @@ def make_descriptions_dict(description_values):
     result = {}
     grouped_descriptions = groupby(
         description_values,
-        lambda x: (x["variety__id"], x["variety__name"], x["name"]),
+        lambda x: (x["variety__id"], x["variety__name"], x["label__name"]),
     )
 
     for description_key, expressions in grouped_descriptions:

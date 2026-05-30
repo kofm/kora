@@ -7,7 +7,6 @@ from django.db import models
 from django.db.models import F, Prefetch, UniqueConstraint
 from django.db.models.aggregates import Count
 from django.db.models.functions import Coalesce
-from django.db.utils import OperationalError, ProgrammingError
 from django.urls import reverse
 from django.utils.functional import cached_property
 
@@ -112,7 +111,7 @@ class DescriptionQuerySet(models.QuerySet):
             .values(
                 "variety__id",
                 "variety__name",
-                "name",
+                "label__name",
                 species_id=F("protocol__plantspecies__id"),
                 species_name=F("protocol__plantspecies__common_name"),
                 state_id=F("expressions__state__id"),
@@ -123,7 +122,7 @@ class DescriptionQuerySet(models.QuerySet):
                 "species_name",
                 "variety__id",
                 "variety__name",
-                "name",
+                "label__name",
             )
         )
 
@@ -182,14 +181,6 @@ class Description(ModelIsDeletableMixin, models.Model):
     @classmethod
     def get_configure_url(cls):
         return reverse("describe:description_configure")
-
-    @classmethod
-    def names(cls):
-        try:
-            queryset = cls.objects.order_by("name").values_list("name", flat=True).distinct()
-            return [(name, name) for name in queryset]
-        except (ProgrammingError, OperationalError):
-            return []
 
     @cached_property
     def available_traits(self):
