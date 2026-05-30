@@ -7,6 +7,8 @@ export function initializeSortableElements(container = document) {
         if (element._sortable) element._sortable.destroy();
         element._sortable = new window.Sortable(element, {
             animation: 150,
+            delay: 250,
+            delayOnTouchOnly: true,
             sort: element.dataset.sortable === "true",
         });
     });
