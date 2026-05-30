@@ -407,7 +407,7 @@ class Germinability(models.Model):
     sample = models.ForeignKey(Sample, on_delete=models.CASCADE)
     germinability = models.IntegerField()
     after_days = models.IntegerField(blank=True, null=True)
-    performed_at = models.DateField(default=timezone.localdate, blank=True, null=True)
+    performed_at = models.DateTimeField(default=timezone.now, blank=True, null=True)
 
     class Meta:
         ordering = ("performed_at",)
@@ -425,7 +425,7 @@ class Germinability(models.Model):
 class SampleWeight(models.Model):
     sample = models.ForeignKey(Sample, on_delete=models.CASCADE)
     weight = models.FloatField("sample weight (g)", validators=[MinValueValidator(0.0)])
-    created_at = models.DateField("recorded at", default=timezone.localdate)
+    created_at = models.DateTimeField("recorded at", default=timezone.now)
 
     class Meta:
         ordering = ("created_at",)

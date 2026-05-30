@@ -4,7 +4,6 @@ from crispy_forms.layout import Field, Layout
 from django import forms
 from django.core.validators import MinValueValidator
 from django.forms import ModelChoiceField
-from django.forms.widgets import DateInput
 from django.urls import reverse, reverse_lazy
 
 from collect.models import (
@@ -75,9 +74,7 @@ class SampleWeightForm(forms.ModelForm):
     class Meta:
         model = SampleWeight
         fields = ("weight", "created_at")
-        widgets = {
-            "created_at": DateInput(attrs={"type": "date"}),
-        }
+        widgets = {"created_at": forms.DateTimeInput(attrs={"type": "datetime-local"})}
 
 
 class SampleRestoreForm(forms.ModelForm):
@@ -98,9 +95,7 @@ class GerminabilityForm(forms.ModelForm):
     class Meta:
         model = Germinability
         fields = ("germinability", "after_days", "performed_at")
-        widgets = {
-            "performed_at": DateInput(attrs={"type": "date"}),
-        }
+        widgets = {"performed_at": forms.DateTimeInput(attrs={"type": "datetime-local"})}
 
 
 class CartSelectForm(forms.Form):
