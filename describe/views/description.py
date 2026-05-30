@@ -233,20 +233,6 @@ def description_detail(request, pk):
 
 
 @nav_describe
-@permission_required("describe.change_description", raise_exception=True)
-def description_update(request, pk):
-    description = get_object_or_404(Description, pk=pk)
-    form = DescriptionUpdateForm(request.POST or None, instance=description)
-    if form.is_valid():
-        description = form.save()
-        return redirect(description.get_absolute_url())
-
-    context = {"form": form, "object": description, "description": description}
-    context.update(generate_breadcrumbs(request, Description, description))
-    return TemplateResponse(request, "describe/description_update.html", context)
-
-
-@nav_describe
 @permission_required("describe.add_description", raise_exception=True)
 def description_create(request):
     context = {}

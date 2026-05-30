@@ -14,7 +14,6 @@ urlpatterns = [
     path("", dsc.description_list, name="description_list"),
     path("descriptions/form", dsc.description_form, name="description_form"),
     path("descriptions/find-similar", dsc.description_find_similar, name="description_find_similar"),
-    path("descriptions/<int:pk>/update", dsc.description_update, name="description_update"),
     path("descriptions/create", dsc.description_create, name="description_create"),
     path("descriptions/<int:pk>/delete", dsc.DescriptionDeleteView.as_view(), name="description_delete"),
     path("descriptions/<int:pk>/", dsc.description_detail, name="description_detail"),
