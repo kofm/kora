@@ -1,3 +1,5 @@
+/* TomSelect */
+
 .ts-dropdown, .ts-control, .ts-control input {
     color: var(--bs-body-color);
 }
@@ -14,6 +16,16 @@
     z-index: 1060;
 }
 
+.ts-wrapper.multi .ts-control > div.ts-colour {
+  cursor: pointer;
+  margin: 0 2px 2px 0;
+  padding: 1px 2px;
+  background: #fff;
+  color: #343a40;
+}
+
+/* Table Hover */
+
 .table-hover .row-action {
     opacity: 0;
     transition: opacity 0.15s ease;
@@ -25,6 +37,8 @@
 .border-hover:hover {
     border-color: var(--bs-primary-border-subtle);
 }
+
+/* Protocol Listing Navgation Bar */
 
 .navbar-protocol {
     position: sticky;
@@ -105,15 +119,7 @@
     border-color: #d6c2b6;
 }
 
-.ts-wrapper.multi .ts-control > div.ts-colour {
-  cursor: pointer;
-  margin: 0 2px 2px 0;
-  padding: 1px 2px;
-  background: #fff;
-  color: #343a40;
-}
-
-
+/* Table Pagination */
 /* FIXME: these selectors target the tables pagination */
 #table-content > div > nav, #results > div:nth-child(4) > div > nav, body > main > .table-container.table-responsive > nav {
     display: flex;
