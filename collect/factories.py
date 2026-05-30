@@ -1,6 +1,5 @@
-import datetime
 
-from factory.declarations import LazyFunction, Sequence, SubFactory
+from factory.declarations import Sequence, SubFactory
 from factory.django import DjangoModelFactory
 
 from collect.models import Cart, CartItem, Sample, SampleWeight, Storage, StoragePosition
@@ -41,7 +40,6 @@ class SampleWeightFactory(DjangoModelFactory):
 
     sample = SubFactory(SampleFactory)
     weight = 20
-    created_at = LazyFunction(datetime.datetime.now)
 
 
 class CartFactory(DjangoModelFactory):
