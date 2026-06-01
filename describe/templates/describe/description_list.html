@@ -54,7 +54,7 @@
 	</form>
 
 	{% block protocol_filter %}
-	  <form id="protocolForm" autocomplete="off" hx-get="{% url 'describe:description_form' %}" hx-trigger="change"  hx-target="#expression_filter" hx-swap-oob="true" hx-on::after-request='htmx.ajax("GET", "{% url "describe:description_list" %}", {target: "#table", indicator: "#spinner"})'>
+	  <form id="protocolForm" autocomplete="off" hx-get="{% url 'describe:description_form' %}" hx-trigger="change"  hx-target="#expression_filter" hx-swap-oob="true" hx-on::after-request='htmx.ajax("GET", "{% url "describe:description_list" %}", {target: "#table", indicator: "#spinner"})' hx-ext="tomselect">
 	    <label class="form-label" for="{{ form_protocol.protocol.id_for_label }}">
 	      {{ form_protocol.protocol.label }}:
 	    </label>
