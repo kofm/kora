@@ -3,7 +3,7 @@ from django.forms import ModelChoiceField, widgets
 from django.urls import reverse_lazy
 from django_countries.fields import CountryField
 
-from frontpage.widgets import ModelTomSelect, TomSelect, TomSelectConfig
+from frontpage.widgets import ModelTomSelect, ModelTomSelectMultiple, TomSelect, TomSelectConfig
 
 from .models import Entity, PlantSpecies, PlantVariety, PlantVarietyName, Protection, ProtectionType
 
@@ -51,7 +51,7 @@ class ProtectionForm(forms.ModelForm):
         )
         widgets = {
             "country": TomSelect,
-            "applicants": ModelTomSelect(
+            "applicants": ModelTomSelectMultiple(
                 ts_config=TomSelectConfig(
                     url=reverse_lazy("register:entity_autocomplete"),
                     value_field="id",
@@ -59,7 +59,7 @@ class ProtectionForm(forms.ModelForm):
                     search_field="name",
                 )
             ),
-            "maintainers": ModelTomSelect(
+            "maintainers": ModelTomSelectMultiple(
                 ts_config=TomSelectConfig(
                     url=reverse_lazy("register:entity_autocomplete"),
                     value_field="id",
