@@ -147,16 +147,15 @@ def plantvarietyname_delete(request, pk):
 @nav_plant_active_context
 @htmx_render_blocks(["cards"])
 def plantvariety_list(request):
-    flt = PlantVarietyFilter(request.GET, queryset=PlantVariety.objects.all())
-    queryset = flt.qs
-
+    queryset = PlantVariety.objects.all()
     order_form = PlantVarietyCardsOrderForm(request.GET or None)
     ordering = "-created_at"
     if order_form.is_valid():
         ordering = order_form.save()
     queryset = queryset.order_by(ordering)
+    flt = PlantVarietyFilter(request.GET, queryset=queryset)
 
-    paginator = Paginator(queryset, 12)
+    paginator = Paginator(flt.qs, 12)
     page_obj = paginator.get_page(request.GET.get("page"))
 
     prefetch_names = Prefetch(
