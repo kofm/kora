@@ -163,6 +163,7 @@ class ExpressionSerializer(BulkModelSerializer):
     class Meta(BulkModelSerializer.Meta):
         model = Expression
         fields = (
+            "id",
             "description",
             "trait_id",
             "trait_numeric_id",
@@ -285,12 +286,14 @@ class ExpressionNestedSerializer(serializers.ModelSerializer):
 
 
 class DescriptionNestedSerializer(serializers.ModelSerializer):
+    variety_name = serializers.StringRelatedField(source="variety.name", read_only=True)
     label = serializers.StringRelatedField(source="label.name", read_only=True)
+    protocol_name = serializers.StringRelatedField(source="protocol.name", read_only=True)
     expressions = ExpressionNestedSerializer(many=True, read_only=True)
 
     class Meta(BulkModelSerializer.Meta):
         model = Description
-        fields = ("label_id", "label", "expressions")
+        fields = ("label_id", "label", "variety", "variety_name", "protocol_name", "expressions")
 
 
 class WorkspaceElementSerializer(BulkModelSerializer):
