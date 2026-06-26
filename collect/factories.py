@@ -1,4 +1,3 @@
-
 from factory.declarations import Sequence, SubFactory
 from factory.django import DjangoModelFactory
 
@@ -19,7 +18,7 @@ class StoragePositionFactory(DjangoModelFactory):
     class Meta:
         model = StoragePosition
 
-    name = Sequence(lambda n: str(n))
+    name = Sequence(lambda n: n)
     storage = SubFactory(StorageFactory)
 
 
