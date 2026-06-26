@@ -185,15 +185,12 @@ class StorageUpdateForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["positions"].widget.attrs["min"] = self.instance.stored_positions
+        min_positions = max(1, self.instance.highest_stored_position)
+        self.fields["positions"].widget.attrs["min"] = min_positions
         self.fields["positions"].initial = self.instance.total_positions
-        self.fields["positions"].validators.append(MinValueValidator(self.instance.stored_positions))
+        self.fields["positions"].validators.append(MinValueValidator(min_positions))
 
     def save(self, *args, **kwargs):
         instance = super().save(*args, **kwargs)
-        pos = self.cleaned_data["positions"]
-        total_pos = instance.total_positions
-        if pos > total_pos:
-            instance.increase_positions(pos)
-        if pos < total_pos:
-            instance.decrease_positions(pos)
+        instance.set_positions(self.cleaned_data["positions"])
+        return instance

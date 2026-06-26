@@ -2,10 +2,9 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models, transaction
-from django.db.models import Exists, ExpressionWrapper, F, FloatField, IntegerField, OuterRef, Subquery
+from django.db.models import Exists, ExpressionWrapper, F, FloatField, OuterRef, Subquery
 from django.db.models.aggregates import Coalesce, Count, Max, Sum
-from django.db.models.functions import Concat
-from django.db.models.query import Cast, Value
+from django.db.models.query import Value
 from django.db.models.query_utils import Q
 from django.forms.widgets import format_html
 from django.urls import reverse
@@ -77,19 +76,6 @@ class Storage(models.Model):
     def cant_delete_msg(self):
         return "You can't delete this storage because it is not empty."
 
-    def increase_positions(self, value):
-        if value <= self.total_positions:
-            return
-        with transaction.atomic():
-            for i in range(self.total_positions + 1, value + 1):
-                StoragePosition.objects.get_or_create(storage=self, name=str(i))
-
-    def decrease_positions(self, value):
-        if value >= self.total_positions:
-            return
-        positions = [str(i) for i in range(value + 1, self.total_positions + 1)]
-        StoragePosition.objects.filter(storage=self, name__in=positions).delete()
-
     @property
     def total_positions(self):
         if hasattr(self, "total_positions_count"):
@@ -108,6 +94,32 @@ class Storage(models.Model):
             return self.available_positions_count
         return self.storageposition_set.filter(sample__isnull=True).count()
 
+    @property
+    def highest_stored_position(self):
+        return (
+            self.storageposition_set.filter(sample__isnull=False)
+            .order_by("-name")
+            .values_list("name", flat=True)
+            .first()
+            or 0
+        )
+
+    def set_positions(self, value):
+        highest = self.highest_stored_position
+        if value < highest:
+            raise ValueError("Cannot remove positions that contain samples.")
+
+        total = self.total_positions
+        if value == total:
+            return
+
+        with transaction.atomic():
+            if value < total:
+                StoragePosition.objects.filter(storage=self, name__gt=value).delete()
+            else:
+                for i in range(total + 1, value + 1):
+                    StoragePosition.objects.get_or_create(storage=self, name=i)
+
 
 class StoragePositionQuerySet(models.QuerySet):
     def empty_positions_for_sample(self, sample_id: int | None = None):
@@ -115,14 +127,6 @@ class StoragePositionQuerySet(models.QuerySet):
         if sample_id:
             query |= Q(sample=sample_id)
         return self.filter(query)
-
-    def position_values_list(self):
-        qs = self.select_related("storage").annotate(
-            position_name=Concat("storage__name", Value("-"), "name"),
-            posn=Cast("name", output_field=IntegerField()),
-        )
-        qs = qs.order_by("storage__name", "posn")
-        return qs.values_list("pk", "position_name")
 
 
 class StoragePositionManager(models.Manager):
@@ -134,7 +138,7 @@ class StoragePositionManager(models.Manager):
 
 
 class StoragePosition(models.Model):
-    name = models.CharField(max_length=200)
+    name = models.PositiveIntegerField()
     storage = models.ForeignKey(Storage, on_delete=models.CASCADE)
 
     objects = StoragePositionManager()
