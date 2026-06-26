@@ -190,7 +190,16 @@ class StorageUpdateForm(forms.ModelForm):
         self.fields["positions"].initial = self.instance.total_positions
         self.fields["positions"].validators.append(MinValueValidator(min_positions))
 
-    def save(self, *args, **kwargs):
-        instance = super().save(*args, **kwargs)
-        instance.set_positions(self.cleaned_data["positions"])
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+
+        # We don't save the Storage instance if the name has not been
+        # changed
+        if commit:
+            if "name" in self.changed_data:
+                instance.save(update_fields=["name"])
+
+            instance.set_positions(self.cleaned_data["positions"])
+            self.save_m2m()
+
         return instance

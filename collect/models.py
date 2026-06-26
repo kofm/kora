@@ -105,20 +105,23 @@ class Storage(models.Model):
         )
 
     def set_positions(self, value):
-        highest = self.highest_stored_position
-        if value < highest:
-            raise ValueError("Cannot remove positions that contain samples.")
-
         total = self.total_positions
         if value == total:
             return
 
         with transaction.atomic():
             if value < total:
+                highest = self.highest_stored_position
+                if value < highest:
+                    raise ValueError("Cannot remove positions that contain samples.")
+
                 StoragePosition.objects.filter(storage=self, name__gt=value).delete()
             else:
-                for i in range(total + 1, value + 1):
-                    StoragePosition.objects.get_or_create(storage=self, name=i)
+                StoragePosition.objects.bulk_create(
+                    [StoragePosition(storage=self, name=i) for i in range(total + 1, value + 1)],
+                    ignore_conflicts=True,
+                    batch_size=1000,
+                )
 
 
 class StoragePositionQuerySet(models.QuerySet):

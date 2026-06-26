@@ -202,6 +202,7 @@ DJANGO_EASY_AUDIT_UNREGISTERED_CLASSES_EXTRA = getenv_list(
 )
 
 DJANGO_EASY_AUDIT_UNREGISTERED_CLASSES_EXTRA.append("describe.StateGroup")
+DJANGO_EASY_AUDIT_UNREGISTERED_CLASSES_EXTRA.append("collect.StoragePosition")
 
 # Conditional settings
 
