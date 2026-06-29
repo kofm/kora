@@ -297,8 +297,8 @@ class DescriptionNestedSerializer(serializers.ModelSerializer):
 
 
 class WorkspaceElementSerializer(BulkModelSerializer):
-    description = DescriptionNestedSerializer(read_only=True)
+    description_detail = DescriptionNestedSerializer(source="description", read_only=True)
 
     class Meta(BulkModelSerializer.Meta):
         model = WorkspaceElement
-        fields = ("id", "description")
+        fields = ("id", "description", "description_detail", "order")

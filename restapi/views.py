@@ -343,3 +343,17 @@ class WorkspaceElementViewSet(viewsets.ModelViewSet):
             .prefetch_related("description__expressions__state__trait")
             .filter(workspace__user=user, workspace__pk=workspace)
         )
+
+    def create(self, request, *args, **kwargs):
+        user = request.user
+        workspace_id = self.kwargs["workspace"]
+        try:
+            workspace = Workspace.objects.get(pk=workspace_id, user=user)
+        except Workspace.DoesNotExist:
+            return Response({"detail": "Workspace not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        many = isinstance(request.data, list)
+        serializer = self.get_serializer(data=request.data, many=many)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(workspace=workspace)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
