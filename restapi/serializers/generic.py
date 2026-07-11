@@ -98,3 +98,7 @@ class BaseExcelImportSerializer(sr.Serializer):
             return []
         objs = row_serializer.save()
         return objs
+
+
+class ExcelImportResponseSerializer(sr.Serializer):
+    imported_rows = sr.IntegerField()

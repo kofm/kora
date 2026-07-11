@@ -39,7 +39,7 @@ class PlantVarietyListSerializer(serializers.ListSerializer):
         return varieties
 
 
-class PlantVarietySerializer(serializers.ModelSerializer):
+class PlantVarietySerializer(BulkModelSerializer):
     species_common_name = serializers.CharField(source="species.common_name", read_only=True)
     names = PlantVarietyNameSerializer(many=True, read_only=True)
 
@@ -68,6 +68,12 @@ class EntitySerializer(BulkModelSerializer, CountryFieldMixin, serializers.Model
             "contact",
             "email",
         )
+
+
+class ProtectionTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProtectionType
+        fields = ("id", "code", "name")
 
 
 class ProtectionSerializer(CountryFieldMixin, BulkModelSerializer):

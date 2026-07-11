@@ -1,229 +1,49 @@
-#####
- API
-#####
+#########################################
+ Application Programming Interface (API)
+#########################################
+
+.. toctree::
+   :maxdepth: 2
+
+   api/register
+   api/describe
+   api/collect
+   api/evaluate
 
 ************
 Excel Import
 ************
 
-The Excel Import feature is designed to help non-technical users to
-quickly populate their *kora* database by importing data from in Excel
-Workbook format (xlsx).
+The Excel Import feature is designed to quickly populate a *Kora* database by importing data from an Excel workbook (XLSX). Excel Import is available through the browsable web API interface, which you can access from the user menu in the top navigation bar.
 
-Accessing Excel Import
-======================
+The Excel file columns must be named according to the fields expected by the importer. Please check the endpoint documentation for the accepted columns in the Excel table. The importer will always look for data in the first sheet of the provided spreadsheet. Please double-check that the relevant data is in the first sheet of the uploaded file.
 
-You can access the Excel Import functionality through the browsable
-web API interface. 
+At the moment, Excel Import functionality is available only for the following endpoints:
 
-- Log into *kora* with an account that has the necessary permissions.
-- Use the user menu to navigate to the API.
-- The API main page displays all the available digital locations where
-  the API can provide or receive data; these are called **endpoints**.
-- At the moment, Excel Import functionality is available only for a
-  selected number of endpoints, i.e.:
+- `varieties` (:http:post:`/api/varieties/excel_import/`)
+- `entities` (:http:post:`/api/entities/excel_import/`)
+- `protections` (:http:post:`/api/protections/excel_import/`)
 
-  - **varieties**
-  
-  - **entities**
-  
-  - **protections**
+Access one of these endpoints in the browsable API, click the **"Extra Actions"** menu, and select **"Excel Import"**.
 
-- From each endpoint, you can click the **"extra actions"** menu and
-  select **"excel import"**.
+Importing Protection Data from Public Databases
+===============================================
 
-This will open the Excel Import page for that type of data.
+The Excel import endpoints can be used to import data from external sources such as the EU PVP (European Common Catalogue) or the CPVO website (Plant Breeder's Rights). These sources commonly provide data in Excel workbook format.
 
-Importing Protection Data
-=========================
+From one of the Excel import views, to import a new file:
 
-The Excel Import endpoints provide an efficient way to populate your
-*kora* instance with plant genetic resource data by leveraging public
-datasets.  With this functionality it's easy to import data from
-external sources like the EU PVP (European Common Catalogue) or the
-CPVO website (Plant Breeder's Rights). These sources commonly provide
-data in Excel Workbook format.
+1. Click the **Browse** button to select the file from your local machine.
+2. Check the **Validate Only** box to check the file for errors without saving the data to the database.
 
-On the Excel Import page you will find:
-
-- A **Browse** button to select the Excel file from your local
-  machine.
-- A **Validate Only** checkbox to run validation without saving data
-  to the database.
-
-.. note::
-    Validation is always performed upon upload, whether or not you
-    choose to save the data.
-
-If validation errors are detected:
-
-- The import is aborted.
-- A row-by-row summary of errors is displayed (truncated at the first
-  100 errors for performance reasons).
+Validation is performed upon upload, whether or not you choose to save the data. If validation errors are detected, the import is aborted and a row-by-row summary of errors, up to the first 100, is displayed.
 
 .. warning::
-   Always make a backup of your database before importing, so you can
-   roll back should you encounter undesired effects.
+   Remember to make a backup of the database before importing, in case you want to roll back.
 
 Recommended Import Workflow
 ---------------------------
 
-To maintain data integrity, perform imports in this sequence:
+When importing protection data (`protections` endpoint, :http:post:`/api/protections/excel_import/`) from public databases, you will need to import the related reference records first. Public protection records often include variety denominations (`varieties` endpoint, :http:post:`/api/varieties/excel_import/`) and information about the owners of protection rights, such as applicants and maintainers (`entities` endpoint, :http:post:`/api/entities/excel_import/`). Because `protection` records refer to `varieties` and `entities` by string matching, those records must be imported before the protections themselves so that the references can be linked correctly. If you split the original data across multiple files for importing, make sure to preserve the strings exactly as they are, since the join depends on exact matching.
 
-1. **Varieties**
-
-2. **Entities** (applicants and maintainers)
-
-3. **Protections**
-
-This order ensures relational data can be correctly linked.
-
-Guidelines for Excel Files
---------------------------
-
-- **Naming Columns**
-
-  The Excel file columns must be named according to the fields
-  expected by the importer:
-
-  - *Varieties*
-
-    - `name`: Name of the variety (required).
-  
-    - `species`: The primary key (ID) of the species (required).
-
-  - *Entities*
-
-    - `name`: Name of the entity (required).
-  
-    - `type`: Type of entity (optional). Must match one of the allowed values.
-  
-    - `country`: Country code (optional).
-  
-    - `contact`: Contact information (optional).
-  
-    - `email`: Email address (optional).
-
-  - *Protections*
-
-    - `name`: Name of the variety (required).
-  
-    - `species_id`: The primary key (ID) of the species (required).
-  
-    - `type`: Protection type (required, see choices below).
-  
-    - `reference`: Reference string (optional).
-  
-    - `status`: Protection status (optional).
-  
-    - `country`: Country code (optional).
-  
-    - `date_start`: Start date of protection (optional).
-  
-    - `date_end`: End date of protection (optional).
-  
-    - `applicants`: Semi-colon separated list of applicant names (optional).
-  
-    - `maintainers`: Semi-colon separated list of maintainer names (optional).
-  
-    - `note`: Additional notes (optional).
-
-.. note::
-   The importer will always look for data **in the first sheet of the
-   provided spreadsheet**. Please double check that the relevant data
-   is in the first sheet of the uploaded file.
-
-- **Species IDs for Varieties**
-
-  To find the correct `species` IDs for variety and protection import:
-
-  - Navigate to the *species* endpoint in the browsable API.
-  - Retrieve the list of species and take note of their primary keys (IDs).
-  - Use these IDs in the `species` column of your varieties Excel file.
-
-- **Handling Duplicates**
-
-  - *Varieties:* If a variety with the same name for the same species already exists, it will **not** be imported again to avoid duplicates.
-
-  - *Entities:* When importing entities, each entity name must be on its own row.
-  
-    - Avoid using semi-colon separated names in the entities import file, as these will be imported as a single entity.
-    
-    - To split multiple entity names into separate rows, you can use Excel formulas or text-to-columns tools before importing.
-
-- **Multiple Applicants and Maintainers in Protections**
-
-  - The `applicants` and `maintainers` columns in the protection import file accept multiple entities.
-  
-  - These should be entered as semi-colon separated names (e.g. `"Entity A; Entity B"`). This format is commonly used by public databases.
-
-- **Entity and Variety Matching for Protections**
-
-  - The import will attempt to relate applicants, maintainers, and varieties through string matching.
-  
-  - If two variety with the same name and species exists in your
-    database, the importer cannot resolve this ambiguity and it will
-    **not** associate the protection automatically, resulting in a
-    validation error. In such cases, you need to remove the row from
-    the file and either:
-  
-    - Import manually via the user interface or
-    
-    - Use the API directly referencing primary keys.
-
-Valid Choices for Select Fields
--------------------------------
-
-When preparing your Excel files, ensure the values for choice fields are encoded correctly. Use these mappings for replacement or find-and-replace operations:
-
-- **Entity Types** (for entities `type` field):
-
-  - `IN` — Individual
-  
-  - `PA` — Partnership
-  
-  - `CO` — Company
-  
-  - `CP` — Cooperative
-
-- **Protection Types** (for protections `type` field):
-
-  - `PBR` — Plant Breeders' Rights
-  
-  - `NLI` — National Listing
-  
-  - `CAT` — Common Catalogue
-
-- **Protection Statuses** (for protections `status` field):
-
-  - `G` — Granted
-  
-  - `T` — Terminated
-  
-  - `A` — Active Application
-  
-  - `W` — Withdrawn
-  
-  - `R` — Refused
-  
-  - `S` — Surrendered
-
-Examples:
-  
-- Replace values like `"Granted"` with `"G"`.
-  
-- Replace `"Individual"` with `"IN"` in entity type.
-
-Summary
--------
-
-Remember:
-
-- Backup your database before importing.
-
-- Use the browsable API "extra actions" menus to access the import pages.
-
-- Perform import in the order: varieties → entities → protections.
-
-- For complex relations or duplicates, consider manual or data entry
-  via the API.
+The import will attempt to relate varieties, applicants, and maintainers through string matching. If multiple matches exist in your database (e.g. two varieties of the same species with the same name), the importer cannot resolve the ambiguity; it will not associate the protection automatically and will return a validation error. In such cases, you need to remove the row from the file and either import manually through the user interface or use the API directly, where you can specify references using IDs.

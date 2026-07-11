@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     "django_sortable_htmx",
     "breadcrumbs",
     "render_block",
+    "drf_spectacular",
 ]
 
 # Conditionally add authentication logging
@@ -143,8 +144,12 @@ DJANGO_TABLES2_PAGE_RANGE = 10
 
 # rest_framework
 REST_FRAMEWORK = {
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
     "PAGE_SIZE": 100,
-    "DEFAULT_PAGINATION_CLASS": "restapi.pagination.OptionalPagination",
+    "DEFAULT_RENDERER_CLASSES": [
+        "rest_framework.renderers.JSONRenderer",
+        "restapi.renderers.NoWriteFormsBrowsableAPIRenderer",
+    ],
     "DEFAULT_FILTER_BACKENDS": [
         "restapi.filters.NoBrowsableAPIFilterBackend",
     ],
@@ -152,6 +157,13 @@ REST_FRAMEWORK = {
         "rest_framework.permissions.IsAuthenticated",
     ],
     "TEST_REQUEST_DEFAULT_FORMAT": "json",
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Kora API",
+    "DESCRIPTION": "API for managing plant genetic resources data.",
+    "COMPONENT_SPLIT_REQUEST": True,
 }
 
 # Authentication

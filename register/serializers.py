@@ -1,4 +1,5 @@
 from django_countries.serializer_fields import CountryField
+from drf_spectacular.utils import inline_serializer
 from rest_framework import serializers as sr
 
 from register.models import (
@@ -12,6 +13,27 @@ from register.models import (
 )
 from restapi.fields import CSV2ListQueryField, ExcelSafeDateField, MappedPrimaryKeyRelatedField, QueryField
 from restapi.serializers.generic import BaseExcelImportSerializer, ModelInBulkMixin
+
+ExcelImportAcceptedSerializer = inline_serializer(
+    name="ExcelImportAccepted",
+    fields={"success": sr.CharField()},
+)
+PLANT_VARIETY_IMPORT_DESCRIPTION = """
+Import varieties from an Excel table.
+
+The request must be sent as `multipart/form-data` with an Excel file.
+
+Excel row format:
+
+| Column | Required | Type | Description |
+|---|---:|---|---|
+| `name` | yes | string | Denomination of the variety. |
+| `species_id` | yes | integer | Primary key of the species. |
+
+If a variety of the same species with the same name already exists, it will not
+be imported. If you really need a variety with the same name, add it through the
+user interface.
+"""
 
 
 class PlantVarietyListSerializer(ModelInBulkMixin, sr.ListSerializer):

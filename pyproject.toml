@@ -29,6 +29,7 @@ dependencies = [
     "django-widget-tweaks>=1.5.0",
     "djangorestframework>=3.16.0",
     "gunicorn>=23.0.0",
+    "markdown>=3.10.2",
     "numpy>=2.2.4",
     "openpyxl>=3.1.5",
     "pandas>=2.2.3",
@@ -107,10 +108,17 @@ dev = [
     "django-browser-reload>=1.18.0",
     "django-debug-toolbar>=5.1.0",
     "django-extensions>=4.1",
+    "django-stubs>=6.0.5",
+    "drf-spectacular>=0.29.0",
     "factory-boy>=3.3.3",
     "ipython>=9.1.0",
+    "isort>=8.0.1",
+    "pyflakes>=3.4.0",
     "ruff>=0.11.5",
+    "zuban>=0.9.0",
 ]
 docs = [
+    "furo>=2025.12.19",
     "sphinx>=8.2.3",
+    "sphinxcontrib-openapi>=0.9.0",
 ]
