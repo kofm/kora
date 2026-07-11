@@ -1,8 +1,13 @@
+import tomllib
+from dataclasses import dataclass
+from pathlib import Path
+
 from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
 
+from collect.factories import SampleFactory, StoragePositionFactory
 from describe.factories import (
     ExpressionFactory,
     ProtocolFactory,
@@ -10,8 +15,25 @@ from describe.factories import (
     WorkspaceElementFactory,
     WorkspaceFactory,
 )
-from register.factories import EntityFactory, PlantSpeciesFactory, PlantVarietyFactory
+from register.factories import EntityFactory, PlantSpeciesFactory, PlantVarietyFactory, ProtectionFactory
 from register.models import PlantVarietyName
+
+
+@dataclass(frozen=True)
+class ViewSpec:
+    name: str
+    fields: list[str]
+
+    @property
+    def url(self) -> str:
+        return reverse(f"restapi:{self.name}")
+
+
+def load_urls(path: Path) -> dict[str, ViewSpec]:
+    with path.open("rb") as file:
+        data = tomllib.load(file)["urls"]
+
+    return {name: ViewSpec(name=name, fields=fields) for name, fields in data.items()}
 
 
 class APITests(APITestCase):
@@ -21,25 +43,37 @@ class APITests(APITestCase):
         self.client.login(username="testuser", password="testpass")
 
         self.species = PlantSpeciesFactory()
+        self.variety = PlantVarietyFactory(species=self.species)
         self.breeder = EntityFactory(name="SeedCo")
+        self.protection = ProtectionFactory(variety=self.variety)
+        self.workspace = WorkspaceFactory(user=self.user, name="Test Workspace", is_active=True)
+        self.workspace_element = WorkspaceElementFactory(workspace=self.workspace)
+        ExpressionFactory.create_batch(3, description=self.workspace_element.description)
+        SampleFactory(variety=self.variety)
+        StoragePositionFactory()
 
-        self.plantspecies_list_url = reverse("restapi:plantspecies-list")
-        self.plantvariety_list_url = reverse("restapi:plantvariety-list")
-        self.entity_list_url = reverse("restapi:entity-list")
-        self.protection_list_url = reverse("restapi:protection-list")
+        self.routes = load_urls(Path(__file__).with_name("urls.toml"))
 
-    def test_list_plant_species(self):
-        response = self.client.get(self.plantspecies_list_url, {"no_pagination": 1})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertTrue(any(d["common_name"] == self.species.common_name for d in response.data))
+    def test_views_smoke_test(self):
+        for name, data in self.routes.items():
+            response = self.client.get(data.url)
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertIn("results", response.data)
+            results = response.data["results"]
+            self.assertTrue(
+                isinstance(results, list),
+                f"API view {name} response had returned unexpected type in `results` key.",
+            )
+            self.assertGreaterEqual(len(results), 1, f"API view {name} returned no results")
+            self.assertEqual(
+                set(data.fields),
+                set(results[0].keys()),
+                f"API view {name} returned unexpected shape of results",
+            )
 
     def test_create_plant_variety(self):
-        data = {
-            "name": "Better Tomato",
-            "species": self.species.pk,
-            "breeder": self.breeder.pk,
-        }
-        response = self.client.post(self.plantvariety_list_url, data)
+        data = {"name": "Better Tomato", "species": self.species.pk}
+        response = self.client.post(reverse("restapi:plantvariety-list"), data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data["name"], "Better Tomato")
         self.assertEqual(response.data["species"], self.species.pk)
@@ -54,11 +88,10 @@ class APITests(APITestCase):
             {
                 "name": name,
                 "species": self.species.pk,
-                "breeder": self.breeder.pk,
             }
             for name in names
         ]
-        response = self.client.post(self.plantvariety_list_url, data)
+        response = self.client.post(reverse("restapi:plantvariety-bulk"), data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         variety_ids = [item["id"] for item in response.data]
         variety_names = PlantVarietyName.objects.filter(variety__in=variety_ids)
@@ -74,19 +107,20 @@ class APITests(APITestCase):
         self.assertEqual(response.data["name"], variety.name)
         self.assertEqual(response.data["species"], variety.species.pk)
 
-    def test_list_entities(self):
-        response = self.client.get(self.entity_list_url + "?no_pagination=1")
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertTrue(any(d["name"] == self.breeder.name for d in response.data))
-
     def test_workspace_elements(self):
-        workspace = WorkspaceFactory(user=self.user, name="Test Workspace", is_active=True)
-        workspace_element = WorkspaceElementFactory(workspace=workspace)
-        ExpressionFactory.create_batch(3, description=workspace_element.description)
-        response = self.client.get(reverse("restapi:workspace_elements", args=(workspace.pk,)), {"no_pagination": 1})
+        response = self.client.get(
+            reverse(
+                "restapi:workspace_elements",
+                kwargs={
+                    "workspace": self.workspace.pk,
+                },
+            )
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 1)
-        self.assertEqual(len(response.data[0]["description"]["expressions"]), 3)
+        self.assertIn("results", response.data)
+        results = response.data["results"]
+        self.assertEqual(len(results), 1)
+        self.assertEqual(len(results[0]["description_detail"]["expressions"]), 3)
 
     def test_bulk_create_plant_species(self):
         species = (("Rye", "Secale cereale"), ("Rice", "Oryza sativa"))
@@ -98,20 +132,16 @@ class APITests(APITestCase):
             }
             for common_name, latin_name in species
         ]
-        response = self.client.post(self.plantspecies_list_url, data)
-        self.assertEqual(
-            response.status_code, status.HTTP_201_CREATED, f"Expected 201, got {response.status_code}: {response.data}"
-        )
+        response = self.client.post(reverse("restapi:plantspecies-bulk"), data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         common_names = [item["common_name"] for item in response.data]
         self.assertCountEqual(common_names, [item[0] for item in species])
 
     def test_bulk_create_entities(self):
         names = ("Mr. White", "MegaCorp")
         data = [{"name": name} for name in names]
-        response = self.client.post(self.entity_list_url, data)
-        self.assertEqual(
-            response.status_code, status.HTTP_201_CREATED, f"Expected 201, got {response.status_code}: {response.data}"
-        )
+        response = self.client.post(reverse("restapi:entities-bulk"), data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         returned_names = [item["name"] for item in response.data]
         self.assertCountEqual(returned_names, names)
 
@@ -135,7 +165,7 @@ class APITests(APITestCase):
                 "date_start": "2024-01-01",
             },
         ]
-        resp = self.client.post(reverse("restapi:protection-list"), data)
+        resp = self.client.post(reverse("restapi:protections-bulk"), data)
         self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
         self.assertEqual(len(resp.data), 2)
 
@@ -152,7 +182,7 @@ class APITests(APITestCase):
                 "url_ref": "http://example.com",
             },
         ]
-        resp = self.client.post(reverse("restapi:protocols-list"), data)
+        resp = self.client.post(reverse("restapi:protocols-bulk"), data)
         self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
         self.assertEqual(len(resp.data), 2)
 
@@ -162,7 +192,7 @@ class APITests(APITestCase):
             {"numeric_id": 1, "description": "Stem length", "protocol": protocol.pk},
             {"numeric_id": 2, "description": "Flowers colour", "protocol": protocol.pk},
         ]
-        resp = self.client.post(reverse("restapi:traits-list"), data)
+        resp = self.client.post(reverse("restapi:traits-bulk"), data)
         self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
         self.assertEqual(len(resp.data), 2)
 
@@ -185,6 +215,6 @@ class APITests(APITestCase):
                 "trait": trait.pk,
             },
         ]
-        resp = self.client.post(reverse("restapi:states-list"), data)
+        resp = self.client.post(reverse("restapi:states-bulk"), data)
         self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
         self.assertEqual(len(resp.data), 3)

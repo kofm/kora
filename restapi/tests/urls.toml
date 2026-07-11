@@ -1,0 +1,90 @@
+[urls]
+
+"plantspecies-list" = [
+  "id",
+  "common_name",
+  "latin_name",
+  "plant_type",
+]
+
+"plantvariety-list" = [
+  "id",
+  "name",
+  "species",
+  "species_common_name",
+  "names",
+  "created_at",
+  "updated_at",
+]
+
+"entities-list" = [
+  "id",
+  "name",
+  "type",
+  "country",
+  "contact",
+  "email",
+]
+
+"protections-list" = [
+  "id",
+  "type",
+  "reference",
+  "status",
+  "country",
+  "variety",
+  "applicants",
+  "maintainers",
+  "date_start",
+  "date_end",
+  "note",
+]
+
+"protocols-list" = [
+  "id",
+  "name",
+  "plantspecies",
+  "url_ref",
+]
+
+"descriptions-list" = [
+  "id",
+  "label_id",
+  "label",
+  "variety",
+  "variety_name",
+  "species",
+  "protocol",
+  "protocol_name",
+]
+
+"traits-list" = [
+  "id",
+  "numeric_id",
+  "description",
+  "protocol",
+]
+
+"states-list" = [
+  "id",
+  "numeric_id",
+  "description",
+  "trait",
+  "group",
+]
+
+"expressions-list" = [
+  "id",
+  "description",
+  "trait_id",
+  "trait_numeric_id",
+  "trait_description",
+  "state",
+  "state_description",
+  "state_group",
+  "note",
+]
+
+"sample-list" = ["id", "sample_id", "variety", "position", "storage_name", "position_name", "growing_season", "last_weight", "available_weight", "last_germinability", "notes"]
+
+"storageposition-list" = ["id", "name", "storage"]

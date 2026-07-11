@@ -9,7 +9,7 @@ app_name = "restapi"
 router = routers.DefaultRouter()
 router.register(r"species", views.PlantSpeciesViewSet)
 router.register(r"varieties", views.PlantVarietyViewSet)
-router.register(r"entities", views.EntityViewSet)
+router.register(r"entities", views.EntityViewSet, basename="entities")
 router.register(r"protections", views.ProtectionViewSet, basename="protections")
 router.register(r"protection_types", views.ProtectionTypeViewSet, basename="protection_types")
 router.register(r"protocols", views.ProtocolViewSet, basename="protocols")
