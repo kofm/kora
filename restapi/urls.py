@@ -6,7 +6,20 @@ from . import views
 
 app_name = "restapi"
 
-router = routers.DefaultRouter()
+
+class KoraAPIRootView(routers.DefaultRouter.APIRootView):
+    """
+    Browse the Kora API.
+    """
+
+    name = "Kora API"
+
+
+class KoraDefaultRouter(routers.DefaultRouter):
+    APIRootView = KoraAPIRootView
+
+
+router = KoraDefaultRouter()
 router.register(r"species", views.PlantSpeciesViewSet)
 router.register(r"varieties", views.PlantVarietyViewSet)
 router.register(r"entities", views.EntityViewSet, basename="entities")

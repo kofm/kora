@@ -220,7 +220,6 @@ DJANGO_EASY_AUDIT_UNREGISTERED_CLASSES_EXTRA.append("collect.StoragePosition")
 
 if DEV:
     DEBUG = True
-    STATIC_ROOT = "static/"
     INTERNAL_IPS = ["127.0.0.1", "localhost"]
 
     SHELL_PLUS = "ipython"

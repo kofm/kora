@@ -1,0 +1,8 @@
+{% load rest_framework %}
+
+<pre class="bg-body-tertiary border rounded p-3 mb-3">
+<b>HTTP {{ response.status_code }} {{ response.status_text }}</b>{% for key, val in response_headers|items %}
+<b>{{ key }}:</b> {{ val|break_long_headers|urlize }}{% endfor %}
+
+{{ content|urlize }}
+</pre>

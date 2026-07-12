@@ -1,0 +1,126 @@
+/* The navbar is fixed at >= 980px wide, so add padding to the body to prevent
+content running up underneath it. */
+
+.resource-description, .response-info {
+  margin-bottom: 2em;
+}
+
+.version:before {
+  content: "v";
+  opacity: 0.6;
+  padding-right: 0.25em;
+}
+
+.version {
+  font-size: 70%;
+}
+
+.format-option {
+  font-family: Menlo, Consolas, "Andale Mono", "Lucida Console", monospace;
+}
+
+.button-form {
+  float: right;
+  margin-right: 1em;
+}
+
+td.nested {
+  padding: 0 !important;
+}
+
+td.nested > table {
+  margin: 0;
+}
+
+form select, form input:not([type=checkbox]), form textarea {
+  width: 90%;
+}
+
+form select[multiple] {
+  height: 150px;
+}
+
+/* To allow tooltips to work on disabled elements */
+.disabled-tooltip-shield {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
+
+.errorlist {
+  margin-top: 0.5em;
+}
+
+/* DRF still renders Bootstrap 3-style form markup. Scope a small
+   compatibility layer to the browsable API forms. */
+#content .form-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+#content .control-label {
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+#content .help-block {
+  display: block;
+  margin-top: 0.25rem;
+  color: var(--bs-secondary-color);
+  font-size: 0.875em;
+}
+
+#content input[type="file"] {
+  display: block;
+  width: 100%;
+  padding: 0.375rem 0.75rem;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--bs-body-color);
+  background-color: var(--bs-body-bg);
+  background-clip: padding-box;
+  border: var(--bs-border-width) solid var(--bs-border-color);
+  border-radius: var(--bs-border-radius);
+}
+
+#content input[type="checkbox"] {
+  width: 1em;
+  height: 1em;
+  margin-top: 0.25em;
+  vertical-align: top;
+  accent-color: var(--bs-primary);
+}
+
+@media (min-width: 576px) {
+  #content .control-label {
+    margin-bottom: 0;
+    padding-top: 0.375rem;
+  }
+
+  #content form > fieldset > .mt-3 {
+    margin-left: 16.66666667%;
+  }
+}
+
+pre {
+  overflow: auto;
+  word-wrap: normal;
+  white-space: pre;
+}
+
+.page-header {
+  border-bottom: none;
+  padding-bottom: 0px;
+}
+
+#filtersModal form input[type=submit] {
+    width: auto;
+}
+
+#filtersModal .modal-body h2 {
+    margin-top: 0
+}

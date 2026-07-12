@@ -132,7 +132,7 @@ class EntityViewSet(ExcelImportActionMixin, KoraViewSet):
         """Import entities from an Excel table.
 
 
-        **Accepted columns**
+        **Accepted columns**:
 
         - ``name`` (text, required): the entity name;
         - ``type`` (text, optional): type of entity, one of ``IN``

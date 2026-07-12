@@ -10,7 +10,14 @@ from rest_framework.serializers import ValidationError
 
 
 class BulkCreateActionMixin:
-    @action(detail=False, methods=["post"], url_path="bulk", filter_backends=[], pagination_class=None)
+    @action(
+        detail=False,
+        methods=["post"],
+        url_path="bulk",
+        filter_backends=[],
+        pagination_class=None,
+        name="Bulk create",
+    )
     def bulk(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data, many=True)
         serializer.is_valid(raise_exception=True)

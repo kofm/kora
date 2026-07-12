@@ -12,6 +12,8 @@
     <link rel="stylesheet" href="{% static 'frontpage/vendor/tom-select.bootstrap5.css' %}">
     <link rel="stylesheet" href="{% static 'frontpage/main.css' %}">
 
+    {% block style %}{% endblock %}
+
     <meta charset="UTF-8">
     <title>Kora - {% block title %}{% endblock %}</title>
   </head>
