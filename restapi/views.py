@@ -103,8 +103,8 @@ class PlantVarietyViewSet(ExcelImportActionMixin, KoraViewSet):
         **Accepted columns**:
 
         - ``name`` (required, string): the denomination of the variety;
-        - ``species_id`` (required, integer): the I of the species (see
-          :http:get:`/api/species/`);
+        - ``species_id`` (required, integer): the ID of the species (see
+          :http:get:`/api/species/`).
 
         NOTE: if a variety of the same species with the same name
         already exists, it will not be imported. If you really need a
@@ -120,7 +120,6 @@ class EntityViewSet(ExcelImportActionMixin, KoraViewSet):
     queryset = Entity.objects.all()
     serializer_class = EntitySerializer
     filterset_class = EntityFilter
-    excel_import_serializer_class = EntityImportSerializer
 
     def perform_excel_import_create(self, objs):
         created = Entity.objects.bulk_create([obj for obj in objs if obj], batch_size=1000)
@@ -162,20 +161,30 @@ class ProtectionViewSet(ExcelImportActionMixin, KoraViewSet):
         )
 
     def perform_excel_import_create(self, objs):
+        valid_objs = [(obj, apps, mains) for obj, apps, mains in objs if obj]
+
         with transaction.atomic():
-            Protection.objects.bulk_create([obj for obj, apps, mains in objs if obj])
+            protections = [obj for obj, _, _ in valid_objs]
+            Protection.objects.bulk_create(protections, batch_size=1000)
 
             apps_through = Protection.applicants.through
             mains_through = Protection.maintainers.through
-            apps_rels = []
-            mains_rels = []
-            for prot, apps, mains in objs:
-                for entity in apps:
-                    apps_rels.append(apps_through(protection_id=prot.id, entity_id=entity.id))
-                for entity in mains:
-                    mains_rels.append(mains_through(protection_id=prot.id, entity_id=entity.id))
+
+            apps_rels = [
+                apps_through(protection_id=protection.id, entity_id=entity_id)
+                for protection, applicants, _ in valid_objs
+                for entity_id in {entity.pk for entity in applicants}
+            ]
+            mains_rels = [
+                mains_through(protection_id=protection.id, entity_id=entity_id)
+                for protection, _, maintainers in valid_objs
+                for entity_id in {entity.pk for entity in maintainers}
+            ]
+
             apps_through.objects.bulk_create(apps_rels, batch_size=1000)
             mains_through.objects.bulk_create(mains_rels, batch_size=1000)
+
+        return len(protections)
 
     @extend_schema(responses=ExcelImportResponseSerializer)
     @action(detail=False, methods=["post"], serializer_class=ProtectionExcelImportSerializer)
@@ -193,20 +202,20 @@ class ProtectionViewSet(ExcelImportActionMixin, KoraViewSet):
           code identifying the protection type (see
           :http:get:`/api/protection_types/`);
         - ``reference`` (text, optional): arbitrary reference
-          number/code (e.g. application number)
+          number/code (e.g. application number);
         - ``status`` (text, optional): protection status, one of ``G``
           (Granted), ``T`` (Terminated), ``A`` (Active Application), ``W``
           (Withdrawn), ``R`` (Refused), ``S`` (Surrendered);
         - ``country`` (text, optional): ISO 3166-1 two-letter country code;
         - ``date_start`` (date, optional): start date of the protection
-          (YMD format);
-        - ``date_end`` (date, optional): end date of the protection (YMD
+          (YYYY-MM-DD format);
+        - ``date_end`` (date, optional): end date of the protection (YYYY-MM-DD
           format);
         - ``applicants`` (array, optional): semi-colon separated list of
-          applicant names
+          applicant names;
         - ``maintainers`` (array, optional): semi-colon separated list
-          of maintainer names
-        - ``note`` (text, optional): additional information
+          of maintainer names;
+        - ``note`` (text, optional): additional information.
 
         The ``applicants`` and ``maintainers`` columns in the protection
         import file allow multiple entities. These should be entered
@@ -215,7 +224,6 @@ class ProtectionViewSet(ExcelImportActionMixin, KoraViewSet):
         databases. Avoid using semi-colon separated names in the
         entities import file, as these will be imported as a single
         entity.
-
         """
         return super().excel_import(request)
 
@@ -278,7 +286,7 @@ class StorageViewSet(KoraViewSet):
 
 @document_bulk_create(StoragePositionSerializer, name="storagepositions")
 class StoragePositionViewSet(KoraViewSet):
-    queryset = StoragePosition.objects.all()
+    queryset = StoragePosition.objects.select_related("storage")
     serializer_class = StoragePositionSerializer
     filterset_class = StoragePositionFilter
 
@@ -308,6 +316,9 @@ class CartItemViewSet(KoraViewSet):
     serializer_class = CartItemSerializer
 
     def get_queryset(self):
+        if getattr(self, "swagger_fake_view", False):
+            return CartItem.objects.none()
+
         user = self.request.user
         cart = self.kwargs["cart"]
         return CartItem.objects.select_related(
@@ -329,6 +340,9 @@ class CartViewSet(viewsets.ModelViewSet):
     serializer_class = CartSerializer
 
     def get_queryset(self):
+        if getattr(self, "swagger_fake_view", False):
+            return Cart.objects.none()
+
         return Cart.objects.filter(user=self.request.user)
 
     def perform_create(self, serializer):
@@ -339,6 +353,9 @@ class WorkspaceViewSet(viewsets.ModelViewSet):
     serializer_class = WorkspaceSerializer
 
     def get_queryset(self):
+        if getattr(self, "swagger_fake_view", False):
+            return Workspace.objects.none()
+
         return Workspace.objects.filter(user=self.request.user)
 
     def perform_create(self, serializer):
@@ -347,9 +364,11 @@ class WorkspaceViewSet(viewsets.ModelViewSet):
 
 class WorkspaceElementViewSet(KoraViewSet):
     serializer_class = WorkspaceElementSerializer
-    jsonl_export_filename = "workspace"
 
     def get_queryset(self):
+        if getattr(self, "swagger_fake_view", False):
+            return WorkspaceElement.objects.none()
+
         user = self.request.user
         workspace = self.kwargs["workspace"]
         return (
@@ -363,7 +382,11 @@ class WorkspaceElementViewSet(KoraViewSet):
         )
 
     def get_workspace(self):
-        return get_object_or_404(Workspace.objects.get(pk=self.kwargs["workspace"], user=self.request.user))
+        return get_object_or_404(
+            Workspace,
+            pk=self.kwargs["workspace"],
+            user=self.request.user,
+        )
 
     def perform_create(self, serializer):
         serializer.save(workspace=self.get_workspace())

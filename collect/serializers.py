@@ -1,12 +1,6 @@
 from rest_framework import serializers
 
-from collect.models import Germinability, Sample, SampleWeight, StoragePosition
-
-
-class StoragePositionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = StoragePosition
-        fields = "__all__"
+from collect.models import Germinability, Sample, SampleWeight
 
 
 class GerminabilitySerializer(serializers.ModelSerializer):

@@ -110,7 +110,7 @@ class APITests(APITestCase):
     def test_workspace_elements(self):
         response = self.client.get(
             reverse(
-                "restapi:workspace_elements",
+                "restapi:workspaceelements",
                 kwargs={
                     "workspace": self.workspace.pk,
                 },

@@ -49,8 +49,8 @@
 
 "descriptions-list" = [
   "id",
-  "label_id",
   "label",
+  "label_name",
   "variety",
   "variety_name",
   "species",
@@ -62,6 +62,7 @@
   "id",
   "numeric_id",
   "description",
+  "grouping",
   "protocol",
 ]
 
@@ -76,15 +77,16 @@
 "expressions-list" = [
   "id",
   "description",
-  "trait_id",
+  "trait",
   "trait_numeric_id",
   "trait_description",
   "state",
+  "state_numeric_id",
   "state_description",
   "state_group",
   "note",
 ]
 
-"sample-list" = ["id", "sample_id", "variety", "position", "storage_name", "position_name", "growing_season", "last_weight", "available_weight", "last_germinability", "notes"]
+"sample-list" = ["id", "sample_number", "species_common_name", "variety", "variety_name", "position", "position_display", "growing_season", "last_weight", "available_weight", "last_germinability", "notes"]
 
-"storageposition-list" = ["id", "name", "storage"]
+"storageposition-list" = ["id", "name", "storage", "storage_name"]

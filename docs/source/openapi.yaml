@@ -69,6 +69,39 @@ paths:
               schema:
                 $ref: '#/components/schemas/CartItem'
           description: ''
+  /api/{cart}/cartitems/bulk/:
+    post:
+      operationId: cartitems_bulk_create
+      parameters:
+      - in: path
+        name: cart
+        schema:
+          type: integer
+        required: true
+      tags:
+      - cartitems
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CartItemRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CartItemRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CartItemRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CartItem'
+          description: ''
   /api/{cart}/cartitems/export-jsonl/:
     get:
       operationId: cartitems_export_jsonl_retrieve

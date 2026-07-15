@@ -19,18 +19,19 @@ from restapi.serializers.generic import BulkModelSerializer
 
 
 class PlantSpeciesSerializer(BulkModelSerializer):
-    class Meta:
+    class Meta(BulkModelSerializer.Meta):
         model = PlantSpecies
         fields = ("id", "common_name", "latin_name", "plant_type")
 
 
 class PlantVarietyNameSerializer(BulkModelSerializer):
-    class Meta:
+    class Meta(BulkModelSerializer.Meta):
         model = PlantVarietyName
         fields = ("name", "change_date")
 
 
 class PlantVarietyListSerializer(serializers.ListSerializer):
+    @transaction.atomic
     def create(self, validated_data):
         varieties = PlantVariety.objects.bulk_create([PlantVariety(**item) for item in validated_data])
         PlantVarietyName.objects.bulk_create(
@@ -56,8 +57,17 @@ class PlantVarietySerializer(BulkModelSerializer):
             "updated_at",
         )
 
+    @transaction.atomic
+    def create(self, validated_data):
+        variety = super().create(validated_data)
+        PlantVarietyName.objects.create(
+            variety=variety,
+            name=variety.name,
+        )
+        return variety
 
-class EntitySerializer(BulkModelSerializer, CountryFieldMixin, serializers.ModelSerializer):
+
+class EntitySerializer(CountryFieldMixin, BulkModelSerializer):
     class Meta(BulkModelSerializer.Meta):
         model = Entity
         fields = (
@@ -134,22 +144,23 @@ class TraitSerializer(BulkModelSerializer):
             "id",
             "numeric_id",
             "description",
+            "grouping",
             "protocol",
         )
 
 
 class DescriptionSerializer(BulkModelSerializer):
     variety_name = serializers.CharField(source="variety.name", read_only=True)
-    species = serializers.StringRelatedField(source="variety.species.latin_name", read_only=True)
-    protocol_name = serializers.StringRelatedField(source="protocol.name", read_only=True)
-    label = serializers.StringRelatedField(source="label.name", read_only=True)
+    species = serializers.CharField(source="variety.species.latin_name", read_only=True)
+    protocol_name = serializers.CharField(source="protocol.name", read_only=True)
+    label_name = serializers.CharField(source="label.name", read_only=True)
 
-    class Meta:
+    class Meta(BulkModelSerializer.Meta):
         model = Description
         fields = (
             "id",
-            "label_id",
             "label",
+            "label_name",
             "variety",
             "variety_name",
             "species",
@@ -159,11 +170,11 @@ class DescriptionSerializer(BulkModelSerializer):
 
 
 class ExpressionSerializer(BulkModelSerializer):
-    description = serializers.PrimaryKeyRelatedField(queryset=Description.objects.select_related("variety__species"))
-    trait_id = serializers.IntegerField(source="state.trait.id", read_only=True)
-    trait_description = serializers.StringRelatedField(many=False, source="state.trait", read_only=True)
+    trait = serializers.IntegerField(source="state.trait_id", read_only=True)
     trait_numeric_id = serializers.IntegerField(source="state.trait.numeric_id", read_only=True)
-    state_description = serializers.StringRelatedField(many=False, source="state", read_only=True)
+    trait_description = serializers.CharField(source="state.trait.description", read_only=True)
+    state_numeric_id = serializers.IntegerField(source="state.numeric_id", read_only=True)
+    state_description = serializers.CharField(source="state.description", read_only=True)
     state_group = serializers.IntegerField(source="state.group_id", read_only=True)
 
     class Meta(BulkModelSerializer.Meta):
@@ -171,10 +182,11 @@ class ExpressionSerializer(BulkModelSerializer):
         fields = (
             "id",
             "description",
-            "trait_id",
+            "trait",
             "trait_numeric_id",
             "trait_description",
             "state",
+            "state_numeric_id",
             "state_description",
             "state_group",
             "note",
@@ -188,11 +200,12 @@ class ParameterSerializer(BulkModelSerializer):
 
 
 class VarietalParameterSerializer(BulkModelSerializer):
-    parameter_code = serializers.StringRelatedField(many=False, source="parameter", read_only=True)
+    parameter_code = serializers.CharField(source="parameter.code", read_only=True)
 
     class Meta(BulkModelSerializer.Meta):
         model = VarietalParameter
         fields = (
+            "id",
             "value",
             "variety",
             "parameter",
@@ -211,19 +224,18 @@ class StorageSerializer(BulkModelSerializer):
 
 
 class StoragePositionSerializer(BulkModelSerializer):
-    storage = serializers.StringRelatedField(many=False, read_only=True)
+    storage_name = serializers.CharField(source="storage.name", read_only=True)
 
     class Meta(BulkModelSerializer.Meta):
         model = StoragePosition
-        fields = ("id", "name", "storage")
-
-    def get_storage_verbose_name(self, obj):
-        return str(obj)
+        fields = ("id", "name", "storage", "storage_name")
 
 
 class SampleSerializer(BulkModelSerializer):
-    storage_name = serializers.StringRelatedField(many=False, read_only=True, source="position.storage")
-    position_name = serializers.StringRelatedField(many=False, source="position.name")
+    sample_number = serializers.IntegerField(source="sample_id")
+    species_common_name = serializers.CharField(source="variety.species.common_name", read_only=True)
+    variety_name = serializers.CharField(source="variety.name", read_only=True)
+    position_display = serializers.StringRelatedField(source="position", read_only=True)
     last_weight = serializers.FloatField(read_only=True)
     available_weight = serializers.FloatField(read_only=True)
     last_germinability = serializers.FloatField(read_only=True)
@@ -232,11 +244,12 @@ class SampleSerializer(BulkModelSerializer):
         model = Sample
         fields = (
             "id",
-            "sample_id",
+            "sample_number",
+            "species_common_name",
             "variety",
+            "variety_name",
             "position",
-            "storage_name",
-            "position_name",
+            "position_display",
             "growing_season",
             "last_weight",
             "available_weight",
@@ -246,23 +259,24 @@ class SampleSerializer(BulkModelSerializer):
 
 
 class CartItemSerializer(BulkModelSerializer):
-    sample_id = serializers.IntegerField(source="sample.sample_id", read_only=True)
+    sample_number = serializers.IntegerField(source="sample.sample_id", read_only=True)
+    species_common_name = serializers.CharField(source="sample.variety.species.common_name", read_only=True)
+    variety = serializers.IntegerField(source="sample.variety_id", read_only=True)
     variety_name = serializers.CharField(source="sample.variety.name", read_only=True)
-    species = serializers.CharField(source="sample.variety.species.common_name", read_only=True)
-    variety = serializers.IntegerField(source="sample.variety.pk", read_only=True)
-    storage = serializers.CharField(source="sample.position.storage", read_only=True)
-    position = serializers.CharField(source="sample.position.name", read_only=True)
+    position = serializers.IntegerField(source="sample.position_id", read_only=True, allow_null=True)
+    position_display = serializers.StringRelatedField(source="sample.position", read_only=True)
 
     class Meta(BulkModelSerializer.Meta):
         model = CartItem
         fields = (
+            "id",
             "sample",
-            "sample_id",
+            "sample_number",
+            "species_common_name",
             "variety",
             "variety_name",
-            "species",
-            "storage",
             "position",
+            "position_display",
             "weight",
             "order",
         )
@@ -281,25 +295,34 @@ class CartSerializer(BulkModelSerializer):
 
 
 class ExpressionNestedSerializer(serializers.ModelSerializer):
-    trait_id = serializers.IntegerField(source="state.trait.numeric_id")
-    trait_description = serializers.StringRelatedField(many=False, source="state.trait.description")
-    state_id = serializers.IntegerField(source="state.numeric_id")
-    state_description = serializers.StringRelatedField(many=False, source="state.description")
+    trait = serializers.IntegerField(source="state.trait_id", read_only=True)
+    trait_numeric_id = serializers.IntegerField(source="state.trait.numeric_id", read_only=True)
+    trait_description = serializers.CharField(source="state.trait.description", read_only=True)
+    state_numeric_id = serializers.IntegerField(source="state.numeric_id", read_only=True)
+    state_description = serializers.CharField(source="state.description", read_only=True)
 
-    class Meta(BulkModelSerializer.Meta):
+    class Meta:
         model = Expression
-        fields = ("trait_id", "trait_description", "state_id", "state_description", "note")
+        fields = (
+            "trait",
+            "trait_numeric_id",
+            "trait_description",
+            "state",
+            "state_numeric_id",
+            "state_description",
+            "note",
+        )
 
 
 class DescriptionNestedSerializer(serializers.ModelSerializer):
-    variety_name = serializers.StringRelatedField(source="variety.name", read_only=True)
-    label = serializers.StringRelatedField(source="label.name", read_only=True)
-    protocol_name = serializers.StringRelatedField(source="protocol.name", read_only=True)
+    variety_name = serializers.CharField(source="variety.name", read_only=True)
+    label_name = serializers.CharField(source="label.name", read_only=True)
+    protocol_name = serializers.CharField(source="protocol.name", read_only=True)
     expressions = ExpressionNestedSerializer(many=True, read_only=True)
 
-    class Meta(BulkModelSerializer.Meta):
+    class Meta:
         model = Description
-        fields = ("label_id", "label", "variety", "variety_name", "protocol_name", "expressions")
+        fields = ("label", "label_name", "variety", "variety_name", "protocol", "protocol_name", "expressions")
 
 
 class WorkspaceElementSerializer(BulkModelSerializer):

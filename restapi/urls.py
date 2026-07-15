@@ -47,16 +47,17 @@ urlpatterns = [
     path(
         "<int:cart>/cartitems/export-jsonl/",
         views.CartItemViewSet.as_view({"get": "export_jsonl"}),
-        name="cartitems_export",
+        name="cartitems-export",
     ),
+    path("<int:cart>/cartitems/bulk/", views.CartItemViewSet.as_view({"post": "bulk"}), name="cartitems-bulk"),
     path(
         "workspaces/<int:workspace>/elements/",
         views.WorkspaceElementViewSet.as_view({"get": "list", "post": "create"}),
-        name="workspace_elements",
+        name="workspaceelements",
     ),
     path(
         "workspaces/<int:workspace>/elements/export-jsonl/",
         views.WorkspaceElementViewSet.as_view({"get": "export_jsonl"}),
-        name="workspace_elements_export",
+        name="workspaceelements-export",
     ),
 ]

@@ -96,7 +96,6 @@ class KoraViewSet(BulkCreateActionMixin, JSONLExportMixin, viewsets.ModelViewSet
 
 
 class ExcelImportActionMixin:
-    excel_import_serializer_class = None
     excel_import_description = None
 
     def perform_excel_import_create(self, objs) -> int:
