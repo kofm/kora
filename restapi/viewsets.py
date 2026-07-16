@@ -1,4 +1,5 @@
 import json
+from itertools import batched
 
 from django.core.serializers.json import DjangoJSONEncoder
 from django.http import StreamingHttpResponse
@@ -57,18 +58,24 @@ class JSONLExportMixin:
 
     def iter_jsonl_export(self, queryset):
         serializer_class = self.get_jsonl_export_serializer_class()
+        context = self.get_serializer_context()
 
-        for obj in queryset.iterator(chunk_size=self.jsonl_export_chunk_size):
+        objs = queryset.iterator(chunk_size=self.jsonl_export_chunk_size)
+
+        for batch in batched(objs, self.jsonl_export_chunk_size):
             serializer = serializer_class(
-                obj,
-                context=self.get_serializer_context(),
+                batch,
+                many=True,
+                context=context,
             )
-            yield json.dumps(
-                serializer.data,
-                cls=DjangoJSONEncoder,
-                ensure_ascii=False,
-            )
-            yield "\n"
+
+            for row in serializer.data:
+                yield json.dumps(
+                    row,
+                    cls=DjangoJSONEncoder,
+                    ensure_ascii=False,
+                )
+                yield "\n"
 
     @extend_schema(
         description=("Export the full filtered result set as newline-delimited JSON."),
