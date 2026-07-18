@@ -46,7 +46,7 @@ def connected_components(ids: Iterable, edges: Iterable) -> list[list]:
     """Return the connected components given a group of ids and their edges."""
     ids = set(ids)
 
-    graph = {state_id: set() for state_id in ids}
+    graph: dict = {state_id: set() for state_id in ids}
 
     for x, y in edges:
         if x not in ids or y not in ids:

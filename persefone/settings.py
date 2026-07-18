@@ -180,7 +180,7 @@ MESSAGE_TAGS = {
 }
 
 # Logging
-LOGGING = {
+LOGGING: dict = {
     "version": 1,
     "disable_existing_loggers": False,
     "handlers": {},
