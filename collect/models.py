@@ -2,13 +2,13 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models, transaction
-from django.db.models import Exists, ExpressionWrapper, F, FloatField, OuterRef, Subquery
-from django.db.models.aggregates import Coalesce, Count, Max, Sum
-from django.db.models.query import Value
+from django.db.models import Exists, ExpressionWrapper, F, FloatField, OuterRef, Subquery, Value
+from django.db.models.aggregates import Count, Max, Sum
+from django.db.models.functions import Coalesce
 from django.db.models.query_utils import Q
-from django.forms.widgets import format_html
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.html import format_html
 
 from collect.exceptions import SampleDiscardError
 from frontpage.generic import ModelIsDeletableMixin
@@ -246,7 +246,7 @@ class SampleQueryset(models.QuerySet):
         )
 
 
-class ActiveSampleManager(models.Manager.from_queryset(SampleQueryset)):  # ty:ignore[unsupported-base]
+class ActiveSampleManager(models.Manager.from_queryset(SampleQueryset)):
     """
     Default manager that exposes only active samples.
     """
