@@ -1,21 +1,17 @@
 from django.urls import include, path
 from drf_spectacular.views import SpectacularAPIView
-from rest_framework import routers
+from rest_framework.routers import APIRootView, DefaultRouter
 
 from . import views
 
 app_name = "restapi"
 
 
-class KoraAPIRootView(routers.DefaultRouter.APIRootView):
-    """
-    Browse the Kora API.
-    """
-
+class KoraAPIRootView(APIRootView):
     name = "Kora API"
 
 
-class KoraDefaultRouter(routers.DefaultRouter):
+class KoraDefaultRouter(DefaultRouter):
     APIRootView = KoraAPIRootView
 
 

@@ -36,24 +36,6 @@ class MappedPrimaryKeyRelatedField(sr.PrimaryKeyRelatedField):
             self.fail("incorrect_type", data_type=type(data).__name__)
 
 
-class CSV2ListMappedPrimaryKeyRelatedField(sr.ListField):
-    """A ListField variant for semi-colon separated fields that returna a list of ints
-
-    This allows the input to have a csv2 field like `78; 12; 54` to represent m2m relationships"""
-
-    def __init__(self, *, mapping_key, **kwargs):
-        child = MappedPrimaryKeyRelatedField(mapping_key=mapping_key)
-        super().__init__(child=child, **kwargs)
-
-    def to_internal_value(self, raw: str) -> list[int]:
-        value = []
-        for val in raw.split(";"):
-            val = val.strip()
-            if not val:
-                continue
-            value.append(int(val))
-        return super().to_internal_value(value)
-
 
 class CSV2ListQueryField(sr.ListField):
     """A list query field for semi-colon separated fields that returns tuple(value,) to be used with QueryField child
