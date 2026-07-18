@@ -1,8 +1,10 @@
 from datetime import datetime
+from typing import Any
 
-from django.db.models import Model
 from rest_framework import serializers
 from rest_framework import serializers as sr
+
+from restapi.serializers.generic import parse_semicolon_string
 
 
 class ExcelSafeDateField(serializers.DateField):
@@ -12,33 +14,39 @@ class ExcelSafeDateField(serializers.DateField):
         return super().to_internal_value(value)
 
 
-class MappedPrimaryKeyRelatedField(sr.PrimaryKeyRelatedField):
-    """A PrimaryKeyRelatedField that uses a mapping for faster lookups."""
+class MappedPrimaryKeyRelatedField(sr.Field):
+    default_error_messages = {
+        "does_not_exist": 'Invalid pk "{pk_value}" - object does not exist.',
+        "incorrect_type": "Incorrect type. Expected pk value, received {data_type}.",
+    }
 
-    def __init__(self, mapping_key, **kwargs):
+    def __init__(self, mapping_key, pk_field=None, **kwargs):
         self.mapping_key = mapping_key
+        self.pk_field = pk_field
         super().__init__(**kwargs)
 
-    def get_queryset(self) -> dict[int, type[Model]]:
+    def get_mapping(self):
         return self.context.get(self.mapping_key, {})
 
     def to_internal_value(self, data):
         if self.pk_field is not None:
             data = self.pk_field.to_internal_value(data)
-        mapping = self.get_queryset()
+
         try:
             if isinstance(data, bool):
                 raise TypeError
-            return mapping[data]
+            return self.get_mapping()[data]
         except KeyError:
             self.fail("does_not_exist", pk_value=data)
         except (TypeError, ValueError):
             self.fail("incorrect_type", data_type=type(data).__name__)
 
+    def to_representation(self, value):
+        return value.pk
 
 
 class CSV2ListQueryField(sr.ListField):
-    """A list query field for semi-colon separated fields that returns tuple(value,) to be used with QueryField child
+    """A ListField variant for semicolon-separated string fields that returns tuple(value,) to be used with QueryField child
 
     The mappings are list[dict[tuple, type[Model]]]; therefore, to
     access the mapping, `to_internal_value` should return a list of tuples.
@@ -49,14 +57,10 @@ class CSV2ListQueryField(sr.ListField):
         child = QueryField(mapping_key=mapping_key, column_mapping=column_mapping)
         super().__init__(child=child, **kwargs)
 
-    def to_internal_value(self, raw: str) -> list[tuple]:
-        value = []
-        for val in raw.split(";"):
-            val = val.strip()
-            if not val:
-                continue
-            value.append((val,))
-        return super().to_internal_value(value)
+    def to_internal_value(self, data: Any) -> list[tuple]:
+        if isinstance(data, str):
+            data = [(val,) for val in parse_semicolon_string(data)]
+        return super().to_internal_value(data)
 
 
 class QueryField(sr.Field):

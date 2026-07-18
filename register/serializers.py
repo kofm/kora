@@ -1,3 +1,4 @@
+from django.db.models import Q
 from django_countries.serializer_fields import CountryField
 from rest_framework import serializers as sr
 
@@ -11,12 +12,16 @@ from register.models import (
     ProtectionType,
 )
 from restapi.fields import CSV2ListQueryField, ExcelSafeDateField, MappedPrimaryKeyRelatedField, QueryField
-from restapi.serializers.generic import BaseExcelImportSerializer, ModelInBulkMixin, parse_semicolon_string
+from restapi.serializers.generic import (
+    BaseExcelImportSerializer,
+    build_bulk_lookup_map,
+    parse_semicolon_string,
+)
 
 
-class PlantVarietyListSerializer(ModelInBulkMixin, sr.ListSerializer):
+class PlantVarietyListSerializer(sr.ListSerializer):
     def to_internal_value(self, data):
-        self.context["variety_map"] = self.to_mapping(PlantVariety.objects.all(), ["name", "species"], data)
+        self.context["variety_map"] = build_bulk_lookup_map(PlantVariety.objects.all(), ["name", "species"], data)
         self.context["species_map"] = PlantSpecies.objects.in_bulk()
         return super().to_internal_value(data)
 
@@ -40,33 +45,94 @@ class PlantVarietyImportSerializer(BaseExcelImportSerializer):
     row_serializer = PlantVarietyImportRowSerializer
 
 
-class ProtectionListSerializer(ModelInBulkMixin, sr.ListSerializer):
+class ProtectionListSerializer(sr.ListSerializer):
     default_error_messages = {
         "duplicates": "Duplicate matches for {dupes}",
     }
 
-    def to_internal_value(self, data):
+    def merge_entities(self, data):
+        # Entities come from `applicants` and `maintainers` fields, so
+        # we build the mapping once by merging column values. Also,
+        # values are expected as semicolon-separated, hence
+        # `parse_semicolon_string`.
         entities = []
         for row in data:
-            m = row.get("applicants", None)
-            if m and isinstance(m, str):
-                vals = m.split(";")
-                for val in vals:
-                    entities.append({"name": val.strip()})
-            m = row.get("maintainers", None)
-            if m and isinstance(m, str):
-                vals = m.split(";")
-                for val in vals:
-                    entities.append({"name": val.strip()})
-        self.context["entity_map"] = self.to_mapping(Entity.objects.all(), ["name"], entities)
-        self.context["protection_map"] = self.to_mapping(
-            Protection.objects.select_related("variety").prefetch_related("applicants", "maintainers"),
-            ["type", "variety", "country"],
+            for column in ["applicants", "maintainers"]:
+                column_value = row.get(column, None)
+                if column_value and isinstance(column_value, str):
+                    entities.extend([{"name": value} for value in parse_semicolon_string(column_value)])
+        return entities
+
+    def to_internal_value(self, data):
+        self.context["entity_map"] = build_bulk_lookup_map(
+            Entity.objects.all(),
+            ["name"],
+            self.merge_entities(data),
+        )
+        self.context["variety_map"] = build_bulk_lookup_map(
+            PlantVariety.objects.all(),
+            ["name", "species_id"],
             data,
         )
-        self.context["variety_map"] = self.to_mapping(PlantVariety.objects.all(), ["name", "species_id"], data)
-        self.context["protection_type_map"] = self.to_mapping(ProtectionType.objects.all(), ["code"], data)
+        self.context["protection_type_map"] = build_bulk_lookup_map(
+            ProtectionType.objects.all(),
+            {"type": "code"},
+            data,
+        )
         return super().to_internal_value(data)
+
+    def create(self, validated_data):
+        lookup_values = {
+            (
+                item["type"].pk,
+                item["variety"].pk,
+                item["country"],
+            )
+            for item in validated_data
+            if item.get("type") and item.get("variety") and item.get("country")
+        }
+
+        query = Q()
+        for type_id, variety_id, country in lookup_values:
+            query |= Q(
+                type_id=type_id,
+                variety_id=variety_id,
+                country=country,
+            )
+
+        protection_keys = set()
+
+        if query:
+            protection_keys = set(Protection.objects.filter(query).values_list("type_id", "variety_id", "country"))
+
+        results = []
+
+        for item in validated_data:
+            ptype = item.get("type")
+            variety = item.get("variety")
+            country = item.get("country")
+
+            key = (
+                ptype.pk if ptype else None,
+                variety.pk if variety else None,
+                country,
+            )
+
+            if key in protection_keys:
+                results.append((None, [], []))
+                continue
+
+            applicants = item.pop("applicants", [])
+            maintainers = item.pop("maintainers", [])
+
+            protection = Protection(**item)
+
+            results.append((protection, applicants, maintainers))
+
+            # Prevent duplicate creation within same import payload.
+            protection_keys.add(key)
+
+        return results
 
 
 class ProtectionRowSerializer(sr.Serializer):
@@ -89,11 +155,6 @@ class ProtectionRowSerializer(sr.Serializer):
         list_serializer_class = ProtectionListSerializer
 
     def create(self, validated_data):
-        ptype = validated_data.get("type")
-        variety = validated_data.get("variety")
-        country = validated_data.get("country")
-        if (ptype, variety, country) in self.context["protection_map"]:
-            return None, [], []
         applicants = validated_data.pop("applicants", [])
         maintainers = validated_data.pop("maintainers", [])
         return Protection(**validated_data), applicants, maintainers
@@ -103,9 +164,9 @@ class ProtectionExcelImportSerializer(BaseExcelImportSerializer):
     row_serializer = ProtectionRowSerializer
 
 
-class EntityListSerializer(ModelInBulkMixin, sr.ListSerializer):
+class EntityListSerializer(sr.ListSerializer):
     def to_internal_value(self, data):
-        self.context["entity_map"] = self.to_mapping(
+        self.context["entity_map"] = build_bulk_lookup_map(
             queryset=Entity.objects.all(),
             lookup_fields=["name"],
             data=data,

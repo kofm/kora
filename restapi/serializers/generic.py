@@ -1,7 +1,48 @@
+from collections.abc import Mapping, Sequence
+from typing import Any
+
 import pandas as pd
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 from rest_framework import serializers as sr
+
+
+def parse_semicolon_string(data: str):
+    return [value for item in data.split(";") if (value := item.strip())]
+
+
+def build_bulk_lookup_map(
+    queryset,
+    lookup_fields: Sequence[str] | Mapping[str, str],
+    data: list[dict[str, Any]],
+) -> dict[tuple[Any, ...], Any]:
+    if isinstance(lookup_fields, Mapping):
+        input_columns = tuple(lookup_fields.keys())
+        model_fields = tuple(lookup_fields.values())
+    else:
+        input_columns = tuple(lookup_fields)
+        model_fields = tuple(lookup_fields)
+
+    lookup_values: set[tuple[Any, ...]] = set()
+
+    for row in data:
+        row_lookup = tuple(row.get(column) for column in input_columns)
+        if all(row_lookup):
+            lookup_values.add(row_lookup)
+
+    if not lookup_values:
+        return {}
+
+    query = Q()
+    for row_lookup in lookup_values:
+        query |= Q(*zip(model_fields, row_lookup, strict=True))
+
+    mapping: dict[tuple[Any, ...], Any] = {}
+    for obj in queryset.filter(query):
+        lookup_key = tuple(getattr(obj, field) for field in model_fields)
+        mapping[lookup_key] = obj
+
+    return mapping
 
 
 class BulkListSerializer(sr.ListSerializer):
@@ -13,34 +54,6 @@ class BulkListSerializer(sr.ListSerializer):
 class BulkModelSerializer(sr.ModelSerializer):
     class Meta:
         list_serializer_class = BulkListSerializer
-
-
-class ModelInBulkMixin:
-    @staticmethod
-    def to_mapping(queryset, lookup_fields: list | dict, data: list[dict]) -> dict:
-        uniq = set()
-        if isinstance(lookup_fields, list):
-            cols = lookup_fields
-            lf = lookup_fields
-        elif isinstance(lookup_fields, dict):
-            cols = lookup_fields.keys()
-            lf = lookup_fields.values()
-        for row in data:
-            vals = tuple(row.get(k, None) for k in cols)
-            if all(vals):
-                uniq.add(vals)
-
-        query = Q()
-        for key in uniq:
-            query |= Q(*zip(lf, key, strict=True))
-        qs = queryset.filter(query)
-
-        mapping = {}
-        for obj in qs:
-            k = tuple(getattr(obj, x) for x in lf)
-            mapping.update({k: obj})
-
-        return mapping
 
 
 class BaseExcelImportSerializer(sr.Serializer):
