@@ -1,15 +1,19 @@
+from pathlib import Path
+
+from django.core.files.uploadedfile import SimpleUploadedFile
 from factory.declarations import Iterator
 from rest_framework.test import APITestCase
 
 from register.factories import EntityFactory, PlantSpeciesFactory, PlantVarietyFactory
 from register.models import Protection, ProtectionType
-from register.serializers import ProtectionExcelImportSerializer, ProtectionRowSerializer
-from restapi.tests.utils import make_excel_file
+from register.serializers import ProtectionImportRequestSerializer, ProtectionImportRowSerializer
+
+FIXTURE_PATH = Path(__file__).parent / "fixtures"
 
 
 class ProtectionExcelImportTest(APITestCase):
     def setUp(self):
-        self.species = PlantSpeciesFactory()
+        self.species = PlantSpeciesFactory(id=1)
         self.variety = PlantVarietyFactory(species=self.species)
 
     def test_existing_protection_is_deduplicated_when_type_is_imported_by_code(self):
@@ -34,7 +38,7 @@ class ProtectionExcelImportTest(APITestCase):
             }
         ]
 
-        serializer = ProtectionRowSerializer(data=data, many=True)
+        serializer = ProtectionImportRowSerializer(data=data, many=True)
 
         self.assertTrue(serializer.is_valid(), serializer.errors)
 
@@ -51,36 +55,9 @@ class ProtectionExcelImportTest(APITestCase):
     def test_serializer_import_succeed(self):
         varieties = PlantVarietyFactory.create_batch(2, name=Iterator(["Carnaroli", "Foo"]), species=self.species)
         entities = EntityFactory.create_batch(2, name=Iterator(["Bar", "Baz"]))
-        data = [
-            {
-                "type": "NLI",
-                "reference": "abcde",
-                "status": "G",
-                "country": "IT",
-                "name": "Carnaroli",
-                "species_id": self.species.pk,
-                "date_start": "2024-02-02",
-                "date_end": "",
-                "applicants": "Bar; Baz",
-                "maintainers": "Bar",
-                "note": "My note",
-            },
-            {
-                "type": "PBR",
-                "reference": "fght",
-                "status": "W",
-                "country": "ES",
-                "name": "Foo",
-                "species_id": self.species.pk,
-                "date_start": "2024-02-01",
-                "date_end": None,
-                "applicants": "Bar",
-                "maintainers": "Baz",
-                "note": "",
-            },
-        ]
-        file = make_excel_file(data)
-        s = ProtectionExcelImportSerializer(data={"file": file})
+        path = FIXTURE_PATH / "protections.xlsx"
+        uploaded_file = SimpleUploadedFile(path.name, path.read_bytes())
+        s = ProtectionImportRequestSerializer(data={"file": uploaded_file})
         self.assertTrue(s.is_valid())
 
         res = s.save()

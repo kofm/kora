@@ -2,7 +2,7 @@ from collections.abc import Mapping, Sequence
 from typing import Any
 
 import pandas as pd
-from django.core.exceptions import ValidationError
+from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.db.models import Q
 from rest_framework import serializers as sr
 
@@ -56,8 +56,11 @@ class BulkModelSerializer(sr.ModelSerializer):
         list_serializer_class = BulkListSerializer
 
 
-class BaseExcelImportSerializer(sr.Serializer):
-    file = sr.FileField(label="Excel file (.xlsx)")
+class BaseSpreadsheetImportRequestSerializer(sr.Serializer):
+    SPREADSHEET_EXTENSIONS = {".xlsx", ".xls", ".ods"}
+    CSV_EXTENSION = ".csv"
+
+    file = sr.FileField(label="File")
     validate_only = sr.BooleanField(default=False, label="Validate only")
 
     row_serializer: type[sr.Serializer]
@@ -80,20 +83,35 @@ class BaseExcelImportSerializer(sr.Serializer):
                 break
         return errors
 
+    def read_file(self, value: InMemoryUploadedFile, **kwargs):
+        extension = value.name.lower().rsplit(".", maxsplit=1)
+        extension = f".{extension[-1]}" if len(extension) == 2 else ""
+
+        value.seek(0)
+        if extension == self.CSV_EXTENSION:
+            return pd.read_csv(value, **kwargs)
+        if extension in self.SPREADSHEET_EXTENSIONS:
+            return pd.read_excel(value, engine="calamine", **kwargs)
+
+        supported_extensions = ", ".join(sorted(self.SPREADSHEET_EXTENSIONS | {self.CSV_EXTENSION}))
+        raise ValueError(f"Unsupported file type. Supported file types: {supported_extensions}.")
+
     def validate_file(self, value):
         try:
-            pd.read_excel(value, nrows=0)
+            self.read_file(value, nrows=0)
         except Exception as err:
-            raise ValidationError("The uploaded file is not a valid Excel file.") from err
+            raise sr.ValidationError(f"The uploaded file is not a valid supported spreadsheet: {err}") from err
+        finally:
+            value.seek(0)
         return value
 
     def validate(self, attrs):
         assert self.row_serializer, "row_serializer must be set on the subclass."
 
         try:
-            df = pd.read_excel(attrs["file"], keep_default_na=True)
+            df = self.read_file(attrs["file"], keep_default_na=True)
         except Exception as e:
-            raise sr.ValidationError({"file": f"Error reading Excel: {e}"}) from e
+            raise sr.ValidationError({"file": f"Error reading spreadsheet: {e}"}) from e
 
         rows = []
 

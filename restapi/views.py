@@ -21,9 +21,9 @@ from describe.models import (
 from parameters.models import Parameter, VarietalParameter
 from register.models import Entity, PlantSpecies, PlantVariety, PlantVarietyName, Protection, ProtectionType
 from register.serializers import (
-    EntityImportSerializer,
-    PlantVarietyImportSerializer,
-    ProtectionExcelImportSerializer,
+    EntityImportRequestSerializer,
+    PlantVarietyImportRequestSerializer,
+    ProtectionImportRequestSerializer,
 )
 from restapi.decorators import document_bulk_create
 from restapi.serializers.generic import ExcelImportResponseSerializer
@@ -96,21 +96,25 @@ class PlantVarietyViewSet(ExcelImportActionMixin, KoraViewSet):
         return len(created)
 
     @extend_schema(responses=ExcelImportResponseSerializer)
-    @action(detail=False, methods=["post"], serializer_class=PlantVarietyImportSerializer)
+    @action(detail=False, methods=["post"], serializer_class=PlantVarietyImportRequestSerializer)
     def excel_import(self, request):
-        """Import varieties from an Excel table.
+        """Import varieties from a spreadsheet file.
+
+        Supported file formats are CSV, XLS, XLSX, and ODS. The first
+        row must contain the column names described below.
+
+        Select ``Validate only`` to check the file for errors without
+        importing any rows.
 
         **Accepted columns**:
 
-        - ``name`` (required, string): the denomination of the variety;
-        - ``species_id`` (required, integer): the ID of the species (see
+        - ``name`` (text, required): denomination of the variety;
+        - ``species_id`` (integer, required): ID of the species (see
           :http:get:`/api/species/`).
 
-        NOTE: if a variety of the same species with the same name
-        already exists, it will not be imported. If you really need a
-        variety with the same name you will have to add it through the
-        user interface.
-
+        A row is skipped if a variety with the same ``name`` and
+        ``species_id`` already exists. Existing varieties are not updated.
+        To create another variety with the same name, use the user interface.
         """
         return super().excel_import(request)
 
@@ -126,20 +130,29 @@ class EntityViewSet(ExcelImportActionMixin, KoraViewSet):
         return len(created)
 
     @extend_schema(responses=ExcelImportResponseSerializer)
-    @action(detail=False, methods=["post"], serializer_class=EntityImportSerializer)
+    @action(detail=False, methods=["post"], serializer_class=EntityImportRequestSerializer)
     def excel_import(self, request):
-        """Import entities from an Excel table.
+        """Import entities from a spreadsheet file.
 
+        Supported file formats are CSV, XLS, XLSX, and ODS. The first
+        row must contain the column names described below.
+
+        Select ``Validate only`` to check the file for errors without
+        importing any rows.
 
         **Accepted columns**:
 
-        - ``name`` (text, required): the entity name;
-        - ``type`` (text, optional): type of entity, one of ``IN``
-          (Individual), ``PA`` (Partnership), ``CO`` (Company), ``CP``
+        - ``name`` (text, required): entity name;
+        - ``type`` (text, optional): entity type. Accepted values are ``IN``
+          (Individual), ``PA`` (Partnership), ``CO`` (Company), and ``CP``
           (Cooperative);
-        - ``country`` (text, optional): ISO 3166-1 two-letter country code;
+        - ``country`` (text, optional): ISO 3166-1 alpha-2 country code;
         - ``contact`` (text, optional): contact information;
         - ``email`` (text, optional): email address.
+
+        A row is skipped if an entity with the same ``name`` already exists.
+        Existing entities are not updated. Semicolons in ``name`` are treated
+        as part of a single entity name.
         """
         return super().excel_import(request)
 
@@ -187,43 +200,49 @@ class ProtectionViewSet(ExcelImportActionMixin, KoraViewSet):
         return len(protections)
 
     @extend_schema(responses=ExcelImportResponseSerializer)
-    @action(detail=False, methods=["post"], serializer_class=ProtectionExcelImportSerializer)
+    @action(detail=False, methods=["post"], serializer_class=ProtectionImportRequestSerializer)
     def excel_import(self, request):
-        """Import protections from an Excel table.
+        """Import protections from a spreadsheet file.
+
+        Supported file formats are CSV, XLS, XLSX, and ODS. The first
+        row must contain the column names described below.
+
+        Select ``Validate only`` to check the file for errors without
+        importing any rows.
 
         **Accepted columns**:
 
-        - ``name`` (text, required): name of the variety - this will be
-          matched with existing varieties of the specified species_id,
-          and will throw an error when no matches are found;
-        - ``species_id`` (integer, required): the ID of the variety's
-          species (see :http:get:`/api/species/`);
-        - ``type`` (text, required): protection type, the three letter
-          code identifying the protection type (see
-          :http:get:`/api/protection_types/`);
-        - ``reference`` (text, optional): arbitrary reference
-          number/code (e.g. application number);
-        - ``status`` (text, optional): protection status, one of ``G``
-          (Granted), ``T`` (Terminated), ``A`` (Active Application), ``W``
-          (Withdrawn), ``R`` (Refused), ``S`` (Surrendered);
-        - ``country`` (text, optional): ISO 3166-1 two-letter country code;
-        - ``date_start`` (date, optional): start date of the protection
-          (YYYY-MM-DD format);
-        - ``date_end`` (date, optional): end date of the protection (YYYY-MM-DD
-          format);
-        - ``applicants`` (array, optional): semi-colon separated list of
-          applicant names;
-        - ``maintainers`` (array, optional): semi-colon separated list
-          of maintainer names;
+        - ``name`` (text, required): variety name. The variety is matched
+        against existing varieties using both ``name`` and ``species_id``.
+        Validation fails if no matching variety is found;
+        - ``species_id`` (integer, required): ID of the variety's species
+        (see :http:get:`/api/species/`);
+        - ``type`` (text, required): three-letter protection type code
+        (see :http:get:`/api/protection_types/`);
+        - ``reference`` (text, optional): reference number or code, such as
+        an application number;
+        - ``status`` (text, optional): protection status. Accepted values are
+        ``G`` (Granted), ``T`` (Terminated), ``A`` (Active Application),
+        ``W`` (Withdrawn), ``R`` (Refused), and ``S`` (Surrendered);
+        - ``country`` (text, optional): ISO 3166-1 alpha-2 country code;
+        - ``date_start`` (date, optional): protection start date in
+        ``YYYY-MM-DD`` format;
+        - ``date_end`` (date, optional): protection end date in
+        ``YYYY-MM-DD`` format;
+        - ``applicants`` (text, optional): semicolon-separated applicant
+        names;
+        - ``maintainers`` (text, optional): semicolon-separated maintainer
+        names;
         - ``note`` (text, optional): additional information.
 
-        The ``applicants`` and ``maintainers`` columns in the protection
-        import file allow multiple entities. These should be entered
-        as semi-colon separated names (e.g. `"Entity A; Entity
-        B"`). This format is commonly used by many public
-        databases. Avoid using semi-colon separated names in the
-        entities import file, as these will be imported as a single
-        entity.
+        The ``applicants`` and ``maintainers`` columns may contain multiple
+        entity names separated by semicolons, for example
+        ``Entity A; Entity B``. Do not use semicolon-separated names when
+        importing entities: they will be interpreted as one entity name.
+
+        Rows whose combination of ``type``, ``name``, ``species_id``, and
+        ``country`` already exists are skipped and are not updated.
+
         """
         return super().excel_import(request)
 

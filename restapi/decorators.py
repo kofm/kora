@@ -1,6 +1,6 @@
 from drf_spectacular.utils import extend_schema, extend_schema_view
 
-from restapi.serializers.generic import BaseExcelImportSerializer, ExcelImportResponseSerializer
+from restapi.serializers.generic import BaseSpreadsheetImportRequestSerializer, ExcelImportResponseSerializer
 
 
 def document_bulk_create(serializer_class, *, name=None):
@@ -29,7 +29,7 @@ def document_excel_import(*, name=None, description=None):
             excel_import=extend_schema(
                 summary=summary,
                 description=description,
-                request={"multipart/form-data": BaseExcelImportSerializer},
+                request={"multipart/form-data": BaseSpreadsheetImportRequestSerializer},
                 responses=ExcelImportResponseSerializer,
             )
         )

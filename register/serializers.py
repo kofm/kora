@@ -13,13 +13,13 @@ from register.models import (
 )
 from restapi.fields import CSV2ListQueryField, ExcelSafeDateField, MappedPrimaryKeyRelatedField, QueryField
 from restapi.serializers.generic import (
-    BaseExcelImportSerializer,
+    BaseSpreadsheetImportRequestSerializer,
     build_bulk_lookup_map,
     parse_semicolon_string,
 )
 
 
-class PlantVarietyListSerializer(sr.ListSerializer):
+class PlantVarietyImportListSerializer(sr.ListSerializer):
     def to_internal_value(self, data):
         self.context["variety_map"] = build_bulk_lookup_map(PlantVariety.objects.all(), ["name", "species"], data)
         self.context["species_map"] = PlantSpecies.objects.in_bulk()
@@ -31,7 +31,7 @@ class PlantVarietyImportRowSerializer(sr.Serializer):
     species_id = MappedPrimaryKeyRelatedField(mapping_key="species_map", required=True, source="species")
 
     class Meta:
-        list_serializer_class = PlantVarietyListSerializer
+        list_serializer_class = PlantVarietyImportListSerializer
 
     def create(self, validated_data):
         name = validated_data.get("name")
@@ -41,11 +41,11 @@ class PlantVarietyImportRowSerializer(sr.Serializer):
         return None
 
 
-class PlantVarietyImportSerializer(BaseExcelImportSerializer):
+class PlantVarietyImportRequestSerializer(BaseSpreadsheetImportRequestSerializer):
     row_serializer = PlantVarietyImportRowSerializer
 
 
-class ProtectionListSerializer(sr.ListSerializer):
+class ProtectionImportListSerializer(sr.ListSerializer):
     default_error_messages = {
         "duplicates": "Duplicate matches for {dupes}",
     }
@@ -135,7 +135,7 @@ class ProtectionListSerializer(sr.ListSerializer):
         return results
 
 
-class ProtectionRowSerializer(sr.Serializer):
+class ProtectionImportRowSerializer(sr.Serializer):
     variety = QueryField(
         mapping_key="variety_map",
         column_mapping={"name": "name", "species_id": "species_id"},
@@ -152,7 +152,7 @@ class ProtectionRowSerializer(sr.Serializer):
     note = sr.CharField(required=False, allow_blank=True)
 
     class Meta:
-        list_serializer_class = ProtectionListSerializer
+        list_serializer_class = ProtectionImportListSerializer
 
     def create(self, validated_data):
         applicants = validated_data.pop("applicants", [])
@@ -160,11 +160,11 @@ class ProtectionRowSerializer(sr.Serializer):
         return Protection(**validated_data), applicants, maintainers
 
 
-class ProtectionExcelImportSerializer(BaseExcelImportSerializer):
-    row_serializer = ProtectionRowSerializer
+class ProtectionImportRequestSerializer(BaseSpreadsheetImportRequestSerializer):
+    row_serializer = ProtectionImportRowSerializer
 
 
-class EntityListSerializer(sr.ListSerializer):
+class EntityImportListSerializer(sr.ListSerializer):
     def to_internal_value(self, data):
         self.context["entity_map"] = build_bulk_lookup_map(
             queryset=Entity.objects.all(),
@@ -182,7 +182,7 @@ class EntityImportRowSerializer(sr.Serializer):
     email = sr.EmailField(required=False)
 
     class Meta:
-        list_serializer_class = EntityListSerializer
+        list_serializer_class = EntityImportListSerializer
 
     def create(self, validated_data):
         name = validated_data.get("name")
@@ -190,5 +190,5 @@ class EntityImportRowSerializer(sr.Serializer):
             return Entity(**validated_data)
 
 
-class EntityImportSerializer(BaseExcelImportSerializer):
+class EntityImportRequestSerializer(BaseSpreadsheetImportRequestSerializer):
     row_serializer = EntityImportRowSerializer
