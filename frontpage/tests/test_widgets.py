@@ -6,10 +6,6 @@ from register.factories import PlantVarietyFactory
 from register.models import PlantSpecies, PlantVariety
 
 
-class TestForm(forms.Form):
-    species = forms.ModelChoiceField(queryset=PlantSpecies.objects.all(), widget=EmptySelect())
-
-
 class TestModelForm(forms.ModelForm):
     class Meta:
         model = PlantVariety
@@ -27,6 +23,10 @@ class TomSelectForm(forms.Form):
 class EmptySelectTest(TestCase):
     def setUp(self) -> None:
         PlantVarietyFactory.create_batch(4)
+
+        class TestForm(forms.Form):
+            species = forms.ModelChoiceField(queryset=PlantSpecies.objects.all(), widget=EmptySelect())
+
         self.form = TestForm()
 
     def test_empty_select_renders_no_options(self):
