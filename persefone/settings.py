@@ -1,5 +1,4 @@
 import os
-import sys
 from pathlib import Path
 
 from django.contrib import messages
@@ -10,6 +9,8 @@ from frontpage.utils.env_utils import getenv_bool, getenv_list
 
 SECRET_KEY = os.getenv("SECRET_KEY")
 DEV = getenv_bool("DEV")
+DEBUG = DEV
+DEBUG_TOOLBAR_ENABLED = DEBUG and getenv_bool("DEBUG_TOOLBAR_ENABLED", False)
 ALLOWED_HOSTS = getenv_list("ALLOWED_HOSTS")
 CSRF_TRUSTED_ORIGINS = getenv_list("CSRF_TRUSTED_ORIGINS")
 
@@ -219,13 +220,9 @@ DJANGO_EASY_AUDIT_UNREGISTERED_CLASSES_EXTRA.append("collect.StoragePosition")
 # Conditional settings
 
 if DEV:
-    DEBUG = True
     INTERNAL_IPS = ["127.0.0.1", "localhost"]
-
     SHELL_PLUS = "ipython"
 
-    DEBUG_TOOLBAR_ENABLED = DEBUG and "test" not in sys.argv
-    DEBUG_TOOLBAR_CONFIG = {"SHOW_TOOLBAR_CALLBACK": lambda r: True}
     if DEBUG_TOOLBAR_ENABLED:
         INSTALLED_APPS = [
             "debug_toolbar",
@@ -240,11 +237,7 @@ if DEV:
         ]
 
 else:
-    DEBUG = False
     STATIC_ROOT = "/var/www/static/"
-
-    DEBUG_TOOLBAR_ENABLED = False
-
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https") if USE_HTTPS else None
     SESSION_COOKIE_SECURE = USE_HTTPS
     CSRF_COOKIE_SECURE = USE_HTTPS
