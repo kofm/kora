@@ -722,7 +722,7 @@ docs = [
 [package.metadata]
 requires-dist = [
     { name = "crispy-bootstrap5", specifier = ">=0.7" },
-    { name = "django", specifier = ">6" },
+    { name = "django", specifier = ">=6" },
     { name = "django-countries", specifier = ">=7.6.1" },
     { name = "django-crispy-forms", specifier = "==1.14" },
     { name = "django-easy-audit", specifier = "==1.3.9a2" },
