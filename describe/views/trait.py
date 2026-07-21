@@ -106,7 +106,7 @@ def trait_relate_states(request, pk):
     # These URLs are needed for the protocol and trait `TomSelect`
     # inputs, respectively.
     plantspecies_id = trait.protocol.plantspecies_id
-    protocol_query = {"no_pagination": 1, "plantspecies": plantspecies_id, "exclude_id": trait.protocol_id}
+    protocol_query = {"plantspecies": plantspecies_id, "exclude_id": trait.protocol_id}
     context["protocols_list_url"] = reverse("restapi:protocols-list", query=protocol_query)
     context["traits_list_url"] = f"{reverse('restapi:traits-list')}"
 

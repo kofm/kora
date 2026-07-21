@@ -17,7 +17,7 @@ new TomSelect("#id_protocol", {
         fetch(protocolsListUrl)
             .then((response) => response.json())
             .then((json) => {
-                callback(json);
+                callback(json.results);
                 this.settings.load = null;
             })
             .catch(() => callback());
@@ -27,12 +27,12 @@ new TomSelect("#id_protocol", {
             document.getElementById("trait-search-url").textContent,
         );
         if (value) {
-            fetch(`${traitSearchUrl}?no_pagination=1&protocol=${value}`)
+            fetch(`${traitSearchUrl}?protocol=${value}`)
                 .then((response) => response.json())
                 .then((json) => {
                     control.clear();
                     control.clearOptions();
-                    control.addOptions(json);
+                    control.addOptions(json.results);
                     control.refreshOptions(false);
                     control.enable();
                 });
