@@ -21,9 +21,20 @@ from restapi.serializers.generic import (
 
 class PlantVarietyImportListSerializer(sr.ListSerializer):
     def to_internal_value(self, data):
-        self.context["variety_map"] = build_bulk_lookup_map(PlantVariety.objects.all(), ["name", "species"], data)
+        normalized_data = [
+            {
+                **row,
+                "name": row["name"].strip() if isinstance(row.get("name"), str) else row.get("name"),
+            }
+            for row in data
+        ]
+        self.context["variety_map"] = build_bulk_lookup_map(
+            PlantVariety.objects.all(),
+            {"name": "name", "species_id": "species_id"},
+            normalized_data,
+        )
         self.context["species_map"] = PlantSpecies.objects.in_bulk()
-        return super().to_internal_value(data)
+        return super().to_internal_value(normalized_data)
 
 
 class PlantVarietyImportRowSerializer(sr.Serializer):
@@ -36,7 +47,7 @@ class PlantVarietyImportRowSerializer(sr.Serializer):
     def create(self, validated_data):
         name = validated_data.get("name")
         species = validated_data.get("species")
-        if (name, species) not in self.context["variety_map"]:
+        if (name, species.pk) not in self.context["variety_map"]:
             return PlantVariety(**validated_data)
         return None
 
