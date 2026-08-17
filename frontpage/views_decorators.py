@@ -12,7 +12,7 @@ def is_htmx(request: HttpRequest):
     return request.headers.get("Hx-Request", False)
 
 
-def htmx_render_blocks(blocks: list):
+def htmx_render_blocks(blocks: list[str]):
     def decorator(view):
         @wraps(view)
         def _view(request, *args, **kwargs):

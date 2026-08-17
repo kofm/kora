@@ -1,0 +1,139 @@
+{% extends "frontpage/base.html" %}
+
+{% load components %}
+{% load breadcrumbs %}
+{% load render_table from django_tables2 %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+  Fieldbook: {{ fieldbook }}
+{% endblock %}
+
+{% block javascript %}
+  <script type="text/javascript">
+   history.scrollRestoration = "manual";
+  </script>
+{% endblock %}
+
+{% block container %}
+
+  {% render_breadcrumbs %}
+
+  {% render_header header %}
+
+  {% if perms.calculator.change_fieldbook %}
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="offcanvas" data-bs-target="#fieldbook-config" aria-controls="fieldbook-config" title="Configure Fieldbook">
+      <i class="bi bi-sliders me-1"></i>
+      Configure
+    </button>
+    {% partial layout_config_offcanvas %}
+  {% endif %}
+
+  <style>
+   #fieldbook-config {
+     --bs-offcanvas-width: min(400px, 100vw);
+   }
+  </style>
+
+  <div id="steps" hx-get="{% url 'calculator:fieldbook_detail' fieldbook.pk %}" hx-target="#steps" hx-trigger="DisplayConfigUpdated" class="mt-3">
+    {% partial steps %}
+  </div>
+
+{% endblock %}
+
+{% partialdef layout_config_offcanvas %}
+<div
+  id="fieldbook-config"
+  class="offcanvas offcanvas-start shadow"
+  data-bs-scroll="true"
+  data-bs-backdrop="false"
+  tabindex="-1"
+  aria-labelledby="fieldbook-config-label"
+>
+  <div class="offcanvas-header border-bottom">
+    <div>
+      <h1 id="fieldbook-config-label" class="fs-5 offcanvas-title">Configure fieldbook</h1>
+    </div>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  </div>
+  <div class="offcanvas-body bg-body-tertiary">
+    {% if not is_read_only %}
+    <section class="card border-0 shadow-sm mb-3">
+      <div class="card-body">
+        <h2 class="fs-6">Plan observations</h2>
+        <p class="small text-body-secondary">Plan observations for the selected crops.</p>
+
+        <div class="d-flex justify-content-between align-items-center rounded bg-body p-2 mb-3">
+          <strong class="small" data-selection-status aria-live="polite">0 crops selected</strong>
+          <div class="d-flex gap-2">
+            <button type="button" class="btn btn-sm btn-link p-0" data-selection-action="all">Select all</button>
+            <button type="button" class="btn btn-sm btn-link p-0" data-selection-action="none">Clear selection</button>
+          </div>
+        </div>
+
+        <form class="mb-3" method="post" hx-post="{% url 'calculator:trait_target_create' fieldbook.pk %}" hx-target="#steps" hx-include="[name=selection]">
+          {{ trait_target_form }}
+          <button type="submit" class="btn btn-sm btn-primary mt-2" data-requires-selection disabled>
+            <i class="bi bi-plus-circle me-1"></i>Add trait
+          </button>
+        </form>
+
+        <form method="post" hx-post="{% url 'calculator:parameter_target_create' fieldbook.pk %}" hx-target="#steps" hx-include="[name=selection]">
+          {{ parameter_target_form }}
+          <button type="submit" class="btn btn-sm btn-primary mt-2" data-requires-selection disabled>
+            <i class="bi bi-plus-circle me-1"></i>Add parameter
+          </button>
+        </form>
+
+        <hr>
+        <form method="post" hx-post="{% url 'calculator:fieldbook_targets_delete' fieldbook.pk %}" hx-target="#steps" hx-include="[name=selection]" hx-confirm="Unplan observations for selected plots?">
+          <button type="submit" class="btn btn-sm btn-outline-danger" data-requires-selection disabled>
+            <i class="bi bi-trash me-1"></i>Unplan
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <section class="card border-0 shadow-sm mb-3">
+      <div class="card-body">
+        <h2 class="fs-6">Walk order</h2>
+        <p class="small text-body-secondary">Specify the path through the planned obsevations.</p>
+        {% url 'calculator:fieldbook_update_step_order' fieldbook.pk as update_step_order_url %}
+        <form hx-post="{{ update_step_order_url }}" hx-target="#steps">
+          {{ order_form|crispy }}
+          <button type="submit" class="btn btn-sm btn-primary mt-2">
+            <i class="bi bi-arrow-repeat me-1"></i>Apply order
+          </button>
+        </form>
+      </div>
+    </section>
+    {% endif %}
+
+    <section class="card border-0 shadow-sm">
+      <div class="card-body">
+        <h2 class="fs-6">Map display</h2>
+        <p class="small text-body-secondary">Choose the observation shown on each plot.</p>
+        <form hx-post="{% url 'calculator:fieldbook_detail_display' fieldbook.pk %}" hx-target="#steps">
+          {{ display_form|crispy }}
+        </form>
+      </div>
+    </section>
+  </div>
+</div>
+{% endpartialdef %}
+
+{% partialdef steps %}
+{% if perms.calculator.change_fieldbook and not is_read_only %}
+  <div class="d-flex justify-content-end align-items-center gap-2 mb-2">
+    <span class="small text-body-secondary" data-selection-status aria-live="polite">0 crops selected</span>
+    <button type="button" class="btn btn-sm btn-link link-body-emphasis" data-selection-action="none" data-requires-selection disabled>
+      Clear selection
+    </button>
+  </div>
+{% endif %}
+<style>.bg-info { overflow-anchor: none; }</style>
+<div _="on load wait 100ms if .bg-info in document go to the top of .bg-info">
+  {% render_layout plots_layout %}
+</div>
+{% endpartialdef %}

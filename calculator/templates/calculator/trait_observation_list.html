@@ -1,0 +1,9 @@
+{% extends "frontpage/list.html" %}
+
+{% load components %}
+
+{% block title %}Trait observations{% endblock %}
+
+{% block page_header %}
+  {% list_page_header "calculator.TraitObservation" title="Observations" subtitle="Traits" %}
+{% endblock %}

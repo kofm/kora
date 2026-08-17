@@ -1,5 +1,6 @@
 from django.contrib.auth.decorators import permission_required
 from django.db import transaction
+from django.http import HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
@@ -32,6 +33,17 @@ def state_form(request, trait_pk):
 @transaction.atomic
 def state_delete(request, pk):
     state = get_object_or_404(State.objects.select_related("group"), pk=pk)
-    state.group.delete()
+    if not state.is_deletable():
+        return HttpResponseBadRequest("This state is used by an observation and cannot be deleted.")
+
+    group = state.group
+    trait_id = state.trait_id
     state.delete()
-    return redirect(reverse("describe:trait_update", args=(state.trait.pk,)))
+
+    remaining_states = State.objects.filter(group=group)
+    if remaining_states.exists():
+        remaining_states.rebuild_groups()
+    else:
+        group.delete()
+
+    return redirect(reverse("describe:trait_update", args=(trait_id,)))

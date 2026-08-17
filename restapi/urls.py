@@ -35,6 +35,8 @@ router.register(r"sampleweights", views.SampleWeightViewSet)
 router.register(r"germinabilities", views.GerminabilityViewSet)
 router.register(r"workspaces", views.WorkspaceViewSet, basename="workspaces")
 router.register(r"carts", views.CartViewSet, basename="cart")
+router.register(r"crop-layouts", views.CropLayoutViewSet, basename="crop-layout")
+router.register(r"crops", views.CropViewSet, basename="crops")
 
 urlpatterns = [
     path("schema/", SpectacularAPIView.as_view(), name="schema"),

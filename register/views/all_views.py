@@ -4,23 +4,19 @@ from django.db.models import Q
 from django.http import HttpRequest
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
-from django.urls import reverse
 from django.urls.base import reverse_lazy
 from django.views.decorators.http import require_http_methods
-from django.views.generic import CreateView, DetailView
+from django.views.generic import CreateView
 from django.views.generic.edit import DeleteView, UpdateView
 from django_tables2.config import RequestConfig
 
 from breadcrumbs.generic import (
-    CrumbsCreateView,
     DeleteBreadcrumbsMixin,
     UpdateBreadcrumbsMixin,
 )
 from breadcrumbs.utils import (
     add_plantvariety_breadcrumbs,
-    detail_breadcrumb,
     generate_breadcrumbs,
-    list_breadcrumb,
 )
 from frontpage.views_decorators import (
     NavDescribeActiveContext,
@@ -29,45 +25,10 @@ from frontpage.views_decorators import (
     nav_describe_active_context,
     nav_plant_active_context,
 )
-from parameters.forms import VarietalParameterForm
-from parameters.models import VarietalParameter
 from register.filters import EntityFilter, ProtectionOmniFilter
 from register.forms import EntityForm, ProtectionForm, ProtectionTypeForm
 from register.models import Entity, PlantVariety, Protection, ProtectionType
 from register.tables import EntityTable, PlantVarietyEntityTable, ProtectionListTable
-
-
-class PlantVarietyParametersList(NavPlantActiveContext, DetailView):
-    model = PlantVariety
-    context_object_name = "variety"
-    template_name = "register/plantvarietyparameters_list.html"
-
-
-class VarietalParameterCreate(PermissionRequiredMixin, NavPlantActiveContext, CrumbsCreateView):
-    model = VarietalParameter
-    form_class = VarietalParameterForm
-    template_name_suffix = "_create_form"
-    permission_required = "parameter.add_varietalparameter"
-
-    @property
-    def crumbs(self):
-        return [
-            list_breadcrumb(self.variety._meta.model),
-            detail_breadcrumb(self.variety),
-            ("Create Parameter", None),
-        ]
-
-    @property
-    def variety(self):
-        return PlantVariety.objects.get(pk=self.kwargs.get("pk"))
-
-    def get_initial(self, *args, **kwargs):
-        initial_data = super().get_initial(*args, **kwargs)
-        initial_data.update({"variety": self.variety})
-        return initial_data
-
-    def get_success_url(self, *args, **kwargs):
-        return reverse("register:parameter_list", kwargs={"pk": self.variety.pk})
 
 
 @nav_plant_active_context

@@ -1,9 +1,10 @@
 from rest_framework import serializers
 
-from calculator.models import Crop, CropParameter
+from calculator.models import Crop, CropLayout, CropParameter
 from parameters.models import Parameter
 from register.models import PlantSpecies, PlantVariety
-from spaces.models import Area
+from restapi.fields import MappedPrimaryKeyRelatedField
+from restapi.serializers.generic import BaseSpreadsheetImportRequestSerializer
 
 
 class CropSpecieSerializer(serializers.ModelSerializer):
@@ -18,35 +19,19 @@ class CropVarietySerializer(serializers.ModelSerializer):
         fields = ["name"]
 
 
-class CropObjectRelatedField(serializers.RelatedField):
-    def to_representation(self, value):
-        if isinstance(value, PlantSpecies):
-            serializer = CropSpecieSerializer(value)
-        elif isinstance(value, PlantVariety):
-            serializer = CropVarietySerializer(value)
-        else:
-            raise Exception("Unexpected type of crop")
-        return serializer.data
-
-
 class CropSerializer(serializers.ModelSerializer):
-    content_object = CropObjectRelatedField(read_only=True)
+    variety_data = CropVarietySerializer(source="variety", read_only=True)
 
     class Meta:
         model = Crop
-        fields = [
-            "id",
-            "content_type",
-            "content_object",
-            "notes",
-        ]
+        fields = ["id", "layout", "variety", "variety_data", "order", "notes", "created_at", "updated_at"]
 
 
-class AreaSerializer(serializers.ModelSerializer):
-    crops = CropSerializer(many=True, source="crop_set")
+class CropLayoutSerializer(serializers.ModelSerializer):
+    crops = CropSerializer(many=True, read_only=True)
 
     class Meta:
-        model = Area
+        model = CropLayout
         fields = "__all__"
 
 
@@ -62,3 +47,27 @@ class CropParameterSerializer(serializers.ModelSerializer):
     class Meta:
         model = CropParameter
         fields = ["id", "crop", "value", "parameter", "parameter_data"]
+
+
+class CropImportListSerializer(serializers.ListSerializer):
+    def to_internal_value(self, data):
+        self.context["variety_map"] = PlantVariety.objects.in_bulk()
+        self.context["layout_map"] = CropLayout.objects.visible().in_bulk()
+        return super().to_internal_value(data)
+
+
+class CropImportRowSerializer(serializers.Serializer):
+    notes = serializers.CharField(required=False)
+    variety = MappedPrimaryKeyRelatedField(mapping_key="variety_map", required=True)
+    layout = MappedPrimaryKeyRelatedField(mapping_key="layout_map", required=True)
+    order = serializers.IntegerField(min_value=0, required=False, default=0)
+
+    class Meta:
+        list_serializer_class = CropImportListSerializer
+
+    def create(self, validated_data):
+        return Crop(**validated_data)
+
+
+class CropImportRequestSerializer(BaseSpreadsheetImportRequestSerializer):
+    row_serializer = CropImportRowSerializer

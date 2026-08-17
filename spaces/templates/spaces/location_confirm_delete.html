@@ -1,24 +1,11 @@
 {% extends "frontpage/base.html" %}
-{% load crispy_forms_tags %}
-{% load static %}
-{% block title %}Are you sure?{% endblock %}
 
 {% block container %}
-
-<h5 class="display-5">Are you sure?</h5>
-<p>You are deleting the location {{ location.name }}. The operation cannot be undone.</p>
-{% if location.area_set.count > 0 %}
-<p>You will also delete the following crops:</p>
-<ul>
-  {% for area in location.area_set.all %}
-  <li>{{ area }}</li>
-  {% endfor %}
-</ul>
-{% endif %}
+<h1>Delete location {{ location.name }}</h1>
+<p>This operation cannot be undone. Deletion is blocked while crop layouts reference this location.</p>
 <form method="post">
   {% csrf_token %}
-  <button name="btn-save" type="submit" class="btn btn-outline-primary mt-3">Confirm</button>
-  <a class="btn btn-outline-secondary mt-3" type="submit" href="{% url 'spaces:area_detail' object.pk %}">Cancel</a>
+  <button name="btn-save" type="submit" class="btn btn-outline-danger mt-3">Confirm</button>
+  <a class="btn btn-outline-secondary mt-3" href="{{ object.get_absolute_url }}">Cancel</a>
 </form>
-
 {% endblock %}

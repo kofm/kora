@@ -1,5 +1,6 @@
 """Characterization-related models."""
 
+from collections import defaultdict
 from collections.abc import Iterable
 
 from django.contrib.auth.models import User
@@ -58,6 +59,10 @@ class Protocol(ModelIsDeletableMixin, models.Model):
 
     def get_delete_url(self):
         return reverse("describe:protocol_delete", args=(self.pk,))
+
+    @cached_property
+    def is_deletable(self):
+        return super().is_deletable and not self.traits.filter(states__traitobservation__isnull=False).exists()
 
     def with_traits_and_states(self):
         return Trait.objects.filter(protocol=self.pk).prefetch_related("states").order_by("numeric_id")
@@ -228,7 +233,9 @@ class Trait(models.Model):
         return f"{self.numeric_id}. {self.description}"
 
     def is_deletable(self):
-        return not Expression.objects.filter(state__in=self.states.all()).exists()
+        return not self.states.filter(
+            models.Q(expression__isnull=False) | models.Q(traitobservation__isnull=False)
+        ).exists()
 
     def get_next_in_protocol(self):
         return Trait.objects.filter(protocol=self.protocol, numeric_id__gt=self.numeric_id).first()
@@ -267,6 +274,12 @@ class StateGroup(models.Model):
 
 
 class StateQuerySet(models.QuerySet):
+    def trait_dict(self):
+        res = defaultdict(list)
+        for obj in self:
+            res[obj.trait_id].append(obj)
+        return res
+
     def rebuild_groups(self):
         state_ids = list(self.values_list("pk", flat=True))
 
@@ -316,7 +329,7 @@ class State(models.Model):
         return f"{self.numeric_id}. {self.description}"
 
     def is_deletable(self):
-        return not Expression.objects.filter(state=self).exists()
+        return not (self.expression_set.exists() or self.traitobservation_set.exists())
 
     def related(self) -> Iterable["State"]:
         """Return only related states.

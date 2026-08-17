@@ -1,0 +1,60 @@
+{% load components %}
+
+<div class="row">
+  <div class="col-8">
+    <h1 class="my-0 lh-1 d-flex align-items-center gap-2">
+      <span>{{ title }}</span>
+      {% if object_id is not None %}
+        <button
+          type="button"
+          class="detail-page-id-badge"
+          data-copy-id="{{ object_id }}"
+          aria-label="Copy ID {{ object_id }}"
+        >
+          <span aria-hidden="true">#</span><span class="detail-page-id-value" aria-hidden="true">{{ object_id }}</span>
+          <span class="detail-page-id-feedback" aria-hidden="true">Copied</span>
+          <span class="visually-hidden" data-copy-id-status aria-live="polite"></span>
+        </button>
+      {% endif %}
+      {% if object.is_archived %}<span class="badge text-bg-secondary fs-6">Archived</span>{% endif %}
+    </h1>
+  </div>
+  <div class="col d-flex justify-content-end align-items-center">
+    <div class="btn-group" role="group" aria-label="Actions">
+      {% if update_url %}
+        {% if update_modal %}
+          <a class="btn btn-outline-primary" hx-get="{{ update_url }}" {% modal_attrs %}>
+            Update
+          </a>
+        {% else %}
+          <a class="btn btn-outline-primary" href="{{ update_url }}">
+            Update
+          </a>
+        {% endif %}
+      {% endif %}
+      {% if archive_url %}
+        <button class="btn btn-outline-danger" type="submit" form="archive-{{ object_id|default:object.pk }}">Archive</button>
+      {% endif %}
+      {% if restore_url %}
+        <button class="btn btn-outline-primary" type="submit" form="restore-{{ object_id|default:object.pk }}">Restore</button>
+      {% endif %}
+    </div>
+    {% if archive_url %}
+      <form id="archive-{{ object_id|default:object.pk }}" method="post" action="{{ archive_url }}">
+        {% csrf_token %}
+      </form>
+    {% endif %}
+    {% if restore_url %}
+      <form id="restore-{{ object_id|default:object.pk }}" method="post" action="{{ restore_url }}">
+        {% csrf_token %}
+      </form>
+    {% endif %}
+  </div>
+</div>
+{% if subtitle %}
+  <div class="row mb-3">
+    <div class="col">
+      <p class="text-body-secondary my-0 fs-3 {% if subtitle_emphasis %}fst-italic{% endif %}">{{ subtitle }}</p>
+    </div>
+  </div>
+{% endif %}

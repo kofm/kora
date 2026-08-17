@@ -9,11 +9,12 @@ from factory.helpers import post_generation
 class UserFactory(DjangoModelFactory):
     class Meta:
         model = User
+        django_get_or_create = ("username",)
 
     username = Sequence(lambda n: f"user{n}")
     first_name = Faker("first_name")
     last_name = Faker("last_name")
-    email = LazyAttribute(lambda obj: "%s@example.com" % obj.username)
+    email = LazyAttribute(lambda obj: f"{obj.username}@example.com")
     is_staff = False
     is_superuser = False
     is_active = True
@@ -43,4 +44,4 @@ class GroupFactory(DjangoModelFactory):
     class Meta:
         model = Group
 
-    name = Sequence(lambda n: "Group #%s" % n)
+    name = Sequence(lambda n: f"Group #{n}")

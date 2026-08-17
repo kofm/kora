@@ -20,7 +20,7 @@ function bindDependentTomSelect(el) {
     const dependsOn = el.dataset.tsDependsOn;
     if (!dependsOn) return;
 
-    const parent = document.getElementById(`id_${dependsOn}`);
+    const parent = el.closest("form")?.querySelector(`[name="${dependsOn}"]`);
     if (!parent) return;
 
     const child = el.tomselect;
@@ -109,7 +109,7 @@ function asOptions(el) {
             params.set("q", query);
             if (dependsOn) {
                 if (!dependsParam) throw new Error("`dependsParam` must be defined");
-                const parent = document.getElementById(`id_${dependsOn}`);
+                const parent = el.closest("form")?.querySelector(`[name="${dependsOn}"]`);
                 const parentValue = parent?.tomselect?.getValue() || parent?.value;
 
                 if (!parentValue) {

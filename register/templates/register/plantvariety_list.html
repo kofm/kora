@@ -100,7 +100,9 @@
       </div>
 
       <div class="col mt-3 d-flex justify-content-end" hx-target="#results">
-	{% include "frontpage/partials/paginator.html" %}
+	{% with page="page" %}
+	  {% include "frontpage/partials/paginator.html" %}
+	{% endwith %}
       </div>
 
     {% endblock %}

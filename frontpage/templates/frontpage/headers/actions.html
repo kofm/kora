@@ -1,0 +1,30 @@
+{% load components %}
+
+{% if actions %}
+  <div class="dropdown">
+    <button
+      type="button"
+      class="btn btn-link link-body-emphasis text-decoration-none p-0 mx-2"
+      data-bs-toggle="dropdown"
+      aria-expanded="false"
+      aria-label="More actions"
+    >
+      <i class="bi bi-three-dots-vertical fs-5" aria-hidden="true"></i>
+    </button>
+    <ul class="dropdown-menu dropdown-menu-end">
+      {% for action in actions %}
+        <li>
+          {% if action.disabled %}
+            <span class="dropdown-item disabled"
+                  aria-disabled="true"
+                  {% if action.disabled_message %}title="{{ action.disabled_message }}"{% endif %}>{{ action.label }}</span>
+          {% elif action.modal %}
+            <a class="dropdown-item" hx-get="{{ action.url }}" {% modal_attrs %}>{{ action.label }}</a>
+          {% else %}
+            <a class="dropdown-item" href="{{ action.url }}">{{ action.label }}</a>
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+{% endif %}

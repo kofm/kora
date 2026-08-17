@@ -1,7 +1,7 @@
 import django_tables2 as tables
 
 from frontpage.tables import TableHoverFixed
-from parameters.models import Parameter, SpeciesParameter, VarietalParameter
+from parameters.models import Parameter, VarietalParameter
 
 
 class ParameterTable(tables.Table):
@@ -22,18 +22,8 @@ class VarietalParameterTable(tables.Table):
 
     class Meta:
         model = VarietalParameter
-        fields = ("variety", "value", "note")
+        fields = ("variety__name", "parameter__name", "parameter__code", "value", "url_ref", "note")
         empty_text = "There are no associated parameters."
         per_page = 15
-        prefix = "vp"
         template_name = "frontpage/partials/htmx_table.html"
-
-
-class SpeciesParameterTable(tables.Table):
-    class Meta:
-        model = SpeciesParameter
-        fields = ("specie", "value", "note")
-        empty_text = "There are no associated parameters."
-        per_page = 15
-        prefix = "sp"
-        template_name = "frontpage/partials/htmx_table.html"
+        attrs = {"class": "table table-hover table-fixed"}

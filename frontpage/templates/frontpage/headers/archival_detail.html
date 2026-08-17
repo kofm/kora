@@ -1,0 +1,26 @@
+{% extends "frontpage/headers/detail.html" %}
+
+{% block object_id %}
+  {% if not object.is_archived %}
+    {{ block.super }}
+  {% endif %}
+{% endblock %}
+
+{% block title_extras %}
+  {% if object.is_archived %}<span class="badge text-bg-secondary fs-6">Archived</span>{% endif %}
+{% endblock %}
+
+{% block secondary_actions %}
+  {% if archive_url %}
+    <button class="btn btn-outline-danger"
+            type="button"
+            hx-post="{{ archive_url }}"
+            hx-confirm="Archive this crop layout?">Archive</button>
+  {% endif %}
+  {% if restore_url %}
+    <button class="btn btn-outline-primary"
+            type="button"
+            hx-post="{{ restore_url }}"
+            hx-confirm="Restore this crop layout?">Restore</button>
+  {% endif %}
+{% endblock %}

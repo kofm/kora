@@ -3,7 +3,7 @@ from django.template import TemplateSyntaxError
 from django.test import TestCase
 
 from frontpage.factories import AdminFactory
-from frontpage.templatetags.components import list_page_header
+from frontpage.templatetags.components import detail_page_header, list_page_header
 
 
 class ListPageHeaderTests(TestCase):
@@ -34,3 +34,18 @@ class ListPageHeaderTests(TestCase):
         response = self.client.get("/")
         with self.assertRaises(TemplateSyntaxError):
             list_page_header(response.context, "not_a_model")
+
+
+class DetailPageHeaderTests(TestCase):
+    def setUp(self):
+        self.user = AdminFactory(username="tester", password="pass")
+        self.client.login(username="tester", password="pass")
+
+    def test_detail_page_header_exposes_primary_key_only_when_enabled(self):
+        response = self.client.get("/")
+
+        default_context = detail_page_header(response.context, self.user)
+        enabled_context = detail_page_header(response.context, self.user, show_id=True)
+
+        self.assertIsNone(default_context["object_id"])
+        self.assertEqual(enabled_context["object_id"], self.user.pk)

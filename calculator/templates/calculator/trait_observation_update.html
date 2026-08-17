@@ -1,0 +1,24 @@
+{% extends "frontpage/modal_content.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+  Update Observation
+{% endblock %}
+
+{% block body %}
+  <header class="d-flex flex-column flex-column-reverse mb-3">
+    <h2 class="fs-5">{{ instance.state.trait }}</h2>
+    <p class="fs-6 fw-light text-muted my-0">{{ instance.state.trait.protocol }}</p>
+  </header>
+  <form id="observation" onsubmit="return false;">
+    {{ form|crispy }}
+  </form>
+{% endblock %}
+
+{% block footer %}
+  <button type="button" class="btn btn-primary" hx-post="{{ request.get_full_path }}" hx-include="#observation" hx-target="#modal" hx-trigger="click, keyup[key=='Enter'] from:#observation">
+    Update
+  </button>
+  <button type="button" class="btn btn-danger" hx-post="{% url 'calculator:trait_observation_delete' form.instance.pk %}" hx-confirm="Are you sure?">Delete</button>
+
+{% endblock %}

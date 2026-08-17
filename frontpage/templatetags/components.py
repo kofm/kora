@@ -8,6 +8,7 @@ from django.urls import NoReverseMatch, reverse
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 
+from frontpage.headers import BaseHeader
 from frontpage.layouts import BaseLayout
 from frontpage.navigation import BasePrevNextNav
 from frontpage.utils.models import model_from_label
@@ -168,10 +169,36 @@ def get_action_url_from_instance(action, instance):
     return None
 
 
+def _detail_page_header_context(
+    instance,
+    *,
+    title="",
+    subtitle="",
+    subtitle_emphasis=False,
+    update_modal=False,
+    show_id=False,
+):
+    return {
+        "title": title or str(instance),
+        "subtitle": subtitle,
+        "object": instance,
+        "object_id": instance.pk if show_id else None,
+        "subtitle_emphasis": subtitle_emphasis,
+        "update_modal": update_modal,
+    }
+
+
 @register.inclusion_tag("frontpage/partials/detail_page_header.html", takes_context=True)
-def detail_page_header(context, instance, title="", subtitle="", subtitle_emphasis=False):
+def detail_page_header(
+    context,
+    instance,
+    title="",
+    subtitle="",
+    subtitle_emphasis=False,
+    update_modal=False,
+    show_id=False,
+):
     user = context["request"].user
-    title = title or str(instance)
     update_permission = get_permission_from_instance("change", instance)
     delete_permission = get_permission_from_instance("delete", instance)
 
@@ -191,13 +218,53 @@ def detail_page_header(context, instance, title="", subtitle="", subtitle_emphas
         cant_delete_msg = "You can't remove this entry because it is associated to other data."
 
     return {
-        "title": title,
-        "subtitle": subtitle,
-        "object": instance,
+        **_detail_page_header_context(
+            instance,
+            title=title,
+            subtitle=subtitle,
+            subtitle_emphasis=subtitle_emphasis,
+            update_modal=update_modal,
+            show_id=show_id,
+        ),
         "update_url": update_url,
         "delete_url": delete_url,
         "cant_delete_msg": cant_delete_msg,
-        "subtitle_emphasis": subtitle_emphasis,
+    }
+
+
+@register.inclusion_tag("frontpage/partials/archival_detail_page_header.html", takes_context=True)
+def archival_detail_page_header(
+    context,
+    instance,
+    title="",
+    subtitle="",
+    subtitle_emphasis=False,
+    update_modal=False,
+    show_id=False,
+):
+    user = context["request"].user
+    change_permission = get_permission_from_instance("change", instance)
+    can_change = user.has_perm(change_permission)
+
+    return {
+        **_detail_page_header_context(
+            instance,
+            title=title,
+            subtitle=subtitle,
+            subtitle_emphasis=subtitle_emphasis,
+            update_modal=update_modal,
+            show_id=show_id,
+        ),
+        "csrf_token": context.get("csrf_token"),
+        "update_url": get_action_url_from_instance("update", instance)
+        if can_change and not instance.is_archived
+        else None,
+        "archive_url": get_action_url_from_instance("archive", instance)
+        if can_change and not instance.is_archived
+        else None,
+        "restore_url": get_action_url_from_instance("restore", instance)
+        if can_change and instance.is_archived
+        else None,
     }
 
 
@@ -257,6 +324,13 @@ def offcanvas_toggle(offcanvas_id: str, content: str):
 </a>"""
 
     return mark_safe(html)
+
+
+@register.simple_tag
+def render_header(header):
+    if not isinstance(header, BaseHeader):
+        raise TemplateSyntaxError("render_header: you are trying to render a non-BaseHeader object.")
+    return header.render()
 
 
 @register.simple_tag

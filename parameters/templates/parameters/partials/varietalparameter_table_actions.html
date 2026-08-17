@@ -1,3 +1,10 @@
-<a class="link-body-emphasis" href=""><i class="bi bi-zoom-in"></i></a>
-<a class="link-body-emphasis" href="{% url 'parameters:varietalparameter-update' record.id  %}"><i class="bi-pencil"></i></a>
-<a class="link-body-emphasis" href="{% url 'parameters:varietalparameter-delete' record.id %}"><i class="bi bi-trash"></i></a>
+{% if perms.parameters.change_varietalparameter %}
+  <a class="row-action text-decoration-none" href="{% url 'parameters:varietalparameter_update' record.id  %}?next={{ request.get_full_path|urlencode }}">
+    <span class="badge rounded-pill text-bg-secondary">Edit</span>
+  </a>
+{% endif %}
+{% if perms.parameters.delete_varietalparameter %}
+  <a class="row-action text-decoration-none" href="{% url 'parameters:varietalparameter_delete' record.id %}?next={{ request.get_full_path|urlencode }}">
+    <span class="badge rounded-pill text-bg-danger">Delete</span>
+  </a>
+{% endif %}

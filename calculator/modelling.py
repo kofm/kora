@@ -18,21 +18,13 @@ class CropModel:
     def __init__(self, crop: Crop):
         self.object = crop
         self.parameters = self.object.parameters.all()
-        self.area = self.object.area
+        self.layout = self.object.layout
+        self.location = self.layout.location
 
     def can_run(self):
         available_params = list(self.object.parameters.values_list("parameter__code", flat=True))
-        available_params = available_params + list(
-            self.object.species.parameters.values_list("parameter__code", flat=True)
-        )
-        if self.object.has_variety():
-            available_params = available_params + list(
-                self.object.variety.species.parameters.values_list("parameter__code", flat=True)
-            )
+        available_params += list(self.object.variety.parameters.values_list("parameter__code", flat=True))
         return all(x in available_params for x in set(self.inputs))
-
-    def has_area(self):
-        return self.area.total_area > 0
 
     def has_weather(self):
         """
@@ -61,11 +53,7 @@ class CropModel:
         param = self.object.parameters.filter(parameter__code=code)
         if param.exists():
             return param.last().value
-        if self.object.has_variety():
-            param = self.object.variety.parameters.filter(parameter__code=code)
-            if param.exists():
-                return param.last().value
-        param = self.object.species.parameters.filter(parameter__code=code)
+        param = self.object.variety.parameters.filter(parameter__code=code)
         if param.exists():
             return param.last().value
         return None

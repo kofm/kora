@@ -4,8 +4,7 @@ parameter app models managed with admin
 
 from django.contrib import admin
 
-from .models import Parameter, SpeciesParameter, VarietalParameter
+from .models import Parameter, VarietalParameter
 
 admin.site.register(Parameter)
-admin.site.register(SpeciesParameter)
 admin.site.register(VarietalParameter)

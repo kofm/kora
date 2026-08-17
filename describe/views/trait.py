@@ -30,8 +30,8 @@ def trait_create(request, protocol_pk):
             trait = form.save()
             return redirect(reverse("describe:trait_update", args=(trait.pk,)))
     else:
-        numeric_id__max = protocol.traits.aggregate(Max("numeric_id"))["numeric_id__max"]
-        form = TraitForm(initial={"protocol": protocol, "numeric_id": numeric_id__max + 1})
+        numeric_id_max = protocol.traits.aggregate(Max("numeric_id"))["numeric_id__max"] or 0
+        form = TraitForm(initial={"protocol": protocol, "numeric_id": numeric_id_max + 1})
     return render(request, "describe/partials/trait_form.html", {"form": form, "protocol": protocol, "oob": True})
 
 
@@ -72,6 +72,8 @@ def trait_update(request, pk):
 @permission_required("describe.delete_trait", raise_exception=True)
 def trait_delete(request, pk):
     trait = get_object_or_404(Trait, pk=pk)
+    if not trait.is_deletable():
+        return HttpResponseBadRequest("This trait contains an observed state and cannot be deleted.")
     trait.delete()
     trait_next = trait.get_previous_in_protocol() or Trait.objects.filter(protocol=trait.protocol).first()
     if trait_next:
@@ -239,6 +241,7 @@ def trait_states_related_states_reset(request, pk):
 
 @require_http_methods(["POST"])
 @transaction.atomic
+@permission_required("describe.change_trait", raise_exception=True)
 def trait_states_bulk_relate(request, pk):
     """Relate states from a source trait to a target trait by pairing them one by one, until possible."""
 

@@ -2,6 +2,7 @@ from django.db import transaction
 from django_countries.serializers import CountryFieldMixin
 from rest_framework import serializers
 
+from calculator.models import Crop, CropLayout
 from collect.models import Cart, CartItem, Sample, Storage, StoragePosition
 from describe.models import (
     Description,
@@ -331,3 +332,55 @@ class WorkspaceElementSerializer(BulkModelSerializer):
     class Meta(BulkModelSerializer.Meta):
         model = WorkspaceElement
         fields = ("id", "description", "description_detail", "order")
+
+
+class CropLayoutSerializer(BulkModelSerializer):
+    location_name = serializers.CharField(source="location.name", read_only=True)
+
+    class Meta(BulkModelSerializer.Meta):
+        model = CropLayout
+        fields = (
+            "id",
+            "location",
+            "location_name",
+            "name",
+            "description",
+            "ncol",
+            "archived_at",
+            "created_at",
+            "updated_at",
+        )
+        read_only_fields = ("archived_at",)
+
+
+class CropSerializer(BulkModelSerializer):
+    variety_name = serializers.CharField(source="variety.name", read_only=True)
+    species = serializers.IntegerField(source="variety.species_id", read_only=True)
+    species_common_name = serializers.CharField(source="variety.species.common_name", read_only=True)
+
+    class Meta(BulkModelSerializer.Meta):
+        model = Crop
+        fields = (
+            "id",
+            "variety",
+            "variety_name",
+            "species",
+            "species_common_name",
+            "layout",
+            "order",
+            "created_at",
+            "updated_at",
+            "notes",
+        )
+
+    def validate_layout(self, layout):
+        if self.instance and layout.pk != self.instance.layout_id:
+            raise serializers.ValidationError("The crop layout cannot be changed.")
+        if layout.is_archived:
+            raise serializers.ValidationError("Crops cannot be added to an archived layout.")
+        return layout
+
+    def validate_variety(self, variety):
+        if self.instance and variety.species_id != self.instance.variety.species_id:
+            raise serializers.ValidationError("The crop variety species cannot be changed.")
+        return variety

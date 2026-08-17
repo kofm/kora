@@ -9,18 +9,12 @@
 {% block container %}
 
   {% render_breadcrumbs %}
-  {% detail_page_header parameter title=parameter.name subtitle=parameter.code subtitle_emphasis=True %}
+  {% detail_page_header parameter title=parameter.name subtitle=parameter.code subtitle_emphasis=True update_modal=True %}
 
-  <h2 class="fs-4">Species parameters</h2>
-  {% block sp_table %}
-    <div id="sp-table" hx-target="#sp-table" {% hx_vals_use_block "sp_table" %}>
-      {% render_table sp_table %}
-    </div>
-  {% endblock %}
-  <h2 class="fs-4">Varietal parameters</h2>
-  {% block vp_table %}
-    <div id="vp-table" hx-target="#vp-table" {% hx_vals_use_block "vp_table" %}>
-      {% render_table vp_table %}
+  <h2 class="fs-4">Parameter Values</h2>
+  {% block results %}
+    <div id="table" hx-target="#table" {% hx_vals_use_block "results" %}>
+      {% render_table table %}
     </div>
   {% endblock %}
 {% endblock %}

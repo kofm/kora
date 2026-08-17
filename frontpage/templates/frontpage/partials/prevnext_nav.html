@@ -1,0 +1,15 @@
+<div class="text-start position-absolute top-50 start-0 ms-5">
+  {% if prev %}
+    <a class="link-body-emphasis text-decoration-none" id="prevBtn" aria-label="Previous" href="{{ prev.get_absolute_url }}">
+      <i class="bi bi-caret-left-square-fill fs-1"></i>
+    </a>
+  {% endif %}
+</div>
+
+<div class="col-2 text-end position-absolute top-50 end-0 me-5">
+  {% if next %}
+    <a class="link-body-emphasis text-decoration-none" id="prevBtn" aria-label="Previous" href="{{ next.get_absolute_url }}">
+      <i class="bi bi-caret-right-square-fill fs-1"></i>
+    </a>
+  {% endif %}
+</div>

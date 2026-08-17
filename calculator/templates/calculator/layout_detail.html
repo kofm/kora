@@ -1,0 +1,170 @@
+{% extends "frontpage/base.html" %}
+{% load breadcrumbs %}
+{% load components %}
+
+{% block title %}Layout: {{ layout.name }}{% endblock %}
+
+{% partialdef layout_header %}
+<div id="layout-header">
+  {% render_breadcrumbs %}
+  {% render_header header %}
+  {% if layout.description %}<p>{{ layout.description }}</p>{% endif %}
+</div>
+{% endpartialdef %}
+
+{% partialdef layout_tabs %}
+<ul class="nav nav-tabs mt-3">
+  <li class="nav-item">
+    <a
+      class="nav-link {% if active_tab == 'crops' %}active{% endif %}"
+      {% if active_tab == "crops" %}aria-current="page"{% endif %}
+      href="{% url 'calculator:layout_detail' layout.pk %}?tab=crops"
+      hx-get="{% url 'calculator:layout_detail' layout.pk %}?tab=crops"
+      hx-target="#layout-tabs"
+      hx-swap="outerHTML"
+      hx-push-url="true"
+    >Crops</a>
+  </li>
+  <li class="nav-item">
+    <a
+      class="nav-link {% if active_tab == 'fieldbooks' %}active{% endif %}"
+      {% if active_tab == "fieldbooks" %}aria-current="page"{% endif %}
+      href="{% url 'calculator:layout_detail' layout.pk %}?tab=fieldbooks"
+      hx-get="{% url 'calculator:layout_detail' layout.pk %}?tab=fieldbooks"
+      hx-target="#layout-tabs"
+      hx-swap="outerHTML"
+      hx-push-url="true"
+    >Field books</a>
+  </li>
+  <li class="nav-item">
+    <a
+      class="nav-link {% if active_tab == 'management' %}active{% endif %}"
+      {% if active_tab == "management" %}aria-current="page"{% endif %}
+      href="{% url 'calculator:layout_detail' layout.pk %}?tab=management"
+      hx-get="{% url 'calculator:layout_detail' layout.pk %}?tab=management"
+      hx-target="#layout-tabs"
+      hx-swap="outerHTML"
+      hx-push-url="true"
+    >Management</a>
+  </li>
+</ul>
+{% endpartialdef %}
+
+{% partialdef crops_tab %}
+<section
+  class="pt-3"
+  hx-get="{% url 'calculator:layout_detail' layout.pk %}?tab=crops"
+  hx-trigger="cropsUpdated from:body"
+  hx-target="#layout-tabs"
+  hx-swap="outerHTML"
+>
+  <div class="d-flex justify-content-end gap-2 mb-3">
+    {% if perms.calculator.change_crop and crop_count > 1 and not is_read_only %}
+      <button
+        type="button"
+        class="btn btn-sm btn-outline-secondary"
+        data-sortable-toggle="#grid"
+        aria-pressed="false"
+        title="Unlock crop ordering to reorder by dragging"
+      >
+        <span data-sortable-toggle-label="disabled"><i class="bi bi-unlock-fill me-1"></i> Unlock</span>
+        <span data-sortable-toggle-label="enabled" hidden><i class="bi bi-lock-fill me-1"></i> Lock</span>
+      </button>
+    {% endif %}
+    {% if perms.calculator.add_crop and not is_read_only %}
+      <a class="btn btn-sm btn-outline-secondary" hx-get="{% url 'calculator:layout_crop_create' layout.pk %}" {% modal_attrs %} title="Create a new crop">
+        <i class="bi bi-plus-circle me-1"></i>
+        Create
+      </a>
+    {% endif %}
+  </div>
+  {% render_layout crop_cards %}
+</section>
+{% endpartialdef %}
+
+{% partialdef fieldbooks_tab %}
+<section
+  class="pt-3"
+  hx-get="{% url 'calculator:layout_detail' layout.pk %}?tab=fieldbooks"
+  hx-trigger="fieldbooksUpdated from:body"
+  hx-target="#layout-tabs"
+  hx-swap="outerHTML"
+>
+  {% if perms.calculator.add_fieldbook and not is_read_only %}
+    <div class="d-flex justify-content-end mb-3">
+      <a class="btn btn-sm btn-outline-secondary" hx-get="{% url 'calculator:fieldbook_create' layout.pk %}" {% modal_attrs %}>
+        <i class="bi bi-plus-circle me-1"></i>
+        Create
+      </a>
+    </div>
+  {% endif %}
+  {% render_layout fieldbook_cards %}
+</section>
+{% endpartialdef %}
+
+{% partialdef management_tab %}
+<section
+  class="pt-3"
+  hx-get="{% url 'calculator:layout_detail' layout.pk %}?tab=management"
+  hx-trigger="managementsUpdated from:body"
+  hx-target="#layout-tabs"
+  hx-swap="outerHTML"
+>
+  {% if perms.calculator.add_management and not is_read_only %}
+    <div class="d-flex justify-content-end mb-3">
+      <a class="btn btn-sm btn-outline-secondary" hx-get="{% url 'calculator:layout_management_create' layout.pk %}" {% modal_attrs %}>
+        <i class="bi bi-plus-circle me-1"></i>
+        Create
+      </a>
+    </div>
+  {% endif %}
+  {% if managements %}
+    <div class="table-responsive">
+      <table class="table table-hover align-middle">
+        <thead>
+          <tr>
+            <th scope="col">Type</th>
+            <th scope="col">Date</th>
+            <th scope="col">Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for management in managements %}
+            <tr>
+              <td>{{ management.type }}</td>
+              <td>{{ management.date }}</td>
+              <td>{{ management.notes|default:"—" }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p class="text-muted">No management records have been added to this layout.</p>
+  {% endif %}
+</section>
+{% endpartialdef %}
+
+{% partialdef active_tab %}
+<div id="layout-tabs">
+  {% partial layout_tabs %}
+  {% if active_tab == "fieldbooks" %}
+    {% partial fieldbooks_tab %}
+  {% elif active_tab == "management" %}
+    {% partial management_tab %}
+  {% else %}
+    {% partial crops_tab %}
+  {% endif %}
+</div>
+{% endpartialdef %}
+
+{% partialdef layout_content %}
+<main id="layout-content">
+  {% partial layout_header %}
+  {% partial active_tab %}
+</main>
+{% endpartialdef %}
+
+{% block container %}
+  {% partial layout_content %}
+{% endblock %}

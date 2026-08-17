@@ -1,11 +1,21 @@
-<div class="border {{ element.css_class }} d-flex flex-column align-items-center justify-content-center rounded-0 grid-item" style="font-size:0.6rem">
-  <em>
-    <a href="{{ element.url }}" class="link-body-emphasis text-decoration-none">
-      {{ element.title }}
+<div {{ element.attrs }} class="grid-layout-cell grid-layout-item grid-item border position-relative {{ element.css_class }}">
+  {% if element.url %}
+    <a
+      class="grid-layout-details"
+      href="{{ element.url }}"
+      aria-label="Open details for {{ element.title }}"
+      title="Open details"
+    >
+      <i class="bi bi-arrow-up-right" aria-hidden="true"></i>
     </a>
-  </em>
-  <div>
-    {{ element.body|truncatechars:15 }}
+  {% endif %}
+
+  <div class="grid-layout-content">
+    <strong class="grid-layout-title" title="{{ element.title }}">{{ element.title }}</strong>
+    {% if element.body %}
+      <span class="grid-layout-subtitle" title="{{ element.body }}">{{ element.body }}</span>
+    {% endif %}
   </div>
+
   <input type="hidden" name="order" value="{{ element.object.pk }}">
 </div>

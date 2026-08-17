@@ -1,0 +1,184 @@
+{% extends "frontpage/base.html" %}
+
+{% load components %}
+{% load breadcrumbs %}
+{% load django_tables2 %}
+
+{% block title %}{{ step }}{% endblock %}
+
+{% block style %}
+  <style>
+   .step-navigation {
+     gap: 1.5rem;
+   }
+
+   .step-navigation #prevBtn i,
+   .step-navigation #nextBtn i {
+     margin: 0 !important;
+   }
+
+   .observation-target {
+     background: var(--bs-body-bg);
+   }
+
+   @media (min-width: 992px) {
+     .observation-target-label {
+       text-align: end;
+     }
+   }
+  </style>
+{% endblock %}
+
+
+{% block container %}
+
+  {% render_breadcrumbs %}
+
+  <main id="step">
+    {% partial step_navigation %}
+
+    <div id="trait-targets"
+      hx-get="{% url 'calculator:step_trait_targets' step.pk %}"
+      hx-trigger="traitObservationUpdated from:body"
+      hx-target="this"
+      hx-swap="innerHTML">
+      {% partial trait_targets %}
+    </div>
+
+    <div id="parameter-targets"
+      hx-get="{% url 'calculator:step_parameter_targets' step.pk %}"
+      hx-trigger="observationParameterUpdated from:body"
+      hx-target="this"
+      hx-swap="innerHTML">
+      {% partial parameter_targets %}
+    </div>
+
+    <section class="border-top pt-4 mb-5" aria-labelledby="recorded-observations-heading">
+      <header class="mb-4">
+        <h2 id="recorded-observations-heading" class="h3 mb-1">Recorded observations</h2>
+        <p class="text-muted mb-0">Observations recorded for this step.</p>
+      </header>
+
+      <div class="vstack gap-5">
+        <section aria-labelledby="recorded-traits-heading">
+          <h3 id="recorded-traits-heading" class="h5 mb-3">Traits</h3>
+          <div id="trait-observations"
+            hx-get="{% url 'calculator:step_trait_observations' step.pk %}"
+            hx-trigger="traitObservationUpdated from:body"
+            hx-target="this"
+            hx-swap="innerHTML">
+            {% partial trait_observations_table %}
+          </div>
+        </section>
+        <section aria-labelledby="recorded-parameters-heading">
+          <h3 id="recorded-parameters-heading" class="h5 mb-3">Parameters</h3>
+          <div id="parameter-observations"
+            hx-get="{% url 'calculator:step_parameter_observations' step.pk %}"
+            hx-trigger="observationParameterUpdated from:body"
+            hx-target="this"
+            hx-swap="innerHTML">
+            {% partial parameter_observations_table %}
+          </div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+{% endblock %}
+
+{% partialdef step_navigation %}
+<nav class="mb-4">
+  <div class="step-navigation d-flex justify-content-center align-items-center">
+    {% nav_previous step_nav %}
+    <div class="text-center">
+      <p class="mb-1 text-muted">Step {{ step.order|add:1 }}</p>
+      <h1 class="h2 mb-0">{{ step.crop.variety.name }}</h1>
+      <p class="lead">{{ step.crop.variety.species.common_name }}</p>
+    </div>
+    {% nav_next step_nav %}
+  </div>
+</nav>
+
+<div class="d-flex flex-wrap justify-content-start gap-2 mb-5">
+  <a class="btn btn-outline-secondary" href="{% url 'calculator:fieldbook_detail' step.fieldbook_id %}?highlighted={{ step.crop_id }}">
+    <i class="bi bi-compass me-2"></i>Back to map
+  </a>
+  <a class="btn btn-outline-secondary" href="{% url 'register:variety_detail' step.crop.variety.pk %}">
+    <i class="bi bi-leaf-fill me-2"></i>Go to variety
+  </a>
+</div>
+{% endpartialdef %}
+
+{% partialdef trait_targets %}
+{% if not is_read_only and trait_forms and perms.calculator.add_traitobservation or not is_read_only and trait_forms and perms.calculator.change_fieldbook %}
+<section class="mb-5">
+  <div class="vstack gap-3">
+    {% for form in trait_forms %}
+      <div class="observation-target row g-3 align-items-center border rounded p-3 mx-0">
+        <div class="observation-target-label col-12 col-lg-4">
+          <label for="{{ form.state.id_for_label }}" class="col-form-label fs-5 fw-semibold">{{ form.state.label }}</label>
+        </div>
+        {% if perms.calculator.add_traitobservation %}
+          <form class="col-12 col-lg-7" hx-post="{% url 'calculator:trait_observation_in_step_create' step.pk %}" hx-swap="none">
+            <div class="d-flex flex-column gap-2">
+              {{ form.state }}
+              {{ form.notes }}
+              <button name="btn-save" type="submit" class="btn btn-outline-primary mt-2">Confirm</button>
+            </div>
+          </form>
+        {% endif %}
+        {% if perms.calculator.change_fieldbook %}
+          <div class="col-12 col-lg-auto d-flex justify-content-end">
+            <a class="btn btn-sm btn-outline-danger" href="#" hx-post="{{ form.delete_url }}" hx-confirm="Are you sure?" hx-swap="none" aria-label="Remove {{ form.state.label }} target">
+              <i class="bi bi-dash-circle" aria-hidden="true"></i>
+            </a>
+          </div>
+        {% endif %}
+      </div>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+{% endpartialdef %}
+
+{% partialdef parameter_targets %}
+{% if not is_read_only and parameter_forms and perms.calculator.add_parameterobservation or not is_read_only and parameter_forms and perms.calculator.change_fieldbook %}
+<section class="mb-5">
+  <div class="vstack gap-3">
+    {% for form in parameter_forms %}
+      <div class="observation-target row g-3 align-items-center border rounded p-3 mx-0">
+        <div class="observation-target-label col-12 col-lg-4">
+          <span class="col-form-label fs-5 fw-semibold">{{ form.form_title }}</span>
+        </div>
+        {% if perms.calculator.add_parameterobservation %}
+          <form class="col-12 col-lg-7" hx-post="{% url 'calculator:parameter_observation_in_step_create' step.pk %}" hx-swap="none">
+            <div class="d-flex flex-column gap-2">
+              {{ form.parameter }}
+              {{ form.parameter_value }}
+              {{ form.parameter_date }}
+              {{ form.notes }}
+              <button name="btn-save" type="submit" class="btn btn-outline-primary mt-2">Confirm</button>
+            </div>
+          </form>
+        {% endif %}
+        {% if perms.calculator.change_fieldbook %}
+          <div class="col-12 col-lg-auto d-flex justify-content-end">
+            <a class="btn btn-sm btn-outline-danger" href="#" hx-post="{{ form.delete_url }}" hx-confirm="Are you sure?" hx-swap="none" aria-label="Remove {{ form.form_title }} target">
+              <i class="bi bi-dash-circle" aria-hidden="true"></i>
+            </a>
+          </div>
+        {% endif %}
+      </div>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+{% endpartialdef %}
+
+{% partialdef trait_observations_table %}
+{% render_table trait_observations_table %}
+{% endpartialdef %}
+
+{% partialdef parameter_observations_table %}
+{% render_table parameter_observations_table %}
+{% endpartialdef %}

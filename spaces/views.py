@@ -1,26 +1,36 @@
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
-from django.shortcuts import get_object_or_404
+from django.db.models import Count
+from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.urls import reverse
-from django.urls.base import reverse_lazy
-from django.views.generic.edit import CreateView, DeleteView, UpdateView
+from django.views.generic.edit import UpdateView
+from django_tables2.config import RequestConfig
 
-from breadcrumbs.utils import add_parent_breadcrumbs, generate_breadcrumbs
+from breadcrumbs.utils import generate_breadcrumbs
+from calculator.tables import CropLayoutTable
 from django_sortable_htmx.views import SortableView
-from frontpage.utils.htmx import htmx_response_trigger_close_modal
-from frontpage.views_decorators import htmx_render_blocks, nav_active
-from spaces.forms import AreaForm
-from spaces.models import Area, Location
+from frontpage.autocomplete import AutocompleteModelView
+from frontpage.headers import DetailHeader, ListHeader
+from frontpage.utils.htmx import htmx_response_redirect, htmx_response_trigger_close_modal
+from frontpage.views_decorators import htmx_render_blocks, is_htmx
+from spaces.forms import LocationForm
+from spaces.models import Location
+
+
+class LocationAutocompleteView(AutocompleteModelView):
+    model = Location
+    ordering = ["order", "name"]
 
 
 @permission_required("spaces.view_location")
 def location_list(request):
-    queryset = Location.objects.all().order_by("order", "name")
-    context = {
-        "object_list": queryset,
-        **generate_breadcrumbs(request, Location),
-    }
+    context = {}
+    context["object_list"] = Location.objects.all().order_by("order", "name")
+    if is_htmx(request):
+        return TemplateResponse(request, "spaces/location_list.html#sortable", context)
+    header = ListHeader(request, Location, modal=True)
+    context.update({"header": header, **generate_breadcrumbs(request, Location)})
     return TemplateResponse(request, "spaces/location_list.html", context)
 
 
@@ -29,44 +39,38 @@ class SortLocation(SortableView):
 
 
 @permission_required("spaces.view_location")
-@htmx_render_blocks(["areas"])
+@htmx_render_blocks(["layouts"])
 def location_detail(request, pk):
     location = get_object_or_404(Location, pk=pk)
-
+    layouts = location.crop_layouts.visible().annotate(
+        crop_count=Count("crops", distinct=True),
+        fieldbook_count=Count("fieldbooks", distinct=True),
+    )
+    table = CropLayoutTable(layouts)
+    RequestConfig(request).configure(table)
+    header = DetailHeader(request, location, delete_modal=True)
     context = {
         "location": location,
+        "table": table,
+        "header": header,
         **generate_breadcrumbs(request, Location, location),
     }
     return TemplateResponse(request, "spaces/location_detail.html", context)
 
 
-class LocationCreateView(PermissionRequiredMixin, CreateView):
-    model = Location
-    fields = ["name", "latitude", "longitude"]
-    success_url = reverse_lazy("spaces:location_list")
-    permission_required = ["spaces.add_location"]
-
-
-@permission_required("spaces.add_area")
-def area_create(request, location_id):
-    location = get_object_or_404(Location, pk=location_id)
-    duplicate = request.GET.get("duplicate", None)
-    try:
-        initial = Area.objects.values("name", "width", "length", "location_id").get(pk=duplicate) if duplicate else {}
-    except Area.DoesNotExist:
-        initial = {}
-    if request.method == "POST":
-        form = AreaForm(request.POST, initial=initial)
-        if form.is_valid():
-            area = form.save(commit=False)
-            area.location = location
-            area.save()
-            return htmx_response_trigger_close_modal(["areaUpdated"])
-    else:
-        form = AreaForm(initial=initial)
-
-    context = {"form": form, "object_to_create": "Area"}
-    return TemplateResponse(request, "frontpage/modal_form.html", context)
+@permission_required("spaces.add_location", raise_exception=True)
+def location_create(request):
+    form = LocationForm(request.POST or None)
+    if form.is_valid():
+        form.save()
+        if is_htmx(request):
+            return htmx_response_trigger_close_modal(["LocationUpdated"])
+        return redirect(reverse("spaces:location_list"))
+    return TemplateResponse(
+        request,
+        "frontpage/modal_form.html",
+        {"object_to_create": "Location", "form": form},
+    )
 
 
 class LocationUpdateView(PermissionRequiredMixin, UpdateView):
@@ -78,38 +82,10 @@ class LocationUpdateView(PermissionRequiredMixin, UpdateView):
         return reverse("spaces:location_detail", args=(self.object.pk,))
 
 
-class LocationDeleteView(PermissionRequiredMixin, DeleteView):
-    model = Location
-    success_url = reverse_lazy("spaces:location_list")
-    permission_required = ["spaces.delete_location"]
-
-
-@nav_active("nav_plan")
-@permission_required("spaces.view_area")
-def area_detail(request, pk):
-    area = Area.objects.select_related("location").get(pk=pk)
-
-    breadcrumbs = generate_breadcrumbs(request, Area, area)
-    breadcrumbs = add_parent_breadcrumbs(breadcrumbs, area.location)
-    context = {"area": area, **breadcrumbs}
-    return TemplateResponse(request, "spaces/area_detail.html", context)
-
-
-class AreaSort(PermissionRequiredMixin, SortableView):
-    model = Area
-    permission_required = ["spaces.change_area"]
-
-
-class AreaUpdateView(PermissionRequiredMixin, UpdateView):
-    model = Area
-    fields = ("location", "name", "width", "length")
-    permission_required = ["spaces.change_area"]
-
-    def get_success_url(self):
-        return reverse_lazy("spaces:area_detail", args=(self.object.id,))
-
-
-class AreaDeleteView(PermissionRequiredMixin, DeleteView):
-    model = Area
-    success_url = reverse_lazy("spaces:location_list")
-    permission_required = ["spaces.delete_area"]
+@permission_required("spaces.delete_location", raise_exception=True)
+def location_delete(request, pk):
+    location = get_object_or_404(Location, pk=pk)
+    if request.method == "POST" and location.is_deletable:
+        location.delete()
+        return htmx_response_redirect(reverse("spaces:location_list"))
+    return TemplateResponse(request, "frontpage/modal_confirm_delete.html", {"instance": location})

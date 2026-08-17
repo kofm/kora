@@ -1,5 +1,7 @@
 from django.urls import path
 
+from parameters.views import variety_varietalparameter_create
+
 from . import views
 
 app_name = "register"
@@ -15,10 +17,14 @@ urlpatterns = [
     path("varieties/<int:pk>", views.plantvariety_detail, name="variety_detail"),
     path("varieties/create", views.plantvariety_create, name="variety_create"),
     path("varieties/<int:pk>/delete", views.PlantVarietyDelete.as_view(), name="variety_delete"),
-    path("varieties/<int:pk>/parameters", views.PlantVarietyParametersList.as_view(), name="parameter_list"),
-    path("varieties/name/<int:pk>/delete", views.plantvarietyname_delete, name="denomination_delete"),
-    path("varieties/<int:pk>/name/create", views.plantvarietyname_create, name="denomination_create"),
-    path("varieties/name/<int:pk>/update", views.plantvarietyname_update, name="denomination_update"),
+    path("varieties/names/<int:pk>/delete", views.plantvarietyname_delete, name="denomination_delete"),
+    path("varieties/<int:pk>/names/create", views.plantvarietyname_create, name="denomination_create"),
+    path("varieties/names/<int:pk>/update", views.plantvarietyname_update, name="denomination_update"),
+    path(
+        "varieties/<int:variety_pk>/varietalparameters/create",
+        variety_varietalparameter_create,
+        name="varietalparameter_create",
+    ),
     path("varieties/autocomplete", views.PlantVarietyAutocompleteView.as_view(), name="variety_autocomplete"),
     path("protections/", views.protection_list, name="protection_list"),
     path("protections/<int:pk>", views.protection_detail, name="protection_detail"),

@@ -1,0 +1,31 @@
+{% if elements %}
+  <div class="row row-cols-md-4">
+
+    {% for element in elements %}
+
+      <div class="col" style="cursor: pointer;">
+
+	<div hx-get="?select={{ element.object.pk }}" hx-trigger="click" class="card mt-2 text-center shadow-sm {{ element.border }}">
+
+	  <div class="card-body d-flex flex-column">
+
+            <h5 class="card-title text-truncate p-1">
+              <a class="link-body-emphasis text-decoration-none" href="{{ element.url }}">
+		{{ element.title }}
+              </a>
+            </h5>
+
+            <p class="card-text mt-2"></p>
+
+	  </div>
+
+	</div>
+
+      </div>
+
+    {% endfor %}
+
+  </div>
+{% else %}
+  <p class="text-muted">There are no elements to display.</p>
+{% endif %}

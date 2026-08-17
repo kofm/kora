@@ -1,0 +1,24 @@
+{% load components %}
+
+<header class="row {% if not subtitle %}mb-3{% endif %}">
+  <div class="col d-flex flex-column">
+    <h1 class="my-0 lh-1">{{ title }}</h1>
+    {% if subtitle %}<p class="text-body-secondary fs-4">{{ subtitle }}</p>{% endif %}
+  </div>
+
+  <div class="col d-flex justify-content-end align-items-center gap-3">
+    {% if create_url %}
+      {% if modal %}
+        <a class="btn btn-outline-primary ms-2" hx-get="{{ create_url }}" {% modal_attrs %}>Create</a>
+      {% else %}
+        <a class="btn btn-outline-primary ms-2" href="{{ create_url }}">Create</a>
+      {% endif %}
+    {% endif %}
+    {% if configure_url %}
+      <a class="link-body-emphasis" hx-get="{{ configure_url }}" {% modal_attrs %} style="cursor:pointer;">
+        <i class="bi bi-gear-wide-connected fs-4"></i>
+      </a>
+    {% endif %}
+    {% include "frontpage/headers/actions.html" %}
+  </div>
+</header>

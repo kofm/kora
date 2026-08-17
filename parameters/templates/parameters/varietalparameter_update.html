@@ -1,0 +1,18 @@
+{% extends "frontpage/base.html" %}
+
+{% load crispy_forms_tags %}
+
+{% block title %}
+  Update {{ form.instance }} for {{ form.instance.variety }}
+{% endblock %}
+
+{% block container %}
+  <h1>Update {{ form.instance }} for {{ form.instance.variety }}</h1>
+
+  <form method="post" class="mb-2">
+    {% csrf_token %}
+    {{ form|crispy }}
+    <p><small>*Required</small></p>
+    <input class="btn btn-primary" type="submit" value="Save">
+  </form>
+{% endblock %}

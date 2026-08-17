@@ -1,21 +1,67 @@
 {% extends "frontpage/base.html" %}
-{% block title %}Crop: {{ crop }}{% endblock %}
-{% block container %}
-<h1>Crop: {{ crop }}</h1>
-<div class="row">
-  <div class="col">
-    <h2>Area: {{ crop.area.name }} ({{ crop.area.location.name }})</h2>
-  </div>
-  <div class="col">
-    <h3>Stored Parameters</h3>
-    <ul>
-      {% for cropparam in crop.cropparameter_set.all %}
-      <li>{{ cropparam.parameter.name }}: {{ cropparam.value }} {{ cropparam.parameter.measure_unit}}</li>
-      {% endfor %}
-    </ul>
-  </div>
-</div>
-<div class="row">
-  <div class="col"><a class="btn btn-danger" href="{% url 'calculator:crop-delete' crop.pk %}">Delete</a></div>
-</div>
+
+{% load components %}
+{% load breadcrumbs %}
+{% load render_table from django_tables2 %}
+
+{% block title %}
+  {{ crop }} - {{ crop.variety }}
 {% endblock %}
+
+{% block container %}
+
+  {% render_breadcrumbs %}
+  {% if is_read_only %}
+    <div class="row">
+      <div class="col-8">
+        <h1 class="my-0 lh-1">{{ crop.variety.name }}</h1>
+      </div>
+    </div>
+  {% else %}
+    {% render_header header %}
+  {% endif %}
+  <p class="lead">{{ crop.variety.species.common_name }} Crop in {{ crop.layout }}</p>
+
+  <section class="d-flex flex-column gap-3 mt-4">
+
+    <h2 id="observations-heading" class="fs-4">Observations</h2>
+
+    <section aria-labelledby="trait-observations-heading">
+      <header class="d-flex justify-content-between mb-4">
+        <h3 id="trait-observations-heading" class="fs-5">Trait Observations</h3>
+
+        {% if perms.calculator.add_traitobservation and not is_read_only %}
+          <button class="btn btn-sm btn-outline-primary" hx-get="{% url 'calculator:observation_expression_create' crop.pk %}" {% modal_attrs %}>
+            Create
+          </button>
+        {% endif %}
+      </header>
+
+      <div id="trait-observations" hx-trigger="traitObservationUpdated from:body" hx-get="{{ request.get_full_path }}" hx-target="this" hx-vals='{"partial": "trait_observations_table"}'>
+        {% partial trait_observations_table %}
+      </div>
+    </section>
+
+    <section aria-labelledby="parameter-observations-heading" class="mt-5">
+      <header class="d-flex justify-content-between mb-4">
+        <h3 id="parameter-observations-heading" class="fs-5">Parameter Observations</h3>
+        {% if perms.calculator.add_parameterobservation and not is_read_only %}
+	  <button class="btn btn-sm btn-outline-primary" hx-get="{% url 'calculator:observation_parameter_create' crop.pk %}" {% modal_attrs %}>Create</button>
+        {% endif %}
+      </header>
+
+      <div id="parameter-observations" hx-trigger="observationParameterUpdated from:body" hx-get="{{ request.get_full_path }}" hx-target="this" hx-vals='{"partial": "parameter_observations_table"}'>
+        {% partial parameter_observations_table %}
+      </div>
+    </section>
+  </section>
+
+{% endblock %}
+
+{% partialdef trait_observations_table %}
+{% render_table trait_observations_table %}
+{% endpartialdef %}
+
+{% partialdef parameter_observations_table %}
+{% render_table parameter_observations_table %}
+{% endpartialdef %}

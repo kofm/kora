@@ -40,6 +40,17 @@
         <li>
           <a class="dropdown-item" href="{% url 'describe:protocol_list' %}">Protocols</a>
         </li>
+        {% if perms.parameters.view_varietalparameter or perms.parameters.view_parameter %}
+          <li><hr class="dropdown-divider"></li>
+        {% endif %}
+        {% if perms.parameters.view_varietalparameter %}
+          <li><a class="dropdown-item" href="{% url 'parameters:varietalparameter_list' %}">Values</a></li>
+        {% endif %}
+	{% if perms.parameters.view_parameter %}
+          <li>
+            <a class="dropdown-item" href="{% url 'parameters:parameter_list'  %}">Parameters</a>
+          </li>
+	{% endif %}
       </ul>
     </li>
 
@@ -63,9 +74,19 @@
             <a class="dropdown-item" href="{% url 'spaces:location_list' %}">Locations</a>
           </li>
 	{% endif %}
-	{% if perms.parameters.view_parameter %}
+	{% if perms.calculator.view_croplayout %}
+          <li><a class="dropdown-item" href="{% url 'calculator:croplayout_list' %}">Crop Layouts</a></li>
+	{% endif %}
+        <li><hr class="dropdown-divider"></li>
+        <li><h6 class="dropdown-header">Observations</h6></li>
+	{% if perms.calculator.view_traitobservation %}
           <li>
-            <a class="dropdown-item" href="{% url 'parameters:parameter_list'  %}">Parameters</a>
+            <a class="dropdown-item" href="{% url 'calculator:trait_observation_list' %}">Traits</a>
+          </li>
+	{% endif %}
+	{% if perms.calculator.view_parameterobservation %}
+          <li>
+            <a class="dropdown-item" href="{% url 'calculator:parameter_observation_list' %}">Parameters</a>
           </li>
 	{% endif %}
       </ul>

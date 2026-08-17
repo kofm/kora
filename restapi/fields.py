@@ -46,7 +46,8 @@ class MappedPrimaryKeyRelatedField(sr.Field):
 
 
 class CSV2ListQueryField(sr.ListField):
-    """A ListField variant for semicolon-separated string fields that returns tuple(value,) to be used with QueryField child
+    """A ListField variant for semicolon-separated string fields that
+    returns tuple(value,) to be used with QueryField child
 
     The mappings are list[dict[tuple, type[Model]]]; therefore, to
     access the mapping, `to_internal_value` should return a list of tuples.

@@ -44,7 +44,6 @@ class BaseSortableCardLayout(SortableLayoutMixin, BaseLayout):
 
 class BaseSortableGridLayout(SortableLayoutMixin, BaseGridLayout):
     template_name = "django_sortable_htmx/grid.html"
-    item_template_name = "django_sortable_htmx/grid_item.html"
 
 
 class GroupedSortableCardLayout(BaseSortableCardLayout):

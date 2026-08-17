@@ -22,6 +22,7 @@ from breadcrumbs.utils import (
 from calculator.models import Crop
 from collect.models import Sample
 from describe.models import Description
+from frontpage.headers import DetailHeader
 from frontpage.utils.htmx import htmx_response_redirect
 from frontpage.views_decorators import NavPlantActiveContext, htmx_render_blocks, nav_plant_active_context
 from parameters.models import VarietalParameter
@@ -50,7 +51,6 @@ def plantvariety_create(request):
 @nav_plant_active_context
 def plantvariety_detail(request, pk):
     variety = PlantVariety.objects.select_related("species").get(pk=pk)
-    context = {"variety": variety}
 
     tables = {}
     descriptions = Description.objects.select_related("protocol", "label").filter(variety=pk)
@@ -62,11 +62,19 @@ def plantvariety_detail(request, pk):
     parameters = VarietalParameter.objects.select_related("parameter").filter(variety=pk)
     tables["parameter"] = VarietalParameterTable(parameters)
 
+    req_config = RequestConfig(request)
     for key in tables:
-        RequestConfig(request).configure(tables[key])
+        req_config.configure(tables[key])
 
-    context["tables"] = tables
-    context.update(generate_breadcrumbs(request, PlantVariety, variety))
+    header = DetailHeader(
+        request,
+        variety,
+        title=variety.name,
+        subtitle=variety.species.common_name,
+        show_id=True,
+    )
+    breadcrumbs = generate_breadcrumbs(request, PlantVariety, variety)
+    context = {"variety": variety, "tables": tables, "header": header, **breadcrumbs}
     return TemplateResponse(request, "register/plantvariety_detail.html", context)
 
 

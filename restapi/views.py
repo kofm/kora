@@ -1,12 +1,16 @@
 """Kora API"""
 
 from django.db import transaction
+from django.db.models.deletion import ProtectedError
 from django.db.models.query import Prefetch
 from drf_spectacular.utils import extend_schema
-from rest_framework import viewsets
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
+from rest_framework.response import Response
 
+from calculator.models import Crop, CropLayout
+from calculator.serializers import CropImportRequestSerializer
 from collect.models import Cart, CartItem, Germinability, Sample, SampleWeight, Storage, StoragePosition
 from collect.serializers import GerminabilitySerializer, SampleWeightSerializer
 from describe.models import (
@@ -26,10 +30,13 @@ from register.serializers import (
     ProtectionImportRequestSerializer,
 )
 from restapi.decorators import document_bulk_create
+from restapi.permissions import KoraModelPermissions
 from restapi.serializers.generic import ExcelImportResponseSerializer
 from restapi.serializers.models import (
     CartItemSerializer,
     CartSerializer,
+    CropLayoutSerializer,
+    CropSerializer,
     DescriptionSerializer,
     EntitySerializer,
     ExpressionSerializer,
@@ -355,6 +362,27 @@ class CartItemViewSet(KoraViewSet):
         serializer.save(cart=self.get_cart())
 
 
+class CropLayoutViewSet(viewsets.ModelViewSet):
+    permission_classes = [KoraModelPermissions]
+    serializer_class = CropLayoutSerializer
+    queryset = CropLayout.objects.select_related("location").all()
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        if self.action in {"update", "partial_update"}:
+            return queryset.visible()
+        return queryset
+
+    def destroy(self, request, *args, **kwargs):
+        layout = self.get_object()
+        try:
+            self.perform_destroy(layout)
+        except ProtectedError:
+            return Response({"detail": layout.cant_delete_msg}, status=status.HTTP_409_CONFLICT)
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
 class CartViewSet(viewsets.ModelViewSet):
     serializer_class = CartSerializer
 
@@ -412,3 +440,32 @@ class WorkspaceElementViewSet(KoraViewSet):
 
     def perform_bulk_create(self, serializer):
         serializer.save(workspace=self.get_workspace())
+
+
+class CropViewSet(ExcelImportActionMixin, viewsets.ModelViewSet):
+    permission_classes = [KoraModelPermissions]
+    serializer_class = CropSerializer
+    queryset = Crop.objects.select_related("variety__species")
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        if self.action in {"update", "partial_update", "destroy"}:
+            return queryset.mutable()
+        return queryset
+
+    def perform_excel_import_create(self, objs):
+        created = Crop.objects.bulk_create(objs)
+        return len(created)
+
+    @extend_schema(responses=ExcelImportResponseSerializer)
+    @action(detail=False, methods=["post"], serializer_class=CropImportRequestSerializer)
+    def excel_import(self, request):
+        """Import crops from a spreadsheet file.
+
+        Supported file formats are CSV, XLS, XLSX, and ODS. The first
+        row must contain the column names described below.
+
+        Select ``Validate only`` to check the file for errors without
+        importing any rows.
+        """
+        return super().excel_import(request)

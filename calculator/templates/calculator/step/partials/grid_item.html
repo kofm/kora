@@ -1,0 +1,60 @@
+<div
+  {{ element.attrs }}
+  class="grid-layout-cell fieldbook-plot grid-item border position-relative {{ element.css_class }}{% if not element.body.planned %} fieldbook-plot-unplanned{% endif %}"
+>
+  {% if element.body.planned %}
+    <span class="fieldbook-plot-order badge rounded-pill" title="Walk order {{ element.body.order }}">
+      {{ element.body.order }}
+    </span>
+  {% endif %}
+
+  {% if element.url %}
+    <a
+      class="grid-layout-details"
+      href="{{ element.url }}"
+      aria-label="Open details for {{ element.title }}"
+      title="Open plot details"
+    >
+      <i class="bi bi-arrow-up-right" aria-hidden="true"></i>
+    </a>
+  {% endif %}
+
+  <span class="fieldbook-plot-selection" aria-hidden="true">
+    <i class="bi bi-check-lg"></i>
+  </span>
+
+  <div class="fieldbook-plot-content">
+    {% if element.body.has_display %}
+      <strong class="fieldbook-plot-value text-truncate mb-2" title="{{ element.body.display_value|default_if_none:'' }}">
+        {{ element.body.display_value|default:"—" }}
+      </strong>
+    {% endif %}
+    <div class="fieldbook-plot-variety">
+      <strong class="fieldbook-plot-name text-truncate" title="{{ element.title }}">
+        {{ element.title }}
+      </strong>
+      <span class="fieldbook-plot-species text-truncate" title="{{ element.body.species_common_name }}">
+        {{ element.body.species_common_name }}
+      </span>
+    </div>
+  </div>
+
+  {% if element.body.trait_status or element.body.parameter_status %}
+    <div class="fieldbook-plot-status" aria-label="Observation progress">
+      {% if element.body.trait_status %}
+        <span class="fieldbook-status fieldbook-status-{{ element.body.trait_status }}" title="Traits {{ element.body.trait_status }}">
+          <i class="bi bi-list-check" aria-hidden="true"></i>
+          <span class="visually-hidden">Traits {{ element.body.trait_status }}</span>
+        </span>
+      {% endif %}
+      {% if element.body.parameter_status %}
+        <span class="fieldbook-status fieldbook-status-{{ element.body.parameter_status }}" title="Parameters {{ element.body.parameter_status }}">
+          <i class="bi bi-rulers" aria-hidden="true"></i>
+          <span class="visually-hidden">Parameters {{ element.body.parameter_status }}</span>
+        </span>
+      {% endif %}
+    </div>
+  {% endif %}
+
+  <input type="hidden" name="order" value="{{ element.object.pk }}">
+</div>

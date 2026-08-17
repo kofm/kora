@@ -1,16 +1,14 @@
 from django.db import models
 from django.urls import reverse
-from django.utils.timezone import now
 
 from frontpage.generic import ModelIsDeletableMixin
 
 
-class Location(models.Model):
+class Location(ModelIsDeletableMixin, models.Model):
     name = models.CharField(max_length=30)
-    order = models.PositiveIntegerField(default=0)
     latitude = models.FloatField(blank=True, null=True)
     longitude = models.FloatField(blank=True, null=True)
-    cols = models.IntegerField(default=6)
+    order = models.PositiveIntegerField(default=0)
 
     def __str__(self):
         return self.name
@@ -28,32 +26,7 @@ class Location(models.Model):
     def get_delete_url(self):
         return reverse("spaces:location_delete", args=[self.pk])
 
-
-class Area(ModelIsDeletableMixin, models.Model):
-    name = models.CharField(max_length=30, help_text="The identificative name of the area")
-    location = models.ForeignKey(Location, on_delete=models.CASCADE)
-    length = models.FloatField(help_text="The length of the area, in meters")
-    width = models.FloatField(help_text="The width of the area, in meters")
-    order = models.PositiveIntegerField(help_text="The ordering of the area within its location", default=0)
-
-    class Meta:
-        ordering = ["order", "name"]
-
-    def __str__(self):
-        return self.name
-
-    def get_absolute_url(self):
-        return reverse("spaces:area_detail", args=(self.pk,))
-
-    def get_update_url(self):
-        return reverse("spaces:area_update", args=(self.pk,))
-
-    def get_delete_url(self):
-        return reverse("spaces:area_delete", args=(self.pk,))
-
-    @property
-    def total_area(self):
-        return round(self.length * self.width, 1)
-
-    def current_crops(self):
-        return self.crop_set.filter(management__type__code="sowing", management__date__lt=now().date()).distinct()
+    def coordinates(self):
+        if self.latitude is not None and self.longitude is not None:
+            return f"{self.latitude}° {self.longitude}°"
+        return ""

@@ -15,6 +15,9 @@ class SortableView(View):
         except ValueError as exc:
             raise ValueError("Invalid object ids provided.") from exc
 
+    def validate_objects(self, objs):
+        return None
+
     def post(self, request):
         if self.model is None:
             exc = "A model must be provided."
@@ -35,10 +38,14 @@ class SortableView(View):
             return HttpResponseBadRequest("Empty order list.")
 
         with transaction.atomic():
-            objs = self.model.objects.filter(pk__in=sorted_ids)
+            objs = list(self.model.objects.filter(pk__in=sorted_ids))
 
-            if len(sorted_ids) != objs.count():
+            if len(sorted_ids) != len(objs):
                 return HttpResponseBadRequest("Invalid object ids provided.")
+
+            validation_response = self.validate_objects(objs)
+            if validation_response is not None:
+                return validation_response
 
             mapping = {pk: order for order, pk in enumerate(sorted_ids)}
 

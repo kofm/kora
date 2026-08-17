@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.postgres",
+    "django.contrib.humanize",
     "django.forms",
     "django_tables2",
     "django_filters",
@@ -214,8 +215,16 @@ DJANGO_EASY_AUDIT_UNREGISTERED_CLASSES_EXTRA = getenv_list(
     ["auth.group"],
 )
 
-DJANGO_EASY_AUDIT_UNREGISTERED_CLASSES_EXTRA.append("describe.StateGroup")
-DJANGO_EASY_AUDIT_UNREGISTERED_CLASSES_EXTRA.append("collect.StoragePosition")
+DJANGO_EASY_AUDIT_UNREGISTERED_CLASSES_EXTRA.extend(
+    [
+        "describe.StateGroup",
+        "collect.StoragePosition",
+        "calculator.FieldBook",
+        "calculator.Step",
+        "calculator.TraitTarget",
+        "calculator.ParameterTarget",
+    ]
+)
 
 # Conditional settings
 

@@ -6,7 +6,7 @@ from collect.tables import BaseSampleTable
 from describe.models import Description
 from frontpage.tables import TableHoverFixed
 from frontpage.utils.text import smart_truncate_string
-from parameters.models import ParameterValue
+from parameters.models import VarietalParameter
 from register.models import Entity, PlantSpecies, PlantVariety, Protection
 
 
@@ -109,11 +109,12 @@ class VarietalParameterTable(tables.Table):
     )
 
     class Meta:
-        model = ParameterValue
+        model = VarietalParameter
         page_field = "para_page"
-        template_name = "django_tables2/bootstrap4.html"
+        template_name = "django_tables2/bootstrap5.html"
         fields = ("parameter__name", "parameter__code", "value", "url_ref", "note")
         per_page = 5
+        attrs = {"class": "table table-hover table-fixed"}
 
     def render_value(self, record):
         return format_html("{} {}", record.value, record.parameter.measure_unit)

@@ -18,7 +18,7 @@
 
   {% render_breadcrumbs %}
 
-  {% detail_page_header variety title=variety.name subtitle=variety.species.common_name %}
+  {% render_header header %}
 
   <div class="row mt-5">
     <div class="col">
@@ -85,7 +85,7 @@
   {% if perms.parameters.view_varietalparameter %}
     <div class="row mt-5">
       <div class="col">
-	<h2 id="parameters">Parameters <a class="btn btn-sm btn-outline-primary" href="{% url 'parameters:varietalparameter_create' variety.id %}">Create</a></h2>
+	<h2 id="parameters">Values <a class="btn btn-sm btn-outline-primary" hx-get="{% url 'register:varietalparameter_create' variety.pk %}" {% modal_attrs %}>Create</a></h2>
 	{% render_table tables.parameter %}
       </div>
     </div>

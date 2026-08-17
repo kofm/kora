@@ -1,15 +1,35 @@
+{% load components %}
+
 <div class="row">
   <div class="col-8">
-    <h1 class="my-0 lh-1">
-      {{ title }}
+    <h1 class="my-0 lh-1 d-flex align-items-center gap-2">
+      <span>{{ title }}</span>
+      {% if object_id is not None %}
+        <button
+          type="button"
+          class="detail-page-id-badge"
+          data-copy-id="{{ object_id }}"
+          aria-label="Copy ID {{ object_id }}"
+        >
+          <span aria-hidden="true">#</span><span class="detail-page-id-value" aria-hidden="true">{{ object_id }}</span>
+          <span class="detail-page-id-feedback" aria-hidden="true">Copied</span>
+          <span class="visually-hidden" data-copy-id-status aria-live="polite"></span>
+        </button>
+      {% endif %}
     </h1>
   </div>
   <div class="col d-flex justify-content-end align-items-center">
     <div class="btn-group" role="group" aria-label="Actions">
       {% if update_url %}
-        <a class="btn btn-outline-primary" href="{{ update_url }}">
-          Update
-        </a>
+        {% if update_modal %}
+          <a class="btn btn-outline-primary" hx-get="{{ update_url }}" {% modal_attrs %}>
+            Update
+          </a>
+        {% else %}
+          <a class="btn btn-outline-primary" href="{{ update_url }}">
+            Update
+          </a>
+        {% endif %}
       {% endif %}
       {% if delete_url %}
         <a class="btn btn-outline-danger {{ object.is_deletable|yesno:",disabled" }}"

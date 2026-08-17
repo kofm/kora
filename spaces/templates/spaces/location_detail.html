@@ -1,28 +1,21 @@
 {% extends "frontpage/base.html" %}
-{% load static %}
 {% load breadcrumbs %}
 {% load components %}
-{% load sortable_grid %}
-{% load crispy_forms_tags %}
+{% load render_table from django_tables2 %}
 
 {% block title %}{{ location.name }}{% endblock %}
 
 {% block container %}
-
   {% render_breadcrumbs %}
+  {% render_header header %}
 
-  {% detail_page_header instance=location subtitle="Location" %}
+  {% url 'calculator:location_layout_create' location.pk as layout_create_url %}
+  <hr/>
+  {% detail_section_header "Crop Layouts" create_url=layout_create_url %}
 
-  <h2>Areas</h2>
-
-  <button hx-get="{% url 'spaces:area_create' location.pk %}" class="mt-3 btn btn-sm btn-outline-primary" {% modal_attrs %}>
-    Create Area
-  </button>
-
-  {% block areas %}
-    <div id="area-list" class="mt-2" hx-get="" hx-trigger="areaUpdated from:body">
-      {% render_sortable_grid location.area_set.all "areas" "" "spaces:area_sort" cols=location.cols %}
-    </div>
-  {% endblock %}
-
+  <div id="layouts" class="mt-3 mb-5" hx-target="this">
+    {% block layouts %}
+      {% render_table table %}
+    {% endblock %}
+  </div>
 {% endblock %}

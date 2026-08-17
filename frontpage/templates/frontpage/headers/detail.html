@@ -1,0 +1,62 @@
+{% load components %}
+
+<div class="row">
+  <div class="col-8">
+    <h1 class="my-0 lh-1 d-flex align-items-center gap-2">
+      <span>{{ title }}</span>
+      {% block title_extras %}{% endblock %}
+      {% if object_id is not None %}
+        {% block object_id %}
+          <button
+            type="button"
+            class="detail-page-id-badge"
+            data-copy-id="{{ object_id }}"
+            aria-label="Copy ID {{ object_id }}"
+          >
+            <span aria-hidden="true">#</span><span class="detail-page-id-value" aria-hidden="true">{{ object_id }}</span>
+            <span class="detail-page-id-feedback" aria-hidden="true">Copied</span>
+            <span class="visually-hidden" data-copy-id-status aria-live="polite"></span>
+          </button>
+        {% endblock %}
+      {% endif %}
+    </h1>
+  </div>
+  <div class="col d-flex justify-content-end align-items-center">
+    <div class="btn-group" role="group" aria-label="Actions">
+      {% if update_url %}
+        {% if update_modal %}
+          <a class="btn btn-outline-primary" hx-get="{{ update_url }}" {% modal_attrs %}>Update</a>
+        {% else %}
+          <a class="btn btn-outline-primary" href="{{ update_url }}">Update</a>
+        {% endif %}
+      {% endif %}
+      {% block secondary_actions %}
+        {% if delete_url %}
+          {% if delete_modal %}
+            <a class="btn btn-outline-danger" hx-get="{{ delete_url }}" {% modal_attrs %}>Delete</a>
+          {% else %}
+          <a class="btn btn-outline-danger {% if not is_deletable %}disabled{% endif %}" href="{{ delete_url }}" aria-disabled="{% if is_deletable %}false{% else %}true{% endif %}">
+            Delete
+          </a>
+          {% endif %}
+        {% endif %}
+      {% endblock %}
+    </div>
+    {% block action_extras %}
+      {% if delete_url and not is_deletable %}
+        <span class="ms-1 small text-muted">
+          <a data-bs-toggle="tooltip" data-bs-title="{{ cant_delete_msg }}"><i class="bi bi-info-circle"></i></a>
+        </span>
+      {% endif %}
+    {% endblock %}
+    {% include "frontpage/headers/actions.html" %}
+    {% block action_forms %}{% endblock %}
+  </div>
+</div>
+{% if subtitle %}
+  <div class="row mb-3">
+    <div class="col">
+      <p class="text-body-secondary my-0 fs-3 {% if subtitle_emphasis %}fst-italic{% endif %}">{{ subtitle }}</p>
+    </div>
+  </div>
+{% endif %}

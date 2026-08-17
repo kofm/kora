@@ -1,0 +1,22 @@
+{% extends "frontpage/modal_content.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+  Update Observation
+{% endblock %}
+
+{% block body %}
+  <header class="mb-3">
+    <h2 class="fs-5">{{ instance.parameter.name }} ({{ instance.parameter.measure_unit }})</h2>
+  </header>
+  <form id="observation" onsubmit="return false;">
+    {{ form|crispy }}
+  </form>
+{% endblock %}
+
+{% block footer %}
+  <button type="button" class="btn btn-primary" hx-post="{{ request.get_full_path }}" hx-include="#observation" hx-target="#modal" hx-trigger="click, keyup[key=='Enter'] from:#observation">
+    Update
+  </button>
+  <button type="button" class="btn btn-danger" hx-post="{% url 'calculator:parameter_observation_delete' form.instance.pk %}" hx-confirm="Are you sure?">Delete</button>
+{% endblock %}

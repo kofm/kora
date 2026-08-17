@@ -2,7 +2,8 @@
 
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
-from django.http import HttpResponse
+from django.db.models import Max
+from django.http import HttpResponse, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, render
 from django.template.response import TemplateResponse
 from django.urls import reverse
@@ -62,7 +63,8 @@ def protocol_update(request, pk):
         form = TraitForm(instance=trait)
         context["formset"] = StateFormSet(instance=trait)
     else:
-        form = TraitForm(initial={"protocol": protocol})
+        numeric_id_max = protocol.traits.aggregate(Max("numeric_id"))["numeric_id__max"] or 0
+        form = TraitForm(initial={"protocol": protocol, "numeric_id": numeric_id_max + 1})
     context.update(
         {
             "protocol": protocol,
@@ -108,3 +110,9 @@ class ProtocolDelete(PermissionRequiredMixin, DeleteBreadcrumbsMixin, NavDescrib
     model = Protocol
     success_url = reverse_lazy("describe:protocol_list")
     permission_required = ["describe.delete_protocol"]
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        if not self.object.is_deletable:
+            return HttpResponseBadRequest("This protocol contains protected data and cannot be deleted.")
+        return super().post(request, *args, **kwargs)

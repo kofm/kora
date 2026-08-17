@@ -77,12 +77,14 @@ class BaseGridLayout(BaseLayout):
         num_columns,
         item_attrs=None,
         container_id="grid",
+        selectable=False,
         **kwargs,
     ) -> None:
         super().__init__(*args, **kwargs)
         self.container_id = container_id
         self.num_columns = num_columns
         self.item_attrs = item_attrs or {}
+        self.selectable = selectable
 
     def get_attrs_string(self, attrs: dict) -> str:
         string = " ".join(f'{key.replace("_", "-")}="{value}"' for key, value in attrs.items())
@@ -110,7 +112,13 @@ class BaseGridLayout(BaseLayout):
 
     def get_context_data(self, **kwargs) -> dict:
         context = super().get_context_data(**kwargs)
-        context.update({"container_id": self.container_id, "num_columns": self.num_columns})
+        context.update(
+            {
+                "container_id": self.container_id,
+                "num_columns": self.num_columns,
+                "selectable": self.selectable,
+            }
+        )
         return context
 
     def render(self):

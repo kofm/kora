@@ -14,6 +14,6 @@ def setup_register_groups_and_permissions(sender, **kwargs):
     app_label = "spaces"
 
     viewers, editors = get_or_create_usergroups(app_label)
-    for model_name in ("Location", "Area"):
+    for model_name in ("Location",):
         group_assign_model_permissions(app_label, model_name, viewers, ("view",))
         group_assign_model_permissions(app_label, model_name, editors)

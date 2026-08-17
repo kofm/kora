@@ -53,7 +53,7 @@ class BulkListSerializer(sr.ListSerializer):
 
 class BulkModelSerializer(sr.ModelSerializer):
     class Meta:
-        list_serializer_class = BulkListSerializer
+        list_serializer_class: type[sr.ListSerializer] = BulkListSerializer
 
 
 class BaseSpreadsheetImportRequestSerializer(sr.Serializer):
@@ -84,8 +84,8 @@ class BaseSpreadsheetImportRequestSerializer(sr.Serializer):
         return errors
 
     def read_file(self, value: InMemoryUploadedFile, **kwargs):
-        extension = value.name.lower().rsplit(".", maxsplit=1)
-        extension = f".{extension[-1]}" if len(extension) == 2 else ""
+        filename_split = value.name.lower().rsplit(".", maxsplit=1)
+        extension = f".{filename_split[-1]}" if len(filename_split) == 2 else ""
 
         value.seek(0)
         if extension == self.CSV_EXTENSION:

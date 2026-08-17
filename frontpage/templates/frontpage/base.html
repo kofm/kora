@@ -45,6 +45,24 @@
 
     <script type="module" src="{% static 'frontpage/main.js' %}" defer></script>
 
+    {% if template_assets and template_assets.css %}
+      {% for src in template_assets.css %}
+	<link href="{{ src }}" rel="stylesheet"/>
+      {% endfor %}
+    {% endif %}
+
+    {% if template_assets and template_assets.js %}
+      {% for src in template_assets.js %}
+	<script type="text/javascript" src="{{ src }}" defer></script>
+      {% endfor %}
+    {% endif %}
+
+    {% if template_assets and template_assets.hs %}
+      {% for src in template_assets.hs %}
+	<script type="text/hyperscript" src="{{ src }}"></script>
+      {% endfor %}
+    {% endif %}
+
     {% block javascript %}
     {% endblock %}
   </body>

@@ -5,7 +5,8 @@ These are the models related to storage of parameters and field measures
 from django.db import models
 from django.urls import reverse
 
-from register.models import PlantSpecies, PlantVariety
+from frontpage.generic import ModelIsDeletableMixin
+from register.models import PlantVariety
 
 
 class ParameterManager(models.Manager):
@@ -13,7 +14,7 @@ class ParameterManager(models.Manager):
         return self.get(code=code)
 
 
-class Parameter(models.Model):
+class Parameter(ModelIsDeletableMixin, models.Model):
     """
     Stores the parameters related to the Species. Parameters are inputs on which Crop
     Models rely on. This class defines the available parameters. The actual values are
@@ -61,17 +62,13 @@ class ParameterValue(models.Model):
 
     class Meta:
         abstract = True
+        ordering = ["updated_at"]
 
     def __str__(self):
         return self.parameter.code
 
-
-class SpeciesParameter(ParameterValue):
-    """
-    Crop parameters values
-    """
-
-    specie = models.ForeignKey(PlantSpecies, on_delete=models.RESTRICT, related_name="parameters")
+    def get_value_display(self):
+        return f"{self.value} {self.parameter.measure_unit}"
 
 
 class VarietalParameter(ParameterValue):
@@ -80,3 +77,12 @@ class VarietalParameter(ParameterValue):
     """
 
     variety = models.ForeignKey(PlantVariety, on_delete=models.RESTRICT, related_name="parameters")
+
+    class Meta:
+        ordering = ["created_at"]
+        verbose_name = "value"
+        verbose_name_plural = "values"
+
+    @classmethod
+    def get_create_url(cls):
+        return reverse("parameters:varietalparameter_create")

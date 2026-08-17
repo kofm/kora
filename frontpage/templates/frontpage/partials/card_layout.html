@@ -1,8 +1,8 @@
 {% if elements %}
     <div class="row row-cols-md-4">
         {% for element in elements %}
-            {# default is 'card_item.html' #}}
-            {% include item_template %}
+            {# default is 'frontpage/partials/card_item.html' #}
+            {% include item_template_name %}
         {% endfor %}
     </div>
 {% else %}
