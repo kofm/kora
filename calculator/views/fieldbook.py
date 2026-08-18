@@ -280,9 +280,7 @@ def fieldbook_targets_delete(request, fieldbook_id):
 
 def get_step(pk):
     return get_object_or_404(
-        Step.objects.select_related("fieldbook__layout__location", "crop__variety__species").prefetch_related(
-            "traittarget__trait"
-        ),
+        Step.objects.select_related("fieldbook__layout__location", "crop__variety__species"),
         pk=pk,
     )
 
@@ -291,15 +289,19 @@ def build_step_trait_targets_context(step):
     observed_traits_ids = (
         TraitObservation.objects.filter(step=step).values_list("state__trait_id", flat=True).distinct()
     )
-    target_traits = step.traittarget.exclude(trait__in=observed_traits_ids)
-    target_traits_ids = target_traits.values_list("trait_id", flat=True)
+    target_traits = (
+        step.traittarget.select_related("trait__protocol")
+        .exclude(trait__in=observed_traits_ids)
+        .order_by("trait__protocol__order", "trait__numeric_id")
+    )
+    target_traits_ids = [target.trait_id for target in target_traits]
     trait_map = Trait.objects.filter(pk__in=target_traits_ids).in_bulk()
     states_by_trait_map = State.objects.filter(trait__in=target_traits_ids).trait_dict()
 
     trait_forms = []
     for target in target_traits:
         states = states_by_trait_map.get(target.trait_id)
-        form = TraitTargetObservationForm(states=states)
+        form = TraitTargetObservationForm(states=states, protocol=target.trait.protocol)
         form.fields["state"].label = str(trait_map.get(target.trait_id))
         form.delete_url = reverse("calculator:trait_target_delete", args=(target.pk,))
         trait_forms.append(form)
@@ -321,7 +323,7 @@ def build_step_parameter_targets_context(step):
     for target in parameter_targets:
         form = ParameterTargetObservationForm(
             initial={"parameter": target.parameter_id},
-            form_title=target.parameter.name,
+            parameter=target.parameter,
         )
         form.delete_url = reverse("calculator:parameter_target_delete", args=(target.pk,))
         parameter_forms.append(form)
@@ -330,7 +332,11 @@ def build_step_parameter_targets_context(step):
 
 
 def build_step_trait_observations_context(request, step):
-    observations = TraitObservation.objects.select_related("state__trait", "created_by").filter(step=step)
+    observations = (
+        TraitObservation.objects.select_related("state__trait__protocol", "created_by")
+        .filter(step=step)
+        .order_by("state__trait__numeric_id")
+    )
     table = TraitObservationTable(
         observations,
         prefix="traits-",
@@ -342,7 +348,11 @@ def build_step_trait_observations_context(request, step):
 
 
 def build_step_parameter_observations_context(request, step):
-    observations = ParameterObservation.objects.select_related("parameter", "created_by").filter(step=step)
+    observations = (
+        ParameterObservation.objects.select_related("parameter", "created_by")
+        .filter(step=step)
+        .order_by("parameter__name")
+    )
     table = ParameterObservationTable(
         observations,
         prefix="parameters-",

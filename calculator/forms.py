@@ -50,9 +50,9 @@ class ParameterTargetObservationForm(forms.ModelForm):
             "notes": forms.TextInput(attrs={"class": "form-control form-control-lg", "placeholder": "Notes"}),
         }
 
-    def __init__(self, *args, form_title=None, **kwargs):
+    def __init__(self, *args, parameter=None, **kwargs):
         super().__init__(*args, **kwargs)
-        self.form_title = form_title
+        self.parameter_obj = parameter
         self.delete_url = None
 
 
@@ -132,12 +132,13 @@ class TraitTargetObservationForm(forms.Form):
     )
     notes = forms.CharField(widget=forms.TextInput(attrs={"class": "form-control form-control-lg"}), required=False)
 
-    def __init__(self, *args, states, **kwargs):
+    def __init__(self, *args, states, protocol=None, **kwargs):
         super().__init__(*args, **kwargs)
         choices = [("", "--------")]
         choices += [(state.pk, str(state)) for state in states]
         self.delete_url = None
         self.fields["state"].choices = choices
+        self.protocol = protocol
 
 
 def get_form_initial_value(form: forms.Form, key: str) -> str:
@@ -293,6 +294,7 @@ class TraitTargetForm(TomSelectModelFormMixin, forms.ModelForm):
                 search_field=["numeric_id", "description"],
                 depends_on="protocol",
                 depends_param="protocol_id",
+                blur_after_select="true",
             ),
             attrs={"placeholder": "Choose a trait"},
         ),

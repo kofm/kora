@@ -66,7 +66,7 @@ class TraitObservationTable(ObservationMutationTable):
 
     class Meta:
         model = TraitObservation
-        fields = ("state__trait", "state", "notes", "recorded_at", "created_by")
+        fields = ("state__trait", "state", "state__trait__protocol", "notes", "recorded_at", "created_by")
         template_name = "frontpage/partials/htmx_table.html"
         empty_text = "Nothing here."
         attrs = {"class": "table table-hover table-fixed small-table"}
