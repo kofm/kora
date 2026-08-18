@@ -142,6 +142,14 @@ function asOptions(el) {
         };
     }
 
+    if (opts.blurAfterSelect) {
+        delete opts.blurAfterSelect;
+
+        opts.onItemAdd = function () {
+            this.blur();
+        };
+    }
+
     return opts;
 }
 
