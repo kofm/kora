@@ -98,12 +98,12 @@
     <section class="card border-0 shadow-sm mb-3">
       <div class="card-body">
         <h2 class="fs-6">Walk order</h2>
-        <p class="small text-body-secondary">Specify the path through the planned obsevations.</p>
+        <p class="small text-body-secondary">Create or update a complete walking route through every crop in the layout.</p>
         {% url 'calculator:fieldbook_update_step_order' fieldbook.pk as update_step_order_url %}
         <form hx-post="{{ update_step_order_url }}" hx-target="#steps">
           {{ order_form|crispy }}
           <button type="submit" class="btn btn-sm btn-primary mt-2">
-            <i class="bi bi-arrow-repeat me-1"></i>Apply order
+            <i class="bi bi-arrow-repeat me-1"></i>Create/update walk
           </button>
         </form>
       </div>

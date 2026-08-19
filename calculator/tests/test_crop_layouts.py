@@ -7,6 +7,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from calculator.factories import CropFactory, CropLayoutFactory, FieldBookFactory, StepFactory
+from calculator.layouts import FieldBookGrid
 from calculator.modelling import CropModel
 from calculator.models import (
     Management,
@@ -528,7 +529,7 @@ class FieldBookTargetDeleteViewTests(TestCase):
         self.client.force_login(self.user)
         self.url = reverse("calculator:fieldbook_targets_delete", args=(self.fieldbook.pk,))
 
-    def test_removes_only_unobserved_targets_from_selected_crops_and_cleans_empty_steps(self):
+    def test_removes_only_unobserved_targets_and_preserves_empty_steps(self):
         selected_step = StepFactory(fieldbook=self.fieldbook, crop=self.first_crop, order=0)
         unselected_step = StepFactory(fieldbook=self.fieldbook, crop=self.second_crop, order=1)
         emptyable_step = StepFactory(fieldbook=self.fieldbook, crop=self.third_crop, order=2)
@@ -571,7 +572,7 @@ class FieldBookTargetDeleteViewTests(TestCase):
         self.assertFalse(TraitTarget.objects.filter(pk=unselected_target.pk).exists())
         self.assertFalse(TraitTarget.objects.filter(pk=emptyable_target.pk).exists())
         self.assertTrue(Step.objects.filter(pk=unselected_step.pk).exists())
-        self.assertFalse(Step.objects.filter(pk=emptyable_step.pk).exists())
+        self.assertTrue(Step.objects.filter(pk=emptyable_step.pk).exists())
 
     def test_clears_display_only_after_the_last_matching_target_is_removed(self):
         first_step = StepFactory(fieldbook=self.fieldbook, crop=self.first_crop, order=0)
@@ -619,33 +620,49 @@ class FieldBookStepOrderViewTests(TestCase):
             for order, crop in enumerate(self.crops)
             if order != 4
         ]
+        self.parameter = ParameterFactory(code="weight", name="Weight")
+        self.existing_target = ParameterTarget.objects.create(step=self.steps[0], parameter=self.parameter)
         self.url = reverse("calculator:fieldbook_update_step_order", args=(self.fieldbook.pk,))
 
-    def test_pattern_ordering_skips_empty_plots_in_incomplete_final_row(self):
+    def test_pattern_ordering_creates_complete_route_and_preserves_existing_step(self):
+        existing_step_id = self.steps[0].pk
+
         response = self.client.post(
             self.url,
             {"start_corner": "NW", "block_width": 2, "plot_order": "right_first"},
         )
 
         self.assertRedirects(response, self.fieldbook.get_absolute_url())
-        ordered_crop_ids = list(
-            Step.objects.filter(fieldbook=self.fieldbook).order_by("order").values_list("crop_id", flat=True)
-        )
+        ordered_steps = list(Step.objects.filter(fieldbook=self.fieldbook).order_by("order"))
         self.assertEqual(
-            ordered_crop_ids,
+            [step.crop_id for step in ordered_steps],
             [
                 self.crops[0].pk,
                 self.crops[1].pk,
                 self.crops[3].pk,
+                self.crops[4].pk,
                 self.crops[6].pk,
                 self.crops[5].pk,
                 self.crops[2].pk,
             ],
         )
-        self.assertEqual(
-            list(Step.objects.filter(fieldbook=self.fieldbook).order_by("order").values_list("order", flat=True)),
-            list(range(6)),
-        )
+        self.assertEqual([step.order for step in ordered_steps], list(range(7)))
+        self.assertEqual(Step.objects.get(crop=self.crops[0], fieldbook=self.fieldbook).pk, existing_step_id)
+        self.assertTrue(ParameterTarget.objects.filter(pk=self.existing_target.pk, step_id=existing_step_id).exists())
+
+
+class FieldBookGridTests(TestCase):
+    def test_empty_step_is_muted_and_retains_walk_navigation(self):
+        layout = CropLayoutFactory(ncol=1)
+        crop = CropFactory(layout=layout)
+        fieldbook = FieldBookFactory(layout=layout)
+        step = StepFactory(fieldbook=fieldbook, crop=crop, order=2)
+
+        rendered_grid = FieldBookGrid([crop], fieldbook=fieldbook).render()
+
+        self.assertIn("fieldbook-plot-unplanned", rendered_grid)
+        self.assertIn('title="Walk order 3"', rendered_grid)
+        self.assertIn(f'href="{step.get_absolute_url()}"', rendered_grid)
 
 
 class ArchivedLayoutReadOnlyTests(TestCase):

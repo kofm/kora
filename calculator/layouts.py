@@ -69,6 +69,7 @@ class FieldBookGrid(BaseGridLayout):
 
     def get_body(self, obj):
         body = {
+            "in_walk": False,
             "planned": False,
             "species_common_name": obj.variety.species.common_name,
         }
@@ -76,12 +77,15 @@ class FieldBookGrid(BaseGridLayout):
         if not step:
             return body
 
+        trait_status = self._render_targets(step, "trait")
+        parameter_status = self._render_targets(step, "parameter")
         body.update(
             {
-                "planned": True,
+                "in_walk": True,
+                "planned": trait_status is not None or parameter_status is not None,
                 "order": step.order + 1,
-                "trait_status": self._render_targets(step, "trait"),
-                "parameter_status": self._render_targets(step, "parameter"),
+                "trait_status": trait_status,
+                "parameter_status": parameter_status,
                 "display_value": self._get_display_value(step),
                 "has_display": self.display is not None,
             }

@@ -2,7 +2,7 @@
   {{ element.attrs }}
   class="grid-layout-cell fieldbook-plot grid-item border position-relative {{ element.css_class }}{% if not element.body.planned %} fieldbook-plot-unplanned{% endif %}"
 >
-  {% if element.body.planned %}
+  {% if element.body.in_walk %}
     <span class="fieldbook-plot-order badge rounded-pill" title="Walk order {{ element.body.order }}">
       {{ element.body.order }}
     </span>

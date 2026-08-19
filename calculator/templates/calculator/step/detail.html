@@ -8,6 +8,17 @@
 
 {% block style %}
   <style>
+   .step-navigation-sticky {
+     position: sticky;
+     top: 0;
+     z-index: 1020;
+     margin-inline: -.75rem;
+     padding-top: .5rem;
+     padding-inline: .75rem;
+     background-color: var(--bs-body-bg);
+     border-bottom: 1px solid var(--bs-border-color);
+   }
+
    .step-navigation {
      gap: 2rem;
    }
@@ -86,7 +97,7 @@
 {% endblock %}
 
 {% partialdef step_navigation %}
-<nav class="mb-4">
+<nav class="step-navigation-sticky mb-4">
   <div class="step-navigation d-flex justify-content-center align-items-center">
     {% nav_previous step_nav %}
     <div class="text-center">

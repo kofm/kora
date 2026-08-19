@@ -157,9 +157,7 @@ def fieldbook_update_step_order(request, pk):
         start_corner = form.cleaned_data["start_corner"]
         block_width = min(ncol, form.cleaned_data["block_width"])
         plot_order = form.cleaned_data["plot_order"]
-        crops = fieldbook.layout.crops.order_by("order")
-        steps = Step.objects.filter(fieldbook_id=fieldbook.pk)
-        steps_by_crop_map = {step.crop_id: step for step in steps}
+        crops = list(fieldbook.layout.crops.order_by("order", "pk"))
 
         layout = {}
         nrows = ceil(len(crops) / ncol)
@@ -167,16 +165,26 @@ def fieldbook_update_step_order(request, pk):
             x = idx % ncol + 1
             y = floor(idx / ncol) + 1
             layout[(x, y)] = crop
-        order = 0
-        for coord in generate_zigzag_pairs(ncol, nrows, block_width, start_corner, plot_order):
-            crop = layout.get(coord)
-            if crop is None:
-                continue
-            step = steps_by_crop_map.get(crop.pk)
-            if step:
+
+        with transaction.atomic():
+            existing_steps = list(Step.objects.select_for_update().filter(fieldbook_id=fieldbook.pk))
+            steps_by_crop_map = {step.crop_id: step for step in existing_steps}
+            missing_steps = []
+            order = 0
+            for coord in generate_zigzag_pairs(ncol, nrows, block_width, start_corner, plot_order):
+                crop = layout.get(coord)
+                if crop is None:
+                    continue
+                step = steps_by_crop_map.get(crop.pk)
+                if step is None:
+                    step = Step(fieldbook=fieldbook, crop=crop)
+                    steps_by_crop_map[crop.pk] = step
+                    missing_steps.append(step)
                 step.order = order
                 order += 1
-        Step.objects.bulk_update(steps_by_crop_map.values(), ["order"])
+
+            Step.objects.bulk_create(missing_steps)
+            Step.objects.bulk_update(existing_steps, ["order"])
 
     return redirect(reverse("calculator:fieldbook_detail", args=(fieldbook.pk,)))
 
@@ -250,13 +258,6 @@ def fieldbook_targets_delete(request, fieldbook_id):
         removed_target_count = removable_trait_targets.count() + removable_parameter_targets.count()
         removable_trait_targets.delete()
         removable_parameter_targets.delete()
-
-        selected_steps.filter(
-            traittarget__isnull=True,
-            parametertarget__isnull=True,
-            traitobservation__isnull=True,
-            parameterobservation__isnull=True,
-        ).delete()
 
         display_config = fieldbook.display_config
         if display_config:
