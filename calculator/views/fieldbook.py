@@ -156,6 +156,7 @@ def fieldbook_update_step_order(request, pk):
         ncol = fieldbook.layout.ncol
         start_corner = form.cleaned_data["start_corner"]
         block_width = min(ncol, form.cleaned_data["block_width"])
+        plot_order = form.cleaned_data["plot_order"]
         crops = fieldbook.layout.crops.order_by("order")
         steps = Step.objects.filter(fieldbook_id=fieldbook.pk)
         steps_by_crop_map = {step.crop_id: step for step in steps}
@@ -167,7 +168,7 @@ def fieldbook_update_step_order(request, pk):
             y = floor(idx / ncol) + 1
             layout[(x, y)] = crop
         order = 0
-        for coord in generate_zigzag_pairs(ncol, nrows, block_width, start_corner):
+        for coord in generate_zigzag_pairs(ncol, nrows, block_width, start_corner, plot_order):
             crop = layout.get(coord)
             if crop is None:
                 continue

@@ -38,7 +38,7 @@ def get_crop_params_list(crop: Crop) -> list:
     return sorted(params_list, key=lambda d: d["parameter__code"])
 
 
-def generate_zigzag_pairs(xmax, ymax, block_width=2, start_corner="NW"):
+def generate_zigzag_pairs(xmax, ymax, block_width=2, start_corner="NW", plot_order="left_first"):
     """
     Yield (x, y) pairs that cover a xmax × ymax grid in column–blocks of
     `block_width`, zig‑zagging through the grid.
@@ -56,8 +56,11 @@ def generate_zigzag_pairs(xmax, ymax, block_width=2, start_corner="NW"):
     block_width : int, optional
         Width of each vertical block of columns; default is 2.
     start_corner : {'NW', 'NE', 'SW', 'SE'}, optional
-        Corner at which to begin the walk (case‑insensitive).
+        Corner in which to place the first block (case-insensitive).
         Default is 'NW'.
+    plot_order : {'left_first', 'right_first'}, optional
+        Order of plots within each row, relative to the block's direction of
+        travel. Default is 'left_first'.
 
     Yields
     ------
@@ -67,6 +70,8 @@ def generate_zigzag_pairs(xmax, ymax, block_width=2, start_corner="NW"):
     start_corner = start_corner.upper()
     if start_corner not in {"NW", "NE", "SW", "SE"}:
         raise ValueError("start_corner must be one of 'NW', 'NE', 'SW', 'SE'")
+    if plot_order not in {"left_first", "right_first"}:
+        raise ValueError("plot_order must be one of 'left_first', 'right_first'")
 
     west_start = start_corner[1] == "W"  # first block at the W edge?
     north_start = start_corner[0] == "N"  # first row at the N edge?
@@ -81,16 +86,18 @@ def generate_zigzag_pairs(xmax, ymax, block_width=2, start_corner="NW"):
         end_x = min(xmax, start_x + block_width - 1)
         xs = list(range(start_x, end_x + 1))
 
-        # Alternate x direction inside each block
-        reverse_x = (step_idx % 2 == 1) if west_start else (step_idx % 2 == 0)
-        if reverse_x:
-            xs.reverse()
-
         # Alternate y direction inside each block
         #  – If we start in the north, the **first** block goes south (ascending y)
         #  – If we start in the south, the **first** block goes north (descending y)
         ascending_y = (step_idx % 2 == 0) if north_start else (step_idx % 2 == 1)
         ys = range(1, ymax + 1) if ascending_y else range(ymax, 0, -1)
+
+        # A northbound walker sees west on the left; a southbound walker sees
+        # east on the left.
+        left_first = plot_order == "left_first"
+        ascending_x = left_first != ascending_y
+        if not ascending_x:
+            xs.reverse()
 
         for y in ys:
             for x in xs:

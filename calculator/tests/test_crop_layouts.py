@@ -17,6 +17,7 @@ from calculator.models import (
     TraitObservation,
     TraitTarget,
 )
+from calculator.utils import generate_zigzag_pairs
 from describe.factories import ProtocolFactory, StateFactory, TraitFactory
 from frontpage.factories import AdminFactory, UserFactory
 from parameters.factories import ParameterFactory
@@ -589,6 +590,23 @@ class FieldBookTargetDeleteViewTests(TestCase):
         self.assertIsNone(self.fieldbook.display_config)
 
 
+class ZigzagPairTests(TestCase):
+    def test_plot_order_is_relative_to_each_blocks_direction_of_travel(self):
+        self.assertEqual(
+            list(generate_zigzag_pairs(4, 2, block_width=2, start_corner="SE")),
+            [
+                (3, 2),
+                (4, 2),
+                (3, 1),
+                (4, 1),
+                (2, 1),
+                (1, 1),
+                (2, 2),
+                (1, 2),
+            ],
+        )
+
+
 class FieldBookStepOrderViewTests(TestCase):
     def setUp(self):
         self.user = AdminFactory(username="admin", password="x", is_superuser=True)
@@ -604,7 +622,10 @@ class FieldBookStepOrderViewTests(TestCase):
         self.url = reverse("calculator:fieldbook_update_step_order", args=(self.fieldbook.pk,))
 
     def test_pattern_ordering_skips_empty_plots_in_incomplete_final_row(self):
-        response = self.client.post(self.url, {"start_corner": "NW", "block_width": 2})
+        response = self.client.post(
+            self.url,
+            {"start_corner": "NW", "block_width": 2, "plot_order": "right_first"},
+        )
 
         self.assertRedirects(response, self.fieldbook.get_absolute_url())
         ordered_crop_ids = list(

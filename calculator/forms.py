@@ -318,9 +318,18 @@ class StepUpdateOrderForm(forms.Form):
         label="Starting corner",
     )
     block_width = forms.IntegerField(
-        label="Crops per step (from left to right)",
+        label="Crops per step",
         min_value=1,
         widget=BootstrapNumberInput,
+    )
+    plot_order = forms.ChoiceField(
+        choices=[
+            ("left_first", "Left-first"),
+            ("right_first", "Right-first"),
+        ],
+        initial="left_first",
+        widget=forms.Select(attrs={"class": "form-select"}),
+        label="Plot order",
     )
 
 
