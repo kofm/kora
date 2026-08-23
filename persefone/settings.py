@@ -135,6 +135,7 @@ FORMAT_MODULE_PATH = ("formats",)
 
 # Static Files
 STATIC_URL = "static/"
+STATIC_ROOT = "/var/www/static/"
 
 # crispy_forms
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
