@@ -2,7 +2,7 @@ from django.db import transaction
 from django_countries.serializers import CountryFieldMixin
 from rest_framework import serializers
 
-from calculator.models import Crop, CropLayout
+from calculator.models import Crop, CropLayout, ParameterObservation, TraitObservation
 from collect.models import Cart, CartItem, Sample, Storage, StoragePosition
 from describe.models import (
     Description,
@@ -324,6 +324,110 @@ class DescriptionNestedSerializer(serializers.ModelSerializer):
     class Meta:
         model = Description
         fields = ("label", "label_name", "variety", "variety_name", "protocol", "protocol_name", "expressions")
+
+
+class ObservationSerializer(serializers.ModelSerializer):
+    crop = serializers.PrimaryKeyRelatedField(queryset=Crop.objects.mutable())
+    crop_display = serializers.StringRelatedField(source="crop", read_only=True)
+    layout = serializers.IntegerField(source="crop.layout_id", read_only=True)
+    layout_name = serializers.CharField(source="crop.layout.name", read_only=True)
+    location = serializers.IntegerField(source="crop.layout.location_id", read_only=True)
+    location_name = serializers.CharField(source="crop.layout.location.name", read_only=True)
+    variety = serializers.IntegerField(source="crop.variety_id", read_only=True)
+    variety_name = serializers.CharField(source="crop.variety.name", read_only=True)
+    species = serializers.IntegerField(source="crop.variety.species_id", read_only=True)
+    species_common_name = serializers.CharField(source="crop.variety.species.common_name", read_only=True)
+    step = serializers.PrimaryKeyRelatedField(read_only=True, allow_null=True)
+    step_display = serializers.StringRelatedField(source="step", read_only=True)
+    created_by = serializers.PrimaryKeyRelatedField(read_only=True)
+    created_by_display = serializers.StringRelatedField(source="created_by", read_only=True)
+
+    class Meta:
+        abstract = True
+
+
+class TraitObservationSerializer(ObservationSerializer):
+    state_display = serializers.StringRelatedField(source="state", read_only=True)
+    trait = serializers.IntegerField(source="state.trait_id", read_only=True)
+    trait_numeric_id = serializers.IntegerField(source="state.trait.numeric_id", read_only=True)
+    trait_description = serializers.CharField(source="state.trait.description", read_only=True)
+    protocol = serializers.IntegerField(source="state.trait.protocol_id", read_only=True)
+    protocol_name = serializers.CharField(source="state.trait.protocol.name", read_only=True)
+
+    class Meta:
+        model = TraitObservation
+        fields = (
+            "id",
+            "crop",
+            "crop_display",
+            "layout",
+            "layout_name",
+            "location",
+            "location_name",
+            "variety",
+            "variety_name",
+            "species",
+            "species_common_name",
+            "step",
+            "step_display",
+            "state",
+            "state_display",
+            "trait",
+            "trait_numeric_id",
+            "trait_description",
+            "protocol",
+            "protocol_name",
+            "recorded_at",
+            "created_by",
+            "created_by_display",
+            "notes",
+        )
+
+    def validate(self, attrs):
+        crop = attrs.get("crop")
+        state = attrs.get("state")
+        if crop and state and crop.variety.species_id != state.trait.protocol.plantspecies_id:
+            raise serializers.ValidationError({"state": "The state trait species must match the crop variety species."})
+        return attrs
+
+
+class ParameterObservationSerializer(ObservationSerializer):
+    parameter_code = serializers.CharField(source="parameter.code", read_only=True)
+    parameter_name = serializers.CharField(source="parameter.name", read_only=True)
+    parameter_display = serializers.StringRelatedField(source="parameter", read_only=True)
+
+    class Meta:
+        model = ParameterObservation
+        fields = (
+            "id",
+            "crop",
+            "crop_display",
+            "layout",
+            "layout_name",
+            "location",
+            "location_name",
+            "variety",
+            "variety_name",
+            "species",
+            "species_common_name",
+            "step",
+            "step_display",
+            "parameter",
+            "parameter_code",
+            "parameter_name",
+            "parameter_display",
+            "parameter_value",
+            "parameter_date",
+            "recorded_at",
+            "created_by",
+            "created_by_display",
+            "notes",
+        )
+
+    def validate(self, attrs):
+        if attrs.get("parameter_value") is None and attrs.get("parameter_date") is None:
+            raise serializers.ValidationError("At least one of parameter_value or parameter_date is required.")
+        return attrs
 
 
 class WorkspaceElementSerializer(BulkModelSerializer):

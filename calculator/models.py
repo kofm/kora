@@ -320,6 +320,9 @@ class TraitObservation(Observation):
 
     objects = TraitObservationQuerySet.as_manager()
 
+    class Meta:
+        ordering = ("-recorded_at", "-pk")
+
     def __str__(self) -> str:
         return f"Expression recorded at {self.recorded_at} on Crop {self.crop_id}"
 
@@ -347,7 +350,8 @@ class ParameterObservation(Observation):
 
     objects = ParameterObservationQuerySet.as_manager()
 
-    class Meta(Observation.Meta):
+    class Meta:
+        ordering = ("-recorded_at", "-pk")
         constraints = [
             models.CheckConstraint(
                 condition=models.Q(parameter_value__isnull=False) | models.Q(parameter_date__isnull=False),

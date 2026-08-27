@@ -1,7 +1,8 @@
-from factory import Faker, SelfAttribute, Sequence, SubFactory
+from factory import Faker, LazyAttribute, SelfAttribute, Sequence, SubFactory
 from factory.django import DjangoModelFactory
 
-from calculator.models import Crop, CropLayout, FieldBook, ParameterObservation, Step
+from calculator.models import Crop, CropLayout, FieldBook, ParameterObservation, Step, TraitObservation
+from describe.factories import StateFactory
 from register.factories import PlantVarietyFactory
 from spaces.factories import LocationFactory
 
@@ -49,3 +50,14 @@ class ParameterObservationFactory(DjangoModelFactory):
 
     class Meta:
         model = ParameterObservation
+
+
+class TraitObservationFactory(DjangoModelFactory):
+    crop = SubFactory(CropFactory)
+    state = LazyAttribute(
+        lambda observation: StateFactory(trait__protocol__plantspecies=observation.crop.variety.species)
+    )
+    created_by = SubFactory("frontpage.factories.UserFactory")
+
+    class Meta:
+        model = TraitObservation

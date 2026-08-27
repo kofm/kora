@@ -1,3 +1,4 @@
+import json
 import tomllib
 from dataclasses import dataclass
 from pathlib import Path
@@ -15,12 +16,14 @@ from calculator.factories import (
     FieldBookFactory,
     ParameterObservationFactory,
     StepFactory,
+    TraitObservationFactory,
 )
-from calculator.models import Crop, ParameterTarget
+from calculator.models import Crop, ParameterTarget, TraitObservation
 from collect.factories import SampleFactory, StoragePositionFactory
 from describe.factories import (
     ExpressionFactory,
     ProtocolFactory,
+    StateFactory,
     TraitFactory,
     WorkspaceElementFactory,
     WorkspaceFactory,
@@ -54,6 +57,8 @@ class APITests(APITestCase):
         self.user.user_permissions.add(
             Permission.objects.get(codename="view_crop"),
             Permission.objects.get(codename="view_croplayout"),
+            Permission.objects.get(codename="view_traitobservation"),
+            Permission.objects.get(codename="view_parameterobservation"),
         )
         self.client.login(username="testuser", password="testpass")
 
@@ -64,6 +69,8 @@ class APITests(APITestCase):
         self.workspace = WorkspaceFactory(user=self.user, name="Test Workspace", is_active=True)
         self.workspace_element = WorkspaceElementFactory(workspace=self.workspace)
         self.crop = CropFactory(variety=self.variety)
+        TraitObservationFactory(crop=self.crop, created_by=self.user)
+        ParameterObservationFactory(crop=self.crop, created_by=self.user)
         ExpressionFactory.create_batch(3, description=self.workspace_element.description)
         SampleFactory(variety=self.variety)
         StoragePositionFactory()
@@ -369,6 +376,125 @@ class CropAPIUpdateTests(APITestCase):
         self.crop.refresh_from_db()
         self.assertEqual(self.crop.layout, self.layout)
         self.assertEqual(self.crop.notes, "Updated notes")
+
+
+class ObservationAPITests(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username="observation-api-user", password="testpass")
+        self.other_user = User.objects.create_user(username="other-observation-user", password="testpass")
+        self.client.force_authenticate(self.user)
+        self.crop = CropFactory()
+        self.state = StateFactory(trait__protocol__plantspecies=self.crop.variety.species)
+        self.parameter = ParameterFactory()
+
+    def grant(self, *codenames):
+        self.user.user_permissions.add(*(Permission.objects.get(codename=codename) for codename in codenames))
+        self.user = User.objects.get(pk=self.user.pk)
+        self.client.force_authenticate(self.user)
+
+    def jsonl_rows(self, response):
+        content = b"".join(response.streaming_content).decode()
+        return [json.loads(line) for line in content.splitlines()]
+
+    def test_trait_creation_validates_species_and_assigns_authenticated_user(self):
+        self.grant("add_traitobservation")
+        recorded_at = timezone.now().replace(microsecond=0)
+        response = self.client.post(
+            reverse("restapi:trait-observations-list"),
+            {
+                "crop": self.crop.pk,
+                "state": self.state.pk,
+                "recorded_at": recorded_at.isoformat(),
+                "created_by": self.other_user.pk,
+            },
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        observation = TraitObservation.objects.get(pk=response.data["id"])
+        self.assertEqual(observation.created_by, self.user)
+        self.assertEqual(observation.recorded_at, recorded_at)
+
+        incompatible_state = StateFactory()
+        response = self.client.post(
+            reverse("restapi:trait-observations-list"),
+            {"crop": self.crop.pk, "state": incompatible_state.pk},
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("state", response.data)
+
+    def test_parameter_creation_accepts_value_or_date_and_rejects_neither(self):
+        self.grant("add_parameterobservation")
+        url = reverse("restapi:parameter-observations-list")
+
+        value_response = self.client.post(
+            url,
+            {"crop": self.crop.pk, "parameter": self.parameter.pk, "parameter_value": "4.250"},
+        )
+        date_response = self.client.post(
+            url,
+            {"crop": self.crop.pk, "parameter": self.parameter.pk, "parameter_date": "2026-05-20"},
+        )
+        empty_response = self.client.post(url, {"crop": self.crop.pk, "parameter": self.parameter.pk})
+
+        self.assertEqual(value_response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(date_response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(empty_response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_archived_observations_are_readable_and_exportable_but_immutable(self):
+        observation = TraitObservationFactory(crop=self.crop, state=self.state, created_by=self.user)
+        self.crop.layout.archive()
+        self.grant("view_traitobservation", "add_traitobservation", "delete_traitobservation")
+        detail_url = reverse("restapi:trait-observations-detail", args=[observation.pk])
+
+        retrieve_response = self.client.get(detail_url)
+        export_response = self.client.get(reverse("restapi:trait-observations-export-jsonl"))
+        create_response = self.client.post(
+            reverse("restapi:trait-observations-list"),
+            {"crop": self.crop.pk, "state": self.state.pk},
+        )
+        delete_response = self.client.delete(detail_url)
+
+        exported_rows = self.jsonl_rows(export_response)
+        self.assertEqual(retrieve_response.status_code, status.HTTP_200_OK)
+        self.assertEqual(export_response.status_code, status.HTTP_200_OK)
+        self.assertEqual([row["id"] for row in exported_rows], [observation.pk])
+        self.assertEqual(create_response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(delete_response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_active_deletion_requires_model_permission(self):
+        observation = ParameterObservationFactory(crop=self.crop, created_by=self.user)
+        url = reverse("restapi:parameter-observations-detail", args=[observation.pk])
+
+        denied_response = self.client.delete(url)
+        self.grant("delete_parameterobservation")
+        allowed_response = self.client.delete(url)
+
+        self.assertEqual(denied_response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(allowed_response.status_code, status.HTTP_204_NO_CONTENT)
+
+    def test_list_and_export_apply_relation_filters(self):
+        self.grant("view_traitobservation", "view_parameterobservation")
+        trait_observation = TraitObservationFactory(crop=self.crop, state=self.state, created_by=self.user)
+        TraitObservationFactory(created_by=self.user)
+        parameter_observation = ParameterObservationFactory(
+            crop=self.crop,
+            parameter=self.parameter,
+            created_by=self.user,
+        )
+        ParameterObservationFactory(created_by=self.user)
+
+        trait_response = self.client.get(
+            reverse("restapi:trait-observations-list"),
+            {"protocol": self.state.trait.protocol_id},
+        )
+        parameter_export = self.client.get(
+            reverse("restapi:parameter-observations-export-jsonl"),
+            {"parameter": self.parameter.pk},
+        )
+        exported_rows = self.jsonl_rows(parameter_export)
+
+        self.assertEqual([row["id"] for row in trait_response.data["results"]], [trait_observation.pk])
+        self.assertEqual([row["id"] for row in exported_rows], [parameter_observation.pk])
 
 
 class ArchivedLayoutAPITests(APITestCase):

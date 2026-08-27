@@ -94,3 +94,6 @@
 "crop-layout-list" = ["id", "location", "location_name", "name", "description", "ncol", "archived_at", "created_at", "updated_at"]
 
 "crops-list" = ["id", "variety", "variety_name", "species", "species_common_name", "layout", "order", "created_at", "updated_at", "notes"]
+"trait-observations-list" = ["id", "crop", "crop_display", "layout", "layout_name", "location", "location_name", "variety", "variety_name", "species", "species_common_name", "step", "step_display", "state", "state_display", "trait", "trait_numeric_id", "trait_description", "protocol", "protocol_name", "recorded_at", "created_by", "created_by_display", "notes"]
+
+"parameter-observations-list" = ["id", "crop", "crop_display", "layout", "layout_name", "location", "location_name", "variety", "variety_name", "species", "species_common_name", "step", "step_display", "parameter", "parameter_code", "parameter_name", "parameter_display", "parameter_value", "parameter_date", "recorded_at", "created_by", "created_by_display", "notes"]

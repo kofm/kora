@@ -1,7 +1,9 @@
 import django_filters
-from django_filters import CharFilter, NumberFilter
+from django.db.models import Q
+from django_filters import CharFilter, DateFilter, NumberFilter
 from django_filters.rest_framework import DjangoFilterBackend, FilterSet
 
+from calculator.models import ParameterObservation, TraitObservation
 from collect.models import Germinability, Sample, SampleWeight, Storage, StoragePosition
 from describe.models import Description, Expression, Protocol, State, Trait
 from parameters.models import Parameter, VarietalParameter
@@ -186,6 +188,52 @@ class StoragePositionFilter(FilterSet):
     class Meta:
         model = StoragePosition
         fields = ("name", "storage")
+
+
+class ObservationFilter(FilterSet):
+    crop__in = NumberInFilter(field_name="crop", lookup_expr="in")
+    layout = NumberFilter(field_name="crop__layout")
+    layout__in = NumberInFilter(field_name="crop__layout", lookup_expr="in")
+    location = NumberFilter(field_name="crop__layout__location")
+    location__in = NumberInFilter(field_name="crop__layout__location", lookup_expr="in")
+    variety = NumberFilter(field_name="crop__variety")
+    variety__in = NumberInFilter(field_name="crop__variety", lookup_expr="in")
+    species = NumberFilter(field_name="crop__variety__species")
+    species__in = NumberInFilter(field_name="crop__variety__species", lookup_expr="in")
+    fieldbook_or_layout = CharFilter(method="filter_fieldbook_or_layout")
+    recorded_at_start = DateFilter(field_name="recorded_at", lookup_expr="date__gte")
+    recorded_at_end = DateFilter(field_name="recorded_at", lookup_expr="date__lte")
+
+    def filter_fieldbook_or_layout(self, queryset, name, value):
+        return queryset.filter(Q(crop__layout__name__icontains=value) | Q(step__fieldbook__name__icontains=value))
+
+    class Meta:
+        abstract = True
+
+
+class TraitObservationFilter(ObservationFilter):
+    state__in = NumberInFilter(field_name="state", lookup_expr="in")
+    trait = NumberFilter(field_name="state__trait")
+    trait__in = NumberInFilter(field_name="state__trait", lookup_expr="in")
+    protocol = NumberFilter(field_name="state__trait__protocol")
+    protocol__in = NumberInFilter(field_name="state__trait__protocol", lookup_expr="in")
+
+    class Meta:
+        model = TraitObservation
+        fields = ("crop", "state")
+
+
+class ParameterObservationFilter(ObservationFilter):
+    parameter__in = NumberInFilter(field_name="parameter", lookup_expr="in")
+    value = NumberFilter(field_name="parameter_value")
+    value_min = NumberFilter(field_name="parameter_value", lookup_expr="gte")
+    value_max = NumberFilter(field_name="parameter_value", lookup_expr="lte")
+    parameter_date_start = DateFilter(field_name="parameter_date", lookup_expr="gte")
+    parameter_date_end = DateFilter(field_name="parameter_date", lookup_expr="lte")
+
+    class Meta:
+        model = ParameterObservation
+        fields = ("crop", "parameter", "parameter_value", "parameter_date")
 
 
 class SampleFilter(FilterSet):

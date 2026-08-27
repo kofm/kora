@@ -4,12 +4,12 @@ from django.db import transaction
 from django.db.models.deletion import ProtectedError
 from django.db.models.query import Prefetch
 from drf_spectacular.utils import extend_schema
-from rest_framework import status, viewsets
+from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 
-from calculator.models import Crop, CropLayout
+from calculator.models import Crop, CropLayout, ParameterObservation, TraitObservation
 from calculator.serializers import CropImportRequestSerializer
 from collect.models import Cart, CartItem, Germinability, Sample, SampleWeight, Storage, StoragePosition
 from collect.serializers import GerminabilitySerializer, SampleWeightSerializer
@@ -40,6 +40,7 @@ from restapi.serializers.models import (
     DescriptionSerializer,
     EntitySerializer,
     ExpressionSerializer,
+    ParameterObservationSerializer,
     ParameterSerializer,
     PlantSpeciesSerializer,
     PlantVarietySerializer,
@@ -50,12 +51,13 @@ from restapi.serializers.models import (
     StateSerializer,
     StoragePositionSerializer,
     StorageSerializer,
+    TraitObservationSerializer,
     TraitSerializer,
     VarietalParameterSerializer,
     WorkspaceElementSerializer,
     WorkspaceSerializer,
 )
-from restapi.viewsets import ExcelImportActionMixin, KoraViewSet
+from restapi.viewsets import ExcelImportActionMixin, JSONLExportMixin, KoraViewSet
 
 from .filters import (
     DescriptionFilter,
@@ -63,6 +65,7 @@ from .filters import (
     ExpressionFilter,
     GerminabilityFilter,
     ParameterFilter,
+    ParameterObservationFilter,
     PlantSpeciesFilter,
     PlantVarietyFilter,
     ProtectionFilter,
@@ -73,6 +76,7 @@ from .filters import (
     StorageFilter,
     StoragePositionFilter,
     TraitFilter,
+    TraitObservationFilter,
     VarietalParameterFilter,
 )
 
@@ -287,6 +291,50 @@ class ExpressionViewSet(KoraViewSet):
     serializer_class = ExpressionSerializer
     queryset = Expression.objects.select_related("description", "state__trait").all()
     filterset_class = ExpressionFilter
+
+
+class ObservationViewSet(
+    JSONLExportMixin,
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.CreateModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet,
+):
+    permission_classes = [KoraModelPermissions]
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        if self.action == "destroy":
+            return queryset.mutable()
+        return queryset
+
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user)
+
+
+class TraitObservationViewSet(ObservationViewSet):
+    serializer_class = TraitObservationSerializer
+    filterset_class = TraitObservationFilter
+    queryset = TraitObservation.objects.select_related(
+        "crop__layout__location",
+        "crop__variety__species",
+        "step__fieldbook",
+        "state__trait__protocol",
+        "created_by",
+    )
+
+
+class ParameterObservationViewSet(ObservationViewSet):
+    serializer_class = ParameterObservationSerializer
+    filterset_class = ParameterObservationFilter
+    queryset = ParameterObservation.objects.select_related(
+        "crop__layout__location",
+        "crop__variety__species",
+        "step__fieldbook",
+        "parameter",
+        "created_by",
+    )
 
 
 @document_bulk_create(ParameterSerializer, name="parameters")
