@@ -6,7 +6,14 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from calculator.factories import CropFactory, ParameterObservationFactory
+from calculator.factories import (
+    CropFactory,
+    CropLayoutFactory,
+    FieldBookFactory,
+    ParameterObservationFactory,
+    StepFactory,
+)
+from calculator.models import ParameterTarget
 from frontpage.factories import UserFactory
 from parameters.factories import ParameterFactory
 
@@ -92,3 +99,38 @@ class ParameterObservationListTests(TestCase):
         )
 
         self.assertCountEqual(response.context["table"].data, [matching])
+
+    def test_location_and_fieldbook_or_layout_filters_use_or_matching(self):
+        selected_location = self.crop.layout.location
+        fieldbook_layout = CropLayoutFactory(name="Unrelated layout", location=selected_location)
+        fieldbook_crop = CropFactory(layout=fieldbook_layout)
+        matching_fieldbook = FieldBookFactory(name="Needle field book", layout=fieldbook_layout)
+        matching_step = StepFactory(fieldbook=matching_fieldbook, crop=fieldbook_crop)
+        ParameterTarget.objects.create(step=matching_step, parameter=self.parameter)
+        fieldbook_match = ParameterObservationFactory(
+            crop=fieldbook_crop,
+            step=matching_step,
+            parameter=self.parameter,
+        )
+
+        layout_match_layout = CropLayoutFactory(name="Needle archived layout", location=selected_location)
+        layout_match_layout.archive()
+        layout_match = ParameterObservationFactory(
+            crop=CropFactory(layout=layout_match_layout),
+            parameter=self.parameter,
+        )
+        ParameterObservationFactory(
+            crop=CropFactory(layout=CropLayoutFactory(name="Unrelated selected layout", location=selected_location)),
+            parameter=self.parameter,
+        )
+        ParameterObservationFactory(
+            crop=CropFactory(layout=CropLayoutFactory(name="Needle other location")),
+            parameter=self.parameter,
+        )
+
+        response = self.client.get(
+            self.url,
+            {"location": [selected_location.pk], "fieldbook_or_layout": "needle"},
+        )
+
+        self.assertCountEqual(response.context["table"].data, [fieldbook_match, layout_match])

@@ -5,8 +5,8 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from calculator.factories import CropFactory, CropLayoutFactory
-from calculator.models import TraitObservation
+from calculator.factories import CropFactory, CropLayoutFactory, FieldBookFactory, StepFactory
+from calculator.models import TraitObservation, TraitTarget
 from describe.factories import ProtocolFactory, StateFactory, TraitFactory
 from frontpage.factories import UserFactory
 from register.factories import PlantSpeciesFactory, PlantVarietyFactory
@@ -104,3 +104,42 @@ class TraitObservationListTests(TestCase):
         )
 
         self.assertCountEqual(response.context["table"].data, [self.matching, self.other_matching])
+
+    def test_location_and_fieldbook_or_layout_filters_use_or_matching(self):
+        selected_location = self.layout.location
+        fieldbook_layout = CropLayoutFactory(name="Unrelated layout", location=selected_location)
+        fieldbook_crop = CropFactory(layout=fieldbook_layout, variety=self.wheat_variety)
+        matching_fieldbook = FieldBookFactory(name="Needle field book", layout=fieldbook_layout)
+        matching_step = StepFactory(fieldbook=matching_fieldbook, crop=fieldbook_crop)
+        TraitTarget.objects.create(step=matching_step, trait=self.height)
+        fieldbook_match = TraitObservation.objects.create(
+            crop=fieldbook_crop,
+            step=matching_step,
+            state=self.tall,
+            created_by=self.user,
+        )
+
+        layout_match_layout = CropLayoutFactory(name="Needle archived layout", location=selected_location)
+        layout_match_layout.archive()
+        layout_match = TraitObservation.objects.create(
+            crop=CropFactory(layout=layout_match_layout, variety=self.wheat_variety),
+            state=self.tall,
+            created_by=self.user,
+        )
+        TraitObservation.objects.create(
+            crop=CropFactory(layout=CropLayoutFactory(name="Unrelated selected layout", location=selected_location)),
+            state=self.tall,
+            created_by=self.user,
+        )
+        TraitObservation.objects.create(
+            crop=CropFactory(layout=CropLayoutFactory(name="Needle other location")),
+            state=self.tall,
+            created_by=self.user,
+        )
+
+        response = self.client.get(
+            self.url,
+            {"location": [selected_location.pk], "fieldbook_or_layout": "needle"},
+        )
+
+        self.assertCountEqual(response.context["table"].data, [fieldbook_match, layout_match])

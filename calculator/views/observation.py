@@ -25,6 +25,7 @@ from frontpage.views_decorators import htmx_render_blocks, nav_active
 @htmx_render_blocks(["main"])
 def trait_observation_list(request):
     queryset = TraitObservation.objects.select_related(
+        "step__fieldbook",
         "crop__layout",
         "crop__variety__species",
         "state__trait__protocol",
@@ -46,6 +47,7 @@ def trait_observation_list(request):
 @htmx_render_blocks(["main"])
 def parameter_observation_list(request):
     queryset = ParameterObservation.objects.select_related(
+        "step__fieldbook",
         "crop__layout",
         "crop__variety__species",
         "parameter",

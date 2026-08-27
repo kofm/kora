@@ -1,5 +1,6 @@
 from crispy_forms.layout import Field, Layout
 from django import forms
+from django.db.models import Q
 from django.urls import reverse_lazy
 from django_filters import (
     CharFilter,
@@ -81,6 +82,8 @@ class TraitObservationFilterForm(TomSelectModelFormMixin, HTMXFormMixin, forms.F
         self.helper.layout = Layout(
             Field("species"),
             Field("variety"),
+            Field("location"),
+            Field("fieldbook_or_layout"),
             Field("protocol"),
             Field("trait"),
             Field("recorded_at_start"),
@@ -117,6 +120,23 @@ class TraitObservationFilter(FilterSet):
             )
         ),
         label="Variety",
+    )
+    location = ModelMultipleChoiceFilter(
+        field_name="crop__layout__location",
+        queryset=Location.objects.all(),
+        widget=ModelTomSelectMultiple(
+            ts_config=TomSelectConfig(
+                url=reverse_lazy("spaces:location_autocomplete"),
+                value_field="id",
+                label_field="name",
+                search_field="name",
+            )
+        ),
+        label="Location",
+    )
+    fieldbook_or_layout = CharFilter(
+        method="filter_fieldbook_or_layout",
+        label="Field book or layout",
     )
     protocol = ModelChoiceFilter(
         field_name="state__trait__protocol",
@@ -159,6 +179,9 @@ class TraitObservationFilter(FilterSet):
         widget=forms.DateInput(attrs={"type": "date"}),
     )
 
+    def filter_fieldbook_or_layout(self, queryset, name, value):
+        return queryset.filter(Q(crop__layout__name__icontains=value) | Q(step__fieldbook__name__icontains=value))
+
     class Meta:
         model = TraitObservation
         fields = ()
@@ -171,6 +194,8 @@ class ParameterObservationFilterForm(TomSelectModelFormMixin, HTMXFormMixin, for
         self.helper.layout = Layout(
             Field("species"),
             Field("variety"),
+            Field("location"),
+            Field("fieldbook_or_layout"),
             Field("parameter"),
             Field("value_min"),
             Field("value_max"),
@@ -211,6 +236,23 @@ class ParameterObservationFilter(FilterSet):
         ),
         label="Variety",
     )
+    location = ModelMultipleChoiceFilter(
+        field_name="crop__layout__location",
+        queryset=Location.objects.all(),
+        widget=ModelTomSelectMultiple(
+            ts_config=TomSelectConfig(
+                url=reverse_lazy("spaces:location_autocomplete"),
+                value_field="id",
+                label_field="name",
+                search_field="name",
+            )
+        ),
+        label="Location",
+    )
+    fieldbook_or_layout = CharFilter(
+        method="filter_fieldbook_or_layout",
+        label="Field book or layout",
+    )
     parameter = ModelChoiceFilter(
         field_name="parameter",
         queryset=Parameter.objects.all(),
@@ -250,6 +292,9 @@ class ParameterObservationFilter(FilterSet):
         label="Recorded through",
         widget=forms.DateInput(attrs={"type": "date"}),
     )
+
+    def filter_fieldbook_or_layout(self, queryset, name, value):
+        return queryset.filter(Q(crop__layout__name__icontains=value) | Q(step__fieldbook__name__icontains=value))
 
     class Meta:
         model = ParameterObservation

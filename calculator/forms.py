@@ -294,7 +294,6 @@ class TraitTargetForm(TomSelectModelFormMixin, forms.ModelForm):
                 search_field=["numeric_id", "description"],
                 depends_on="protocol",
                 depends_param="protocol_id",
-                blur_after_select="true",
             ),
             attrs={"placeholder": "Choose a trait"},
         ),

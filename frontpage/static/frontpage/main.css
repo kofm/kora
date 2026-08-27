@@ -299,6 +299,7 @@
 .small-table > tbody > tr > td {
     padding-top: .8rem;
     padding-bottom: .8rem;
+    font-size: .9rem;
 }
 
 .small-table > tbody > tr:last-child > td {

@@ -73,8 +73,9 @@ class TraitObservationTable(ObservationMutationTable):
 
 
 class TraitObservationListTable(tables.Table):
-    variety = tables.Column(accessor="crop.variety", orderable=False)
-    layout = tables.Column(accessor="crop.layout")
+    variety = tables.Column(accessor="crop.variety")
+    layout = tables.Column(accessor="crop.layout", linkify=True)
+    fieldbook = tables.Column(accessor="step.fieldbook", linkify=True)
     protocol = tables.Column(accessor="state.trait.protocol", orderable=False)
     trait = tables.Column(accessor="state.trait", orderable=False)
     state = tables.Column(orderable=False)
@@ -82,10 +83,10 @@ class TraitObservationListTable(tables.Table):
 
     class Meta:
         model = TraitObservation
-        fields = ("variety", "layout", "protocol", "trait", "state", "recorded_at")
+        fields = ("variety", "layout", "fieldbook", "protocol", "trait", "state", "recorded_at")
         template_name = "frontpage/partials/htmx_table.html"
         empty_text = "There are no trait observations."
-        attrs = {"class": "table table-hover table-fixed"}
+        attrs = {"class": "table table-hover table-fixed small-table"}
         row_attrs = {
             "_": lambda record: f"on click go to url '{record.crop.get_absolute_url()}#expressions'",
             "role": "button",
@@ -107,8 +108,9 @@ class ParameterObservationTable(ObservationMutationTable):
 
 
 class ParameterObservationListTable(tables.Table):
-    variety = tables.Column(accessor="crop.variety", orderable=False)
-    layout = tables.Column(accessor="crop.layout")
+    variety = tables.Column(accessor="crop.variety")
+    layout = tables.Column(accessor="crop.layout", linkify=True)
+    fieldbook = tables.Column(accessor="step.fieldbook", linkify=True)
     parameter = tables.Column(orderable=False)
     recorded_at = tables.Column(verbose_name="Recorded date")
     created_by = tables.Column(verbose_name="Recorder", orderable=False)
@@ -118,6 +120,7 @@ class ParameterObservationListTable(tables.Table):
         fields = (
             "variety",
             "layout",
+            "fieldbook",
             "parameter",
             "parameter_value",
             "parameter_date",
@@ -127,7 +130,7 @@ class ParameterObservationListTable(tables.Table):
         )
         template_name = "frontpage/partials/htmx_table.html"
         empty_text = "There are no parameter observations."
-        attrs = {"class": "table table-hover table-fixed"}
+        attrs = {"class": "table table-hover table-fixed small-table"}
         row_attrs = {
             "_": lambda record: f"on click go to url '{record.crop.get_absolute_url()}#obs_parameters'",
             "role": "button",
