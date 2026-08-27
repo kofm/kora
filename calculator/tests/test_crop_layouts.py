@@ -155,6 +155,21 @@ class CalculatorPermissionTests(TestCase):
         response = self.client.get(url, headers={"HX-Request": "true"})
         self.assertEqual(response.status_code, 200)
 
+    def test_fieldbook_update_requires_change_permission_for_endpoint_and_action(self):
+        self.user.user_permissions.add(Permission.objects.get(codename="view_fieldbook"))
+        update_url = self.fieldbook.get_update_url()
+
+        response = self.client.get(update_url, headers={"HX-Request": "true"})
+        self.assertEqual(response.status_code, 403)
+        response = self.client.get(self.fieldbook.get_absolute_url())
+        self.assertNotContains(response, update_url)
+
+        self.user.user_permissions.add(Permission.objects.get(codename="change_fieldbook"))
+        response = self.client.get(update_url, headers={"HX-Request": "true"})
+        self.assertEqual(response.status_code, 200)
+        response = self.client.get(self.fieldbook.get_absolute_url())
+        self.assertContains(response, update_url)
+
     def test_observer_can_record_without_fieldbook_planning_controls(self):
         protocol = ProtocolFactory(name="Wheat protocol", plantspecies=self.crop.variety.species)
         trait = TraitFactory(numeric_id=1, description="Height", protocol=protocol)
@@ -503,6 +518,23 @@ class CropLayoutViewTests(TestCase):
                 self.assertEqual(response.status_code, expected_status)
                 self.assertTrue(self.layout.fieldbooks.filter(name=name).exists())
 
+    def test_fieldbook_update_changes_only_the_name(self):
+        fieldbook = FieldBookFactory(layout=self.layout, name="Original")
+        other_layout = CropLayoutFactory(location=self.location, name="Other layout")
+        FieldBookFactory(layout=self.layout, name="Duplicate")
+
+        response = self.client.post(
+            fieldbook.get_update_url(),
+            {"name": "Duplicate", "layout": other_layout.pk},
+            headers={"HX-Request": "true"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.headers["HX-Redirect"], fieldbook.get_absolute_url())
+        fieldbook.refresh_from_db()
+        self.assertEqual(fieldbook.name, "Duplicate")
+        self.assertEqual(fieldbook.layout, self.layout)
+
 
 class FieldBookTargetDeleteViewTests(TestCase):
     @classmethod
@@ -710,6 +742,7 @@ class ArchivedLayoutReadOnlyTests(TestCase):
             ("calculator:layout_update", (self.layout.pk,), {"name": "Changed", "ncol": 3}),
             ("calculator:layout_crop_create", (self.layout.pk,), {}),
             ("calculator:fieldbook_create", (self.layout.pk,), {"name": "New book"}),
+            ("calculator:fieldbook_update", (self.fieldbook.pk,), {"name": "Changed book"}),
             ("calculator:layout_management_create", (self.layout.pk,), {}),
             ("calculator:crop_update", (self.first_crop.pk,), {"variety": self.variety.pk, "notes": "Changed"}),
             ("calculator:crop-delete", (self.second_crop.pk,), {}),
@@ -784,6 +817,7 @@ class ArchivedLayoutReadOnlyTests(TestCase):
             (
                 self.fieldbook.get_absolute_url(),
                 (
+                    self.fieldbook.get_update_url(),
                     reverse("calculator:fieldbook_update_step_order", args=(self.fieldbook.pk,)),
                     reverse("calculator:trait_target_create", args=(self.fieldbook.pk,)),
                     reverse("calculator:parameter_target_create", args=(self.fieldbook.pk,)),

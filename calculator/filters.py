@@ -136,7 +136,7 @@ class TraitObservationFilter(FilterSet):
     )
     fieldbook_or_layout = CharFilter(
         method="filter_fieldbook_or_layout",
-        label="Field book or layout",
+        label="Field Book or Crop Layout",
     )
     protocol = ModelChoiceFilter(
         field_name="state__trait__protocol",

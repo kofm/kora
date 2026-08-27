@@ -155,6 +155,9 @@ class FieldBook(models.Model):
     def get_absolute_url(self):
         return reverse("calculator:fieldbook_detail", args=(self.pk,))
 
+    def get_update_url(self):
+        return reverse("calculator:fieldbook_update", args=(self.pk,))
+
     def validate_display_config(self):
         display = self.display_config
 

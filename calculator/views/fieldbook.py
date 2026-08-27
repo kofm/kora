@@ -15,6 +15,7 @@ from breadcrumbs.utils import add_parent_breadcrumbs, generate_breadcrumbs
 from calculator.forms import (
     FieldBookDisplayForm,
     FieldBookForm,
+    FieldBookUpdateForm,
     ParameterTargetForm,
     ParameterTargetObservationForm,
     StepUpdateOrderForm,
@@ -39,7 +40,7 @@ from describe.models import State, Trait
 from frontpage.headers import DetailHeader
 from frontpage.navigation import BasePrevNextNav
 from frontpage.utils.assets import add_layout_assets
-from frontpage.utils.htmx import htmx_response_trigger, htmx_response_trigger_close_modal
+from frontpage.utils.htmx import htmx_response_redirect, htmx_response_trigger, htmx_response_trigger_close_modal
 from frontpage.views_decorators import is_htmx
 
 try:
@@ -47,6 +48,13 @@ try:
 except ImportError:
     AVAILABLE_CROP_MODELS = []
     STATISTICS_MODELS = []
+
+
+class FieldBookDetailHeader(DetailHeader):
+    def get_update_url(self):
+        if self.instance.layout.is_archived:
+            return None
+        return super().get_update_url()
 
 
 @permission_required("calculator.view_fieldbook", raise_exception=True)
@@ -113,7 +121,13 @@ def fieldbook_detail(request, pk):
 
     breadcrumbs = generate_breadcrumbs(request, FieldBook, fieldbook)
     breadcrumbs = add_parent_breadcrumbs(breadcrumbs, fieldbook.layout)
-    header = DetailHeader(request, fieldbook, title=fieldbook.name, subtitle=fieldbook.layout.name)
+    header = FieldBookDetailHeader(
+        request,
+        fieldbook,
+        title=fieldbook.name,
+        subtitle=fieldbook.layout.name,
+        update_modal=True,
+    )
     context = {
         "fieldbook": fieldbook,
         "header": header,
@@ -128,6 +142,27 @@ def fieldbook_detail(request, pk):
     add_layout_assets(context, plots_layout)
 
     return TemplateResponse(request, "calculator/fieldbook/detail.html", context)
+
+
+@permission_required("calculator.change_fieldbook", raise_exception=True)
+def fieldbook_update(request, pk):
+    fieldbook = get_object_or_404(
+        FieldBook.objects.mutable().select_related("layout"),
+        pk=pk,
+    )
+    form = FieldBookUpdateForm(request.POST or None, instance=fieldbook)
+    if form.is_valid():
+        form.save()
+        if is_htmx(request):
+            return htmx_response_redirect(fieldbook.get_absolute_url())
+        return redirect(fieldbook)
+
+    template_name = "frontpage/modal_form.html" if is_htmx(request) else "frontpage/_update_form.html"
+    return TemplateResponse(
+        request,
+        template_name,
+        {"form": form, "instance": fieldbook, "object": fieldbook},
+    )
 
 
 @require_POST

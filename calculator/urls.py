@@ -10,6 +10,7 @@ from .views.fieldbook import (
     fieldbook_detail,
     fieldbook_list,
     fieldbook_targets_delete,
+    fieldbook_update,
     fieldbook_update_display_config,
     fieldbook_update_step_order,
     parameter_observation_in_step_create,
@@ -87,6 +88,7 @@ urlpatterns = [
     path("crop/<int:pk>/update", crop_update, name="crop_update"),
     path("crop/<int:pk>/delete", CropDeleteView.as_view(), name="crop-delete"),
     path("fieldbook/<int:pk>", fieldbook_detail, name="fieldbook_detail"),
+    path("fieldbook/<int:pk>/update", fieldbook_update, name="fieldbook_update"),
     path("fieldbook/<int:pk>/display", fieldbook_update_display_config, name="fieldbook_detail_display"),
     path("fieldbook/<int:pk>/update/order", fieldbook_update_step_order, name="fieldbook_update_step_order"),
     path(

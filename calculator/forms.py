@@ -255,6 +255,12 @@ class FieldBookForm(forms.ModelForm):
         fields = ("name", "layout")
 
 
+class FieldBookUpdateForm(forms.ModelForm):
+    class Meta:
+        model = FieldBook
+        fields = ("name",)
+
+
 class StepCropForm(forms.ModelForm):
     class Meta:
         model = Step
