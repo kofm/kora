@@ -36,6 +36,8 @@ class TomSelectConfig:
     defaults = {
         "max_options": 100,
         "preload": "true",
+        "clear_after_select": "true",
+        "blur_after_select": "true",
     }
 
     def __init__(self, **options):
