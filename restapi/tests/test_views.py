@@ -5,6 +5,8 @@ from pathlib import Path
 
 from django.contrib.auth.models import Permission, User
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.db import connection
+from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
@@ -18,7 +20,7 @@ from calculator.factories import (
     StepFactory,
     TraitObservationFactory,
 )
-from calculator.models import Crop, ParameterTarget, TraitObservation
+from calculator.models import Crop, FieldBook, ParameterTarget, Step, TraitObservation, TraitTarget
 from collect.factories import SampleFactory, StoragePositionFactory
 from describe.factories import (
     ExpressionFactory,
@@ -561,6 +563,18 @@ class ArchivedLayoutAPITests(APITestCase):
         self.assertIn("layout", response.data)
         self.assertFalse(Crop.objects.filter(layout=self.layout, variety=variety).exists())
 
+    def test_fieldbook_cannot_be_created_in_archived_layout(self):
+        self.user.user_permissions.add(Permission.objects.get(codename="add_fieldbook"))
+
+        response = self.client.post(
+            reverse("restapi:fieldbooks-list"),
+            {"name": "Archived layout fieldbook", "layout": self.layout.pk},
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("layout", response.data)
+        self.assertFalse(FieldBook.objects.filter(layout=self.layout, name="Archived layout fieldbook").exists())
+
     def test_crop_in_archived_layout_cannot_be_updated_or_deleted(self):
         self.user.user_permissions.add(
             Permission.objects.get(codename="change_crop"),
@@ -591,3 +605,204 @@ class ArchivedLayoutAPITests(APITestCase):
 
                 self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
                 self.assertFalse(Crop.objects.filter(layout=self.layout, variety=variety).exists())
+
+
+class TargetAPITests(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username="target-api-user", password="testpass")
+        self.client.force_authenticate(self.user)
+        self.user.user_permissions.add(
+            Permission.objects.get(codename="view_traittarget"),
+            Permission.objects.get(codename="add_traittarget"),
+            Permission.objects.get(codename="delete_traittarget"),
+        )
+        self.layout = CropLayoutFactory()
+        self.crop = CropFactory(layout=self.layout)
+        self.fieldbook = FieldBookFactory(layout=self.layout)
+        self.trait = TraitFactory(protocol__plantspecies=self.crop.variety.species)
+        self.url = reverse("restapi:trait-targets-list")
+
+    def payload(self, **overrides):
+        return {
+            "crop": self.crop.pk,
+            "fieldbook": self.fieldbook.pk,
+            "trait": self.trait.pk,
+            **overrides,
+        }
+
+    def test_create_is_idempotent_and_resolves_the_step(self):
+        first_response = self.client.post(self.url, self.payload())
+        second_response = self.client.post(self.url, self.payload())
+
+        self.assertEqual(first_response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(second_response.status_code, status.HTTP_200_OK)
+        self.assertEqual(first_response.data["id"], second_response.data["id"])
+        target = TraitTarget.objects.get(pk=first_response.data["id"])
+        self.assertEqual((target.step.fieldbook, target.step.crop), (self.fieldbook, self.crop))
+        self.assertEqual(Step.objects.filter(fieldbook=self.fieldbook, crop=self.crop).count(), 1)
+
+        mismatch_response = self.client.post(self.url, self.payload(required_count=2))
+        self.assertEqual(mismatch_response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_invalid_bulk_is_atomic_and_returns_row_errors(self):
+        other_layout_crop = CropFactory()
+        response = self.client.post(
+            reverse("restapi:trait-targets-bulk"),
+            [self.payload(), self.payload(crop=other_layout_crop.pk)],
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data[0], {})
+        self.assertIn("crop", response.data[1])
+        self.assertFalse(TraitTarget.objects.exists())
+        self.assertFalse(self.fieldbook.steps.exists())
+
+    def test_bulk_returns_row_error_for_unhashable_relationship_id(self):
+        response = self.client.post(
+            reverse("restapi:trait-targets-bulk"),
+            [self.payload(), self.payload(crop=[])],
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data[0], {})
+        self.assertIn("crop", response.data[1])
+        self.assertFalse(TraitTarget.objects.exists())
+
+    def test_bulk_accepts_numeric_string_relationship_ids(self):
+        payload = {
+            field_name: str(value) if field_name in {"crop", "fieldbook", "trait"} else value
+            for field_name, value in self.payload().items()
+        }
+
+        response = self.client.post(
+            reverse("restapi:trait-targets-bulk"),
+            [payload],
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        target = TraitTarget.objects.get(pk=response.data[0]["id"])
+        self.assertEqual(target.step.crop, self.crop)
+        self.assertEqual(target.step.fieldbook, self.fieldbook)
+        self.assertEqual(target.trait, self.trait)
+
+    def test_bulk_rejects_every_duplicate_identity_atomically(self):
+        response = self.client.post(
+            reverse("restapi:trait-targets-bulk"),
+            [self.payload(), self.payload()],
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("non_field_errors", response.data[0])
+        self.assertIn("non_field_errors", response.data[1])
+        self.assertFalse(TraitTarget.objects.exists())
+        self.assertFalse(self.fieldbook.steps.exists())
+
+    def test_bulk_preserves_order_for_existing_and_new_targets_then_retries_idempotently(self):
+        crops = CropFactory.create_batch(3, layout=self.layout, variety=self.crop.variety)
+        existing_response = self.client.post(self.url, self.payload(crop=crops[1].pk))
+        payload = [self.payload(crop=crop.pk) for crop in crops]
+
+        mixed_response = self.client.post(
+            reverse("restapi:trait-targets-bulk"),
+            payload,
+            format="json",
+        )
+        retry_response = self.client.post(
+            reverse("restapi:trait-targets-bulk"),
+            [payload[2], payload[0], payload[1]],
+            format="json",
+        )
+
+        self.assertEqual(existing_response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(mixed_response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual([row["crop"] for row in mixed_response.data], [crop.pk for crop in crops])
+        self.assertEqual(retry_response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            [row["crop"] for row in retry_response.data],
+            [crops[2].pk, crops[0].pk, crops[1].pk],
+        )
+        self.assertEqual(TraitTarget.objects.count(), 3)
+        self.assertEqual(Step.objects.count(), 3)
+
+    def test_bulk_rejects_incompatible_trait_species_without_partial_inserts(self):
+        incompatible_trait = TraitFactory()
+        response = self.client.post(
+            reverse("restapi:trait-targets-bulk"),
+            [self.payload(), self.payload(trait=incompatible_trait.pk, crop=CropFactory(layout=self.layout).pk)],
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("trait", response.data[1])
+        self.assertFalse(TraitTarget.objects.exists())
+        self.assertFalse(self.fieldbook.steps.exists())
+
+    def test_bulk_query_count_is_bounded_as_the_batch_grows(self):
+        crops = CropFactory.create_batch(30, layout=self.layout, variety=self.crop.variety)
+        payload = [self.payload(crop=crop.pk) for crop in crops]
+
+        with CaptureQueriesContext(connection) as queries:
+            response = self.client.post(
+                reverse("restapi:trait-targets-bulk"),
+                payload,
+                format="json",
+            )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertLessEqual(len(queries), 20)
+
+    def test_delete_rejects_observed_target_and_clears_final_display_selection(self):
+        step = StepFactory(fieldbook=self.fieldbook, crop=self.crop)
+        state = StateFactory(trait=self.trait)
+        target = TraitTarget.objects.create(step=step, trait=self.trait)
+        observation = TraitObservationFactory(crop=self.crop, state=state, created_by=self.user)
+        observation.step = step
+        observation.save()
+        detail_url = reverse("restapi:trait-targets-detail", args=[target.pk])
+
+        observed_response = self.client.delete(detail_url)
+        self.assertEqual(observed_response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        observation.delete()
+        self.fieldbook.set_display_config("trait", self.trait.pk)
+        self.fieldbook.save()
+        delete_response = self.client.delete(detail_url)
+
+        self.assertEqual(delete_response.status_code, status.HTTP_204_NO_CONTENT)
+        self.fieldbook.refresh_from_db()
+        self.assertIsNone(self.fieldbook.display_config)
+
+    def test_parameter_target_cannot_be_deleted_after_matching_observation(self):
+        self.user.user_permissions.add(
+            Permission.objects.get(codename="add_parametertarget"),
+            Permission.objects.get(codename="delete_parametertarget"),
+        )
+        parameter = ParameterFactory()
+        create_response = self.client.post(
+            reverse("restapi:parameter-targets-list"),
+            {
+                "crop": self.crop.pk,
+                "fieldbook": self.fieldbook.pk,
+                "parameter": parameter.pk,
+            },
+        )
+
+        self.assertEqual(create_response.status_code, status.HTTP_201_CREATED)
+        target = ParameterTarget.objects.get(pk=create_response.data["id"])
+        ParameterObservationFactory(
+            crop=self.crop,
+            step=target.step,
+            parameter=parameter,
+            created_by=self.user,
+        )
+
+        delete_response = self.client.delete(
+            reverse("restapi:parameter-targets-detail", args=[target.pk]),
+        )
+
+        self.assertEqual(delete_response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertTrue(ParameterTarget.objects.filter(pk=target.pk).exists())

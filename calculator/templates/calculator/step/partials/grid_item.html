@@ -25,9 +25,25 @@
 
   <div class="fieldbook-plot-content">
     {% if element.body.has_display %}
-      <strong class="fieldbook-plot-value text-truncate mb-2" title="{{ element.body.display_value|default_if_none:'' }}">
-        {{ element.body.display_value|default:"—" }}
-      </strong>
+      {% if element.body.display_mutation_url %}
+        <button
+          type="button"
+          class="fieldbook-plot-value fieldbook-plot-value-action text-truncate mb-2"
+          title="{{ element.body.display_mutation_label }}"
+          aria-label="{{ element.body.display_mutation_label }} for {{ element.title }}"
+          hx-get="{{ element.body.display_mutation_url }}"
+          hx-target="#modal"
+          hx-swap="innerHTML"
+          data-bs-toggle="modal"
+          data-bs-target="#modal"
+        >
+          {% if element.body.display_value is None %}—{% else %}{{ element.body.display_value }}{% endif %}
+        </button>
+      {% else %}
+        <strong class="fieldbook-plot-value text-truncate mb-2" title="{{ element.body.display_value|default_if_none:'' }}">
+          {% if element.body.display_value is None %}—{% else %}{{ element.body.display_value }}{% endif %}
+        </strong>
+      {% endif %}
     {% endif %}
     <div class="fieldbook-plot-variety">
       <strong class="fieldbook-plot-name text-truncate" title="{{ element.title }}">

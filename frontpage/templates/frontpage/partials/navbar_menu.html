@@ -77,6 +77,9 @@
 	{% if perms.calculator.view_croplayout %}
           <li><a class="dropdown-item" href="{% url 'calculator:croplayout_list' %}">Crop Layouts</a></li>
 	{% endif %}
+	{% if perms.calculator.view_fieldbook %}
+          <li><a class="dropdown-item" href="{% url 'calculator:fieldbook_list' %}">Fieldbooks</a></li>
+	{% endif %}
         <li><hr class="dropdown-divider"></li>
         <li><h6 class="dropdown-header">Observations</h6></li>
 	{% if perms.calculator.view_traitobservation %}

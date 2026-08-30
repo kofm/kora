@@ -2,7 +2,7 @@ from collections import defaultdict
 
 from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
-from django.core.exceptions import BadRequest, ImproperlyConfigured
+from django.core.exceptions import BadRequest, ImproperlyConfigured, ValidationError
 from django.db import transaction
 from django.db.models import Max
 from django.forms import BaseForm
@@ -12,6 +12,7 @@ from django.urls import reverse
 from django.views import View
 
 from calculator.models import FieldBook, Step, Target
+from calculator.targets import delete_target
 from frontpage.utils.htmx import htmx_response_trigger
 from frontpage.views_decorators import is_htmx
 
@@ -115,9 +116,6 @@ class BaseTargetDelete(PermissionRequiredMixin, View):
     permission_required = "calculator.change_fieldbook"
     raise_exception = True
 
-    def has_observation(self, target: Target) -> bool:
-        raise NotImplementedError
-
     def post(self, request, pk):
         if self.model is None or not issubclass(self.model, Target):
             raise ImproperlyConfigured(f"{self.__class__.__name__} requires a Target `model`")
@@ -127,11 +125,11 @@ class BaseTargetDelete(PermissionRequiredMixin, View):
             pk=pk,
         )
 
-        if self.has_observation(target):
-            return HttpResponseBadRequest("The target cannot be removed because it has already been observed.")
-
         step_id = target.step_id
-        target.delete()
+        try:
+            delete_target(target)
+        except ValidationError as exc:
+            return HttpResponseBadRequest(exc.messages[0])
 
         if is_htmx(request):
             event_name = (

@@ -1,0 +1,50 @@
+{% extends "frontpage/partials/grid.html" %}
+
+{% block container %}
+  <form
+    data-deferred-sortable-form
+    data-sortable-control="#crop-drag-mode"
+    hx-post="{{ sort_url }}"
+    hx-swap="none"
+  >
+    <div class="grid-layout-coordinate-wrapper my-3">
+      <div class="grid-layout-column-indices-viewport" aria-hidden="true">
+        <div
+          class="grid-layout-column-indices"
+          style="grid-template-columns: repeat({{ num_columns }}, minmax(80px, 1fr));"
+        >
+          {% for column_index in column_indices %}
+            <span class="grid-layout-coordinate">{{ column_index }}</span>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="grid-layout-row-indices" aria-hidden="true">
+        {% for row_index in row_indices %}
+          <span class="grid-layout-coordinate">{{ row_index }}</span>
+        {% endfor %}
+      </div>
+      <div class="grid-layout-scroll">
+        <div
+          id="{{ container_id }}"
+          class="grid-layout sortable"
+          data-sortable="{{ is_sortable|yesno:'true,false' }}"
+          style="grid-template-columns: repeat({{ num_columns }}, minmax(80px, 1fr));"
+        >
+          {% for element in elements %}
+            {% include item_template_name %}
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    <div
+      class="position-fixed bottom-0 end-0 m-3 p-2 bg-body border rounded shadow z-3"
+      data-sortable-pending-actions
+      hidden
+    >
+      <div class="d-flex gap-2">
+        <button type="button" class="btn btn-sm btn-outline-secondary" data-sortable-cancel>Cancel</button>
+        <button type="submit" class="btn btn-sm btn-primary" data-sortable-confirm>Confirm</button>
+      </div>
+    </div>
+  </form>
+{% endblock %}

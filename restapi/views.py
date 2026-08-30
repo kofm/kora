@@ -1,5 +1,6 @@
 """Kora API"""
 
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import transaction
 from django.db.models.deletion import ProtectedError
 from django.db.models.query import Prefetch
@@ -8,9 +9,19 @@ from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
+from rest_framework.serializers import ValidationError
 
-from calculator.models import Crop, CropLayout, ParameterObservation, TraitObservation
+from calculator.models import (
+    Crop,
+    CropLayout,
+    FieldBook,
+    ParameterObservation,
+    ParameterTarget,
+    TraitObservation,
+    TraitTarget,
+)
 from calculator.serializers import CropImportRequestSerializer
+from calculator.targets import delete_target
 from collect.models import Cart, CartItem, Germinability, Sample, SampleWeight, Storage, StoragePosition
 from collect.serializers import GerminabilitySerializer, SampleWeightSerializer
 from describe.models import (
@@ -29,7 +40,7 @@ from register.serializers import (
     PlantVarietyImportRequestSerializer,
     ProtectionImportRequestSerializer,
 )
-from restapi.decorators import document_bulk_create
+from restapi.decorators import document_bulk_create, document_idempotent_target_create
 from restapi.permissions import KoraModelPermissions
 from restapi.serializers.generic import ExcelImportResponseSerializer
 from restapi.serializers.models import (
@@ -40,8 +51,10 @@ from restapi.serializers.models import (
     DescriptionSerializer,
     EntitySerializer,
     ExpressionSerializer,
+    FieldBookSerializer,
     ParameterObservationSerializer,
     ParameterSerializer,
+    ParameterTargetSerializer,
     PlantSpeciesSerializer,
     PlantVarietySerializer,
     ProtectionSerializer,
@@ -53,6 +66,7 @@ from restapi.serializers.models import (
     StorageSerializer,
     TraitObservationSerializer,
     TraitSerializer,
+    TraitTargetSerializer,
     VarietalParameterSerializer,
     WorkspaceElementSerializer,
     WorkspaceSerializer,
@@ -60,12 +74,16 @@ from restapi.serializers.models import (
 from restapi.viewsets import ExcelImportActionMixin, JSONLExportMixin, KoraViewSet
 
 from .filters import (
+    CropFilter,
+    CropLayoutFilter,
     DescriptionFilter,
     EntityFilter,
     ExpressionFilter,
+    FieldBookFilter,
     GerminabilityFilter,
     ParameterFilter,
     ParameterObservationFilter,
+    ParameterTargetFilter,
     PlantSpeciesFilter,
     PlantVarietyFilter,
     ProtectionFilter,
@@ -77,6 +95,7 @@ from .filters import (
     StoragePositionFilter,
     TraitFilter,
     TraitObservationFilter,
+    TraitTargetFilter,
     VarietalParameterFilter,
 )
 
@@ -293,6 +312,25 @@ class ExpressionViewSet(KoraViewSet):
     filterset_class = ExpressionFilter
 
 
+class FieldBookViewSet(
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.CreateModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet,
+):
+    permission_classes = [KoraModelPermissions]
+    serializer_class = FieldBookSerializer
+    queryset = FieldBook.objects.select_related("layout__location").mutable().order_by("pk")
+    filterset_class = FieldBookFilter
+
+    def perform_destroy(self, instance):
+        if not instance.is_deletable:
+            raise ValidationError({"detail": instance.cant_delete_msg})
+        super().perform_destroy(instance)
+
+
 class ObservationViewSet(
     JSONLExportMixin,
     mixins.ListModelMixin,
@@ -349,6 +387,69 @@ class VarietalParameterViewSet(KoraViewSet):
     queryset = VarietalParameter.objects.select_related("parameter").all()
     serializer_class = VarietalParameterSerializer
     filterset_class = VarietalParameterFilter
+
+
+class TargetViewSet(
+    JSONLExportMixin,
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.CreateModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet,
+):
+    permission_classes = [KoraModelPermissions]
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        response_status = status.HTTP_201_CREATED if serializer.created_count else status.HTTP_200_OK
+        return Response(serializer.data, status=response_status, headers=self.get_success_headers(serializer.data))
+
+    @action(
+        detail=False,
+        methods=["post"],
+        url_path="bulk",
+        filter_backends=[],
+        pagination_class=None,
+        name="Bulk create",
+    )
+    def bulk(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data, many=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        response_status = status.HTTP_201_CREATED if serializer.created_count else status.HTTP_200_OK
+        return Response(serializer.data, status=response_status)
+
+    def destroy(self, request, *args, **kwargs):
+        target = self.get_object()
+        try:
+            delete_target(target)
+        except DjangoValidationError as exc:
+            raise ValidationError(exc.messages) from exc
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@document_idempotent_target_create(TraitTargetSerializer)
+class TraitTargetViewSet(TargetViewSet):
+    serializer_class = TraitTargetSerializer
+    filterset_class = TraitTargetFilter
+    queryset = TraitTarget.objects.select_related(
+        "step__crop__variety__species",
+        "step__fieldbook__layout",
+        "trait__protocol",
+    )
+
+
+@document_idempotent_target_create(ParameterTargetSerializer)
+class ParameterTargetViewSet(TargetViewSet):
+    serializer_class = ParameterTargetSerializer
+    filterset_class = ParameterTargetFilter
+    queryset = ParameterTarget.objects.select_related(
+        "step__crop__variety__species",
+        "step__fieldbook__layout",
+        "parameter",
+    )
 
 
 @document_bulk_create(StorageSerializer, name="storages")
@@ -414,6 +515,7 @@ class CropLayoutViewSet(viewsets.ModelViewSet):
     permission_classes = [KoraModelPermissions]
     serializer_class = CropLayoutSerializer
     queryset = CropLayout.objects.select_related("location").all()
+    filterset_class = CropLayoutFilter
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -490,10 +592,11 @@ class WorkspaceElementViewSet(KoraViewSet):
         serializer.save(workspace=self.get_workspace())
 
 
-class CropViewSet(ExcelImportActionMixin, viewsets.ModelViewSet):
+class CropViewSet(ExcelImportActionMixin, JSONLExportMixin, viewsets.ModelViewSet):
     permission_classes = [KoraModelPermissions]
     serializer_class = CropSerializer
-    queryset = Crop.objects.select_related("variety__species")
+    queryset = Crop.objects.select_related("variety__species", "layout__location")
+    filterset_class = CropFilter
 
     def get_queryset(self):
         queryset = super().get_queryset()

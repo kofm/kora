@@ -3,7 +3,15 @@ from django.db.models import Q
 from django_filters import CharFilter, DateFilter, NumberFilter
 from django_filters.rest_framework import DjangoFilterBackend, FilterSet
 
-from calculator.models import ParameterObservation, TraitObservation
+from calculator.models import (
+    Crop,
+    CropLayout,
+    FieldBook,
+    ParameterObservation,
+    ParameterTarget,
+    TraitObservation,
+    TraitTarget,
+)
 from collect.models import Germinability, Sample, SampleWeight, Storage, StoragePosition
 from describe.models import Description, Expression, Protocol, State, Trait
 from parameters.models import Parameter, VarietalParameter
@@ -190,6 +198,25 @@ class StoragePositionFilter(FilterSet):
         fields = ("name", "storage")
 
 
+class CropLayoutFilter(FilterSet):
+    location__in = NumberInFilter(field_name="location", lookup_expr="in")
+
+    class Meta:
+        model = CropLayout
+        fields = ("location", "location__in")
+
+
+class FieldBookFilter(FilterSet):
+    name__icontains = CharFilter(field_name="name", lookup_expr="icontains")
+    location = NumberFilter(field_name="layout__location")
+    location__in = NumberInFilter(field_name="layout__location", lookup_expr="in")
+    layout__in = NumberInFilter(field_name="layout", lookup_expr="in")
+
+    class Meta:
+        model = FieldBook
+        fields = ("name__icontains", "layout", "layout__in", "location", "location__in")
+
+
 class ObservationFilter(FilterSet):
     crop__in = NumberInFilter(field_name="crop", lookup_expr="in")
     layout = NumberFilter(field_name="crop__layout")
@@ -221,6 +248,36 @@ class TraitObservationFilter(ObservationFilter):
     class Meta:
         model = TraitObservation
         fields = ("crop", "state")
+
+
+class TargetFilter(FilterSet):
+    crop = NumberFilter(field_name="step__crop")
+    crop__in = NumberInFilter(field_name="step__crop", lookup_expr="in")
+    fieldbook = NumberFilter(field_name="step__fieldbook")
+    fieldbook__in = NumberInFilter(field_name="step__fieldbook", lookup_expr="in")
+    layout = NumberFilter(field_name="step__fieldbook__layout")
+    layout__in = NumberInFilter(field_name="step__fieldbook__layout", lookup_expr="in")
+
+    class Meta:
+        abstract = True
+
+
+class TraitTargetFilter(TargetFilter):
+    trait__in = NumberInFilter(field_name="trait", lookup_expr="in")
+    protocol = NumberFilter(field_name="trait__protocol")
+    protocol__in = NumberInFilter(field_name="trait__protocol", lookup_expr="in")
+
+    class Meta:
+        model = TraitTarget
+        fields = ("trait",)
+
+
+class ParameterTargetFilter(TargetFilter):
+    parameter__in = NumberInFilter(field_name="parameter", lookup_expr="in")
+
+    class Meta:
+        model = ParameterTarget
+        fields = ("parameter",)
 
 
 class ParameterObservationFilter(ObservationFilter):
@@ -262,6 +319,17 @@ class GerminabilityFilter(FilterSet):
     class Meta:
         model = Germinability
         fields = ("sample", "sample__in")
+
+
+class CropFilter(FilterSet):
+    variety__in = NumberInFilter(field_name="variety", lookup_expr="in")
+    layout__in = NumberInFilter(field_name="layout", lookup_expr="in")
+    layout_location = NumberFilter(field_name="layout__location")
+    layout_location__in = NumberInFilter(field_name="layout__location", lookup_expr="in")
+
+    class Meta:
+        model = Crop
+        fields = ("variety", "layout")
 
 
 class ParameterFilter(FilterSet):

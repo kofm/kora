@@ -21,6 +21,9 @@
     {% render_header header %}
   {% endif %}
   <p class="lead">{{ crop.variety.species.common_name }} Crop in {{ crop.layout }}</p>
+  {% if crop.notes %}
+    <p>{{ crop.notes }}</p>
+  {% endif %}
 
   <section class="d-flex flex-column gap-3 mt-4">
 

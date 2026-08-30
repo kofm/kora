@@ -1,8 +1,18 @@
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import transaction
 from django_countries.serializers import CountryFieldMixin
 from rest_framework import serializers
 
-from calculator.models import Crop, CropLayout, ParameterObservation, TraitObservation
+from calculator.models import (
+    Crop,
+    CropLayout,
+    FieldBook,
+    ParameterObservation,
+    ParameterTarget,
+    TraitObservation,
+    TraitTarget,
+)
+from calculator.targets import TargetPlan, TargetPlanValidationError, create_targets, validate_target_identity
 from collect.models import Cart, CartItem, Sample, Storage, StoragePosition
 from describe.models import (
     Description,
@@ -346,6 +356,29 @@ class ObservationSerializer(serializers.ModelSerializer):
         abstract = True
 
 
+class FieldBookSerializer(serializers.ModelSerializer):
+    layout_name = serializers.CharField(source="layout.name", read_only=True)
+    location = serializers.PrimaryKeyRelatedField(source="layout.location", read_only=True)
+    location_name = serializers.CharField(source="layout.location.name", read_only=True)
+
+    class Meta:
+        model = FieldBook
+        fields = ("id", "name", "layout", "layout_name", "location", "location_name")
+
+    def get_fields(self):
+        fields = super().get_fields()
+
+        if self.instance is not None:
+            fields["layout"].read_only = True
+
+        return fields
+
+    def validate_layout(self, layout):
+        if layout.is_archived:
+            raise serializers.ValidationError("Fieldbooks cannot be added to an archived layout.")
+        return layout
+
+
 class TraitObservationSerializer(ObservationSerializer):
     state_display = serializers.StringRelatedField(source="state", read_only=True)
     trait = serializers.IntegerField(source="state.trait_id", read_only=True)
@@ -461,6 +494,7 @@ class CropSerializer(BulkModelSerializer):
     variety_name = serializers.CharField(source="variety.name", read_only=True)
     species = serializers.IntegerField(source="variety.species_id", read_only=True)
     species_common_name = serializers.CharField(source="variety.species.common_name", read_only=True)
+    layout_name = serializers.CharField(source="layout.name", read_only=True)
 
     class Meta(BulkModelSerializer.Meta):
         model = Crop
@@ -471,6 +505,7 @@ class CropSerializer(BulkModelSerializer):
             "species",
             "species_common_name",
             "layout",
+            "layout_name",
             "order",
             "created_at",
             "updated_at",
@@ -488,3 +523,166 @@ class CropSerializer(BulkModelSerializer):
         if self.instance and variety.species_id != self.instance.variety.species_id:
             raise serializers.ValidationError("The crop variety species cannot be changed.")
         return variety
+
+
+class TargetListSerializer(serializers.ListSerializer):
+    def to_internal_value(self, data):
+        if not isinstance(data, list):
+            return super().to_internal_value(data)
+
+        errors = [{} for _ in data]
+        relationship_fields = ("crop", "fieldbook", self.child.target_field_name)
+        normalized_ids = {}
+        resolved = {}
+        for field_name in relationship_fields:
+            related_field = self.child.fields[field_name]
+            field_ids = {}
+            for index, row in enumerate(data):
+                if not isinstance(row, dict) or row.get(field_name) is None:
+                    continue
+                try:
+                    field_ids[index] = related_field.normalize_pk(row[field_name])
+                except serializers.ValidationError as exc:
+                    errors[index][field_name] = exc.detail
+
+            normalized_ids[field_name] = field_ids
+            resolved[field_name] = related_field.get_queryset().filter(pk__in=set(field_ids.values())).in_bulk()
+
+        prepared_data = []
+        for index, row in enumerate(data):
+            if not isinstance(row, dict):
+                prepared_data.append(row)
+                continue
+            prepared_row = row.copy()
+            for field_name in relationship_fields:
+                if index not in normalized_ids[field_name]:
+                    continue
+                normalized_id = normalized_ids[field_name][index]
+                if normalized_id not in resolved[field_name]:
+                    related_field = self.child.fields[field_name]
+                    try:
+                        related_field.fail("does_not_exist", pk_value=normalized_id)
+                    except serializers.ValidationError as exc:
+                        errors[index][field_name] = exc.detail
+                else:
+                    prepared_row[field_name] = resolved[field_name][normalized_id]
+            prepared_data.append(prepared_row)
+
+        if any(errors):
+            raise serializers.ValidationError(errors)
+        return super().to_internal_value(prepared_data)
+
+    def create(self, validated_data):
+        plans = [self.child.build_plan(row, row_index=index) for index, row in enumerate(validated_data)]
+        try:
+            targets, created_count = create_targets(self.child.Meta.model, plans)
+        except TargetPlanValidationError as exc:
+            raise serializers.ValidationError(exc.errors) from exc
+        self.created_count = created_count
+        return targets
+
+
+class BulkResolvedPrimaryKeyRelatedField(serializers.PrimaryKeyRelatedField):
+    def normalize_pk(self, data):
+        try:
+            if self.pk_field is not None:
+                return self.pk_field.to_internal_value(data)
+            return self.queryset.model._meta.pk.to_python(data)
+        except (TypeError, ValueError, DjangoValidationError):
+            self.fail("incorrect_type", data_type=type(data).__name__)
+
+    def to_internal_value(self, data):
+        if isinstance(data, self.queryset.model):
+            return data
+        return super().to_internal_value(data)
+
+
+class TargetSerializer(serializers.ModelSerializer):
+    crop = BulkResolvedPrimaryKeyRelatedField(
+        source="step.crop",
+        queryset=Crop.objects.select_related("layout", "variety__species"),
+    )
+    fieldbook = BulkResolvedPrimaryKeyRelatedField(
+        source="step.fieldbook",
+        queryset=FieldBook.objects.select_related("layout"),
+    )
+    step = serializers.PrimaryKeyRelatedField(read_only=True)
+
+    class Meta:
+        list_serializer_class = TargetListSerializer
+        abstract = True
+
+    def build_plan(self, attrs, row_index=0):
+        field_name = self.target_field_name
+        placement = attrs["step"]
+        fieldbook = placement["fieldbook"]
+        crop = placement["crop"]
+        related_object = attrs[field_name]
+        required_count = attrs.get("required_count", 1)
+        return TargetPlan(fieldbook, crop, related_object, required_count, row_index)
+
+    def validate(self, attrs):
+        if isinstance(self.parent, serializers.ListSerializer):
+            return attrs
+        plan = self.build_plan(attrs)
+        try:
+            validate_target_identity(self.Meta.model, plan)
+        except DjangoValidationError as exc:
+            raise serializers.ValidationError(serializers.as_serializer_error(exc)) from exc
+        return attrs
+
+    def create(self, validated_data):
+        try:
+            targets, created_count = create_targets(self.Meta.model, [self.build_plan(validated_data)])
+        except TargetPlanValidationError as exc:
+            raise serializers.ValidationError(exc.errors[0]) from exc
+        self.created_count = created_count
+        return targets[0]
+
+
+class TraitTargetSerializer(TargetSerializer):
+    target_field_name = "trait"
+    trait = BulkResolvedPrimaryKeyRelatedField(queryset=Trait.objects.select_related("protocol__plantspecies"))
+    trait_numeric_id = serializers.IntegerField(source="trait.numeric_id", read_only=True)
+    trait_description = serializers.CharField(source="trait.description", read_only=True)
+    trait_display = serializers.StringRelatedField(source="trait", read_only=True)
+    protocol = serializers.IntegerField(source="trait.protocol_id", read_only=True)
+    protocol_name = serializers.CharField(source="trait.protocol.name", read_only=True)
+
+    class Meta(TargetSerializer.Meta):
+        model = TraitTarget
+        fields = (
+            "id",
+            "crop",
+            "fieldbook",
+            "step",
+            "trait",
+            "trait_numeric_id",
+            "trait_description",
+            "trait_display",
+            "protocol",
+            "protocol_name",
+            "required_count",
+        )
+
+
+class ParameterTargetSerializer(TargetSerializer):
+    target_field_name = "parameter"
+    parameter = BulkResolvedPrimaryKeyRelatedField(queryset=Parameter.objects.all())
+    parameter_code = serializers.CharField(source="parameter.code", read_only=True)
+    parameter_name = serializers.CharField(source="parameter.name", read_only=True)
+    parameter_display = serializers.StringRelatedField(source="parameter", read_only=True)
+
+    class Meta(TargetSerializer.Meta):
+        model = ParameterTarget
+        fields = (
+            "id",
+            "crop",
+            "fieldbook",
+            "step",
+            "parameter",
+            "parameter_code",
+            "parameter_name",
+            "parameter_display",
+            "required_count",
+        )

@@ -36,7 +36,7 @@
    }
   </style>
 
-  <div id="steps" hx-get="{% url 'calculator:fieldbook_detail' fieldbook.pk %}" hx-target="#steps" hx-trigger="DisplayConfigUpdated" class="mt-3">
+  <div id="steps" hx-get="{% url 'calculator:fieldbook_detail' fieldbook.pk %}" hx-target="#steps" hx-trigger="DisplayConfigUpdated, traitObservationUpdated from:body, observationParameterUpdated from:body" class="mt-3">
     {% partial steps %}
   </div>
 

@@ -3,7 +3,6 @@ from math import ceil, floor
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
 from django.db import transaction
-from django.db.models import F
 from django.http import HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
@@ -12,6 +11,7 @@ from django.views.decorators.http import require_GET, require_POST
 from django_tables2 import RequestConfig
 
 from breadcrumbs.utils import add_parent_breadcrumbs, generate_breadcrumbs
+from calculator.filters import FieldBookFilter
 from calculator.forms import (
     FieldBookDisplayForm,
     FieldBookForm,
@@ -23,7 +23,7 @@ from calculator.forms import (
     TraitTargetForm,
     TraitTargetObservationForm,
 )
-from calculator.layouts import FieldBookCardLayout, FieldBookGrid
+from calculator.layouts import FieldBookGrid
 from calculator.models import (
     CropLayout,
     FieldBook,
@@ -33,15 +33,16 @@ from calculator.models import (
     TraitObservation,
     TraitTarget,
 )
-from calculator.tables import ParameterObservationTable, TraitObservationTable
+from calculator.tables import FieldBookTable, ParameterObservationTable, TraitObservationTable
+from calculator.targets import clear_stale_display_config, observed_target_query
 from calculator.utils import generate_zigzag_pairs
 from calculator.views.generic import BaseTargetCreate, BaseTargetDelete
 from describe.models import State, Trait
-from frontpage.headers import DetailHeader
+from frontpage.headers import DetailHeader, ListHeader
 from frontpage.navigation import BasePrevNextNav
 from frontpage.utils.assets import add_layout_assets
 from frontpage.utils.htmx import htmx_response_redirect, htmx_response_trigger, htmx_response_trigger_close_modal
-from frontpage.views_decorators import is_htmx
+from frontpage.views_decorators import htmx_render_blocks, is_htmx, nav_active
 
 try:
     from cropmodels.init import AVAILABLE_CROP_MODELS, STATISTICS_MODELS
@@ -56,16 +57,34 @@ class FieldBookDetailHeader(DetailHeader):
             return None
         return super().get_update_url()
 
+    def get_delete_url(self):
+        if self.instance.layout.is_archived:
+            return None
+        return super().get_delete_url()
+
 
 @permission_required("calculator.view_fieldbook", raise_exception=True)
-def fieldbook_list(request, layout_id):
-    layout = get_object_or_404(CropLayout, pk=layout_id)
-    cards = FieldBookCardLayout(layout.fieldbooks.all())
-    return TemplateResponse(
-        request,
-        "calculator/fieldbook/fieldbook_list.html",
-        {"layout": layout, "cards": cards, "nav_fieldbook": "active"},
+@nav_active("nav_plan")
+@htmx_render_blocks(["main"])
+def fieldbook_list(request):
+    queryset = (
+        FieldBook.objects.filter(layout__archived_at__isnull=True)  # zuban: ignore[attr-defined]
+        .select_related("layout__location")
+        .with_progress_data()
+        .order_by("name", "pk")
     )
+    fieldbook_filter = FieldBookFilter(request.GET, queryset=queryset)
+    table = FieldBookTable(fieldbook_filter.qs)
+    RequestConfig(request, paginate={"per_page": 15}).configure(table)
+    for row in table.page.object_list:
+        row.record.set_progress_counts()
+    context = {
+        "filter": fieldbook_filter,
+        "table": table,
+        "header": ListHeader(request, FieldBook, title="Fieldbooks"),
+        **generate_breadcrumbs(request, FieldBook),
+    }
+    return TemplateResponse(request, "calculator/fieldbook_list.html", context)
 
 
 @permission_required("calculator.add_fieldbook", raise_exception=True)
@@ -86,7 +105,7 @@ def fieldbook_create(request, layout_id):
     return TemplateResponse(
         request,
         template_name,
-        {"form": form, "model_name": "Field book", "object_to_create": "Fieldbook"},
+        {"form": form, "model_name": "Fieldbook", "object_to_create": "Fieldbook"},
     )
 
 
@@ -103,6 +122,10 @@ def fieldbook_detail(request, pk):
         fieldbook=fieldbook,
         highlighted=highlighted,
         selectable=request.user.has_perm("calculator.change_fieldbook") and not is_read_only,
+        can_add_trait_observation=request.user.has_perm("calculator.add_traitobservation"),
+        can_add_parameter_observation=request.user.has_perm("calculator.add_parameterobservation"),
+        can_change_trait_observation=request.user.has_perm("calculator.change_traitobservation"),
+        can_change_parameter_observation=request.user.has_perm("calculator.change_parameterobservation"),
     )
 
     if is_htmx(request):
@@ -127,6 +150,7 @@ def fieldbook_detail(request, pk):
         title=fieldbook.name,
         subtitle=fieldbook.layout.name,
         update_modal=True,
+        delete_modal=True,
     )
     context = {
         "fieldbook": fieldbook,
@@ -163,6 +187,16 @@ def fieldbook_update(request, pk):
         template_name,
         {"form": form, "instance": fieldbook, "object": fieldbook},
     )
+
+
+@permission_required("calculator.delete_fieldbook", raise_exception=True)
+def fieldbook_delete(request, pk):
+    instance = get_object_or_404(FieldBook, pk=pk)
+    if request.method == "POST" and instance.is_deletable:
+        instance.delete()
+        return htmx_response_redirect(reverse("calculator:fieldbook_list"))
+    context = {"instance": instance}
+    return TemplateResponse(request, "frontpage/modal_confirm_delete.html", context)
 
 
 @require_POST
@@ -246,15 +280,9 @@ class ParameterTargetCreate(BaseTargetCreate):
 class TraitTargetDelete(BaseTargetDelete):
     model = TraitTarget
 
-    def has_observation(self, target):
-        return target.step.traitobservation.filter(state__trait_id=target.trait_id).exists()
-
 
 class ParameterTargetDelete(BaseTargetDelete):
     model = ParameterTarget
-
-    def has_observation(self, target):
-        return target.step.parameterobservation.filter(parameter_id=target.parameter_id).exists()
 
 
 @require_POST
@@ -274,12 +302,12 @@ def fieldbook_targets_delete(request, fieldbook_id):
 
     selected_steps = Step.objects.filter(fieldbook=fieldbook, crop_id__in=selected_crop_ids)
     observed_trait_targets = TraitTarget.objects.filter(
+        observed_target_query(TraitTarget),
         step__in=selected_steps,
-        step__traitobservation__state__trait_id=F("trait_id"),
     ).distinct()
     observed_parameter_targets = ParameterTarget.objects.filter(
+        observed_target_query(ParameterTarget),
         step__in=selected_steps,
-        step__parameterobservation__parameter_id=F("parameter_id"),
     ).distinct()
 
     with transaction.atomic():
@@ -294,16 +322,7 @@ def fieldbook_targets_delete(request, fieldbook_id):
         removable_trait_targets.delete()
         removable_parameter_targets.delete()
 
-        display_config = fieldbook.display_config
-        if display_config:
-            target_model = TraitTarget if display_config["model"] == "trait" else ParameterTarget
-            field_name = display_config["model"]
-            if not target_model.objects.filter(
-                step__fieldbook=fieldbook,
-                **{f"{field_name}_id": display_config["id"]},
-            ).exists():
-                fieldbook.display_config = None
-                fieldbook.save(update_fields=["display_config"])
+        clear_stale_display_config(fieldbook)
 
     messages.success(
         request,
@@ -461,6 +480,59 @@ def step_parameter_observations(request, pk):
         request,
         "calculator/step/detail.html#parameter_observations_table",
         build_step_parameter_observations_context(request, step),
+    )
+
+
+@permission_required("calculator.add_traitobservation", raise_exception=True)
+def trait_target_observation_create(request, pk):
+    target = get_object_or_404(
+        TraitTarget.objects.mutable().select_related("step__fieldbook__layout", "step__crop", "trait__protocol"),
+        pk=pk,
+    )
+    states = State.objects.filter(trait=target.trait)
+    form = TraitTargetObservationForm(request.POST or None, states=states, protocol=target.trait.protocol)
+    form.fields["state"].label = str(target.trait)
+    if request.method == "POST" and form.is_valid():
+        state = get_object_or_404(states, pk=form.cleaned_data["state"])
+        TraitObservation.objects.create(
+            step=target.step,
+            crop=target.step.crop,
+            state=state,
+            notes=form.cleaned_data["notes"],
+            created_by=request.user,
+        )
+        return htmx_response_trigger_close_modal(["traitObservationUpdated"])
+    return TemplateResponse(
+        request,
+        "calculator/target_observation_create.html",
+        {"form": form, "target": target, "target_type": "trait"},
+    )
+
+
+@permission_required("calculator.add_parameterobservation", raise_exception=True)
+def parameter_target_observation_create(request, pk):
+    target = get_object_or_404(
+        ParameterTarget.objects.mutable().select_related("step__fieldbook__layout", "step__crop", "parameter"),
+        pk=pk,
+    )
+    form = ParameterTargetObservationForm(
+        request.POST or None,
+        initial={"parameter": target.parameter_id},
+        parameter=target.parameter,
+    )
+    if request.method == "POST" and form.is_valid():
+        if form.cleaned_data["parameter"] != target.parameter:
+            return HttpResponseBadRequest()
+        observation = form.save(commit=False)
+        observation.created_by = request.user
+        observation.crop = target.step.crop
+        observation.step = target.step
+        observation.save()
+        return htmx_response_trigger_close_modal(["observationParameterUpdated"])
+    return TemplateResponse(
+        request,
+        "calculator/target_observation_create.html",
+        {"form": form, "target": target, "target_type": "parameter"},
     )
 
 

@@ -1,0 +1,24 @@
+{% extends "frontpage/modal_content.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}Record observation{% endblock %}
+
+{% block body %}
+  <header class="mb-3">
+    {% if target_type == "trait" %}
+      <h2 class="fs-5">{{ target.trait }}</h2>
+      <p class="fs-6 fw-light text-muted my-0">{{ target.trait.protocol }}</p>
+    {% else %}
+      <h2 class="fs-5">{{ target.parameter.name }} ({{ target.parameter.measure_unit }})</h2>
+    {% endif %}
+  </header>
+  <form id="observation" onsubmit="return false;">
+    {{ form|crispy }}
+  </form>
+{% endblock %}
+
+{% block footer %}
+  <button type="button" class="btn btn-primary" hx-post="{{ request.get_full_path }}" hx-include="#observation" hx-target="#modal" hx-trigger="click, keyup[key=='Enter'] from:#observation">
+    Record
+  </button>
+{% endblock %}

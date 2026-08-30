@@ -58,6 +58,23 @@
   line-height: 1.2;
 }
 
+.fieldbook-plot-value-action {
+  width: fit-content;
+  max-width: 100%;
+  align-self: center;
+  overflow: hidden;
+  padding: 0 0 0.15rem;
+  border: 0;
+  border-bottom: 1px dotted currentColor;
+  background: transparent;
+  font-weight: 700;
+}
+
+.fieldbook-plot-value-action:hover,
+.fieldbook-plot-value-action:focus-visible {
+  color: var(--bs-link-hover-color);
+}
+
 .fieldbook-plot-order {
   position: absolute;
   top: 0.35rem;

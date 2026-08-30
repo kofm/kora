@@ -2,14 +2,35 @@
 {% endblock %}
 
 {% block container %}
-  <div
-    id="{{ container_id }}"
-    class="grid-layout overflow-auto {{ container_css_class }} mb-3"
-    {% if selectable %}data-selectable-grid{% endif %}
-    style="grid-template-columns: repeat({{ num_columns }}, minmax(80px, 1fr));"
-  >
-    {% for element in elements %}
-      {% include item_template_name %}
-    {% endfor %}
+  <div class="{% if show_coordinates %}grid-layout-coordinate-wrapper {% endif %}mb-3">
+    {% if show_coordinates %}
+      <div class="grid-layout-column-indices-viewport" aria-hidden="true">
+        <div
+          class="grid-layout-column-indices"
+          style="grid-template-columns: repeat({{ num_columns }}, minmax(80px, 1fr));"
+        >
+          {% for column_index in column_indices %}
+            <span class="grid-layout-coordinate">{{ column_index }}</span>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="grid-layout-row-indices" aria-hidden="true">
+        {% for row_index in row_indices %}
+          <span class="grid-layout-coordinate">{{ row_index }}</span>
+        {% endfor %}
+      </div>
+    {% endif %}
+    <div class="{% if show_coordinates %}grid-layout-scroll{% else %}overflow-auto{% endif %}">
+      <div
+        id="{{ container_id }}"
+        class="grid-layout {{ container_css_class }}"
+        {% if selectable %}data-selectable-grid{% endif %}
+        style="grid-template-columns: repeat({{ num_columns }}, minmax(80px, 1fr));"
+      >
+        {% for element in elements %}
+          {% include item_template_name %}
+        {% endfor %}
+      </div>
+    </div>
   </div>
 {% endblock %}

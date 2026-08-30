@@ -67,6 +67,60 @@
   gap: 0.25rem;
 }
 
+.grid-layout-coordinate-wrapper {
+  --grid-layout-coordinate-size: 1.75rem;
+  --grid-layout-item-height: 104px;
+
+  display: grid;
+  grid-template-columns: var(--grid-layout-coordinate-size) minmax(0, 1fr);
+  grid-template-rows: var(--grid-layout-coordinate-size) auto;
+  gap: 0.25rem;
+}
+
+.grid-layout-column-indices-viewport {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  grid-column: 2;
+  grid-row: 1;
+  min-width: 0;
+  overflow: hidden;
+  background: var(--bs-body-bg);
+}
+
+.grid-layout-column-indices {
+  display: grid;
+  gap: 0.25rem;
+  min-width: min-content;
+  will-change: transform;
+}
+
+.grid-layout-row-indices {
+  z-index: 2;
+  display: grid;
+  grid-column: 1;
+  grid-row: 2;
+  grid-auto-rows: var(--grid-layout-item-height);
+  gap: 0.25rem;
+  background: var(--bs-body-bg);
+}
+
+.grid-layout-scroll {
+  grid-column: 2;
+  grid-row: 2;
+  min-width: 0;
+  overflow-x: auto;
+}
+
+.grid-layout-coordinate {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--bs-secondary-color);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
 .grid-layout-cell {
   display: flex;
   flex-direction: column;
@@ -135,6 +189,10 @@
 .grid-layout-details:focus-visible {
   color: var(--bs-primary);
   background: var(--bs-primary-bg-subtle);
+}
+
+.dropdown-menu {
+    --bs-dropdown-zindex: 1030;
 }
 
 /* TomSelect */

@@ -135,7 +135,8 @@ class TraitTargetObservationForm(forms.Form):
     def __init__(self, *args, states, protocol=None, **kwargs):
         super().__init__(*args, **kwargs)
         choices = [("", "--------")]
-        choices += [(state.pk, str(state)) for state in states]
+        if states:
+            choices += [(state.pk, str(state)) for state in states]
         self.delete_url = None
         self.fields["state"].choices = choices
         self.protocol = protocol

@@ -5,6 +5,7 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.functional import cached_property
 from django.utils.timezone import now
 
 from describe.models import State, Trait
@@ -108,7 +109,7 @@ class Crop(ModelIsDeletableMixin, models.Model):
         return reverse("calculator:crop_update", args=(self.pk,))
 
     def get_delete_url(self):
-        return reverse("calculator:crop-delete", args=(self.pk,))
+        return reverse("calculator:crop_delete", args=(self.pk,))
 
 
 class CropParameter(ParameterValue):
@@ -141,8 +142,24 @@ class FieldBookQuerySet(models.QuerySet):
     def mutable(self):
         return self.filter(layout__archived_at__isnull=True)
 
+    def with_progress_data(self):
+        return self.prefetch_related(
+            models.Prefetch(
+                "steps",
+                queryset=Step.objects.prefetch_related(
+                    "traittarget",
+                    "parametertarget",
+                    "traitobservation__state",
+                    "parameterobservation",
+                ),
+                to_attr="steps_for_progress",
+            )
+        )
 
-class FieldBook(models.Model):
+
+class FieldBook(ModelIsDeletableMixin, models.Model):
+    cant_delete_msg = "You can't remove this FieldBook because there are planned observations."
+
     name = models.CharField(max_length=200)
     layout = models.ForeignKey(CropLayout, on_delete=models.PROTECT, related_name="fieldbooks")
     display_config = models.JSONField(null=True)
@@ -157,6 +174,51 @@ class FieldBook(models.Model):
 
     def get_update_url(self):
         return reverse("calculator:fieldbook_update", args=(self.pk,))
+
+    def get_delete_url(self):
+        return reverse("calculator:fieldbook_delete", args=[self.pk])
+
+    @cached_property
+    def is_deletable(self):
+        if self.layout.is_archived:
+            self.cant_delete_msg = "This FieldBook is archived."
+            return False
+        return (
+            not Step.objects.filter(fieldbook=self)
+            .filter(models.Q(traittarget__isnull=False) | models.Q(parametertarget__isnull=False))
+            .exists()
+        )
+
+    def set_progress_counts(self):
+        planned_target_count = 0
+        observation_count = 0
+        fulfilled_target_count = 0
+
+        for step in self.steps_for_progress:
+            trait_observation_counts = {}
+            for observation in step.traitobservation.all():
+                trait_id = observation.state.trait_id
+                trait_observation_counts[trait_id] = trait_observation_counts.get(trait_id, 0) + 1
+
+            parameter_observation_counts = {}
+            for observation in step.parameterobservation.all():
+                parameter_id = observation.parameter_id
+                parameter_observation_counts[parameter_id] = parameter_observation_counts.get(parameter_id, 0) + 1
+
+            observation_count += sum(trait_observation_counts.values()) + sum(parameter_observation_counts.values())
+            for target in step.traittarget.all():
+                planned_target_count += target.required_count
+                fulfilled_target_count += min(target.required_count, trait_observation_counts.get(target.trait_id, 0))
+            for target in step.parametertarget.all():
+                planned_target_count += target.required_count
+                fulfilled_target_count += min(
+                    target.required_count,
+                    parameter_observation_counts.get(target.parameter_id, 0),
+                )
+
+        self.planned_target_count = planned_target_count
+        self.observation_count = observation_count
+        self.percent_completed = 100.0 * fulfilled_target_count / planned_target_count if planned_target_count else 0.0
 
     def validate_display_config(self):
         display = self.display_config

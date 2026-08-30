@@ -15,7 +15,7 @@ urlpatterns = [
     path("api/", include("restapi.urls")),
     path("spaces/", include("spaces.urls")),
     path("collect/", include("collect.urls")),
-    path("plan/", include("calculator.urls")),
+    path("eval/", include("calculator.urls")),
 ]
 
 

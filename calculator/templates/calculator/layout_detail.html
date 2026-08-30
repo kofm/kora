@@ -1,6 +1,7 @@
 {% extends "frontpage/base.html" %}
 {% load breadcrumbs %}
 {% load components %}
+{% load django_tables2 %}
 
 {% block title %}Layout: {{ layout.name }}{% endblock %}
 
@@ -60,16 +61,19 @@
 >
   <div class="d-flex justify-content-end gap-2 mb-3">
     {% if perms.calculator.change_crop and crop_count > 1 and not is_read_only %}
-      <button
-        type="button"
-        class="btn btn-sm btn-outline-secondary"
-        data-sortable-toggle="#grid"
-        aria-pressed="false"
-        title="Unlock crop ordering to reorder by dragging"
-      >
-        <span data-sortable-toggle-label="disabled"><i class="bi bi-unlock-fill me-1"></i> Unlock</span>
-        <span data-sortable-toggle-label="enabled" hidden><i class="bi bi-lock-fill me-1"></i> Lock</span>
-      </button>
+      <div class="d-flex align-items-center gap-2">
+        <label for="crop-drag-mode" class="form-label small mb-0">Drag mode</label>
+        <select
+          id="crop-drag-mode"
+          class="form-select form-select-sm w-auto"
+          data-sortable-mode-control="#grid"
+          title="Choose how dragging changes crop positions"
+        >
+          <option value="locked" selected>Locked</option>
+          <option value="reorder">Reorder</option>
+          <option value="swap">Swap</option>
+        </select>
+      </div>
     {% endif %}
     {% if perms.calculator.add_crop and not is_read_only %}
       <a class="btn btn-sm btn-outline-secondary" hx-get="{% url 'calculator:layout_crop_create' layout.pk %}" {% modal_attrs %} title="Create a new crop">
@@ -98,7 +102,7 @@
       </a>
     </div>
   {% endif %}
-  {% render_layout fieldbook_cards %}
+  {% render_table fieldbook_cards %}
 </section>
 {% endpartialdef %}
 

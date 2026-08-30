@@ -11,9 +11,9 @@ from django_tables2 import RequestConfig
 from breadcrumbs.utils import add_parent_breadcrumbs, breadcrumbs_context, generate_breadcrumbs
 from calculator.filters import CropLayoutFilter
 from calculator.forms import CropLayoutForm, CropModelForm, InLocationCropLayoutForm, ManagementForm
-from calculator.layouts import CropSortableGrid, FieldBookCardLayout
+from calculator.layouts import CropSortableGrid
 from calculator.models import CropLayout
-from calculator.tables import CropLayoutListTable
+from calculator.tables import CropLayoutListTable, FieldBookInLayoutTable
 from frontpage.headers import ArchivalDetailHeader, HeaderAction, ListHeader
 from frontpage.utils.assets import add_layout_assets
 from frontpage.utils.htmx import htmx_response_redirect, htmx_response_trigger_close_modal
@@ -59,7 +59,10 @@ def layout_detail(request, pk):
         is_sortable=False,
         is_read_only=layout.is_archived,
     )
-    fieldbook_cards = FieldBookCardLayout(layout.fieldbooks.all())
+    fieldbooks = list(layout.fieldbooks.with_progress_data().all())
+    for fieldbook in fieldbooks:
+        fieldbook.set_progress_counts()
+    fieldbook_table = FieldBookInLayoutTable(fieldbooks)
     actions = []
     if not layout.is_archived:
         actions.append(
@@ -95,7 +98,7 @@ def layout_detail(request, pk):
         "active_tab": active_tab,
         "crop_cards": crop_cards,
         "crop_count": len(crops),
-        "fieldbook_cards": fieldbook_cards,
+        "fieldbook_cards": fieldbook_table,
         "managements": layout.managements.select_related("type").order_by("date"),
         "is_read_only": layout.is_archived,
         "header": header,

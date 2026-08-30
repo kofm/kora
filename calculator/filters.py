@@ -12,7 +12,7 @@ from django_filters import (
     NumberFilter,
 )
 
-from calculator.models import CropLayout, ParameterObservation, TraitObservation
+from calculator.models import CropLayout, FieldBook, ParameterObservation, TraitObservation
 from describe.models import Protocol, Trait
 from frontpage.forms import HTMXFormMixin, SearchAndClearButtons, TomSelectModelFormMixin
 from frontpage.widgets import ModelTomSelect, ModelTomSelectMultiple, TomSelectConfig
@@ -74,6 +74,37 @@ class CropLayoutFilter(FilterSet):
         model = CropLayout
         fields = ()
         form = CropLayoutFilterForm
+
+
+class FieldBookFilterForm(HTMXFormMixin, forms.Form):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper.layout = Layout(
+            Field("name"),
+            Field("location"),
+            SearchAndClearButtons(),
+        )
+
+
+class FieldBookFilter(FilterSet):
+    name = CharFilter(lookup_expr="icontains", label="Name")
+    location = ModelChoiceFilter(
+        field_name="layout__location",
+        queryset=Location.objects.all(),
+        widget=ModelTomSelect(
+            ts_config=TomSelectConfig(
+                url=reverse_lazy("spaces:location_autocomplete"),
+                value_field="id",
+                label_field="name",
+                search_field="name",
+            )
+        ),
+    )
+
+    class Meta:
+        model = FieldBook
+        fields = ()
+        form = FieldBookFilterForm
 
 
 class TraitObservationFilterForm(TomSelectModelFormMixin, HTMXFormMixin, forms.Form):

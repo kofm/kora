@@ -2,7 +2,7 @@ import django_tables2 as tables
 from django.contrib.humanize.templatetags.humanize import naturalday
 from django.urls import reverse
 
-from calculator.models import CropLayout, CropParameter, ParameterObservation, TraitObservation
+from calculator.models import CropLayout, CropParameter, FieldBook, ParameterObservation, TraitObservation
 from frontpage.tables import TableHoverFixed
 
 
@@ -34,6 +34,37 @@ class CropLayoutListTable(BaseCropLayoutTable):
 
     def render_status(self, record):
         return "Archived" if record.archived_at else "Visible"
+
+
+class BaseFieldBookTable(tables.Table):
+    name = tables.Column(linkify=True)
+    observation_count = tables.Column(verbose_name="Observations", orderable=False)
+    planned_target_count = tables.Column(verbose_name="Planned", orderable=False)
+    percent_completed = tables.Column(verbose_name="Completion", orderable=False)
+
+    class Meta(TableHoverFixed.Meta):
+        model = FieldBook
+        fields: tuple = ("name", "observation_count", "planned_target_count", "percent_completed")
+        template_name = "frontpage/partials/htmx_table.html"
+        empty_text = "There are no fieldbooks."
+        per_page = 10
+
+    def render_percent_completed(self, record, value):
+        return f"{value:.1f}%"
+
+
+class FieldBookTable(BaseFieldBookTable):
+    layout = tables.Column()
+    location = tables.Column(accessor="layout.location")
+
+    class Meta(BaseFieldBookTable.Meta):
+        model = FieldBook
+        fields = ("name", "layout", "location")
+        per_page = 15
+
+
+class FieldBookInLayoutTable(BaseFieldBookTable):
+    pass
 
 
 class CropParameterTable(tables.Table):

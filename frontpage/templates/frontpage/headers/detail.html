@@ -33,7 +33,7 @@
       {% block secondary_actions %}
         {% if delete_url %}
           {% if delete_modal %}
-            <a class="btn btn-outline-danger" hx-get="{{ delete_url }}" {% modal_attrs %}>Delete</a>
+            <a class="btn btn-outline-danger {% if not is_deletable %}disabled{% endif %}" hx-get="{{ delete_url }}" {% modal_attrs %}>Delete</a>
           {% else %}
           <a class="btn btn-outline-danger {% if not is_deletable %}disabled{% endif %}" href="{{ delete_url }}" aria-disabled="{% if is_deletable %}false{% else %}true{% endif %}">
             Delete

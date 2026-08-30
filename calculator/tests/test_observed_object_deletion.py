@@ -29,9 +29,9 @@ class ObservedObjectDeletionTests(TestCase):
             (self.state, "describe:state_delete", self.state.is_deletable),
             (self.trait, "describe:trait_delete", self.trait.is_deletable),
             (self.protocol, "describe:protocol_delete", self.protocol.is_deletable),
-            (self.trait_crop, "calculator:crop-delete", self.trait_crop.is_deletable),
+            (self.trait_crop, "calculator:crop_delete", self.trait_crop.is_deletable),
             (self.parameter, "parameters:parameter_delete", self.parameter.is_deletable),
-            (self.parameter_crop, "calculator:crop-delete", self.parameter_crop.is_deletable),
+            (self.parameter_crop, "calculator:crop_delete", self.parameter_crop.is_deletable),
         )
 
         for instance, view_name, is_deletable in deletion_cases:

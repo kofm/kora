@@ -1,6 +1,7 @@
 import { initializeTomSelects } from "./tomselect.js";
 import { closeModalById, initializeToast, initializeTooltips } from "./bootstrap.js";
 import { initializeSortableElements } from "./sortable.js";
+import { initializeCoordinateGrids } from "./grid.js";
 
 const copyIdFeedbackDuration = 1500;
 let copyIdFeedbackTimeout;
@@ -64,6 +65,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initializeTooltips();
     initializeTomSelects();
     initializeSortableElements(document);
+    initializeCoordinateGrids(document);
 
     document.addEventListener("click", handleDetailPageIdClick);
     document.body.addEventListener("closeModal", () => closeModalById("modal"));
@@ -72,8 +74,15 @@ document.addEventListener("DOMContentLoaded", () => {
 if (window.htmx) {
     registerTomSelectExtension(window.htmx);
 
+    document.addEventListener("htmx:beforeCleanupElement", (event) => {
+        event.detail.elt.querySelectorAll?.(".grid-layout-coordinate-wrapper").forEach((wrapper) => {
+            wrapper._coordinateCleanup?.();
+        });
+    });
+
     document.addEventListener("htmx:afterSwap", () => {
         initializeSortableElements(document);
+        initializeCoordinateGrids(document);
     });
 
     window.htmx.onLoad(() => {

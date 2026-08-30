@@ -1,11 +1,15 @@
+from django.urls import reverse
+
 from calculator.models import Step
 from django_sortable_htmx.layouts import BaseSortableGridLayout
 from frontpage.layouts import BaseCardLayout, BaseGridLayout
 
 
 class CropSortableGrid(BaseSortableGridLayout):
+    template_name = "calculator/partials/crop_sortable_grid.html"
+
     def __init__(self, *args, is_read_only=False, **kwargs):
-        super().__init__(*args, **kwargs)
+        super().__init__(*args, show_coordinates=True, **kwargs)
         if is_read_only:
             self.template_name = "frontpage/partials/grid.html"
 
@@ -25,12 +29,17 @@ class FieldBookGrid(BaseGridLayout):
         fieldbook,
         highlighted: str | None = None,
         display: dict | None = None,
+        can_add_trait_observation=False,
+        can_add_parameter_observation=False,
+        can_change_trait_observation=False,
+        can_change_parameter_observation=False,
         **kwargs,
     ) -> None:
         super().__init__(
             *args,
             num_columns=fieldbook.layout.ncol,
             container_id="fieldbook-grid",
+            show_coordinates=True,
             **kwargs,
         )
         self.add_asset("css", ["calculator/css/fieldbook-grid.css"])
@@ -38,6 +47,11 @@ class FieldBookGrid(BaseGridLayout):
         self.steps = Step.objects.prefetch_related(
             "traittarget", "parametertarget", "traitobservation__state", "parameterobservation"
         ).filter(fieldbook_id=fieldbook.pk)
+        self.is_read_only = fieldbook.layout.is_archived
+        self.can_add_trait_observation = can_add_trait_observation
+        self.can_add_parameter_observation = can_add_parameter_observation
+        self.can_change_trait_observation = can_change_trait_observation
+        self.can_change_parameter_observation = can_change_parameter_observation
         self.step_by_crop_map = {s.crop_id: s for s in self.steps}
         self.highlighted = highlighted
         self.display = self._validate_display(display or fieldbook.display_config)
@@ -86,37 +100,56 @@ class FieldBookGrid(BaseGridLayout):
                 "order": step.order + 1,
                 "trait_status": trait_status,
                 "parameter_status": parameter_status,
-                "display_value": self._get_display_value(step),
+                **self._get_display_data(step),
                 "has_display": self.display is not None,
             }
         )
         return body
 
-    def _get_display_value(self, step):
+    def _get_display_data(self, step):
+        data = {"display_value": None, "display_mutation_url": "", "display_mutation_label": ""}
         if self.display is None:
-            return ""
-        if self.display["model"] == "trait":
-            display_value = self._render_trait_observation(step, self.display["id"])
-        if self.display["model"] == "parameter":
-            field = self.display.get("field", "value")
-            display_value = self._render_parameter_observation(step, self.display["id"], field)
-        if display_value is None:
-            return ""
-        return display_value
+            return data
 
-    def _render_trait_observation(self, step, trait_id):
-        observations_by_trait_map = {o.trait_id: o for o in step.traitobservation.all()}
-        val = observations_by_trait_map.get(trait_id)
-        if val:
-            return val.state
-        return None
+        model = self.display["model"]
+        target_id = self.display["id"]
+        targets = getattr(step, f"{model}target").all()
+        target = next((target for target in targets if getattr(target, f"{model}_id") == target_id), None)
+        if target is None:
+            return data
 
-    def _render_parameter_observation(self, step, parameter_id, field="value"):
-        observation_by_parameter_map = {o.parameter_id: o for o in step.parameterobservation.all()}
-        val = observation_by_parameter_map.get(parameter_id)
-        if val:
-            return getattr(val, f"parameter_{field}")
-        return None
+        observations = getattr(step, f"{model}observation").all()
+        matching_observations = [
+            observation for observation in observations if getattr(observation, f"{model}_id") == target_id
+        ]
+        observation = max(
+            matching_observations,
+            key=lambda observation: (observation.recorded_at, observation.pk),
+            default=None,
+        )
+        if observation is not None:
+            if model == "trait":
+                data["display_value"] = observation.state
+                can_change = self.can_change_trait_observation
+                update_view_name = "calculator:trait_observation_update"
+            else:
+                field = self.display.get("field", "value")
+                data["display_value"] = getattr(observation, f"parameter_{field}")
+                can_change = self.can_change_parameter_observation
+                update_view_name = "calculator:parameter_observation_update"
+            if can_change and not self.is_read_only:
+                data["display_mutation_url"] = reverse(update_view_name, args=(observation.pk,))
+                data["display_mutation_label"] = "Update observation"
+            return data
+
+        can_add = self.can_add_trait_observation if model == "trait" else self.can_add_parameter_observation
+        if can_add and not self.is_read_only:
+            data["display_mutation_url"] = reverse(
+                f"calculator:{model}_target_observation_create",
+                args=(target.pk,),
+            )
+            data["display_mutation_label"] = "Record observation"
+        return data
 
     def _render_targets(self, step, target_type="trait"):
         targets = getattr(step, f"{target_type}target").all()

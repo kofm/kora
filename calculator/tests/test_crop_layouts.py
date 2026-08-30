@@ -696,6 +696,18 @@ class FieldBookGridTests(TestCase):
         self.assertIn('title="Walk order 3"', rendered_grid)
         self.assertIn(f'href="{step.get_absolute_url()}"', rendered_grid)
 
+    def test_coordinates_include_incomplete_final_row(self):
+        layout = CropLayoutFactory(ncol=3)
+        crops = [CropFactory(layout=layout, order=order) for order in range(4)]
+        fieldbook = FieldBookFactory(layout=layout)
+
+        grid = FieldBookGrid(crops, fieldbook=fieldbook)
+        rendered_grid = grid.render()
+
+        self.assertEqual(list(grid.get_context_data()["row_indices"]), [2, 1])
+        self.assertIn('<span class="grid-layout-coordinate">3</span>', rendered_grid)
+        self.assertEqual(rendered_grid.count('class="grid-layout-coordinate"'), 5)
+
 
 class ArchivedLayoutReadOnlyTests(TestCase):
     @classmethod
@@ -745,7 +757,7 @@ class ArchivedLayoutReadOnlyTests(TestCase):
             ("calculator:fieldbook_update", (self.fieldbook.pk,), {"name": "Changed book"}),
             ("calculator:layout_management_create", (self.layout.pk,), {}),
             ("calculator:crop_update", (self.first_crop.pk,), {"variety": self.variety.pk, "notes": "Changed"}),
-            ("calculator:crop-delete", (self.second_crop.pk,), {}),
+            ("calculator:crop_delete", (self.second_crop.pk,), {}),
             ("calculator:crop_sort", (), {"order": [self.second_crop.pk, self.first_crop.pk]}),
         )
 
