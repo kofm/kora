@@ -26,4 +26,4 @@ class VarietalParameterTable(tables.Table):
         empty_text = "There are no associated parameters."
         per_page = 15
         template_name = "frontpage/partials/htmx_table.html"
-        attrs = {"class": "table table-hover table-fixed"}
+        attrs = {"class": "table table-hover table-fixed small-table"}
