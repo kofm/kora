@@ -184,7 +184,8 @@ paths:
       - in: path
         name: id
         schema:
-          type: string
+          type: integer
+        description: A unique integer value identifying this cart.
         required: true
       tags:
       - carts
@@ -204,7 +205,8 @@ paths:
       - in: path
         name: id
         schema:
-          type: string
+          type: integer
+        description: A unique integer value identifying this cart.
         required: true
       tags:
       - carts
@@ -235,7 +237,8 @@ paths:
       - in: path
         name: id
         schema:
-          type: string
+          type: integer
+        description: A unique integer value identifying this cart.
         required: true
       tags:
       - carts
@@ -266,7 +269,8 @@ paths:
       - in: path
         name: id
         schema:
-          type: string
+          type: integer
+        description: A unique integer value identifying this cart.
         required: true
       tags:
       - carts
@@ -276,6 +280,425 @@ paths:
       responses:
         '204':
           description: No response body
+  /api/crop-layouts/:
+    get:
+      operationId: crop_layouts_list
+      parameters:
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - in: query
+        name: location
+        schema:
+          type: integer
+      - in: query
+        name: location__in
+        schema:
+          type: array
+          items:
+            type: integer
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      tags:
+      - crop-layouts
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedCropLayoutList'
+          description: ''
+    post:
+      operationId: crop_layouts_create
+      tags:
+      - crop-layouts
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CropLayoutRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CropLayoutRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CropLayoutRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CropLayout'
+          description: ''
+  /api/crop-layouts/{id}/:
+    get:
+      operationId: crop_layouts_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this crop layout.
+        required: true
+      tags:
+      - crop-layouts
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CropLayout'
+          description: ''
+    put:
+      operationId: crop_layouts_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this crop layout.
+        required: true
+      tags:
+      - crop-layouts
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CropLayoutRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CropLayoutRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CropLayoutRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CropLayout'
+          description: ''
+    patch:
+      operationId: crop_layouts_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this crop layout.
+        required: true
+      tags:
+      - crop-layouts
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedCropLayoutRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedCropLayoutRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedCropLayoutRequest'
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CropLayout'
+          description: ''
+    delete:
+      operationId: crop_layouts_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this crop layout.
+        required: true
+      tags:
+      - crop-layouts
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/crops/:
+    get:
+      operationId: crops_list
+      parameters:
+      - in: query
+        name: layout
+        schema:
+          type: integer
+      - in: query
+        name: layout__in
+        schema:
+          type: array
+          items:
+            type: integer
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
+        name: layout_location
+        schema:
+          type: integer
+      - in: query
+        name: layout_location__in
+        schema:
+          type: array
+          items:
+            type: integer
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      - in: query
+        name: variety
+        schema:
+          type: integer
+      - in: query
+        name: variety__in
+        schema:
+          type: array
+          items:
+            type: integer
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      tags:
+      - crops
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedCropList'
+          description: ''
+    post:
+      operationId: crops_create
+      tags:
+      - crops
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CropRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CropRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CropRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Crop'
+          description: ''
+  /api/crops/{id}/:
+    get:
+      operationId: crops_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this crop.
+        required: true
+      tags:
+      - crops
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Crop'
+          description: ''
+    put:
+      operationId: crops_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this crop.
+        required: true
+      tags:
+      - crops
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CropRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CropRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CropRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Crop'
+          description: ''
+    patch:
+      operationId: crops_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this crop.
+        required: true
+      tags:
+      - crops
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedCropRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedCropRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedCropRequest'
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Crop'
+          description: ''
+    delete:
+      operationId: crops_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this crop.
+        required: true
+      tags:
+      - crops
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/crops/excel_import/:
+    post:
+      operationId: crops_excel_import_create
+      description: |-
+        Import crops from a spreadsheet file.
+
+        Supported file formats are CSV, XLS, XLSX, and ODS. The first
+        row must contain the column names described below.
+
+        Select ``Validate only`` to check the file for errors without
+        importing any rows.
+      tags:
+      - crops
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CropImportRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CropImportRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CropImportRequestRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExcelImportResponse'
+          description: ''
+  /api/crops/export-jsonl/:
+    get:
+      operationId: crops_export_jsonl_retrieve
+      description: Export the full filtered result set as newline-delimited JSON.
+      tags:
+      - crops
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/x-ndjson:
+              schema:
+                type: string
+          description: Newline-delimited JSON stream.
   /api/descriptions/:
     get:
       operationId: descriptions_list
@@ -1263,31 +1686,40 @@ paths:
     post:
       operationId: entities_excel_import_create
       description: |-
-        Import entities from an Excel table.
+        Import entities from a spreadsheet file.
 
+        Supported file formats are CSV, XLS, XLSX, and ODS. The first
+        row must contain the column names described below.
+
+        Select ``Validate only`` to check the file for errors without
+        importing any rows.
 
         **Accepted columns**:
 
-        - ``name`` (text, required): the entity name;
-        - ``type`` (text, optional): type of entity, one of ``IN``
-          (Individual), ``PA`` (Partnership), ``CO`` (Company), ``CP``
+        - ``name`` (text, required): entity name;
+        - ``type`` (text, optional): entity type. Accepted values are ``IN``
+          (Individual), ``PA`` (Partnership), ``CO`` (Company), and ``CP``
           (Cooperative);
-        - ``country`` (text, optional): ISO 3166-1 two-letter country code;
+        - ``country`` (text, optional): ISO 3166-1 alpha-2 country code;
         - ``contact`` (text, optional): contact information;
         - ``email`` (text, optional): email address.
+
+        A row is skipped if an entity with the same ``name`` already exists.
+        Existing entities are not updated. Semicolons in ``name`` are treated
+        as part of a single entity name.
       tags:
       - entities
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/EntityImportRequest'
+              $ref: '#/components/schemas/EntityImportRequestRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/EntityImportRequest'
+              $ref: '#/components/schemas/EntityImportRequestRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/EntityImportRequest'
+              $ref: '#/components/schemas/EntityImportRequestRequest'
         required: true
       security:
       - cookieAuth: []
@@ -1579,6 +2011,194 @@ paths:
               schema:
                 type: string
           description: Newline-delimited JSON stream.
+  /api/fieldbooks/:
+    get:
+      operationId: fieldbooks_list
+      parameters:
+      - in: query
+        name: layout
+        schema:
+          type: integer
+      - in: query
+        name: layout__in
+        schema:
+          type: array
+          items:
+            type: integer
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - in: query
+        name: location
+        schema:
+          type: integer
+      - in: query
+        name: location__in
+        schema:
+          type: array
+          items:
+            type: integer
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
+        name: name__icontains
+        schema:
+          type: string
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      tags:
+      - fieldbooks
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedFieldBookList'
+          description: ''
+    post:
+      operationId: fieldbooks_create
+      tags:
+      - fieldbooks
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FieldBookRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FieldBookRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FieldBookRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FieldBook'
+          description: ''
+  /api/fieldbooks/{id}/:
+    get:
+      operationId: fieldbooks_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this field book.
+        required: true
+      tags:
+      - fieldbooks
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FieldBook'
+          description: ''
+    put:
+      operationId: fieldbooks_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this field book.
+        required: true
+      tags:
+      - fieldbooks
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FieldBookRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FieldBookRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FieldBookRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FieldBook'
+          description: ''
+    patch:
+      operationId: fieldbooks_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this field book.
+        required: true
+      tags:
+      - fieldbooks
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedFieldBookRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedFieldBookRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedFieldBookRequest'
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FieldBook'
+          description: ''
+    delete:
+      operationId: fieldbooks_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this field book.
+        required: true
+      tags:
+      - fieldbooks
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '204':
+          description: No response body
   /api/germinabilities/:
     get:
       operationId: germinabilities_list
@@ -1794,6 +2414,453 @@ paths:
       description: Export the full filtered result set as newline-delimited JSON.
       tags:
       - germinabilities
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/x-ndjson:
+              schema:
+                type: string
+          description: Newline-delimited JSON stream.
+  /api/parameter-observations/:
+    get:
+      operationId: parameter_observations_list
+      parameters:
+      - in: query
+        name: crop
+        schema:
+          type: integer
+      - in: query
+        name: crop__in
+        schema:
+          type: array
+          items:
+            type: integer
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
+        name: fieldbook_or_layout
+        schema:
+          type: string
+      - in: query
+        name: layout
+        schema:
+          type: integer
+      - in: query
+        name: layout__in
+        schema:
+          type: array
+          items:
+            type: integer
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - in: query
+        name: location
+        schema:
+          type: integer
+      - in: query
+        name: location__in
+        schema:
+          type: array
+          items:
+            type: integer
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      - in: query
+        name: parameter
+        schema:
+          type: integer
+      - in: query
+        name: parameter__in
+        schema:
+          type: array
+          items:
+            type: integer
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
+        name: parameter_date
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: parameter_date_end
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: parameter_date_start
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: parameter_value
+        schema:
+          type: number
+      - in: query
+        name: recorded_at_end
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: recorded_at_start
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: species
+        schema:
+          type: integer
+      - in: query
+        name: species__in
+        schema:
+          type: array
+          items:
+            type: integer
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
+        name: value
+        schema:
+          type: number
+      - in: query
+        name: value_max
+        schema:
+          type: number
+      - in: query
+        name: value_min
+        schema:
+          type: number
+      - in: query
+        name: variety
+        schema:
+          type: integer
+      - in: query
+        name: variety__in
+        schema:
+          type: array
+          items:
+            type: integer
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      tags:
+      - parameter-observations
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedParameterObservationList'
+          description: ''
+    post:
+      operationId: parameter_observations_create
+      tags:
+      - parameter-observations
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ParameterObservationRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ParameterObservationRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ParameterObservationRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ParameterObservation'
+          description: ''
+  /api/parameter-observations/{id}/:
+    get:
+      operationId: parameter_observations_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this parameter observation.
+        required: true
+      tags:
+      - parameter-observations
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ParameterObservation'
+          description: ''
+    delete:
+      operationId: parameter_observations_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this parameter observation.
+        required: true
+      tags:
+      - parameter-observations
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/parameter-observations/export-jsonl/:
+    get:
+      operationId: parameter_observations_export_jsonl_retrieve
+      description: Export the full filtered result set as newline-delimited JSON.
+      tags:
+      - parameter-observations
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/x-ndjson:
+              schema:
+                type: string
+          description: Newline-delimited JSON stream.
+  /api/parameter-targets/:
+    get:
+      operationId: parameter_targets_list
+      parameters:
+      - in: query
+        name: crop
+        schema:
+          type: integer
+      - in: query
+        name: crop__in
+        schema:
+          type: array
+          items:
+            type: integer
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
+        name: fieldbook
+        schema:
+          type: integer
+      - in: query
+        name: fieldbook__in
+        schema:
+          type: array
+          items:
+            type: integer
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
+        name: layout
+        schema:
+          type: integer
+      - in: query
+        name: layout__in
+        schema:
+          type: array
+          items:
+            type: integer
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      - in: query
+        name: parameter
+        schema:
+          type: integer
+      - in: query
+        name: parameter__in
+        schema:
+          type: array
+          items:
+            type: integer
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      tags:
+      - parameter-targets
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedParameterTargetList'
+          description: ''
+    post:
+      operationId: parameter_targets_create
+      description: Creates a target idempotently. Returns `201` when created, or `200`
+        when an identical target already exists.
+      tags:
+      - parameter-targets
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ParameterTargetRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ParameterTargetRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ParameterTargetRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ParameterTarget'
+          description: ''
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ParameterTarget'
+          description: ''
+  /api/parameter-targets/{id}/:
+    get:
+      operationId: parameter_targets_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this parameter target.
+        required: true
+      tags:
+      - parameter-targets
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ParameterTarget'
+          description: ''
+    delete:
+      operationId: parameter_targets_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this parameter target.
+        required: true
+      tags:
+      - parameter-targets
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/parameter-targets/bulk/:
+    post:
+      operationId: parameter_targets_bulk_create
+      description: Creates targets atomically and idempotently. Returns `201` when
+        at least one target is created, or `200` when all requested targets already
+        exist. Results preserve request order.
+      tags:
+      - parameter-targets
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/ParameterTargetRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/ParameterTargetRequest'
+          multipart/form-data:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/ParameterTargetRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ParameterTarget'
+          description: ''
+        '201':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ParameterTarget'
+          description: ''
+  /api/parameter-targets/export-jsonl/:
+    get:
+      operationId: parameter_targets_export_jsonl_retrieve
+      description: Export the full filtered result set as newline-delimited JSON.
+      tags:
+      - parameter-targets
       security:
       - cookieAuth: []
       - basicAuth: []
@@ -2946,54 +4013,59 @@ paths:
     post:
       operationId: protections_excel_import_create
       description: |-
-        Import protections from an Excel table.
+        Import protections from a spreadsheet file.
+
+        Supported file formats are CSV, XLS, XLSX, and ODS. The first
+        row must contain the column names described below.
+
+        Select ``Validate only`` to check the file for errors without
+        importing any rows.
 
         **Accepted columns**:
 
-        - ``name`` (text, required): name of the variety - this will be
-          matched with existing varieties of the specified species_id,
-          and will throw an error when no matches are found;
-        - ``species_id`` (integer, required): the ID of the variety's
-          species (see :http:get:`/api/species/`);
-        - ``type`` (text, required): protection type, the three letter
-          code identifying the protection type (see
-          :http:get:`/api/protection_types/`);
-        - ``reference`` (text, optional): arbitrary reference
-          number/code (e.g. application number)
-        - ``status`` (text, optional): protection status, one of ``G``
-          (Granted), ``T`` (Terminated), ``A`` (Active Application), ``W``
-          (Withdrawn), ``R`` (Refused), ``S`` (Surrendered);
-        - ``country`` (text, optional): ISO 3166-1 two-letter country code;
-        - ``date_start`` (date, optional): start date of the protection
-          (YMD format);
-        - ``date_end`` (date, optional): end date of the protection (YMD
-          format);
-        - ``applicants`` (array, optional): semi-colon separated list of
-          applicant names
-        - ``maintainers`` (array, optional): semi-colon separated list
-          of maintainer names
-        - ``note`` (text, optional): additional information
+        - ``name`` (text, required): variety name. The variety is matched
+        against existing varieties using both ``name`` and ``species_id``.
+        Validation fails if no matching variety is found;
+        - ``species_id`` (integer, required): ID of the variety's species
+        (see :http:get:`/api/species/`);
+        - ``type`` (text, required): three-letter protection type code
+        (see :http:get:`/api/protection_types/`);
+        - ``reference`` (text, optional): reference number or code, such as
+        an application number;
+        - ``status`` (text, optional): protection status. Accepted values are
+        ``G`` (Granted), ``T`` (Terminated), ``A`` (Active Application),
+        ``W`` (Withdrawn), ``R`` (Refused), and ``S`` (Surrendered);
+        - ``country`` (text, optional): ISO 3166-1 alpha-2 country code;
+        - ``date_start`` (date, optional): protection start date in
+        ``YYYY-MM-DD`` format;
+        - ``date_end`` (date, optional): protection end date in
+        ``YYYY-MM-DD`` format;
+        - ``applicants`` (text, optional): semicolon-separated applicant
+        names;
+        - ``maintainers`` (text, optional): semicolon-separated maintainer
+        names;
+        - ``note`` (text, optional): additional information.
 
-        The ``applicants`` and ``maintainers`` columns in the protection
-        import file allow multiple entities. These should be entered
-        as semi-colon separated names (e.g. `"Entity A; Entity
-        B"`). This format is commonly used by many public
-        databases. Avoid using semi-colon separated names in the
-        entities import file, as these will be imported as a single
-        entity.
+        The ``applicants`` and ``maintainers`` columns may contain multiple
+        entity names separated by semicolons, for example
+        ``Entity A; Entity B``. Do not use semicolon-separated names when
+        importing entities: they will be interpreted as one entity name.
+
+        Rows whose combination of ``type``, ``name``, ``species_id``, and
+        ``country`` already exists are skipped and are not updated.
       tags:
       - protections
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ProtectionExcelImportRequest'
+              $ref: '#/components/schemas/ProtectionImportRequestRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/ProtectionExcelImportRequest'
+              $ref: '#/components/schemas/ProtectionImportRequestRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/ProtectionExcelImportRequest'
+              $ref: '#/components/schemas/ProtectionImportRequestRequest'
         required: true
       security:
       - cookieAuth: []
@@ -4704,6 +5776,461 @@ paths:
               schema:
                 type: string
           description: Newline-delimited JSON stream.
+  /api/trait-observations/:
+    get:
+      operationId: trait_observations_list
+      parameters:
+      - in: query
+        name: crop
+        schema:
+          type: integer
+      - in: query
+        name: crop__in
+        schema:
+          type: array
+          items:
+            type: integer
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
+        name: fieldbook_or_layout
+        schema:
+          type: string
+      - in: query
+        name: layout
+        schema:
+          type: integer
+      - in: query
+        name: layout__in
+        schema:
+          type: array
+          items:
+            type: integer
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - in: query
+        name: location
+        schema:
+          type: integer
+      - in: query
+        name: location__in
+        schema:
+          type: array
+          items:
+            type: integer
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      - in: query
+        name: protocol
+        schema:
+          type: integer
+      - in: query
+        name: protocol__in
+        schema:
+          type: array
+          items:
+            type: integer
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
+        name: recorded_at_end
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: recorded_at_start
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: species
+        schema:
+          type: integer
+      - in: query
+        name: species__in
+        schema:
+          type: array
+          items:
+            type: integer
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
+        name: state
+        schema:
+          type: integer
+      - in: query
+        name: state__in
+        schema:
+          type: array
+          items:
+            type: integer
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
+        name: trait
+        schema:
+          type: integer
+      - in: query
+        name: trait__in
+        schema:
+          type: array
+          items:
+            type: integer
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
+        name: variety
+        schema:
+          type: integer
+      - in: query
+        name: variety__in
+        schema:
+          type: array
+          items:
+            type: integer
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      tags:
+      - trait-observations
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedTraitObservationList'
+          description: ''
+    post:
+      operationId: trait_observations_create
+      tags:
+      - trait-observations
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TraitObservationRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TraitObservationRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TraitObservationRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TraitObservation'
+          description: ''
+  /api/trait-observations/{id}/:
+    get:
+      operationId: trait_observations_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this trait observation.
+        required: true
+      tags:
+      - trait-observations
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TraitObservation'
+          description: ''
+    delete:
+      operationId: trait_observations_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this trait observation.
+        required: true
+      tags:
+      - trait-observations
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/trait-observations/export-jsonl/:
+    get:
+      operationId: trait_observations_export_jsonl_retrieve
+      description: Export the full filtered result set as newline-delimited JSON.
+      tags:
+      - trait-observations
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/x-ndjson:
+              schema:
+                type: string
+          description: Newline-delimited JSON stream.
+  /api/trait-targets/:
+    get:
+      operationId: trait_targets_list
+      parameters:
+      - in: query
+        name: crop
+        schema:
+          type: integer
+      - in: query
+        name: crop__in
+        schema:
+          type: array
+          items:
+            type: integer
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
+        name: fieldbook
+        schema:
+          type: integer
+      - in: query
+        name: fieldbook__in
+        schema:
+          type: array
+          items:
+            type: integer
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
+        name: layout
+        schema:
+          type: integer
+      - in: query
+        name: layout__in
+        schema:
+          type: array
+          items:
+            type: integer
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - name: limit
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: offset
+        required: false
+        in: query
+        description: The initial index from which to return the results.
+        schema:
+          type: integer
+      - in: query
+        name: protocol
+        schema:
+          type: integer
+      - in: query
+        name: protocol__in
+        schema:
+          type: array
+          items:
+            type: integer
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      - in: query
+        name: trait
+        schema:
+          type: integer
+      - in: query
+        name: trait__in
+        schema:
+          type: array
+          items:
+            type: integer
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      tags:
+      - trait-targets
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedTraitTargetList'
+          description: ''
+    post:
+      operationId: trait_targets_create
+      description: Creates a target idempotently. Returns `201` when created, or `200`
+        when an identical target already exists.
+      tags:
+      - trait-targets
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TraitTargetRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TraitTargetRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TraitTargetRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TraitTarget'
+          description: ''
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TraitTarget'
+          description: ''
+  /api/trait-targets/{id}/:
+    get:
+      operationId: trait_targets_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this trait target.
+        required: true
+      tags:
+      - trait-targets
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TraitTarget'
+          description: ''
+    delete:
+      operationId: trait_targets_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this trait target.
+        required: true
+      tags:
+      - trait-targets
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/trait-targets/bulk/:
+    post:
+      operationId: trait_targets_bulk_create
+      description: Creates targets atomically and idempotently. Returns `201` when
+        at least one target is created, or `200` when all requested targets already
+        exist. Results preserve request order.
+      tags:
+      - trait-targets
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/TraitTargetRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/TraitTargetRequest'
+          multipart/form-data:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/TraitTargetRequest'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TraitTarget'
+          description: ''
+        '201':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TraitTarget'
+          description: ''
+  /api/trait-targets/export-jsonl/:
+    get:
+      operationId: trait_targets_export_jsonl_retrieve
+      description: Export the full filtered result set as newline-delimited JSON.
+      tags:
+      - trait-targets
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/x-ndjson:
+              schema:
+                type: string
+          description: Newline-delimited JSON stream.
   /api/traits/:
     get:
       operationId: traits_list
@@ -5038,7 +6565,7 @@ paths:
         name: id
         schema:
           type: integer
-        description: A unique integer value identifying this varietal parameter.
+        description: A unique integer value identifying this value.
         required: true
       tags:
       - varietalparameters
@@ -5059,7 +6586,7 @@ paths:
         name: id
         schema:
           type: integer
-        description: A unique integer value identifying this varietal parameter.
+        description: A unique integer value identifying this value.
         required: true
       tags:
       - varietalparameters
@@ -5092,7 +6619,7 @@ paths:
         name: id
         schema:
           type: integer
-        description: A unique integer value identifying this varietal parameter.
+        description: A unique integer value identifying this value.
         required: true
       tags:
       - varietalparameters
@@ -5124,7 +6651,7 @@ paths:
         name: id
         schema:
           type: integer
-        description: A unique integer value identifying this varietal parameter.
+        description: A unique integer value identifying this value.
         required: true
       tags:
       - varietalparameters
@@ -5418,31 +6945,36 @@ paths:
     post:
       operationId: varieties_excel_import_create
       description: |-
-        Import varieties from an Excel table.
+        Import varieties from a spreadsheet file.
+
+        Supported file formats are CSV, XLS, XLSX, and ODS. The first
+        row must contain the column names described below.
+
+        Select ``Validate only`` to check the file for errors without
+        importing any rows.
 
         **Accepted columns**:
 
-        - ``name`` (required, string): the denomination of the variety;
-        - ``species_id`` (required, integer): the I of the species (see
-          :http:get:`/api/species/`);
+        - ``name`` (text, required): denomination of the variety;
+        - ``species_id`` (integer, required): ID of the species (see
+          :http:get:`/api/species/`).
 
-        NOTE: if a variety of the same species with the same name
-        already exists, it will not be imported. If you really need a
-        variety with the same name you will have to add it through the
-        user interface.
+        A row is skipped if a variety with the same ``name`` and
+        ``species_id`` already exists. Existing varieties are not updated.
+        To create another variety with the same name, use the user interface.
       tags:
       - varieties
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PlantVarietyImportRequest'
+              $ref: '#/components/schemas/PlantVarietyImportRequestRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PlantVarietyImportRequest'
+              $ref: '#/components/schemas/PlantVarietyImportRequestRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PlantVarietyImportRequest'
+              $ref: '#/components/schemas/PlantVarietyImportRequestRequest'
         required: true
       security:
       - cookieAuth: []
@@ -5531,7 +7063,8 @@ paths:
       - in: path
         name: id
         schema:
-          type: string
+          type: integer
+        description: A unique integer value identifying this workspace.
         required: true
       tags:
       - workspaces
@@ -5551,7 +7084,8 @@ paths:
       - in: path
         name: id
         schema:
-          type: string
+          type: integer
+        description: A unique integer value identifying this workspace.
         required: true
       tags:
       - workspaces
@@ -5583,7 +7117,8 @@ paths:
       - in: path
         name: id
         schema:
-          type: string
+          type: integer
+        description: A unique integer value identifying this workspace.
         required: true
       tags:
       - workspaces
@@ -5614,7 +7149,8 @@ paths:
       - in: path
         name: id
         schema:
-          type: string
+          type: integer
+        description: A unique integer value identifying this workspace.
         required: true
       tags:
       - workspaces
@@ -5731,10 +7267,16 @@ components:
     CartItem:
       type: object
       properties:
+        id:
+          type: integer
+          readOnly: true
         sample:
           type: integer
-        sample_id:
+        sample_number:
           type: integer
+          readOnly: true
+        species_common_name:
+          type: string
           readOnly: true
         variety:
           type: integer
@@ -5742,13 +7284,11 @@ components:
         variety_name:
           type: string
           readOnly: true
-        species:
-          type: string
-          readOnly: true
-        storage:
-          type: string
-          readOnly: true
         position:
+          type: integer
+          readOnly: true
+          nullable: true
+        position_display:
           type: string
           readOnly: true
         weight:
@@ -5761,11 +7301,12 @@ components:
           maximum: 2147483647
           minimum: 0
       required:
+      - id
       - position
+      - position_display
       - sample
-      - sample_id
-      - species
-      - storage
+      - sample_number
+      - species_common_name
       - variety
       - variety_name
     CartItemRequest:
@@ -6294,17 +7835,162 @@ components:
         * `YE` - Yemen
         * `ZM` - Zambia
         * `ZW` - Zimbabwe
+    Crop:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        variety:
+          type: integer
+        variety_name:
+          type: string
+          readOnly: true
+        species:
+          type: integer
+          readOnly: true
+        species_common_name:
+          type: string
+          readOnly: true
+        layout:
+          type: integer
+        layout_name:
+          type: string
+          readOnly: true
+        order:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        notes:
+          type: string
+          description: Notes relative to the Crop
+          maxLength: 500
+      required:
+      - created_at
+      - id
+      - layout
+      - layout_name
+      - species
+      - species_common_name
+      - updated_at
+      - variety
+      - variety_name
+    CropImportRequestRequest:
+      type: object
+      properties:
+        file:
+          type: string
+          format: binary
+        validate_only:
+          type: boolean
+          default: false
+      required:
+      - file
+    CropLayout:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        location:
+          type: integer
+          description: The location to which the layout belongs
+        location_name:
+          type: string
+          readOnly: true
+        name:
+          type: string
+          description: A descriptive name for the layout
+          maxLength: 100
+        description:
+          type: string
+          description: Additional information about the layout
+        ncol:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+          title: Columns
+          description: The number of columns in which crops are arranged
+        archived_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - archived_at
+      - created_at
+      - id
+      - location
+      - location_name
+      - name
+      - updated_at
+    CropLayoutRequest:
+      type: object
+      properties:
+        location:
+          type: integer
+          description: The location to which the layout belongs
+        name:
+          type: string
+          minLength: 1
+          description: A descriptive name for the layout
+          maxLength: 100
+        description:
+          type: string
+          description: Additional information about the layout
+        ncol:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+          title: Columns
+          description: The number of columns in which crops are arranged
+      required:
+      - location
+      - name
+    CropRequest:
+      type: object
+      properties:
+        variety:
+          type: integer
+        layout:
+          type: integer
+        order:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        notes:
+          type: string
+          description: Notes relative to the Crop
+          maxLength: 500
+      required:
+      - layout
+      - variety
     Description:
       type: object
       properties:
         id:
           type: integer
           readOnly: true
-        label_id:
+        label:
           type: integer
           nullable: true
-          readOnly: true
-        label:
+        label_name:
           type: string
           readOnly: true
         variety:
@@ -6325,8 +8011,7 @@ components:
           readOnly: true
       required:
       - id
-      - label
-      - label_id
+      - label_name
       - protocol
       - protocol_name
       - species
@@ -6335,11 +8020,10 @@ components:
     DescriptionNested:
       type: object
       properties:
-        label_id:
+        label:
           type: integer
           nullable: true
-          readOnly: true
-        label:
+        label_name:
           type: string
           readOnly: true
         variety:
@@ -6348,6 +8032,10 @@ components:
         variety_name:
           type: string
           readOnly: true
+        protocol:
+          type: integer
+          description: Reference protocol used to make the description;            this
+            will define which Traits will be available
         protocol_name:
           type: string
           readOnly: true
@@ -6358,22 +8046,33 @@ components:
           readOnly: true
       required:
       - expressions
-      - label
-      - label_id
+      - label_name
+      - protocol
       - protocol_name
       - variety
       - variety_name
     DescriptionNestedRequest:
       type: object
       properties:
+        label:
+          type: integer
+          nullable: true
         variety:
           type: integer
           description: The variety to which the description refers to
+        protocol:
+          type: integer
+          description: Reference protocol used to make the description;            this
+            will define which Traits will be available
       required:
+      - protocol
       - variety
     DescriptionRequest:
       type: object
       properties:
+        label:
+          type: integer
+          nullable: true
         variety:
           type: integer
           description: The variety to which the description refers to
@@ -6668,20 +8367,22 @@ components:
           description: Contact details of the entity, such as phone number or address.
           maxLength: 500
         email:
-          type: string
-          format: email
           description: Email address of the entity. E.g., 'john.doe@example.com'.
-          maxLength: 254
+          oneOf:
+          - type: string
+            format: email
+            maxLength: 254
+          - type: string
+            maxLength: 0
       required:
       - id
       - name
-    EntityImportRequest:
+    EntityImportRequestRequest:
       type: object
       properties:
         file:
           type: string
           format: binary
-          title: Excel file (.xlsx)
         validate_only:
           type: boolean
           default: false
@@ -6969,10 +8670,13 @@ components:
           description: Contact details of the entity, such as phone number or address.
           maxLength: 500
         email:
-          type: string
-          format: email
           description: Email address of the entity. E.g., 'john.doe@example.com'.
-          maxLength: 254
+          oneOf:
+          - type: string
+            format: email
+            maxLength: 254
+          - type: string
+            maxLength: 0
       required:
       - name
     ExcelImportResponse:
@@ -6990,7 +8694,7 @@ components:
           readOnly: true
         description:
           type: integer
-        trait_id:
+        trait:
           type: integer
           readOnly: true
         trait_numeric_id:
@@ -7001,6 +8705,9 @@ components:
           readOnly: true
         state:
           type: integer
+        state_numeric_id:
+          type: integer
+          readOnly: true
         state_description:
           type: string
           readOnly: true
@@ -7017,19 +8724,27 @@ components:
       - state
       - state_description
       - state_group
+      - state_numeric_id
+      - trait
       - trait_description
-      - trait_id
       - trait_numeric_id
     ExpressionNested:
       type: object
       properties:
-        trait_id:
+        trait:
           type: integer
+          readOnly: true
+        trait_numeric_id:
+          type: integer
+          readOnly: true
         trait_description:
           type: string
           readOnly: true
-        state_id:
+        state:
           type: integer
+        state_numeric_id:
+          type: integer
+          readOnly: true
         state_description:
           type: string
           readOnly: true
@@ -7038,24 +8753,23 @@ components:
           description: Add any additional information here.
           maxLength: 512
       required:
+      - state
       - state_description
-      - state_id
+      - state_numeric_id
+      - trait
       - trait_description
-      - trait_id
+      - trait_numeric_id
     ExpressionNestedRequest:
       type: object
       properties:
-        trait_id:
-          type: integer
-        state_id:
+        state:
           type: integer
         note:
           type: string
           description: Add any additional information here.
           maxLength: 512
       required:
-      - state_id
-      - trait_id
+      - state
     ExpressionRequest:
       type: object
       properties:
@@ -7070,6 +8784,45 @@ components:
       required:
       - description
       - state
+    FieldBook:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 200
+        layout:
+          type: integer
+        layout_name:
+          type: string
+          readOnly: true
+        location:
+          type: integer
+          readOnly: true
+        location_name:
+          type: string
+          readOnly: true
+      required:
+      - id
+      - layout
+      - layout_name
+      - location
+      - location_name
+      - name
+    FieldBookRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        layout:
+          type: integer
+      required:
+      - layout
+      - name
     Germinability:
       type: object
       properties:
@@ -7161,6 +8914,52 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Cart'
+    PaginatedCropLayoutList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/CropLayout'
+    PaginatedCropList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Crop'
     PaginatedDescriptionList:
       type: object
       required:
@@ -7230,6 +9029,29 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Expression'
+    PaginatedFieldBookList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/FieldBook'
     PaginatedGerminabilityList:
       type: object
       required:
@@ -7276,6 +9098,52 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Parameter'
+    PaginatedParameterObservationList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ParameterObservation'
+    PaginatedParameterTargetList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ParameterTarget'
     PaginatedPlantSpeciesList:
       type: object
       required:
@@ -7529,6 +9397,52 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Trait'
+    PaginatedTraitObservationList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/TraitObservation'
+    PaginatedTraitTargetList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=400&limit=100
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?offset=200&limit=100
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/TraitTarget'
     PaginatedVarietalParameterList:
       type: object
       required:
@@ -7626,6 +9540,125 @@ components:
       - id
       - measure_unit
       - name
+    ParameterObservation:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        crop:
+          type: integer
+        crop_display:
+          type: string
+          readOnly: true
+        layout:
+          type: integer
+          readOnly: true
+        layout_name:
+          type: string
+          readOnly: true
+        location:
+          type: integer
+          readOnly: true
+        location_name:
+          type: string
+          readOnly: true
+        variety:
+          type: integer
+          readOnly: true
+        variety_name:
+          type: string
+          readOnly: true
+        species:
+          type: integer
+          readOnly: true
+        species_common_name:
+          type: string
+          readOnly: true
+        step:
+          type: integer
+          readOnly: true
+          nullable: true
+        step_display:
+          type: string
+          readOnly: true
+        parameter:
+          type: integer
+        parameter_code:
+          type: string
+          readOnly: true
+        parameter_name:
+          type: string
+          readOnly: true
+        parameter_display:
+          type: string
+          readOnly: true
+        parameter_value:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,7}(?:\.\d{0,3})?$
+          nullable: true
+        parameter_date:
+          type: string
+          format: date
+          nullable: true
+        recorded_at:
+          type: string
+          format: date-time
+        created_by:
+          type: integer
+          readOnly: true
+        created_by_display:
+          type: string
+          readOnly: true
+        notes:
+          type: string
+          maxLength: 255
+      required:
+      - created_by
+      - created_by_display
+      - crop
+      - crop_display
+      - id
+      - layout
+      - layout_name
+      - location
+      - location_name
+      - parameter
+      - parameter_code
+      - parameter_display
+      - parameter_name
+      - species
+      - species_common_name
+      - step
+      - step_display
+      - variety
+      - variety_name
+    ParameterObservationRequest:
+      type: object
+      properties:
+        crop:
+          type: integer
+        parameter:
+          type: integer
+        parameter_value:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,7}(?:\.\d{0,3})?$
+          nullable: true
+        parameter_date:
+          type: string
+          format: date
+          nullable: true
+        recorded_at:
+          type: string
+          format: date-time
+        notes:
+          type: string
+          maxLength: 255
+      required:
+      - crop
+      - parameter
     ParameterRequest:
       type: object
       properties:
@@ -7654,6 +9687,60 @@ components:
       - description
       - measure_unit
       - name
+    ParameterTarget:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        crop:
+          type: integer
+        fieldbook:
+          type: integer
+        step:
+          type: integer
+          readOnly: true
+        parameter:
+          type: integer
+        parameter_code:
+          type: string
+          readOnly: true
+        parameter_name:
+          type: string
+          readOnly: true
+        parameter_display:
+          type: string
+          readOnly: true
+        required_count:
+          type: integer
+          maximum: 32767
+          minimum: 0
+      required:
+      - crop
+      - fieldbook
+      - id
+      - parameter
+      - parameter_code
+      - parameter_display
+      - parameter_name
+      - step
+    ParameterTargetRequest:
+      type: object
+      properties:
+        crop:
+          type: integer
+        fieldbook:
+          type: integer
+        parameter:
+          type: integer
+        required_count:
+          type: integer
+          maximum: 32767
+          minimum: 0
+      required:
+      - crop
+      - fieldbook
+      - parameter
     PatchedCartRequest:
       type: object
       properties:
@@ -7662,9 +9749,47 @@ components:
           minLength: 1
           description: An identificative name for your cart
           maxLength: 100
+    PatchedCropLayoutRequest:
+      type: object
+      properties:
+        location:
+          type: integer
+          description: The location to which the layout belongs
+        name:
+          type: string
+          minLength: 1
+          description: A descriptive name for the layout
+          maxLength: 100
+        description:
+          type: string
+          description: Additional information about the layout
+        ncol:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+          title: Columns
+          description: The number of columns in which crops are arranged
+    PatchedCropRequest:
+      type: object
+      properties:
+        variety:
+          type: integer
+        layout:
+          type: integer
+        order:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        notes:
+          type: string
+          description: Notes relative to the Crop
+          maxLength: 500
     PatchedDescriptionRequest:
       type: object
       properties:
+        label:
+          type: integer
+          nullable: true
         variety:
           type: integer
           description: The variety to which the description refers to
@@ -7954,10 +10079,13 @@ components:
           description: Contact details of the entity, such as phone number or address.
           maxLength: 500
         email:
-          type: string
-          format: email
           description: Email address of the entity. E.g., 'john.doe@example.com'.
-          maxLength: 254
+          oneOf:
+          - type: string
+            format: email
+            maxLength: 254
+          - type: string
+            maxLength: 0
     PatchedExpressionRequest:
       type: object
       properties:
@@ -7969,6 +10097,15 @@ components:
           type: string
           description: Add any additional information here.
           maxLength: 512
+    PatchedFieldBookRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        layout:
+          type: integer
     PatchedGerminabilityRequest:
       type: object
       properties:
@@ -8101,20 +10238,19 @@ components:
           title: Species
           description: reference to the specie it is meant to use with
         url_ref:
-          type: string
-          format: uri
           title: URL
           description: the URL reference to the protocol
-          maxLength: 200
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 200
+          - type: string
+            maxLength: 0
     PatchedSampleRequest:
       type: object
       properties:
-        sample_id:
+        sample_number:
           type: integer
-          maximum: 2147483647
-          minimum: 0
-          title: ID
-          description: An unique identificative number of the seed sample
         variety:
           type: integer
         position:
@@ -8166,6 +10302,8 @@ components:
           type: integer
           maximum: 2147483647
           minimum: 0
+        storage:
+          type: integer
     PatchedStorageRequest:
       type: object
       properties:
@@ -8192,6 +10330,9 @@ components:
           title: Name
           description: A descriptive, unique, and unambiguous name
           maxLength: 200
+        grouping:
+          type: boolean
+          description: Is this a highly discriminating characteristic?
         protocol:
           type: integer
           description: The reference protocol of the trait
@@ -8210,10 +10351,13 @@ components:
           description: Add any additional information here.
           maxLength: 512
         url_ref:
-          type: string
-          format: uri
           description: a url reference for the source of the parameter
-          maxLength: 200
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 200
+          - type: string
+            maxLength: 0
     PatchedWorkspaceRequest:
       type: object
       properties:
@@ -8306,13 +10450,12 @@ components:
       - species
       - species_common_name
       - updated_at
-    PlantVarietyImportRequest:
+    PlantVarietyImportRequestRequest:
       type: object
       properties:
         file:
           type: string
           format: binary
-          title: Excel file (.xlsx)
         validate_only:
           type: boolean
           default: false
@@ -8403,13 +10546,12 @@ components:
       - id
       - type
       - variety
-    ProtectionExcelImportRequest:
+    ProtectionImportRequestRequest:
       type: object
       properties:
         file:
           type: string
           format: binary
-          title: Excel file (.xlsx)
         validate_only:
           type: boolean
           default: false
@@ -8510,11 +10652,14 @@ components:
           title: Species
           description: reference to the specie it is meant to use with
         url_ref:
-          type: string
-          format: uri
           title: URL
           description: the URL reference to the protocol
-          maxLength: 200
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 200
+          - type: string
+            maxLength: 0
       required:
       - id
       - name
@@ -8532,11 +10677,14 @@ components:
           title: Species
           description: reference to the specie it is meant to use with
         url_ref:
-          type: string
-          format: uri
           title: URL
           description: the URL reference to the protocol
-          maxLength: 200
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 200
+          - type: string
+            maxLength: 0
       required:
       - name
       - plantspecies
@@ -8546,21 +10694,20 @@ components:
         id:
           type: integer
           readOnly: true
-        sample_id:
+        sample_number:
           type: integer
-          maximum: 2147483647
-          minimum: 0
-          title: ID
-          description: An unique identificative number of the seed sample
+        species_common_name:
+          type: string
+          readOnly: true
         variety:
           type: integer
+        variety_name:
+          type: string
+          readOnly: true
         position:
           type: integer
           nullable: true
-        storage_name:
-          type: string
-          readOnly: true
-        position_name:
+        position_display:
           type: string
           readOnly: true
         growing_season:
@@ -8589,19 +10736,16 @@ components:
       - id
       - last_germinability
       - last_weight
-      - position_name
-      - sample_id
-      - storage_name
+      - position_display
+      - sample_number
+      - species_common_name
       - variety
+      - variety_name
     SampleRequest:
       type: object
       properties:
-        sample_id:
+        sample_number:
           type: integer
-          maximum: 2147483647
-          minimum: 0
-          title: ID
-          description: An unique identificative number of the seed sample
         variety:
           type: integer
         position:
@@ -8617,7 +10761,7 @@ components:
           description: Notes relative to the seed sample
           maxLength: 500
       required:
-      - sample_id
+      - sample_number
       - variety
     SampleWeight:
       type: object
@@ -8743,12 +10887,15 @@ components:
           maximum: 2147483647
           minimum: 0
         storage:
+          type: integer
+        storage_name:
           type: string
           readOnly: true
       required:
       - id
       - name
       - storage
+      - storage_name
     StoragePositionRequest:
       type: object
       properties:
@@ -8756,8 +10903,11 @@ components:
           type: integer
           maximum: 2147483647
           minimum: 0
+        storage:
+          type: integer
       required:
       - name
+      - storage
     StorageRequest:
       type: object
       properties:
@@ -8788,6 +10938,9 @@ components:
           title: Name
           description: A descriptive, unique, and unambiguous name
           maxLength: 200
+        grouping:
+          type: boolean
+          description: Is this a highly discriminating characteristic?
         protocol:
           type: integer
           description: The reference protocol of the trait
@@ -8796,6 +10949,119 @@ components:
       - id
       - numeric_id
       - protocol
+    TraitObservation:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        crop:
+          type: integer
+        crop_display:
+          type: string
+          readOnly: true
+        layout:
+          type: integer
+          readOnly: true
+        layout_name:
+          type: string
+          readOnly: true
+        location:
+          type: integer
+          readOnly: true
+        location_name:
+          type: string
+          readOnly: true
+        variety:
+          type: integer
+          readOnly: true
+        variety_name:
+          type: string
+          readOnly: true
+        species:
+          type: integer
+          readOnly: true
+        species_common_name:
+          type: string
+          readOnly: true
+        step:
+          type: integer
+          readOnly: true
+          nullable: true
+        step_display:
+          type: string
+          readOnly: true
+        state:
+          type: integer
+        state_display:
+          type: string
+          readOnly: true
+        trait:
+          type: integer
+          readOnly: true
+        trait_numeric_id:
+          type: integer
+          readOnly: true
+        trait_description:
+          type: string
+          readOnly: true
+        protocol:
+          type: integer
+          readOnly: true
+        protocol_name:
+          type: string
+          readOnly: true
+        recorded_at:
+          type: string
+          format: date-time
+        created_by:
+          type: integer
+          readOnly: true
+        created_by_display:
+          type: string
+          readOnly: true
+        notes:
+          type: string
+          maxLength: 255
+      required:
+      - created_by
+      - created_by_display
+      - crop
+      - crop_display
+      - id
+      - layout
+      - layout_name
+      - location
+      - location_name
+      - protocol
+      - protocol_name
+      - species
+      - species_common_name
+      - state
+      - state_display
+      - step
+      - step_display
+      - trait
+      - trait_description
+      - trait_numeric_id
+      - variety
+      - variety_name
+    TraitObservationRequest:
+      type: object
+      properties:
+        crop:
+          type: integer
+        state:
+          type: integer
+        recorded_at:
+          type: string
+          format: date-time
+        notes:
+          type: string
+          maxLength: 255
+      required:
+      - crop
+      - state
     TraitRequest:
       type: object
       properties:
@@ -8811,6 +11077,9 @@ components:
           title: Name
           description: A descriptive, unique, and unambiguous name
           maxLength: 200
+        grouping:
+          type: boolean
+          description: Is this a highly discriminating characteristic?
         protocol:
           type: integer
           description: The reference protocol of the trait
@@ -8818,6 +11087,68 @@ components:
       - description
       - numeric_id
       - protocol
+    TraitTarget:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        crop:
+          type: integer
+        fieldbook:
+          type: integer
+        step:
+          type: integer
+          readOnly: true
+        trait:
+          type: integer
+        trait_numeric_id:
+          type: integer
+          readOnly: true
+        trait_description:
+          type: string
+          readOnly: true
+        trait_display:
+          type: string
+          readOnly: true
+        protocol:
+          type: integer
+          readOnly: true
+        protocol_name:
+          type: string
+          readOnly: true
+        required_count:
+          type: integer
+          maximum: 32767
+          minimum: 0
+      required:
+      - crop
+      - fieldbook
+      - id
+      - protocol
+      - protocol_name
+      - step
+      - trait
+      - trait_description
+      - trait_display
+      - trait_numeric_id
+    TraitTargetRequest:
+      type: object
+      properties:
+        crop:
+          type: integer
+        fieldbook:
+          type: integer
+        trait:
+          type: integer
+        required_count:
+          type: integer
+          maximum: 32767
+          minimum: 0
+      required:
+      - crop
+      - fieldbook
+      - trait
     TypeEnum:
       enum:
       - IN
@@ -8833,6 +11164,9 @@ components:
     VarietalParameter:
       type: object
       properties:
+        id:
+          type: integer
+          readOnly: true
         value:
           type: number
           format: double
@@ -8856,12 +11190,16 @@ components:
           description: Add any additional information here.
           maxLength: 512
         url_ref:
-          type: string
-          format: uri
           description: a url reference for the source of the parameter
-          maxLength: 200
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 200
+          - type: string
+            maxLength: 0
       required:
       - created_at
+      - id
       - parameter
       - parameter_code
       - updated_at
@@ -8882,10 +11220,13 @@ components:
           description: Add any additional information here.
           maxLength: 512
         url_ref:
-          type: string
-          format: uri
           description: a url reference for the source of the parameter
-          maxLength: 200
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 200
+          - type: string
+            maxLength: 0
       required:
       - parameter
       - value
