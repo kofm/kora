@@ -172,6 +172,10 @@ class FieldBook(ModelIsDeletableMixin, models.Model):
     def get_absolute_url(self):
         return reverse("calculator:fieldbook_detail", args=(self.pk,))
 
+    @classmethod
+    def get_create_url(cls):
+        return reverse("calculator:fieldbook_create")
+
     def get_update_url(self):
         return reverse("calculator:fieldbook_update", args=(self.pk,))
 

@@ -1,5 +1,6 @@
 from django.urls import path
 
+from .views.autocomplete import CropLayoutAutocompleteView
 from .views.crop import CropDeleteView, CropSort, crop_detail, crop_update
 from .views.fieldbook import (
     ParameterTargetCreate,
@@ -14,6 +15,7 @@ from .views.fieldbook import (
     fieldbook_update,
     fieldbook_update_display_config,
     fieldbook_update_step_order,
+    layout_fieldbook_create,
     parameter_observation_in_step_create,
     parameter_target_observation_create,
     step_detail,
@@ -55,6 +57,7 @@ urlpatterns = [
     path("locations/<int:location_id>/layouts/create", location_layout_create, name="location_layout_create"),
     path("layouts/create", layout_create, name="layout_create"),
     path("layouts", layout_list, name="croplayout_list"),
+    path("layouts/autocomplete", CropLayoutAutocompleteView.as_view(), name="croplayout_autocomplete"),
     path("layouts/<int:pk>", layout_detail, name="layout_detail"),
     path("layouts/<int:pk>/update", layout_update, name="layout_update"),
     path("layouts/<int:pk>/archive", layout_archive, name="layout_archive"),
@@ -62,7 +65,7 @@ urlpatterns = [
     path("layouts/<int:pk>/delete", layout_delete, name="layout_delete"),
     path("layouts/<int:layout_id>/crops/create", layout_crop_create, name="layout_crop_create"),
     path("layouts/<int:layout_id>/management/create", layout_management_create, name="layout_management_create"),
-    path("layouts/<int:layout_id>/fieldbooks/create", fieldbook_create, name="fieldbook_create"),
+    path("layouts/<int:layout_id>/fieldbooks/create", layout_fieldbook_create, name="layout_fieldbook_create"),
     path("crop/<int:pk>", crop_detail, name="crop_detail"),
     path(
         "crop/<int:crop_id>/observations/expression/create",
@@ -90,6 +93,7 @@ urlpatterns = [
     path("crops/<int:pk>/update", crop_update, name="crop_update"),
     path("crops/<int:pk>/delete", CropDeleteView.as_view(), name="crop_delete"),
     path("fieldbooks", fieldbook_list, name="fieldbook_list"),
+    path("fieldbooks/create", fieldbook_create, name="fieldbook_create"),
     path("fieldbooks/<int:pk>", fieldbook_detail, name="fieldbook_detail"),
     path("fieldbooks/<int:pk>/update", fieldbook_update, name="fieldbook_update"),
     path("fieldbooks/<int:pk>/delete", fieldbook_delete, name="fieldbook_delete"),

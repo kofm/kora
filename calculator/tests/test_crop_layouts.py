@@ -147,7 +147,7 @@ class CalculatorPermissionTests(TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_fieldbook_creation_requires_add_permission(self):
-        url = reverse("calculator:fieldbook_create", args=(self.layout.pk,))
+        url = reverse("calculator:layout_fieldbook_create", args=(self.layout.pk,))
         response = self.client.get(url, headers={"HX-Request": "true"})
         self.assertEqual(response.status_code, 403)
 
@@ -505,7 +505,7 @@ class CropLayoutViewTests(TestCase):
         self.assertEqual(crop.variety, same_species_variety)
 
     def test_fieldbook_creation_supports_htmx_and_form_submissions(self):
-        create_url = reverse("calculator:fieldbook_create", args=(self.layout.pk,))
+        create_url = reverse("calculator:layout_fieldbook_create", args=(self.layout.pk,))
         requests = (
             ("HTMX book", {"HX-Request": "true"}, 200),
             ("Form book", {}, 302),
@@ -753,7 +753,7 @@ class ArchivedLayoutReadOnlyTests(TestCase):
         requests = (
             ("calculator:layout_update", (self.layout.pk,), {"name": "Changed", "ncol": 3}),
             ("calculator:layout_crop_create", (self.layout.pk,), {}),
-            ("calculator:fieldbook_create", (self.layout.pk,), {"name": "New book"}),
+            ("calculator:layout_fieldbook_create", (self.layout.pk,), {"name": "New book"}),
             ("calculator:fieldbook_update", (self.fieldbook.pk,), {"name": "Changed book"}),
             ("calculator:layout_management_create", (self.layout.pk,), {}),
             ("calculator:crop_update", (self.first_crop.pk,), {"variety": self.variety.pk, "notes": "Changed"}),
@@ -810,7 +810,7 @@ class ArchivedLayoutReadOnlyTests(TestCase):
                 self.layout.get_absolute_url(),
                 (
                     reverse("calculator:layout_crop_create", args=(self.layout.pk,)),
-                    reverse("calculator:fieldbook_create", args=(self.layout.pk,)),
+                    reverse("calculator:layout_fieldbook_create", args=(self.layout.pk,)),
                     reverse("calculator:layout_management_create", args=(self.layout.pk,)),
                     reverse("calculator:crop_sort"),
                 ),

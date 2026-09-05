@@ -250,10 +250,45 @@ class CropUpdateForm(forms.ModelForm):
         self.fields["variety"].queryset = PlantVariety.objects.filter(species_id=self.instance.variety.species_id)
 
 
-class FieldBookForm(forms.ModelForm):
+class FieldBookCreateForm(TomSelectModelFormMixin, forms.ModelForm):
+    location = forms.ModelChoiceField(
+        queryset=Location.objects.all(),
+        widget=ModelTomSelect(
+            ts_config=TomSelectConfig(
+                url=reverse_lazy("spaces:location_autocomplete"),
+                value_field="id",
+                label_field="name",
+                search_field="name",
+            )
+        ),
+    )
+    layout = forms.ModelChoiceField(
+        queryset=CropLayout.objects.none(),
+        widget=ModelTomSelect(
+            ts_config=TomSelectConfig(
+                url=reverse_lazy("calculator:croplayout_autocomplete"),
+                value_field="id",
+                label_field="name",
+                search_field="name",
+                depends_on="location",
+                depends_param="location_id",
+            )
+        ),
+    )
+
     class Meta:
         model = FieldBook
-        fields = ("name", "layout")
+        fields = ("name", "location", "layout")
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["layout"].queryset = self.fields["layout"].queryset.visible()
+
+
+class InLayoutFieldBookCreateForm(forms.ModelForm):
+    class Meta:
+        model = FieldBook
+        fields = ("name",)
 
 
 class FieldBookUpdateForm(forms.ModelForm):

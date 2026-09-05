@@ -96,7 +96,7 @@
 >
   {% if perms.calculator.add_fieldbook and not is_read_only %}
     <div class="d-flex justify-content-end mb-3">
-      <a class="btn btn-sm btn-outline-secondary" hx-get="{% url 'calculator:fieldbook_create' layout.pk %}" {% modal_attrs %}>
+      <a class="btn btn-sm btn-outline-secondary" hx-get="{% url 'calculator:layout_fieldbook_create' layout.pk %}" {% modal_attrs %}>
         <i class="bi bi-plus-circle me-1"></i>
         Create
       </a>

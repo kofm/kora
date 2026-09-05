@@ -13,9 +13,10 @@ from django_tables2 import RequestConfig
 from breadcrumbs.utils import add_parent_breadcrumbs, generate_breadcrumbs
 from calculator.filters import FieldBookFilter
 from calculator.forms import (
+    FieldBookCreateForm,
     FieldBookDisplayForm,
-    FieldBookForm,
     FieldBookUpdateForm,
+    InLayoutFieldBookCreateForm,
     ParameterTargetForm,
     ParameterTargetObservationForm,
     StepUpdateOrderForm,
@@ -81,17 +82,33 @@ def fieldbook_list(request):
     context = {
         "filter": fieldbook_filter,
         "table": table,
-        "header": ListHeader(request, FieldBook, title="Fieldbooks"),
+        "header": ListHeader(request, FieldBook, title="Fieldbooks", modal=True),
         **generate_breadcrumbs(request, FieldBook),
     }
     return TemplateResponse(request, "calculator/fieldbook_list.html", context)
 
 
 @permission_required("calculator.add_fieldbook", raise_exception=True)
-def fieldbook_create(request, layout_id):
+def fieldbook_create(request):
+    form = FieldBookCreateForm(request.POST or None)
+    if form.is_valid():
+        fieldbook = form.save()
+        if is_htmx(request):
+            return htmx_response_trigger_close_modal(["resultsChanged"])
+        return redirect(fieldbook)
+
+    template_name = "frontpage/modal_form.html" if is_htmx(request) else "frontpage/_create_form.html"
+    return TemplateResponse(
+        request,
+        template_name,
+        {"form": form, "model_name": "Fieldbook", "object_to_create": "Fieldbook"},
+    )
+
+
+@permission_required("calculator.add_fieldbook", raise_exception=True)
+def layout_fieldbook_create(request, layout_id):
     layout = get_object_or_404(CropLayout.objects.visible(), pk=layout_id)
-    form = FieldBookForm(request.POST or None)
-    form.fields.pop("layout")
+    form = InLayoutFieldBookCreateForm(request.POST or None)
 
     if form.is_valid():
         fieldbook = form.save(commit=False)

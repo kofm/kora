@@ -3,7 +3,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from calculator.factories import CropFactory, CropLayoutFactory, FieldBookFactory, StepFactory
-from calculator.models import ParameterObservation, ParameterTarget, TraitObservation, TraitTarget
+from calculator.models import FieldBook, ParameterObservation, ParameterTarget, TraitObservation, TraitTarget
 from describe.factories import ProtocolFactory, StateFactory, TraitFactory
 from frontpage.factories import UserFactory
 from parameters.factories import ParameterFactory
@@ -67,7 +67,7 @@ class FieldBookListTests(TestCase):
             created_by=cls.user,
         )
 
-        archived_layout = CropLayoutFactory(name="Archived layout")
+        archived_layout = CropLayoutFactory(location=cls.layout.location, name="Archived layout")
         cls.archived_fieldbook = FieldBookFactory(layout=archived_layout, name="Archived fieldbook")
         archived_layout.archive()
 
@@ -81,3 +81,63 @@ class FieldBookListTests(TestCase):
         self.assertNotContains(response, self.archived_fieldbook.get_absolute_url())
         self.assertContains(response, "<td>4</td>", count=2, html=True)
         self.assertContains(response, "75.0%")
+
+    def test_generic_creation_uses_selected_visible_layout_and_refreshes_results(self):
+        self.user.user_permissions.add(Permission.objects.get(codename="add_fieldbook"))
+        response = self.client.post(
+            reverse("calculator:fieldbook_create"),
+            {
+                "name": "New fieldbook",
+                "location": self.layout.location_id,
+                "layout": self.layout.pk,
+            },
+            headers={"HX-Request": "true"},
+        )
+
+        fieldbook = FieldBook.objects.get(name="New fieldbook")
+        self.assertEqual(fieldbook.layout, self.layout)
+        self.assertJSONEqual(response.headers["HX-Trigger"], {"closeModal": True, "resultsChanged": True})
+
+    def test_generic_creation_rejects_archived_layout(self):
+        self.user.user_permissions.add(Permission.objects.get(codename="add_fieldbook"))
+        response = self.client.post(
+            reverse("calculator:fieldbook_create"),
+            {
+                "name": "New archived fieldbook",
+                "location": self.archived_fieldbook.layout.location_id,
+                "layout": self.archived_fieldbook.layout_id,
+            },
+            headers={"HX-Request": "true"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(FieldBook.objects.filter(name="New archived fieldbook").exists())
+
+    def test_generic_creation_rejects_layout_from_another_location(self):
+        self.user.user_permissions.add(Permission.objects.get(codename="add_fieldbook"))
+        other_layout = CropLayoutFactory(name="Other location layout")
+
+        response = self.client.post(
+            reverse("calculator:fieldbook_create"),
+            {
+                "name": "Mismatched fieldbook",
+                "location": self.layout.location_id,
+                "layout": other_layout.pk,
+            },
+            headers={"HX-Request": "true"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(FieldBook.objects.filter(name="Mismatched fieldbook").exists())
+
+    def test_layout_autocomplete_returns_only_visible_layouts_at_selected_location(self):
+        same_location_layout = CropLayoutFactory(location=self.layout.location, name="Second visible layout")
+        CropLayoutFactory(name="Other location layout")
+
+        response = self.client.get(
+            reverse("calculator:croplayout_autocomplete"),
+            {"location_id": self.layout.location_id},
+        )
+
+        result_ids = {result["id"] for result in response.json()["results"]}
+        self.assertEqual(result_ids, {self.layout.pk, same_location_layout.pk})
