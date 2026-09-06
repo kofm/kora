@@ -11,10 +11,6 @@ set -eu
 printf '%s\n' "Collect static files"
 uv run --no-dev manage.py collectstatic --noinput --clear
 
-printf '%s\n' "Refresh documentation"
-rm -rf /var/www/docs/*
-cp -a /opt/kora-docs/html/. /var/www/docs/
-
 printf '%s\n' "Apply database migrations"
 uv run --no-dev manage.py migrate --noinput
 

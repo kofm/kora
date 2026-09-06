@@ -6,9 +6,6 @@ WORKDIR /app
 COPY ./pyproject.toml ./uv.lock ./
 RUN uv sync --no-dev --locked
 
-COPY ./docs ./docs
-RUN uv run --only-group docs sphinx-build -M html docs/source /opt/kora-docs
-
 COPY . /app
 COPY ./entrypoint.sh /
 RUN chmod +x /entrypoint.sh
