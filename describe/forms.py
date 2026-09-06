@@ -181,7 +181,7 @@ class DescriptionForm(TomSelectModelFormMixin, forms.ModelForm):
             ),
         ),
     )
-    label = ModelChoiceField(queryset=DescriptionLabel.objects.all(), widget=LabelSelect())
+    label = ModelChoiceField(queryset=DescriptionLabel.objects.all(), widget=LabelSelect(), required=False)
 
     class Meta:
         model = Description
