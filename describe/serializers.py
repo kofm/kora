@@ -174,7 +174,7 @@ class DescriptionImportRowSerializer(sr.Serializer):
     label = QueryField(
         mapping_key="label_map",
         column_mapping={"label_name": "name"},
-        required=True,
+        required=False,
     )
     notes = sr.CharField(required=False, allow_blank=True, max_length=500)
     trait_values = TraitValuesField(required=False)
