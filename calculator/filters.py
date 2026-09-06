@@ -12,7 +12,7 @@ from django_filters import (
     NumberFilter,
 )
 
-from calculator.models import CropLayout, FieldBook, ParameterObservation, TraitObservation
+from calculator.models import CropLayout, FieldBook, ManagementType, ParameterObservation, TraitObservation
 from describe.models import Protocol, Trait
 from frontpage.forms import HTMXFormMixin, SearchAndClearButtons, TomSelectModelFormMixin
 from frontpage.widgets import ModelTomSelect, ModelTomSelectMultiple, TomSelectConfig
@@ -74,6 +74,24 @@ class CropLayoutFilter(FilterSet):
         model = CropLayout
         fields = ()
         form = CropLayoutFilterForm
+
+
+class ManagementTypeFilterForm(HTMXFormMixin, forms.Form):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper.layout = Layout(
+            Field("name"),
+            SearchAndClearButtons(),
+        )
+
+
+class ManagementTypeFilter(FilterSet):
+    name = CharFilter(lookup_expr="icontains", label="Name")
+
+    class Meta:
+        model = ManagementType
+        fields = ()
+        form = ManagementTypeFilterForm
 
 
 class FieldBookFilterForm(HTMXFormMixin, forms.Form):

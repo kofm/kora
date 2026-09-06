@@ -8,6 +8,7 @@ from calculator.models import (
     CropLayout,
     FieldBook,
     Management,
+    ManagementType,
     ParameterObservation,
     ParameterTarget,
     Step,
@@ -140,6 +141,12 @@ class TraitTargetObservationForm(forms.Form):
         self.delete_url = None
         self.fields["state"].choices = choices
         self.protocol = protocol
+
+
+class ManagementTypeForm(forms.ModelForm):
+    class Meta:
+        model = ManagementType
+        fields = ("code", "name", "description")
 
 
 def get_form_initial_value(form: forms.Form, key: str) -> str:

@@ -119,13 +119,29 @@ class CropParameter(ParameterValue):
         ordering = ["parameter__code"]
 
 
-class ManagementType(models.Model):
+class ManagementType(ModelIsDeletableMixin, models.Model):
+    cant_delete_msg = "This management operation cannot be deleted because it is in use."
+
     code = models.CharField(max_length=30)
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True, default="")
 
+    class Meta:
+        ordering = ("name", "pk")
+        verbose_name_plural = "management operations"
+
     def __str__(self):
         return self.name
+
+    @classmethod
+    def get_create_url(cls):
+        return reverse("calculator:managementtype_create")
+
+    def get_update_url(self):
+        return reverse("calculator:managementtype_update", args=(self.pk,))
+
+    def get_delete_url(self):
+        return reverse("calculator:managementtype_delete", args=(self.pk,))
 
 
 class Management(models.Model):

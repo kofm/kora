@@ -1,7 +1,16 @@
 from factory import Faker, LazyAttribute, SelfAttribute, Sequence, SubFactory
 from factory.django import DjangoModelFactory
 
-from calculator.models import Crop, CropLayout, FieldBook, ParameterObservation, Step, TraitObservation
+from calculator.models import (
+    Crop,
+    CropLayout,
+    FieldBook,
+    Management,
+    ManagementType,
+    ParameterObservation,
+    Step,
+    TraitObservation,
+)
 from describe.factories import StateFactory
 from register.factories import PlantVarietyFactory
 from spaces.factories import LocationFactory
@@ -23,6 +32,23 @@ class CropFactory(DjangoModelFactory):
 
     class Meta:
         model = Crop
+
+
+class ManagementTypeFactory(DjangoModelFactory):
+    code = Sequence(lambda number: f"management-{number}")
+    name = Sequence(lambda number: f"Management {number}")
+
+    class Meta:
+        model = ManagementType
+
+
+class ManagementFactory(DjangoModelFactory):
+    type = SubFactory(ManagementTypeFactory)
+    layout = SubFactory(CropLayoutFactory)
+    date = Faker("date_object")
+
+    class Meta:
+        model = Management
 
 
 class FieldBookFactory(DjangoModelFactory):

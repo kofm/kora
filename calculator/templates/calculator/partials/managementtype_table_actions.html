@@ -1,0 +1,25 @@
+{% load components %}
+
+<div class="d-flex justify-content-end gap-2">
+  {% if perms.calculator.change_managementtype %}
+    <a class="row-action text-decoration-none" hx-get="{{ record.get_update_url }}" {% modal_attrs %}>
+      <span class="badge rounded-pill text-bg-secondary">Edit</span>
+    </a>
+  {% endif %}
+  {% if perms.calculator.delete_managementtype %}
+    {% if record.is_deletable %}
+      <a class="row-action text-decoration-none" hx-get="{{ record.get_delete_url }}" {% modal_attrs %}>
+        <span class="badge rounded-pill text-bg-danger">Delete</span>
+      </a>
+    {% else %}
+      <span
+        class="d-inline-block"
+        tabindex="0"
+        data-bs-toggle="tooltip"
+        data-bs-title="{{ record.cant_delete_msg }}"
+      >
+        <span class="badge rounded-pill text-bg-danger opacity-50" aria-disabled="true">Delete</span>
+      </span>
+    {% endif %}
+  {% endif %}
+</div>

@@ -38,6 +38,12 @@ from .views.layout import (
     layout_update,
     location_layout_create,
 )
+from .views.management import (
+    managementtype_create,
+    managementtype_delete,
+    managementtype_list,
+    managementtype_update,
+)
 from .views.observation import (
     parameter_observation_create,
     parameter_observation_delete,
@@ -52,6 +58,10 @@ from .views.observation import (
 app_name = "calculator"
 
 urlpatterns = [
+    path("management/operations/", managementtype_list, name="managementtype_list"),
+    path("management/operations/create/", managementtype_create, name="managementtype_create"),
+    path("management/operations/<int:pk>/update/", managementtype_update, name="managementtype_update"),
+    path("management/operations/<int:pk>/delete/", managementtype_delete, name="managementtype_delete"),
     path("observations/traits", trait_observation_list, name="trait_observation_list"),
     path("observations/parameters", parameter_observation_list, name="parameter_observation_list"),
     path("locations/<int:location_id>/layouts/create", location_layout_create, name="location_layout_create"),

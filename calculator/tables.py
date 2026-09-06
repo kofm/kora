@@ -2,8 +2,31 @@ import django_tables2 as tables
 from django.contrib.humanize.templatetags.humanize import naturalday
 from django.urls import reverse
 
-from calculator.models import CropLayout, CropParameter, FieldBook, ParameterObservation, TraitObservation
+from calculator.models import (
+    CropLayout,
+    CropParameter,
+    FieldBook,
+    ManagementType,
+    ParameterObservation,
+    TraitObservation,
+)
 from frontpage.tables import TableHoverFixed
+
+
+class ManagementTypeTable(tables.Table):
+    actions = tables.TemplateColumn(
+        template_name="calculator/partials/managementtype_table_actions.html",
+        verbose_name="",
+        orderable=False,
+        attrs={"td": {"class": "text-end"}},
+    )
+
+    class Meta(TableHoverFixed.Meta):
+        model = ManagementType
+        fields = ("code", "name", "description", "actions")
+        template_name = "frontpage/partials/htmx_table.html"
+        empty_text = "There are no management types."
+        per_page = 15
 
 
 class BaseCropLayoutTable(tables.Table):

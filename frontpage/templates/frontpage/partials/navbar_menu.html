@@ -80,8 +80,10 @@
 	{% if perms.calculator.view_fieldbook %}
           <li><a class="dropdown-item" href="{% url 'calculator:fieldbook_list' %}">Fieldbooks</a></li>
 	{% endif %}
-        <li><hr class="dropdown-divider"></li>
-        <li><h6 class="dropdown-header">Observations</h6></li>
+        {% if perms.calculator.view_traitobservation or perms.calculator.view_parameterobservation %}
+          <li><hr class="dropdown-divider"></li>
+          <li><h6 class="dropdown-header">Observations</h6></li>
+        {% endif %}
 	{% if perms.calculator.view_traitobservation %}
           <li>
             <a class="dropdown-item" href="{% url 'calculator:trait_observation_list' %}">Traits</a>
@@ -91,6 +93,13 @@
           <li>
             <a class="dropdown-item" href="{% url 'calculator:parameter_observation_list' %}">Parameters</a>
           </li>
+	{% endif %}
+        {% if perms.calculator.view_managementtype %}
+          <li><hr class="dropdown-divider"></li>
+          <li><h6 class="dropdown-header">Management</h6></li>
+        {% endif %}
+	{% if perms.calculator.view_managementtype %}
+          <li><a class="dropdown-item" href="{% url 'calculator:managementtype_list' %}">Operations</a></li>
 	{% endif %}
       </ul>
     </li>
