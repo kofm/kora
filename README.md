@@ -1,48 +1,26 @@
-Kora is a local-first web application written in Django, designed for
-managing plant genetic resources (PGRs) and germplasm collections,
-particularly for cultivated crops. It provides a streamlined and
-standardized approach to genetic material management, fully compatible
-with Biodiversity International and UPOV guidelines. The software
-enables users to build a comprehensive database, storing passport
-data, characterization data following descriptor lists, and
-information specific to the reproductive material like storage
-location, germinability, and weight.
+# Kora
 
-The software was created to address the various challenges related the
-storage, management, analysis, and explotation of PGR. It ensures that
-high-standard data collection can be shared efficiently, reducing
-inconsistencies in genetic resource management. The software is
-particularly beneficial for conservationists, researchers, DUS and VCU
-experts, plant breeders managing genetic material during genetic
-improvement programs, and farmers or individuals interested in
-biodiversity.
+Kora is an open-source information management platform for plant variety examination and crop evaluation, with a particular focus on DUS and VCU testing. It provides tools for managing plant species, varieties, seed samples, test protocols, variety descriptions, field trials, observations, and other information generated throughout the crop evaluation lifecycle. 
 
-Designed with a "local first" approach, the software is containerized
-using Docker, allowing local installation without requiring a
-dedicated internet-based server. It supports data interchangeability
-between different instances, facilitating collaboration and
-flexibility. Additionally, it incorporates simple user management
-functionalities, with separate viewing and administrator roles.
+Kora is designed around UPOV/Bioversity International crop characterization and variety examination standards, while remaining flexible enough to accommodate institution-specific protocols and workflows.
 
-Future development plans focus on further integration of crop modeling
-capabilities, enabling users to implement or utilize crop models from
-an existing library. These models could make use the stored
-characterization and evaluation data as input parameters. Users will
-also be able to create zones, such as trial locations, and associate
-weather or other environmental data with these zones to execute crop
-models within specific locations.
+The application is designed for independent deployment. It can run on a single computer, within a private network, or on an institutional server, with each installation retaining control of its own data. Kora provides a REST API for programmatic access and data exchange. Interoperability with standards and external systems is an important design objective, without requiring Kora's internal data model to reproduce the functionality of general-purpose germplasm or breeding-management platforms.
 
-The software is already stable and fully usable but remains under
-continuous development to introduce new functionalities and
-improvements.
+Kora is free and open-source software. This is intended not only to ensure independent access to the software and data, but also to allow institutions to adapt its workflows, conventions, and data structures to their own examination practices.
 
-# Key features
+## Key features
 
-- Store and manage data related to multiple crop species.
-- Describe species using user-definable crop descriptors, following
-  Bioversity International or UPOV methodology.
-- Store crop observations and biometrics, and use them to derive crop
-  parameters.
-- Manage zones and areas defined as geolocalized containers linking crops,
-  weather data (public APIs and IoT sensors), and management data.
-- Utilities to implement simple crop models leveraging the database.
+* Manage multiple crop species and plant varieties.
+* Manage seed samples, including storage position, weight, and germinability.
+* Define versioned crop characterization and examination protocols.
+* Create standardized variety descriptions according to a selected protocol.
+* Define compatibility between states belonging to different versions of a protocol.
+* Organize varieties in field layouts for crop evaluation and experimental work.
+* Store quantitative varietal parameters and associated provenance.
+* Import and export structured data and access application data through a REST API.
+* Support independent local, network, or institutional deployment.
+
+## Status
+
+Kora is currently **beta software**. It is stable enough for regular use (it is currently being used in production by various Examination Offices), but the database schema and migration history may still change as the application evolves. Users should maintain current backups and review release notes before upgrading. The primary supported deployment model is a local computer or a trusted private network; internet-facing deployments are possible but are not currently the main supported configuration. No hosted Kora service is provided, and there is no guarantee of uptime, long-term support, or backward compatibility between all beta releases. Upgrades are currently supported through the documented migration path between successive released versions; skipping releases or upgrading from arbitrary development revisions may not be supported.
+
