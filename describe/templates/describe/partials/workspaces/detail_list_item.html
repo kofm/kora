@@ -8,7 +8,7 @@
         </a>
         <small>
 	        <a class="text-decoration-none link-body-emphasis" href=""
-	           hx-get="{% url 'describe:workspace_element_delete' object.pk %}"
+	           hx-post="{% url 'describe:workspace_element_delete' object.pk %}"
 		   hx-target="closest .list-group-item"
 		   hx-swap="delete"
 	        >

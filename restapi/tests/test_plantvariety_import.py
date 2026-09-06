@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from django.contrib.auth.models import User
+from django.contrib.auth.models import Permission, User
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 from rest_framework.test import APIClient, APITestCase
@@ -16,6 +16,12 @@ class PlantVarietyImportTest(APITestCase):
     def setUp(self) -> None:
         self.client = APIClient()
         self.user = User.objects.create_user(username="testuser", password="testpass")
+        self.user.user_permissions.add(
+            *[
+                Permission.objects.get(codename=codename)
+                for codename in ("add_plantvariety", "add_plantvarietyname")
+            ]
+        )
         self.client.login(username="testuser", password="testpass")
         self.species = PlantSpeciesFactory(id=1, common_name="Tomato")
 

@@ -19,6 +19,13 @@ class AdminUserUpdateForm(forms.ModelForm):
         model = User
         fields = ("first_name", "last_name", "email", "is_staff", "is_superuser", "is_active", "groups")
 
+    def __init__(self, *args, actor, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not actor.is_superuser:
+            del self.fields["is_staff"]
+            del self.fields["is_superuser"]
+            del self.fields["groups"]
+
 
 class UserUpdateForm(forms.ModelForm):
     class Meta:

@@ -17,3 +17,6 @@ def setup_register_groups_and_permissions(sender, **kwargs):
     for model_name in ("Protocol", "Description", "Trait", "State", "Expression"):
         group_assign_model_permissions(app_label, model_name, viewers, ("view",))
         group_assign_model_permissions(app_label, model_name, editors)
+
+    for model_name in ("Workspace", "WorkspaceElement"):
+        group_assign_model_permissions(app_label, model_name, editors)

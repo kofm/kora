@@ -1,5 +1,6 @@
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import permission_required
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.db import transaction
 from django.db.models import Max
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
@@ -12,7 +13,7 @@ from describe.models import Description, Workspace, WorkspaceElement
 from django_sortable_htmx.views import SortableView
 
 
-@login_required
+@permission_required("describe.view_workspace", raise_exception=True)
 @require_POST
 def workspace_activate(request):
     form = WorkspaceSelectForm(request.POST, user=request.user)
@@ -22,7 +23,7 @@ def workspace_activate(request):
     return HttpResponseBadRequest()
 
 
-@login_required
+@permission_required("describe.view_workspace", raise_exception=True)
 def workspace_detail(request):
     workspace = Workspace.objects.elements().filter(user=request.user, is_active=True).first()
     form = WorkspaceSelectForm(user=request.user, initial={"workspace": workspace})
@@ -33,7 +34,7 @@ def workspace_detail(request):
     )
 
 
-@login_required
+@permission_required("describe.add_workspace", raise_exception=True)
 def workspace_create(request):
     form = WorkspaceCreateForm()
     if request.method == "POST":
@@ -51,15 +52,13 @@ def workspace_create(request):
     )
 
 
-@login_required
+@permission_required("describe.change_workspace", raise_exception=True)
 def workspace_update(request, pk):
-    workspace = get_object_or_404(Workspace, pk=pk)
+    workspace = get_object_or_404(Workspace, pk=pk, user=request.user)
     if request.method == "POST":
         form = WorkspaceCreateForm(request.POST, instance=workspace)
         if form.is_valid():
-            workspace = form.save(commit=False)
-            workspace.user = request.user
-            workspace.save()
+            workspace = form.save()
             return redirect(reverse("describe:workspace_detail"))
     form = WorkspaceUpdateForm(instance=workspace)
     return render(
@@ -69,16 +68,16 @@ def workspace_update(request, pk):
     )
 
 
-@login_required
+@permission_required("describe.delete_workspace", raise_exception=True)
 def workspace_delete(request, pk):
-    workspace = get_object_or_404(Workspace, pk=pk)
+    workspace = get_object_or_404(Workspace, pk=pk, user=request.user)
     if request.method == "POST":
         workspace.delete()
         return redirect(reverse("describe:workspace_detail"))
     return render(request, "describe/partials/workspace_confirm_delete.html", {"workspace": workspace})
 
 
-@login_required
+@permission_required("describe.add_workspaceelement", raise_exception=True)
 @require_POST
 def workspace_element_create(request):
     description_id = request.POST.get("description_id", None)
@@ -106,13 +105,18 @@ def workspace_element_create(request):
     return redirect(reverse("describe:workspace_detail"))
 
 
-@login_required
+@permission_required("describe.delete_workspaceelement", raise_exception=True)
+@require_POST
 def workspace_element_delete(request, pk):
-    element = get_object_or_404(WorkspaceElement, pk=pk)
-    if request.user == element.workspace.user:
-        element.delete()
+    element = get_object_or_404(WorkspaceElement, pk=pk, workspace__user=request.user)
+    element.delete()
     return HttpResponse()
 
 
-class WorkspaceSortableView(SortableView):
+class WorkspaceSortableView(PermissionRequiredMixin, SortableView):
     model = WorkspaceElement
+    permission_required = ["describe.change_workspaceelement"]
+    raise_exception = True
+
+    def get_queryset(self):
+        return WorkspaceElement.objects.filter(workspace__user=self.request.user, workspace__is_active=True)

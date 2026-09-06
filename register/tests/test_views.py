@@ -21,7 +21,7 @@ from register.models import PlantVariety
 
 class RegisterViewsSmokeTest(ViewSmokeTestMixin, TestCase):
     def setUp(self):
-        self.user = UserFactory(is_superuser=True)
+        self.user = UserFactory(is_staff=True, is_superuser=True)
         self.client.force_login(self.user)
         self.plantspecies = PlantSpeciesFactory()
         self.variety = PlantVarietyFactory()

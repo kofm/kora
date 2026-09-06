@@ -2,10 +2,47 @@
 
 import copy
 
+from django.conf import settings
+from django.contrib.auth.decorators import login_not_required, permission_required
 from django.http.request import HttpRequest, QueryDict
 from django.http.response import HttpResponse
 from django.utils.functional import wraps
+from django.views.decorators.http import require_safe
 from render_block import render_block_to_string
+
+
+def public_catalog_view(permission):
+    """Restrict a catalog view to a Django model permission.
+
+    Only when ``settings.PUBLIC`` is enabled, anonymous requests are
+    allowed through, restricted to safe HTTP methods. When public mode
+    is disabled the view keeps Django's default login enforcement, so
+    anonymous requests are redirected to the login page instead of
+    receiving a 403.
+    """
+
+    def decorator(view):
+        protected_view = permission_required(permission, raise_exception=True)(view)
+
+        if not settings.PUBLIC:
+            # The wrapped view has no explicit `login_required`
+            # attribute, so LoginRequiredMiddleware keeps redirecting
+            # anonymous requests to the login page instead of
+            # returning a hard 403.
+            protected_view.login_required = True
+            return protected_view
+
+        safe_view = require_safe(view)
+
+        @wraps(view)
+        def wrapper(request, *args, **kwargs):
+            if not request.user.is_authenticated:
+                return safe_view(request, *args, **kwargs)
+            return protected_view(request, *args, **kwargs)
+
+        return login_not_required(wrapper)
+
+    return decorator
 
 
 def is_htmx(request: HttpRequest):
@@ -115,6 +152,7 @@ def nav_active(nav: str):
     """
 
     def decorator(view_func):
+        @wraps(view_func)
         def wrapper(request, *args, **kwargs):
             response = view_func(request, *args, **kwargs)
             if hasattr(response, "context_data"):

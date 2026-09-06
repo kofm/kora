@@ -24,6 +24,7 @@ from frontpage.views_decorators import (
     htmx_render_blocks,
     nav_describe_active_context,
     nav_plant_active_context,
+    public_catalog_view,
 )
 from register.filters import EntityFilter, ProtectionOmniFilter
 from register.forms import EntityForm, ProtectionForm, ProtectionTypeForm
@@ -32,6 +33,7 @@ from register.tables import EntityTable, PlantVarietyEntityTable, ProtectionList
 
 
 @nav_plant_active_context
+@public_catalog_view("register.view_protection")
 @htmx_render_blocks(["main"])
 def protection_list(request):
     queryset = Protection.objects.select_related("variety", "variety__species").all()
@@ -104,6 +106,7 @@ class ProtectionDeleteView(PermissionRequiredMixin, DeleteBreadcrumbsMixin, NavP
 
 
 @nav_plant_active_context
+@public_catalog_view("register.view_protection")
 def protection_detail(request, pk):
     instance = get_object_or_404(Protection, pk=pk)
     breadcrumbs = generate_breadcrumbs(request, Protection, instance)
@@ -125,6 +128,7 @@ def protection_configure(request):
     return TemplateResponse(request, "register/protection_configure.html", context)
 
 
+@user_passes_test(lambda user: user.is_staff)
 def protection_type_update(request, pk):
     instance = get_object_or_404(ProtectionType, pk=pk)
     form = ProtectionTypeForm(request.POST or None, instance=instance)
@@ -135,6 +139,7 @@ def protection_type_update(request, pk):
     return TemplateResponse(request, "register/partials/protection_type_update.html", context)
 
 
+@user_passes_test(lambda user: user.is_staff)
 @require_http_methods(["POST"])
 def protection_type_delete(request, pk):
     instance = get_object_or_404(ProtectionType, pk=pk)
@@ -155,6 +160,7 @@ class EntityCreateView(PermissionRequiredMixin, CreateView):
 
 
 @nav_describe_active_context
+@public_catalog_view("register.view_entity")
 def entity_detail(request, pk):
     entity = get_object_or_404(Entity, pk=pk)
     query = Q()
@@ -183,6 +189,7 @@ class EntityDeleteView(PermissionRequiredMixin, NavDescribeActiveContext, Delete
 
 
 @nav_describe_active_context
+@public_catalog_view("register.view_entity")
 @htmx_render_blocks(["main"])
 def entity_list(request):
     flt = EntityFilter(request.GET, queryset=Entity.objects.all())

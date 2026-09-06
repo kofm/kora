@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.paginator import Paginator
@@ -24,7 +25,12 @@ from collect.models import Sample
 from describe.models import Description
 from frontpage.headers import DetailHeader
 from frontpage.utils.htmx import htmx_response_redirect
-from frontpage.views_decorators import NavPlantActiveContext, htmx_render_blocks, nav_plant_active_context
+from frontpage.views_decorators import (
+    NavPlantActiveContext,
+    htmx_render_blocks,
+    nav_plant_active_context,
+    public_catalog_view,
+)
 from parameters.models import VarietalParameter
 from register.filters import PlantVarietyCardsOrderForm, PlantVarietyFilter
 from register.forms import PlantVarietyForm, PlantVarietyNameForm
@@ -49,18 +55,20 @@ def plantvariety_create(request):
 
 
 @nav_plant_active_context
+@public_catalog_view("register.view_plantvariety")
 def plantvariety_detail(request, pk):
     variety = PlantVariety.objects.select_related("species").get(pk=pk)
 
     tables = {}
     descriptions = Description.objects.select_related("protocol", "label").filter(variety=pk)
     tables["description"] = PlantVarietyDescriptionTable(descriptions)
-    samples = Sample.objects.with_availability().filter(variety=pk)
-    tables["sample"] = PlantVarietySampleTable(samples)
     protections = Protection.objects.filter(variety=pk)
     tables["protection"] = ProtectionTable(protections)
-    parameters = VarietalParameter.objects.select_related("parameter").filter(variety=pk)
-    tables["parameter"] = VarietalParameterTable(parameters)
+    if request.user.is_authenticated or not settings.PUBLIC:
+        samples = Sample.objects.with_availability().filter(variety=pk)
+        tables["sample"] = PlantVarietySampleTable(samples)
+        parameters = VarietalParameter.objects.select_related("parameter").filter(variety=pk)
+        tables["parameter"] = VarietalParameterTable(parameters)
 
     req_config = RequestConfig(request)
     for key in tables:
@@ -153,6 +161,7 @@ def plantvarietyname_delete(request, pk):
 
 
 @nav_plant_active_context
+@public_catalog_view("register.view_plantvariety")
 @htmx_render_blocks(["cards"])
 def plantvariety_list(request):
     queryset = PlantVariety.objects.all()

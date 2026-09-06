@@ -9,6 +9,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.serializers import ValidationError
 
+from restapi.permissions import KoraModelPermissions
+
 
 class BulkCreateActionMixin:
     @action(
@@ -99,7 +101,7 @@ class JSONLExportMixin:
 
 
 class KoraViewSet(BulkCreateActionMixin, JSONLExportMixin, viewsets.ModelViewSet):
-    pass
+    permission_classes = [KoraModelPermissions]
 
 
 class ExcelImportActionMixin:

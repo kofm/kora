@@ -202,6 +202,7 @@ def sample_update(request, pk):
     return TemplateResponse(request, "collect/sample_update.html", context)
 
 
+@permission_required("collect.delete_sample", raise_exception=True)
 def sample_delete(request, pk):
     instance = get_object_or_404(Sample, pk=pk)
     if request.method == "POST":

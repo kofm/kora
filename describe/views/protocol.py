@@ -22,9 +22,11 @@ from django_sortable_htmx.views import SortableView
 from frontpage.views_decorators import (
     NavDescribeActiveContext,
     nav_describe_active_context,
+    public_catalog_view,
 )
 
 
+@public_catalog_view("describe.view_protocol")
 def protocol_list(request):
     context = {}
     object_list = Protocol.objects.select_related("plantspecies").order_by("plantspecies", "order")
@@ -44,6 +46,7 @@ class ProtocolSortView(PermissionRequiredMixin, SortableView):
     permission_required = ["describe.change_protocol"]
 
 
+@public_catalog_view("describe.view_protocol")
 def protocol_detail(request, pk):
     instance = Protocol.objects.select_related("plantspecies").prefetch_related("traits__states").get(pk=pk)
     context = {"protocol": instance}
@@ -79,8 +82,9 @@ def protocol_update(request, pk):
     return render(request, "describe/protocol_update.html", context)
 
 
-class ProtocolCreate(CreateBreadcrumbsMixin, NavDescribeActiveContext, CreateView):
+class ProtocolCreate(PermissionRequiredMixin, CreateBreadcrumbsMixin, NavDescribeActiveContext, CreateView):
     model = Protocol
+    permission_required = ["describe.add_protocol"]
     fields = ["name", "plantspecies", "url_ref"]
     template_name = "frontpage/_create_form.html"
 
@@ -93,6 +97,7 @@ class ProtocolCreate(CreateBreadcrumbsMixin, NavDescribeActiveContext, CreateVie
         return reverse("describe:protocol_update", args=(self.object.id,))
 
 
+@permission_required("describe.change_protocol", raise_exception=True)
 def protocol_update_meta(request, pk):
     instance = get_object_or_404(Protocol, pk=pk)
     if request.method == "POST":

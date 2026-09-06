@@ -34,8 +34,10 @@ def location_list(request):
     return TemplateResponse(request, "spaces/location_list.html", context)
 
 
-class SortLocation(SortableView):
+class SortLocation(PermissionRequiredMixin, SortableView):
     model = Location
+    permission_required = ["spaces.change_location"]
+    raise_exception = True
 
 
 @permission_required("spaces.view_location")

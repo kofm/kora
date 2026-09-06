@@ -188,6 +188,7 @@ class EntityViewSet(ExcelImportActionMixin, KoraViewSet):
 
 
 class ProtectionTypeViewSet(viewsets.ModelViewSet):
+    permission_classes = [KoraModelPermissions]
     serializer_class = ProtectionTypeSerializer
     queryset = ProtectionType.objects.all()
 
@@ -534,6 +535,7 @@ class CropLayoutViewSet(viewsets.ModelViewSet):
 
 
 class CartViewSet(viewsets.ModelViewSet):
+    permission_classes = [KoraModelPermissions]
     serializer_class = CartSerializer
 
     def get_queryset(self):
@@ -547,6 +549,7 @@ class CartViewSet(viewsets.ModelViewSet):
 
 
 class WorkspaceViewSet(viewsets.ModelViewSet):
+    permission_classes = [KoraModelPermissions]
     serializer_class = WorkspaceSerializer
 
     def get_queryset(self):

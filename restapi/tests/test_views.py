@@ -55,7 +55,7 @@ def load_urls(path: Path) -> dict[str, ViewSpec]:
 class APITests(APITestCase):
     def setUp(self):
         self.client = APIClient()
-        self.user = User.objects.create_user(username="testuser", password="testpass")
+        self.user = User.objects.create_superuser(username="testuser", password="testpass")
         self.user.user_permissions.add(
             Permission.objects.get(codename="view_crop"),
             Permission.objects.get(codename="view_croplayout"),
@@ -243,6 +243,22 @@ class APITests(APITestCase):
         resp = self.client.post(reverse("restapi:states-bulk"), data)
         self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
         self.assertEqual(len(resp.data), 3)
+
+
+class SharedModelAPIPermissionTests(APITestCase):
+    def test_authenticated_user_cannot_read_or_create_without_model_permissions(self):
+        user = User.objects.create_user(username="unprivileged-api-user", password="testpass")
+        self.client.force_authenticate(user)
+        PlantSpeciesFactory()
+
+        list_response = self.client.get(reverse("restapi:plantspecies-list"))
+        create_response = self.client.post(
+            reverse("restapi:plantspecies-list"),
+            {"common_name": "Rye", "latin_name": "Secale cereale", "plant_type": "herbaceous"},
+        )
+
+        self.assertEqual(list_response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(create_response.status_code, status.HTTP_403_FORBIDDEN)
 
 
 class CalculatorAPIPermissionTests(APITestCase):

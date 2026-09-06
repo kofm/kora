@@ -2,13 +2,14 @@ from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.paginator import Paginator
 from django.template.response import TemplateResponse
 from django.urls import reverse_lazy
+from django.utils.decorators import method_decorator
 from django.views.generic import CreateView, DeleteView, DetailView, UpdateView
 from django_tables2 import RequestConfig
 
 import breadcrumbs.generic as crumbs
 from breadcrumbs.utils import generate_breadcrumbs
 from frontpage.utils.htmx import htmx_response_redirect
-from frontpage.views_decorators import NavPlantActiveContext, htmx_render_blocks
+from frontpage.views_decorators import NavPlantActiveContext, htmx_render_blocks, public_catalog_view
 from register.filters import PlantSpeciesFilter
 from register.models import PlantSpecies
 from register.tables import PlantVarietyTable
@@ -30,6 +31,7 @@ class PlantSpeciesCreate(PermissionRequiredMixin, NavPlantActiveContext, CreateV
         return htmx_response_redirect(self.object.get_absolute_url())
 
 
+@public_catalog_view("register.view_plantspecies")
 @htmx_render_blocks(["cards"])
 def plantspecies_list(request):
     queryset = PlantSpecies.objects.all()
@@ -42,6 +44,7 @@ def plantspecies_list(request):
     return TemplateResponse(request, "register/plantspecies_list.html", context)
 
 
+@method_decorator(public_catalog_view("register.view_plantspecies"), name="dispatch")
 class PlantSpeciesDetailView(crumbs.DetailBreadcrumbsMixin, NavPlantActiveContext, DetailView):
     model = PlantSpecies
 

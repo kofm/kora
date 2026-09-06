@@ -3,16 +3,18 @@ from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.decorators import (
     login_not_required,  # ty:ignore[unresolved-import]
     login_required,
-    user_passes_test,
+    permission_required,
 )
 from django.contrib.auth.forms import AdminPasswordChangeForm, PasswordChangeForm, UserCreationForm
 from django.contrib.auth.models import User
+from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.debug import sensitive_post_parameters
+from django.views.decorators.http import require_POST
 from django_tables2 import RequestConfig
 
 from breadcrumbs.utils import breadcrumbs_context, generate_breadcrumbs
@@ -27,14 +29,19 @@ def index(request):
     return TemplateResponse(request, "frontpage/index.html", {"nav_home": "active", "crumbs": None})
 
 
+def _may_manage_user(actor, target):
+    return actor.is_superuser or not (target.is_staff or target.is_superuser)
+
+
 @login_not_required
+@require_POST
 def appearance_set(request):
     appearance = request.POST.get("appearance", "light")
     request.session["appearance"] = appearance
     return HttpResponse()
 
 
-@user_passes_test(lambda user: user.is_staff)
+@permission_required("auth.view_user", raise_exception=True)
 @htmx_render_block_from_params()
 def admin(request):
     queryset = User.objects.all()
@@ -46,7 +53,7 @@ def admin(request):
     return TemplateResponse(request, "frontpage/admin.html", context)
 
 
-@user_passes_test(lambda user: user.is_staff)
+@permission_required("auth.add_user", raise_exception=True)
 def user_create(request):
     if request.method == "POST":
         form = UserCreationForm(request.POST)
@@ -58,11 +65,13 @@ def user_create(request):
     return TemplateResponse(request, "frontpage/admin_user_form.html", {"form": form})
 
 
-@user_passes_test(lambda user: user.is_staff)
+@permission_required("auth.change_user", raise_exception=True)
 def admin_user_update(request, username):
     user = get_object_or_404(User, username=username)
+    if not _may_manage_user(request.user, user):
+        raise PermissionDenied
     if request.method == "POST":
-        form = AdminUserUpdateForm(request.POST, instance=user)
+        form = AdminUserUpdateForm(request.POST, instance=user, actor=request.user)
         if form.is_valid():
             form.save()
             messages.success(request, "Profile updated.")
@@ -70,13 +79,15 @@ def admin_user_update(request, username):
                 return htmx_response_trigger(["usersUpdated", "closeModal"])
             return redirect("frontpage:admin")
     else:
-        form = AdminUserUpdateForm(instance=user)
+        form = AdminUserUpdateForm(instance=user, actor=request.user)
     return TemplateResponse(request, "frontpage/admin_user_form.html", {"form": form, "instance": user})
 
 
-@user_passes_test(lambda user: user.is_staff)
+@permission_required("auth.change_user", raise_exception=True)
 def admin_password_update(request, username):
     user = get_object_or_404(User, username=username)
+    if not _may_manage_user(request.user, user):
+        raise PermissionDenied
     if request.method == "POST":
         form = AdminPasswordChangeForm(user, request.POST)
         if form.is_valid():
@@ -91,9 +102,11 @@ def admin_password_update(request, username):
     return TemplateResponse(request, "frontpage/admin_password_update_form.html", context)
 
 
-@user_passes_test(lambda user: user.is_staff)
+@permission_required("auth.delete_user", raise_exception=True)
 def user_delete(request, username):
     user = get_object_or_404(User, username=username)
+    if user == request.user or not _may_manage_user(request.user, user):
+        raise PermissionDenied
     if request.method == "POST":
         user.delete()
         return htmx_response_trigger(["usersUpdated", "closeModal"])

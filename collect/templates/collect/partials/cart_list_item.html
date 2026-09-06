@@ -13,7 +13,7 @@
     </h6>
 
     <small>
-      <a class="text-decoration-none link-body-emphasis" href="" hx-get="{% url 'collect:cartitem_delete' object.pk %}" hx-target="closest .list-group-item" hx-swap="delete">
+      <a class="text-decoration-none link-body-emphasis" href="" hx-post="{% url 'collect:cartitem_delete' object.pk %}" hx-target="closest .list-group-item" hx-swap="delete">
 	<i class="bi bi-x-lg"></i>
       </a>
     </small>

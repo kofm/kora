@@ -15,6 +15,11 @@ class SortableView(View):
         except ValueError as exc:
             raise ValueError("Invalid object ids provided.") from exc
 
+    def get_queryset(self):
+        if self.model is None:
+            raise ImproperlyConfigured("A model must be provided.")
+        return self.model.objects.all()
+
     def validate_objects(self, objs):
         return None
 
@@ -38,9 +43,9 @@ class SortableView(View):
             return HttpResponseBadRequest("Empty order list.")
 
         with transaction.atomic():
-            objs = list(self.model.objects.filter(pk__in=sorted_ids))
+            objs = list(self.get_queryset().filter(pk__in=sorted_ids))
 
-            if len(sorted_ids) != len(objs):
+            if len(sorted_ids) != len(set(sorted_ids)) or len(sorted_ids) != len(objs):
                 return HttpResponseBadRequest("Invalid object ids provided.")
 
             validation_response = self.validate_objects(objs)

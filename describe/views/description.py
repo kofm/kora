@@ -53,6 +53,7 @@ from frontpage.views_decorators import (
     is_htmx,
     make_get_request,
     nav_active,
+    public_catalog_view,
 )
 from register.filters import filter_name_generic
 from register.models import PlantVariety
@@ -63,6 +64,7 @@ nav_describe = nav_active("nav_describe")
 
 
 @nav_describe
+@public_catalog_view("describe.view_description")
 @htmx_render_blocks(["description_table"])
 def description_list(request):
     return _description_list(request)
@@ -213,6 +215,7 @@ def description_compare(request):
     )
 
 
+@public_catalog_view("describe.view_description")
 def description_detail(request, pk):
     description = Description.objects.select_related("variety", "protocol").get(pk=pk)
 
@@ -262,6 +265,7 @@ def description_create(request):
     return TemplateResponse(request, "describe/partials/description_create.html", context)
 
 
+@permission_required("describe.add_description", raise_exception=True)
 @transaction.atomic
 def description_duplicate(request, pk):
     original = get_object_or_404(Description.objects.select_related("variety__species"), pk=pk)
@@ -352,6 +356,7 @@ def description_configure(request):
     return TemplateResponse(request, "describe/partials/description_configure.html", context)
 
 
+@user_passes_test(lambda user: user.is_staff)
 def description_label_update(request, pk):
     instance = get_object_or_404(DescriptionLabel, pk=pk)
     form = DescriptionLabelForm(request.POST or None, instance=instance)

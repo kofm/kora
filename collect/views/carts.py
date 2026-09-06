@@ -91,8 +91,9 @@ def cart_update(request, pk):
     return render(request, "frontpage/modal_form.html", {"form": form})
 
 
+@permission_required("collect.change_cart", raise_exception=True)
 def cart_discard(request, pk):
-    instance = get_object_or_404(Cart, pk=pk)
+    instance = get_object_or_404(Cart, pk=pk, user=request.user)
     context = {"cart": instance}
     if request.method == "POST":
         instance.discard()
@@ -134,7 +135,7 @@ def cart_withdraw(request, pk):
 
 @permission_required("collect.change_cart", raise_exception=True)
 def cart_empty(request, pk):
-    cart = get_object_or_404(Cart, pk=pk)
+    cart = get_object_or_404(Cart, pk=pk, user=request.user)
     context = {"cart": cart}
     if request.method == "POST":
         cart.cartitem_set.all().delete()
@@ -144,7 +145,7 @@ def cart_empty(request, pk):
 
 @permission_required("collect.delete_cart", raise_exception=True)
 def cart_delete(request, pk):
-    cart = get_object_or_404(Cart, pk=pk)
+    cart = get_object_or_404(Cart, pk=pk, user=request.user)
     if request.method == "POST":
         cart.delete()
         return htmx_response_trigger(["cartUpdated", "closeModal", "resultsChanged"])
@@ -154,7 +155,7 @@ def cart_delete(request, pk):
 @permission_required("collect.view_cart", raise_exception=True)
 @require_POST
 def cart_set_default_weight(request, pk):
-    instance = get_object_or_404(Cart, pk=pk)
+    instance = get_object_or_404(Cart, pk=pk, user=request.user)
     form = CartDefaultWeightForm(request.POST, instance=instance)
     if form.is_valid():
         instance.default_weight = form.cleaned_data["default_weight"]
@@ -227,17 +228,16 @@ def cartitem_set_sorting(request):
 
 
 @permission_required("collect.delete_cartitem", raise_exception=True)
-@require_http_methods(["GET"])
+@require_POST
 def cartitem_delete(request, pk):
-    cartitem = get_object_or_404(CartItem, pk=pk)
-    if request.user.pk == cartitem.cart.user_id:
-        cartitem.delete()
-        return htmx_response_trigger(["cartUpdated", "logItemUpdated", "resultsChanged"])
+    cartitem = get_object_or_404(CartItem, pk=pk, cart__user=request.user)
+    cartitem.delete()
+    return htmx_response_trigger(["cartUpdated", "logItemUpdated", "resultsChanged"])
 
 
 @permission_required("collect.change_cartitem", raise_exception=True)
 def cartitem_update(request, pk):
-    cartitem = get_object_or_404(CartItem, pk=pk)
+    cartitem = get_object_or_404(CartItem, pk=pk, cart__user=request.user)
     form = CartItemUpdateForm(instance=cartitem)
     if request.method == "POST":
         form = CartItemUpdateForm(request.POST, instance=cartitem)
@@ -250,6 +250,10 @@ def cartitem_update(request, pk):
 class CartItemSortView(PermissionRequiredMixin, SortableView):
     model = CartItem
     permission_required = ["collect.change_cartitem"]
+    raise_exception = True
+
+    def get_queryset(self):
+        return CartItem.objects.filter(cart__user=self.request.user, cart__is_active=True)
 
     def post(self, request):
         request.session["cart_sorting"] = CART_SORTING["manual"]

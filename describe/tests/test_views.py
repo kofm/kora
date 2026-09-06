@@ -1,3 +1,4 @@
+from django.contrib.auth.models import Permission
 from django.test import TestCase
 from django.urls import reverse
 
@@ -28,6 +29,49 @@ class DescribeViewsSmokeTest(ViewSmokeTestMixin, TestCase):
         self.assert_get(["description_list", "description_compare"])
         self.assert_get(["description_detail", "description_expression_update"], [self.description.id])
         self.assert_post(["description_delete"], [self.description.id], status_code=302)
+
+
+class WorkspaceOwnershipTests(TestCase):
+    def setUp(self):
+        self.user = UserFactory()
+        self.other_user = UserFactory()
+        self.workspace = WorkspaceFactory(user=self.other_user, name="Private workspace")
+        self.element = WorkspaceElementFactory(workspace=self.workspace, order=4)
+        self.client.force_login(self.user)
+
+    def grant(self, *codenames):
+        self.user.user_permissions.add(*(Permission.objects.get(codename=codename) for codename in codenames))
+
+    def test_update_and_delete_hide_another_users_workspace(self):
+        self.grant("change_workspace", "delete_workspace")
+
+        update_response = self.client.post(
+            reverse("describe:workspace_update", args=[self.workspace.pk]),
+            {"name": "Taken over"},
+        )
+        delete_response = self.client.post(reverse("describe:workspace_delete", args=[self.workspace.pk]))
+
+        self.assertEqual(update_response.status_code, 404)
+        self.assertEqual(delete_response.status_code, 404)
+        self.workspace.refresh_from_db()
+        self.assertEqual(self.workspace.name, "Private workspace")
+        self.assertEqual(self.workspace.user, self.other_user)
+
+    def test_sort_rejects_mixed_ownership_without_partial_updates(self):
+        own_workspace = WorkspaceFactory(user=self.user)
+        own_element = WorkspaceElementFactory(workspace=own_workspace, order=7)
+        self.grant("change_workspaceelement")
+
+        response = self.client.post(
+            reverse("describe:workspace_sort"),
+            {"order": [own_element.pk, self.element.pk]},
+        )
+
+        self.assertEqual(response.status_code, 400)
+        own_element.refresh_from_db()
+        self.element.refresh_from_db()
+        self.assertEqual(own_element.order, 7)
+        self.assertEqual(self.element.order, 4)
 
 
 class TraitAutocompleteTests(TestCase):
