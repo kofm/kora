@@ -33,6 +33,7 @@ from describe.models import (
     Workspace,
     WorkspaceElement,
 )
+from describe.serializers import DescriptionImportRequestSerializer
 from parameters.models import Parameter, VarietalParameter
 from register.models import Entity, PlantSpecies, PlantVariety, PlantVarietyName, Protection, ProtectionType
 from register.serializers import (
@@ -300,10 +301,58 @@ class StateViewSet(KoraViewSet):
 
 
 @document_bulk_create(DescriptionSerializer, name="descriptions")
-class DescriptionViewSet(KoraViewSet):
+class DescriptionViewSet(ExcelImportActionMixin, KoraViewSet):
     serializer_class = DescriptionSerializer
     queryset = Description.objects.select_related("variety__species", "protocol", "label").all()
     filterset_class = DescriptionFilter
+
+    def perform_excel_import_create(self, objs):
+        with transaction.atomic():
+            descriptions = [description for description, _ in objs]
+            Description.objects.bulk_create(descriptions, batch_size=1000)
+            Expression.objects.bulk_create(
+                [
+                    Expression(description=description, state=state, note="")
+                    for description, states in objs
+                    for state in states
+                ],
+                batch_size=1000,
+            )
+        return len(descriptions)
+
+    @extend_schema(responses=ExcelImportResponseSerializer)
+    @action(detail=False, methods=["post"], serializer_class=DescriptionImportRequestSerializer)
+    def excel_import(self, request):
+        """Import variety descriptions from a spreadsheet file.
+
+        Supported file formats are CSV, XLS, XLSX, and ODS. The first
+        row must contain the column names described below.
+
+        Select ``Validate only`` to check the file for errors without
+        importing any rows.
+
+        **Accepted columns**:
+
+        - ``variety_name`` (text, required): name of the variety. It is
+          matched against existing varieties with the species of the
+          selected protocol; validation fails if no variety or more than
+          one variety matches;
+        - ``label_name`` (text, optional): name of an existing
+          description label. Validation fails if the label does not
+          exist; leave the cell blank for no label;
+        - ``notes`` (text, optional): free text notes (max 500
+          characters);
+        - any other column whose header is a trait numeric id (integer):
+          each cell must hold the numeric id of a state of that trait,
+          and creates an expression for the description. Blank cells are
+          ignored. Columns with non-numeric headers are ignored.
+
+        A row whose combination of ``variety_name``, ``label_name``, and
+        protocol already exists is skipped and is not updated. Rows with
+        the same ``variety_name`` and ``label_name`` within one file are
+        reported as errors and the whole import fails.
+        """
+        return super().excel_import(request)
 
 
 @document_bulk_create(ExpressionSerializer, name="expressions")
