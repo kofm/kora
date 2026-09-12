@@ -24,3 +24,8 @@ Kora is free and open-source software. This is intended not only to ensure indep
 
 Kora is currently **beta software**. It is stable enough for regular use (it is currently being used in production by various Examination Offices), but the database schema and migration history may still change as the application evolves. Users should maintain current backups and review release notes before upgrading. The primary supported deployment model is a local computer or a trusted private network; internet-facing deployments are possible but are not currently the main supported configuration. No hosted Kora service is provided, and there is no guarantee of uptime, long-term support, or backward compatibility between all beta releases. Upgrades are currently supported through the documented migration path between successive released versions; skipping releases or upgrading from arbitrary development revisions may not be supported.
 
+## License
+
+Copyright (C) 2026 Gabriele Mongiano.
+
+Kora is free software licensed under the GNU Affero General Public License version 3 or later (AGPL-3.0-or-later). See [LICENSE](LICENSE) for details.

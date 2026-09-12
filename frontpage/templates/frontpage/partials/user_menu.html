@@ -26,6 +26,7 @@
     {% endif %}
 
     {% dropdown_item "Help" href="https://docs.getkora.org" %}
+    {% dropdown_item "Source" href="https://github.com/kofm/kora" %}
 
     {% if user.is_authenticated %}
       {% url 'logout' as logout_url %}
