@@ -17,7 +17,7 @@ The primary supported deployment model is a local computer or a trusted private 
 
 ## Status
 
-Kora is currently **beta software**. It is stable enough for regular use (it is currently being used in production by various Examination Offices), but the database schema and migration history may still change as the application evolves. Users should maintain current backups and review release notes before upgrading. 
+Kora is currently **beta software**. It is stable enough for regular use, but the database schema and migration history may still change as the application evolves. Users should maintain current backups and review release notes before upgrading. 
 
 ## License
 
