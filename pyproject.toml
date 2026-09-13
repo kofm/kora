@@ -70,8 +70,8 @@ convention = "pep257"
 
 [tool.commitizen]
 name = "cz_customize"
-version_files = ["pyproject.toml", "uv.lock"]
-version_provider = "pep621"
+version_files = ["frontpage/version.py"]
+version_provider = "uv"
 tag_format = "$version"
 update_changelog_on_bump = true
 annotated_tag = true
@@ -83,11 +83,12 @@ change_type_order = [
     "Added",
     "Fixed",
     "Changed",
-    "Documentation"
+    "Documentation",
+    "Performance Improvements"
 ]
 
 [tool.commitizen.customize]
-commit_parser = "^((?P<change_type>feat|fix|perf|docs|BREAKING CHANGE)(?:\\((?P<scope>[^()\r\n]*)\\)|\\()?(?P<breaking>!)?|\\w+!):\\s(?P<message>.*)?"
+commit_parser = "^((?P<change_type>feat|fix|perf|BREAKING CHANGE)(?:\\((?P<scope>[^()\r\n]*)\\)|\\()?(?P<breaking>!)?|\\w+!):\\s(?P<message>.*)?"
 changelog_pattern = "^(?![\\s\\S]*\\[skip changelog\\])((BREAKING[\\- ]CHANGE|\\w+)(\\([^)]*\\))?!?):"
 
 [tool.commitizen.change_type_map]
@@ -95,6 +96,7 @@ feat = "Added"
 fix = "Fixed"
 refactor = "Changed"
 docs = "Documentation"
+perf = "Performance Improvements"
 
 [dependency-groups]
 dev = [

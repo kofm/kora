@@ -25,9 +25,6 @@
       {% endif %}
     {% endif %}
 
-    {% dropdown_item "Help" href="https://docs.getkora.org" %}
-    {% dropdown_item "Source" href="https://github.com/kofm/kora" %}
-
     {% if user.is_authenticated %}
       {% url 'logout' as logout_url %}
       {% dropdown_item "Logout" hx_post=logout_url%}
@@ -35,6 +32,14 @@
 	{% url 'login' as login_url %}
 	{% dropdown_item "Login" href=login_url %}
     {% endif %}
+
+    <hr class="dropdown-divider"/>
+
+    <h6 class="dropdown-header">Kora {{ kora_version }}</h6>
+
+    {% dropdown_item "Help" href="https://docs.getkora.org" %}
+    {% dropdown_item "Source" href="https://github.com/kofm/kora" %}
+
   </div>
 
 </div>
