@@ -1,3 +1,102 @@
+## 0.6.0-beta.0 (2026-09-13)
+
+### BREAKING CHANGE
+
+- the environment variables from which the database
+password is read has been updatet from `POSTGRES_PASSWORD` to
+`DB_PASSWORD`. Please update your environment files.
+- Several API endpoints and response payloads were renamed or restructured
+(e.g. endpoint paths, identifier fields, and nested representations). Clients must update
+their integrations accordingly.
+
+### Added
+
+- **frontpage**: show app version in user menu
+- **calculator**: add configurable repetitions to observation targets
+- move documentation to an external website
+- **restapi**: add spreadsheet import for variety descriptions
+- **calculator**: add management operation setup and editing
+- **calculator**: allow creating fieldbooks from the fieldbook list
+- **restapi**: add trait and parameter observation endpoints
+- **calculator**: allow users to rename field books
+- **calculator**: improve observation filtering and browsing
+- improve searchable select input behaviour
+- **persefone**: add containerized deployment and readiness checks
+- **calculator**: allow choosing plot order for fieldbook steps
+- **calculator**: clarify and organize step observations
+- **restapi**: support additional spreadsheet import formats
+- **restapi**: updated the browsable API template for performance and better integration with Kora UI
+- **restapi**: add OpenAPI schema, API export endpoints, and improve documentation
+- **restapi**: enable creation of workspace elements from the API
+- updated the database password environment variable from `POSTGRES_PASSWORD` to `DB_PASSWORD`
+- reorganize main menu for better clarity
+- **register**: implement custom ordering in the variety listing
+- improve responsiveness of autocomplete inputs, especially when dealing with a large number of varieties
+- **describe**: introduce configurable, color-coded Description labels
+- **describe**: implement user-defined protection types
+- **describe**: improve display of protocols with grouping by species and navigation sidebar
+- **django_sortable_htmx**: implement classes for BaseSortable*Layout
+- **describe**: highlight highly discriminating traits in description list's expression filter
+- **restapi**: improve `varietalparameters` endpoint with ability to filter by variety
+- **describe**: Add notes and timestamps to Description with migrations and UI updates
+- **describe**: introduce description duplication functionality
+- **collect**: add sample position in the storage detail table
+- **api**: improve filters for Samples, Sample Weights, and Germinabilities
+- **api**: add germinabilities endpoint
+- **collect**: highlight samples marked for discard
+- **collect**: introduce sample discarding functionality and related cart workflow
+- **restapi**: Improve API consistency, filtering, and data exposure
+- allow configuration of database name and user via environment variables
+- improve self-service account management and user administration
+- **frontpage**: add user profile page with update & password-change views
+
+### Fixed
+
+- **describe**: make description labels optional when importing from spreadsheets
+- **describe**: allow blank label when creating descriptions
+- enforce permissions and ownership checks across cart, workspace, and catalog views
+- display tables using the compact layout
+- **calculator**: create complete fieldbook walks across every crop
+- **persefone**: serve versioned static assets in production
+- **register**: restore variety deduplication and trim whitespace from variety names during spreadsheet import
+- **describe**: restore functionality to relate states after recent changes in API
+- **restapi**: prevent duplication of existing protections, considering type, variety, and country
+- **restapi**: improve efficiency of data export
+- **restapi**: correct serializers and schema generation
+- **collect**: improve storage layout handling and suggestion of first available position
+- **restapi**: restore missing fields in workspace endpoint
+- **register**: fix regression in variety search where most similar match didn't show at the top
+- **register**: restore multiple selection for applicants and maintainers
+- **collect**: restore position selection functionality
+- **describe**: restore protocol selection functionality in the description filter
+- **collect**: store sample weight and germinability with time
+- allow scrolling of sortable lists on mobile (long press required now for drag to sort)
+- **collect**: improve consistency in sample weight display
+- **collect**: restore manual sorting of cart items
+- resolved a bug that prevented the menu for being clicked on mobile in portrait orientation
+- **restapi**: improve efficiency of queries to the protections API endpoint
+- **restapi**: disable filtering from the browsable API for faster loading
+- **describe**: correct broken download button in workspace sidebar menu
+- introduce staff permission requirement to configuration views
+- **register**: improve responsiveness of entity filtering
+- **collect**: improve responsiveness of sample creation/update
+- **register**: improve responsiveness of the variety listing and search
+- **frontpage**: move the javascript block at the bottom of the page in base.html template
+- **restapi**: add trait_id to TraitSerializer
+- **restapi**: allow CartItems bulk creation in the API
+- **describe**: allow empty notes when changing Description metadata
+- **collect**: restore sample creation from variety detail page
+- **collect**: fix inconsistent labels in cart menu
+- search and pagination now persist after adding an item to cart/workspace
+- **register**: restore delete button for Variety Denominations
+- **storage**: prevent regression in Storage detail page
+- **frontpage**: fix permissions for the admin menu
+- **collect**: add Sample model to the Django Admin
+
+### Performance Improvements
+
+- **collect**: improve position creation/deletion efficiency
+
 ## 0.5.13 (2025-12-05)
 
 ### Fixed
