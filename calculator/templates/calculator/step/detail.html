@@ -133,16 +133,21 @@
             <p class="fs-6 text-muted my-0">{{ form.protocol.name }}</p>
             <label for="{{ form.state.id_for_label }}" class="col-form-label fs-5 fw-semibold">{{ form.state.label }}</label>
           </div>
-          {% if perms.calculator.add_traitobservation %}
-            <form class="col-12 col-lg-7" hx-post="{% url 'calculator:trait_observation_in_step_create' step.pk %}" hx-swap="none">
-              <div class="d-flex flex-column gap-2">
-                {{ form.state }}
-                {{ form.notes }}
-                <button name="btn-save" type="submit" class="btn btn-outline-primary mt-2">Confirm</button>
-              </div>
-            </form>
-          {% endif %}
-          {% if perms.calculator.change_fieldbook %}
+          <div class="col-12 col-lg-7">
+            <div class="d-flex justify-content-center mb-2">
+              {% include "calculator/partials/target_count_indicator.html" with target=form.target recorded_count=form.recorded_count can_change_count=perms.calculator.change_fieldbook only %}
+            </div>
+            {% if perms.calculator.add_traitobservation %}
+              <form hx-post="{% url 'calculator:trait_observation_in_step_create' step.pk %}" hx-swap="none">
+                <div class="d-flex flex-column gap-2">
+                  {{ form.state }}
+                  {{ form.notes }}
+                  <button name="btn-save" type="submit" class="btn btn-outline-primary mt-2">Confirm</button>
+                </div>
+              </form>
+            {% endif %}
+          </div>
+          {% if perms.calculator.change_fieldbook and not form.recorded_count %}
             <div class="col-12 col-lg-auto d-flex justify-content-end">
               <a class="btn btn-sm btn-outline-danger" href="#" hx-post="{{ form.delete_url }}" hx-confirm="Are you sure?" hx-swap="none" aria-label="Remove {{ form.state.label }} target">
                 <i class="bi bi-dash-circle" aria-hidden="true"></i>
@@ -166,18 +171,23 @@
             <p class="fs6 text-muted my-0">Parameter</p>
             <span class="col-form-label fs-5 fw-semibold">{{ form.parameter_obj.name }} ({{ form.parameter_obj.measure_unit }})</span>
           </div>
-          {% if perms.calculator.add_parameterobservation %}
-            <form class="col-12 col-lg-7" hx-post="{% url 'calculator:parameter_observation_in_step_create' step.pk %}" hx-swap="none">
-              <div class="d-flex flex-column gap-2">
-                {{ form.parameter }}
-                {{ form.parameter_value }}
-                {{ form.parameter_date }}
-                {{ form.notes }}
-                <button name="btn-save" type="submit" class="btn btn-outline-primary mt-2">Confirm</button>
-              </div>
-            </form>
-          {% endif %}
-          {% if perms.calculator.change_fieldbook %}
+          <div class="col-12 col-lg-7">
+            <div class="d-flex justify-content-center mb-2">
+              {% include "calculator/partials/target_count_indicator.html" with target=form.target recorded_count=form.recorded_count can_change_count=perms.calculator.change_fieldbook only %}
+            </div>
+            {% if perms.calculator.add_parameterobservation %}
+              <form hx-post="{% url 'calculator:parameter_observation_in_step_create' step.pk %}" hx-swap="none">
+                <div class="d-flex flex-column gap-2">
+                  {{ form.parameter }}
+                  {{ form.parameter_value }}
+                  {{ form.parameter_date }}
+                  {{ form.notes }}
+                  <button name="btn-save" type="submit" class="btn btn-outline-primary mt-2">Confirm</button>
+                </div>
+              </form>
+            {% endif %}
+          </div>
+          {% if perms.calculator.change_fieldbook and not form.recorded_count %}
             <div class="col-12 col-lg-auto d-flex justify-content-end">
               <a class="btn btn-sm btn-outline-danger" href="#" hx-post="{{ form.delete_url }}" hx-confirm="Are you sure?" hx-swap="none" aria-label="Remove {{ form.form_title }} target">
                 <i class="bi bi-dash-circle" aria-hidden="true"></i>

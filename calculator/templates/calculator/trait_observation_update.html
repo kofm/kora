@@ -6,10 +6,15 @@
 {% endblock %}
 
 {% block body %}
-  <header class="d-flex flex-column flex-column-reverse mb-3">
+  <header class="mb-3">
     <h2 class="fs-5">{{ instance.state.trait }}</h2>
     <p class="fs-6 fw-light text-muted my-0">{{ instance.state.trait.protocol }}</p>
   </header>
+  {% if target %}
+    <div class="d-flex justify-content-center mb-3">
+      {% include "calculator/partials/target_count_indicator.html" with target=target recorded_count=recorded_count can_change_count=perms.calculator.change_fieldbook only %}
+    </div>
+  {% endif %}
   <form id="observation" onsubmit="return false;">
     {{ form|crispy }}
   </form>

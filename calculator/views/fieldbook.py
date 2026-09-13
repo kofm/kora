@@ -2,6 +2,7 @@ from math import ceil, floor
 
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
+from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.http import HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, redirect
@@ -35,7 +36,15 @@ from calculator.models import (
     TraitTarget,
 )
 from calculator.tables import FieldBookTable, ParameterObservationTable, TraitObservationTable
-from calculator.targets import clear_stale_display_config, observed_target_query
+from calculator.targets import (
+    change_required_count,
+    clear_stale_display_config,
+    observed_target_query,
+    parameter_observation_counts_by_parameter,
+    target_is_complete,
+    target_recorded_count,
+    trait_observation_counts_by_trait,
+)
 from calculator.utils import generate_zigzag_pairs
 from calculator.views.generic import BaseTargetCreate, BaseTargetDelete
 from describe.models import State, Trait
@@ -304,6 +313,42 @@ class ParameterTargetDelete(BaseTargetDelete):
 
 @require_POST
 @permission_required("calculator.change_fieldbook", raise_exception=True)
+def target_required_count_change(request, target_model, pk):
+    target = get_object_or_404(
+        target_model.objects.mutable().select_related("step__fieldbook__layout"),
+        pk=pk,
+    )
+    action = request.POST.get("action")
+    if action not in {"increment", "decrement"}:
+        return HttpResponseBadRequest()
+    try:
+        target = change_required_count(target, 1 if action == "increment" else -1)
+    except ValidationError as exc:
+        return HttpResponseBadRequest(exc.messages[0])
+    response = TemplateResponse(
+        request,
+        "calculator/partials/target_count_indicator.html",
+        {"target": target, "recorded_count": target_recorded_count(target), "can_change_count": True},
+    )
+    trigger = "traitObservationUpdated" if target_model is TraitTarget else "observationParameterUpdated"
+    response.headers["HX-Trigger"] = f'{{"{trigger}": true}}'
+    return response
+
+
+@require_POST
+@permission_required("calculator.change_fieldbook", raise_exception=True)
+def trait_target_required_count_change(request, pk):
+    return target_required_count_change(request, TraitTarget, pk)
+
+
+@require_POST
+@permission_required("calculator.change_fieldbook", raise_exception=True)
+def parameter_target_required_count_change(request, pk):
+    return target_required_count_change(request, ParameterTarget, pk)
+
+
+@require_POST
+@permission_required("calculator.change_fieldbook", raise_exception=True)
 def fieldbook_targets_delete(request, fieldbook_id):
     selection = request.POST.getlist("selection")
     if not selection:
@@ -359,14 +404,14 @@ def get_step(pk):
 
 
 def build_step_trait_targets_context(step):
-    observed_traits_ids = (
-        TraitObservation.objects.filter(step=step).values_list("state__trait_id", flat=True).distinct()
+    observation_counts = trait_observation_counts_by_trait(step)
+    target_traits = step.traittarget.select_related("trait__protocol").order_by(
+        "trait__protocol__order",
+        "trait__numeric_id",
     )
-    target_traits = (
-        step.traittarget.select_related("trait__protocol")
-        .exclude(trait__in=observed_traits_ids)
-        .order_by("trait__protocol__order", "trait__numeric_id")
-    )
+    target_traits = [
+        target for target in target_traits if observation_counts.get(target.trait_id, 0) < target.required_count
+    ]
     target_traits_ids = [target.trait_id for target in target_traits]
     trait_map = Trait.objects.filter(pk__in=target_traits_ids).in_bulk()
     states_by_trait_map = State.objects.filter(trait__in=target_traits_ids).trait_dict()
@@ -376,6 +421,9 @@ def build_step_trait_targets_context(step):
         states = states_by_trait_map.get(target.trait_id)
         form = TraitTargetObservationForm(states=states, protocol=target.trait.protocol)
         form.fields["state"].label = str(trait_map.get(target.trait_id))
+        form.target = target
+        form.recorded_count = observation_counts.get(target.trait_id, 0)
+        form.required_count = target.required_count
         form.delete_url = reverse("calculator:trait_target_delete", args=(target.pk,))
         trait_forms.append(form)
 
@@ -383,14 +431,11 @@ def build_step_trait_targets_context(step):
 
 
 def build_step_parameter_targets_context(step):
-    observed_parameter_ids = (
-        ParameterObservation.objects.filter(step=step).values_list("parameter_id", flat=True).distinct()
-    )
-    parameter_targets = (
-        ParameterTarget.objects.select_related("parameter")
-        .filter(step=step)
-        .exclude(parameter_id__in=observed_parameter_ids)
-    )
+    observation_counts = parameter_observation_counts_by_parameter(step)
+    parameter_targets = ParameterTarget.objects.select_related("parameter").filter(step=step)
+    parameter_targets = [
+        target for target in parameter_targets if observation_counts.get(target.parameter_id, 0) < target.required_count
+    ]
 
     parameter_forms = []
     for target in parameter_targets:
@@ -398,6 +443,9 @@ def build_step_parameter_targets_context(step):
             initial={"parameter": target.parameter_id},
             parameter=target.parameter,
         )
+        form.target = target
+        form.recorded_count = observation_counts.get(target.parameter_id, 0)
+        form.required_count = target.required_count
         form.delete_url = reverse("calculator:parameter_target_delete", args=(target.pk,))
         parameter_forms.append(form)
 
@@ -510,19 +558,34 @@ def trait_target_observation_create(request, pk):
     form = TraitTargetObservationForm(request.POST or None, states=states, protocol=target.trait.protocol)
     form.fields["state"].label = str(target.trait)
     if request.method == "POST" and form.is_valid():
-        state = get_object_or_404(states, pk=form.cleaned_data["state"])
-        TraitObservation.objects.create(
-            step=target.step,
-            crop=target.step.crop,
-            state=state,
-            notes=form.cleaned_data["notes"],
-            created_by=request.user,
+        with transaction.atomic():
+            target = TraitTarget.objects.select_for_update().select_related(
+                "step__fieldbook__layout", "step__crop", "trait__protocol"
+            ).get(pk=target.pk)
+            if not target_is_complete(target):
+                state = get_object_or_404(states, pk=form.cleaned_data["state"])
+                TraitObservation.objects.create(
+                    step=target.step,
+                    crop=target.step.crop,
+                    state=state,
+                    notes=form.cleaned_data["notes"],
+                    created_by=request.user,
+                )
+        if target_is_complete(target):
+            return htmx_response_trigger_close_modal(["traitObservationUpdated"])
+        form = TraitTargetObservationForm(states=states, protocol=target.trait.protocol)
+        form.fields["state"].label = str(target.trait)
+        response = TemplateResponse(
+            request,
+            "calculator/target_observation_create.html",
+            {"form": form, "target": target, "target_type": "trait", "recorded_count": target_recorded_count(target)},
         )
-        return htmx_response_trigger_close_modal(["traitObservationUpdated"])
+        response.headers["HX-Trigger"] = '{"traitObservationUpdated": true}'
+        return response
     return TemplateResponse(
         request,
         "calculator/target_observation_create.html",
-        {"form": form, "target": target, "target_type": "trait"},
+        {"form": form, "target": target, "target_type": "trait", "recorded_count": target_recorded_count(target)},
     )
 
 
@@ -540,16 +603,35 @@ def parameter_target_observation_create(request, pk):
     if request.method == "POST" and form.is_valid():
         if form.cleaned_data["parameter"] != target.parameter:
             return HttpResponseBadRequest()
-        observation = form.save(commit=False)
-        observation.created_by = request.user
-        observation.crop = target.step.crop
-        observation.step = target.step
-        observation.save()
-        return htmx_response_trigger_close_modal(["observationParameterUpdated"])
+        with transaction.atomic():
+            target = ParameterTarget.objects.select_for_update().select_related(
+                "step__fieldbook__layout", "step__crop", "parameter"
+            ).get(pk=target.pk)
+            if not target_is_complete(target):
+                observation = form.save(commit=False)
+                observation.created_by = request.user
+                observation.crop = target.step.crop
+                observation.step = target.step
+                observation.save()
+        if target_is_complete(target):
+            return htmx_response_trigger_close_modal(["observationParameterUpdated"])
+        form = ParameterTargetObservationForm(initial={"parameter": target.parameter_id}, parameter=target.parameter)
+        response = TemplateResponse(
+            request,
+            "calculator/target_observation_create.html",
+            {
+                "form": form,
+                "target": target,
+                "target_type": "parameter",
+                "recorded_count": target_recorded_count(target),
+            },
+        )
+        response.headers["HX-Trigger"] = '{"observationParameterUpdated": true}'
+        return response
     return TemplateResponse(
         request,
         "calculator/target_observation_create.html",
-        {"form": form, "target": target, "target_type": "parameter"},
+        {"form": form, "target": target, "target_type": "parameter", "recorded_count": target_recorded_count(target)},
     )
 
 
@@ -563,12 +645,15 @@ def trait_observation_in_step_create(request, step_id):
     form = TraitObservationInStepCreateForm(request.POST)
     if form.is_valid():
         obs = form.save(commit=False)
-        if not TraitTarget.objects.filter(step=step, trait__states=obs.state).exists():
-            return HttpResponseBadRequest()
-        obs.step = step
-        obs.crop = step.crop
-        obs.created_by = request.user
-        obs.save()
+        with transaction.atomic():
+            target = TraitTarget.objects.select_for_update().filter(step=step, trait__states=obs.state).first()
+            if target is None:
+                return HttpResponseBadRequest()
+            if not target_is_complete(target):
+                obs.step = step
+                obs.crop = step.crop
+                obs.created_by = request.user
+                obs.save()
     if is_htmx(request):
         return htmx_response_trigger(["traitObservationUpdated"])
     return redirect(reverse("calculator:step_detail", args=(step.pk,)))
@@ -583,12 +668,18 @@ def parameter_observation_in_step_create(request, step_id):
     )
     form = ParameterTargetObservationForm(request.POST)
     if form.is_valid():
-        get_object_or_404(ParameterTarget, step=step, parameter=form.cleaned_data["parameter"])
-        instance = form.save(commit=False)
-        instance.created_by = request.user
-        instance.crop_id = step.crop_id
-        instance.step = step
-        instance.save()
+        with transaction.atomic():
+            target = get_object_or_404(
+                ParameterTarget.objects.select_for_update(),
+                step=step,
+                parameter=form.cleaned_data["parameter"],
+            )
+            if not target_is_complete(target):
+                instance = form.save(commit=False)
+                instance.created_by = request.user
+                instance.crop_id = step.crop_id
+                instance.step = step
+                instance.save()
         if is_htmx(request):
             return htmx_response_trigger(["observationParameterUpdated"])
     return redirect(reverse("calculator:step_detail", args=(step.pk,)))

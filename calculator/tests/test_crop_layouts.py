@@ -231,7 +231,7 @@ class TraitTargetCreateViewTests(TestCase):
     def setUp(self):
         self.client.force_login(self.user)
         self.url = reverse("calculator:trait_target_create", args=(self.fieldbook.pk,))
-        self.payload = {"protocol": self.protocol.pk, "trait": self.trait.pk}
+        self.payload = {"protocol": self.protocol.pk, "trait": self.trait.pk, "required_count": 1}
 
     def test_incompatible_crops_are_skipped(self):
         response = self.client.post(
@@ -245,6 +245,27 @@ class TraitTargetCreateViewTests(TestCase):
         self.assertFalse(Step.objects.filter(fieldbook=self.fieldbook, crop=self.rice_crop).exists())
         messages = [message.message for message in get_messages(response.wsgi_request)]
         self.assertTrue(any("1 incompatible crop" in message for message in messages))
+
+    def test_submitted_required_count_is_applied_to_all_selected_crops(self):
+        second_wheat_crop = CropFactory(layout=self.layout, variety=self.wheat_variety, order=2)
+
+        response = self.client.post(
+            self.url,
+            {
+                **self.payload,
+                "required_count": 3,
+                "selection": [self.wheat_crop.pk, second_wheat_crop.pk],
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        targets = TraitTarget.objects.filter(
+            step__fieldbook=self.fieldbook,
+            step__crop__in=[self.wheat_crop, second_wheat_crop],
+            trait=self.trait,
+        )
+        self.assertEqual(targets.count(), 2)
+        self.assertEqual(set(targets.values_list("required_count", flat=True)), {3})
 
     def test_selection_must_belong_to_fieldbook_layout(self):
         response = self.client.post(

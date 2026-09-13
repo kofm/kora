@@ -598,6 +598,7 @@ class BulkResolvedPrimaryKeyRelatedField(serializers.PrimaryKeyRelatedField):
 
 
 class TargetSerializer(serializers.ModelSerializer):
+    required_count = serializers.IntegerField(min_value=1, max_value=32767, required=False, default=1)
     crop = BulkResolvedPrimaryKeyRelatedField(
         source="step.crop",
         queryset=Crop.objects.select_related("layout", "variety__species"),

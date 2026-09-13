@@ -350,7 +350,8 @@ class TraitTargetForm(TomSelectModelFormMixin, forms.ModelForm):
 
     class Meta:
         model = TraitTarget
-        fields = ("protocol", "trait")
+        fields = ("protocol", "trait", "required_count")
+        widgets = {"required_count": BootstrapNumberInput(attrs={"min": 1, "max": 32767})}
 
 
 class StepUpdateOrderForm(forms.Form):
@@ -384,9 +385,11 @@ class StepUpdateOrderForm(forms.Form):
 class ParameterTargetForm(forms.ModelForm):
     class Meta:
         model = ParameterTarget
-        fields = ("parameter",)
-        labels = {"parameter": "Parameter to record"}
-        widgets = {"parameter": TomSelect(attrs={"placeholder": "Choose a parameter"})}
+        fields = ("parameter", "required_count")
+        widgets = {
+            "parameter": TomSelect(attrs={"placeholder": "Choose a parameter"}),
+            "required_count": BootstrapNumberInput(attrs={"min": 1, "max": 32767}),
+        }
 
 
 class FieldBookDisplayForm(forms.Form):

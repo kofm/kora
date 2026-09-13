@@ -9,6 +9,11 @@
   <header class="mb-3">
     <h2 class="fs-5">{{ instance.parameter.name }} ({{ instance.parameter.measure_unit }})</h2>
   </header>
+  {% if target %}
+    <div class="d-flex justify-content-center mb-3">
+      {% include "calculator/partials/target_count_indicator.html" with target=target recorded_count=recorded_count can_change_count=perms.calculator.change_fieldbook only %}
+    </div>
+  {% endif %}
   <form id="observation" onsubmit="return false;">
     {{ form|crispy }}
   </form>

@@ -65,6 +65,7 @@ class BaseTargetCreate(PermissionRequiredMixin, View):
             return HttpResponseBadRequest()
 
         target_obj = form.cleaned_data[self.field_name]
+        required_count = form.cleaned_data.get("required_count", 1)
         compatible_crops, skipped_crop_count = self.get_compatible_crops_and_count(selected_crops, target_obj)
 
         steps_qs = fieldbook.steps.all()
@@ -86,7 +87,7 @@ class BaseTargetCreate(PermissionRequiredMixin, View):
                 steps_to_create.append(step)
             step_targets_ids = target_by_step_map.get(step.pk, ())
             if target_obj.pk not in step_targets_ids:
-                target = self.model(step=step, **{self.field_name: target_obj})
+                target = self.model(step=step, required_count=required_count, **{self.field_name: target_obj})
                 targets_to_create.append(target)
 
         with transaction.atomic():

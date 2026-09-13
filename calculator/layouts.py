@@ -137,32 +137,41 @@ class FieldBookGrid(BaseGridLayout):
                 data["display_value"] = getattr(observation, f"parameter_{field}")
                 can_change = self.can_change_parameter_observation
                 update_view_name = "calculator:parameter_observation_update"
-            if can_change and not self.is_read_only:
-                data["display_mutation_url"] = reverse(update_view_name, args=(observation.pk,))
-                data["display_mutation_label"] = "Update observation"
-            return data
 
+        is_complete = len(matching_observations) >= target.required_count
         can_add = self.can_add_trait_observation if model == "trait" else self.can_add_parameter_observation
-        if can_add and not self.is_read_only:
+        if not is_complete and can_add and not self.is_read_only:
             data["display_mutation_url"] = reverse(
                 f"calculator:{model}_target_observation_create",
                 args=(target.pk,),
             )
             data["display_mutation_label"] = "Record observation"
+        elif observation is not None and can_change and not self.is_read_only:
+            data["display_mutation_url"] = reverse(update_view_name, args=(observation.pk,))
+            data["display_mutation_label"] = "Update observation"
         return data
 
     def _render_targets(self, step, target_type="trait"):
         targets = getattr(step, f"{target_type}target").all()
-        target_ids = {getattr(target, f"{target_type}_id") for target in targets}
-        if not target_ids:
+        if not targets:
             return None
 
         observations = getattr(step, f"{target_type}observation").all()
-        observed_ids = {getattr(observation, f"{target_type}_id") for observation in observations}
+        observed_counts = {}
+        for observation in observations:
+            object_id = getattr(observation, f"{target_type}_id")
+            observed_counts[object_id] = observed_counts.get(object_id, 0) + 1
 
-        if not observed_ids:
+        fulfilled_count = 0
+        required_count = 0
+        for target in targets:
+            object_id = getattr(target, f"{target_type}_id")
+            required_count += target.required_count
+            fulfilled_count += min(target.required_count, observed_counts.get(object_id, 0))
+
+        if fulfilled_count == 0:
             return "pending"
-        if observed_ids == target_ids:
+        if fulfilled_count == required_count:
             return "complete"
         return "partial"
 

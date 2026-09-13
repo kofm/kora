@@ -2,9 +2,9 @@ from dataclasses import dataclass
 
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.db.models import F, Max, Q
+from django.db.models import Count, F, Max, Q
 
-from calculator.models import FieldBook, ParameterTarget, Step, TraitTarget
+from calculator.models import FieldBook, ParameterObservation, ParameterTarget, Step, TraitObservation, TraitTarget
 
 
 @dataclass(frozen=True)
@@ -39,6 +39,10 @@ def validate_target_plan(target_model, plan):
     errors = {}
     if plan.fieldbook.layout_id != plan.crop.layout_id:
         errors["crop"] = "The crop must belong to the field book layout."
+    if plan.required_count < 1:
+        errors["required_count"] = "Ensure this value is greater than or equal to 1."
+    if plan.required_count > 32767:
+        errors["required_count"] = "Ensure this value is less than or equal to 32767."
     if plan.fieldbook.layout.is_archived:
         errors["fieldbook"] = "Targets cannot be changed in an archived layout."
     if target_model is TraitTarget and plan.crop.variety.species_id != plan.related_object.protocol.plantspecies_id:
@@ -182,10 +186,65 @@ def create_targets(target_model, plans):
     return results, len(missing_targets)
 
 
-def target_has_observation(target):
+def target_observations(target):
     if isinstance(target, TraitTarget):
-        return target.step.traitobservation.filter(state__trait_id=target.trait_id).exists()
-    return target.step.parameterobservation.filter(parameter_id=target.parameter_id).exists()
+        return TraitObservation.objects.filter(step_id=target.step_id, state__trait_id=target.trait_id)
+    if isinstance(target, ParameterTarget):
+        return ParameterObservation.objects.filter(step_id=target.step_id, parameter_id=target.parameter_id)
+    raise TypeError(f"Unsupported target: {target!r}")
+
+
+def trait_observation_counts_by_trait(step):
+    observation_counts = (
+        TraitObservation.objects.filter(step=step).values("state__trait_id").annotate(recorded_count=Count("pk"))
+    )
+    return {row["state__trait_id"]: row["recorded_count"] for row in observation_counts}
+
+
+def parameter_observation_counts_by_parameter(step):
+    observation_counts = (
+        ParameterObservation.objects.filter(step=step).values("parameter_id").annotate(recorded_count=Count("pk"))
+    )
+    return {row["parameter_id"]: row["recorded_count"] for row in observation_counts}
+
+
+def target_recorded_count(target):
+    return target_observations(target).count()
+
+
+def target_is_complete(target):
+    return target_recorded_count(target) >= target.required_count
+
+
+def observation_target(observation):
+    if isinstance(observation, TraitObservation) and observation.step_id:
+        return TraitTarget.objects.filter(step_id=observation.step_id, trait_id=observation.state.trait_id).first()
+    if isinstance(observation, ParameterObservation) and observation.step_id:
+        return ParameterTarget.objects.filter(
+            step_id=observation.step_id,
+            parameter_id=observation.parameter_id,
+        ).first()
+    return None
+
+
+def target_has_observation(target):
+    return target_observations(target).exists()
+
+
+@transaction.atomic
+def change_required_count(target, delta):
+    target = target.__class__.objects.select_for_update().select_related("step__fieldbook__layout").get(pk=target.pk)
+    if target.step.fieldbook.layout.is_archived:
+        raise ValidationError("Targets cannot be changed in an archived layout.")
+    recorded_count = target_recorded_count(target)
+    minimum_count = max(1, recorded_count)
+    new_count = target.required_count + delta
+    if new_count < minimum_count:
+        raise ValidationError(f"Required count cannot be less than {minimum_count}.")
+    target.required_count = new_count
+    target.full_clean()
+    target.save(update_fields=["required_count"])
+    return target
 
 
 def observed_target_query(target_model):

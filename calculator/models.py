@@ -2,6 +2,7 @@
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.urls import reverse
 from django.utils import timezone
@@ -323,7 +324,11 @@ class Step(models.Model):
 
 class Target(models.Model):
     step = models.ForeignKey(Step, on_delete=models.CASCADE, related_name="%(class)s")
-    required_count = models.PositiveSmallIntegerField(default=1)
+    required_count = models.PositiveSmallIntegerField(
+        "Repetitions",
+        default=1,
+        validators=[MinValueValidator(1), MaxValueValidator(32767)],
+    )
 
     class Meta:
         abstract = True
@@ -340,7 +345,13 @@ class TraitTarget(Target):
     objects = TraitTargetQuerySet.as_manager()
 
     class Meta:
-        constraints = [models.UniqueConstraint(fields=["step", "trait"], name="unique_trait_target_per_step")]
+        constraints = [
+            models.UniqueConstraint(fields=["step", "trait"], name="unique_trait_target_per_step"),
+            models.CheckConstraint(
+                condition=models.Q(required_count__gte=1),
+                name="trait_target_required_count_min_1",
+            ),
+        ]
 
     def __str__(self):
         return f"{self.step}: {self.trait}"
@@ -366,7 +377,13 @@ class ParameterTarget(Target):
     objects = ParameterTargetQuerySet.as_manager()
 
     class Meta:
-        constraints = [models.UniqueConstraint(fields=["step", "parameter"], name="unique_parameter_target_per_step")]
+        constraints = [
+            models.UniqueConstraint(fields=["step", "parameter"], name="unique_parameter_target_per_step"),
+            models.CheckConstraint(
+                condition=models.Q(required_count__gte=1),
+                name="parameter_target_required_count_min_1",
+            ),
+        ]
 
     def __str__(self):
         return f"{self.step}: {self.parameter}"

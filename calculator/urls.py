@@ -18,6 +18,7 @@ from .views.fieldbook import (
     layout_fieldbook_create,
     parameter_observation_in_step_create,
     parameter_target_observation_create,
+    parameter_target_required_count_change,
     step_detail,
     step_parameter_observations,
     step_parameter_targets,
@@ -25,6 +26,7 @@ from .views.fieldbook import (
     step_trait_targets,
     trait_observation_in_step_create,
     trait_target_observation_create,
+    trait_target_required_count_change,
 )
 from .views.layout import (
     layout_archive,
@@ -125,12 +127,18 @@ urlpatterns = [
     ),
     path("target/trait/<int:fieldbook_id>", TraitTargetCreate.as_view(), name="trait_target_create"),
     path("target/trait/<int:pk>/delete", TraitTargetDelete.as_view(), name="trait_target_delete"),
+    path("target/trait/<int:pk>/count", trait_target_required_count_change, name="trait_target_required_count_change"),
     path(
         "target/trait/<int:pk>/observation/create",
         trait_target_observation_create,
         name="trait_target_observation_create",
     ),
     path("target/parameter/<int:pk>/delete", ParameterTargetDelete.as_view(), name="parameter_target_delete"),
+    path(
+        "target/parameter/<int:pk>/count",
+        parameter_target_required_count_change,
+        name="parameter_target_required_count_change",
+    ),
     path(
         "target/parameter/<int:pk>/observation/create",
         parameter_target_observation_create,

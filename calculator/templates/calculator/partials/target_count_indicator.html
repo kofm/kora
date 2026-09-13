@@ -1,0 +1,30 @@
+<div
+  class="d-inline-flex align-items-center gap-1"
+  aria-label="{{ recorded_count }} of {{ target.required_count }} observations recorded"
+>
+  {% if can_change_count %}
+    <button
+      type="button"
+      class="btn btn-sm btn-link link-secondary p-1 text-decoration-none"
+      hx-post="{% if target.trait_id %}{% url 'calculator:trait_target_required_count_change' target.pk %}{% else %}{% url 'calculator:parameter_target_required_count_change' target.pk %}{% endif %}"
+      hx-vals='{"action":"decrement"}'
+      hx-target="closest div"
+      hx-swap="outerHTML"
+      aria-label="Decrease required observations"
+      {% if target.required_count <= recorded_count or target.required_count == 1 %}disabled{% endif %}
+    ><i class="bi bi-dash-lg" aria-hidden="true"></i></button>
+  {% endif %}
+  <span class="badge text-bg-secondary">{{ recorded_count }} / {{ target.required_count }}</span>
+  {% if can_change_count %}
+    <button
+      type="button"
+      class="btn btn-sm btn-link link-secondary p-1 text-decoration-none"
+      hx-post="{% if target.trait_id %}{% url 'calculator:trait_target_required_count_change' target.pk %}{% else %}{% url 'calculator:parameter_target_required_count_change' target.pk %}{% endif %}"
+      hx-vals='{"action":"increment"}'
+      hx-target="closest div"
+      hx-swap="outerHTML"
+      aria-label="Increase required observations"
+      {% if target.required_count >= 32767 %}disabled{% endif %}
+    ><i class="bi bi-plus-lg" aria-hidden="true"></i></button>
+  {% endif %}
+</div>

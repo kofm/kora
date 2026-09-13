@@ -15,6 +15,7 @@ from calculator.forms import (
 )
 from calculator.models import Crop, ParameterObservation, TraitObservation
 from calculator.tables import ParameterObservationListTable, TraitObservationListTable
+from calculator.targets import observation_target, target_recorded_count
 from describe.models import State
 from frontpage.utils.htmx import htmx_response_trigger_close_modal
 from frontpage.views_decorators import htmx_render_blocks, nav_active
@@ -96,7 +97,10 @@ def trait_observation_update(request, pk):
     else:
         form = TraitObservationUpdateForm(instance=instance)
         form.fields["state"].queryset = states
+    target = observation_target(instance)
     context = {"form": form, "instance": instance}
+    if target is not None:
+        context.update({"target": target, "recorded_count": target_recorded_count(target)})
     return TemplateResponse(request, "calculator/trait_observation_update.html", context)
 
 
@@ -143,7 +147,15 @@ def parameter_observation_update(request, pk):
     return TemplateResponse(
         request,
         "calculator/parameter_observation_update.html",
-        {"form": form, "instance": instance},
+        {
+            "form": form,
+            "instance": instance,
+            **(
+                {"target": target, "recorded_count": target_recorded_count(target)}
+                if (target := observation_target(instance)) is not None
+                else {}
+            ),
+        },
     )
 
 
