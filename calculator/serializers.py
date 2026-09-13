@@ -2,15 +2,9 @@ from rest_framework import serializers
 
 from calculator.models import Crop, CropLayout, CropParameter
 from parameters.models import Parameter
-from register.models import PlantSpecies, PlantVariety
+from register.models import PlantVariety
 from restapi.fields import MappedPrimaryKeyRelatedField
 from restapi.serializers.generic import BaseSpreadsheetImportRequestSerializer
-
-
-class CropSpecieSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = PlantSpecies
-        fields = ["common_name", "latin_name"]
 
 
 class CropVarietySerializer(serializers.ModelSerializer):

@@ -670,5 +670,15 @@ class CropViewSet(ExcelImportActionMixin, JSONLExportMixin, viewsets.ModelViewSe
 
         Select ``Validate only`` to check the file for errors without
         importing any rows.
+
+        **Accepted columns**:
+
+        - ``variety`` (integer, required): the ID of the variety;
+        - ``layout`` (integer, required): the ID of the layout;
+        - ``order`` (integer): the index used to determine the
+          position of the crop within the layout. Crops are ordered
+          from top to bottom across the configured number of columns;
+        - ``notes`` (text): notes related to the crop;
+
         """
         return super().excel_import(request)
