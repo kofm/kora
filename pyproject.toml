@@ -3,6 +3,8 @@ name = "kora"
 version = "0.5.13"
 description = "An open-source web app to manage plant genetic resources data."
 readme = "README.md"
+license = "AGPL-3.0-or-later"
+license-files = ["LICENSE", "licenses/*"]
 authors = [
     { name = "Gabriele Mongiano", email = "gabriele.mongiano@crea.gov.it" },
 ]
@@ -36,7 +38,7 @@ dependencies = [
 
 [project.urls]
 issues = "https://github.com/kofm/kora/issues"
-homepage = "https://github.com/kofm/kora"
+homepage = "https://getkora.org"
 repository = "https://github.com/kofm/kora"
 
 [tool.ruff]
