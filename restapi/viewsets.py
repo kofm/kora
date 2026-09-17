@@ -104,13 +104,13 @@ class KoraViewSet(BulkCreateActionMixin, JSONLExportMixin, viewsets.ModelViewSet
     permission_classes = [KoraModelPermissions]
 
 
-class ExcelImportActionMixin:
-    excel_import_description = None
+class SpreadsheetImportActionMixin:
+    spreadsheet_import_description = None
 
-    def perform_excel_import_create(self, objs) -> int:
-        raise NotImplementedError("The creation method for the `excel_import` action should be defined.")
+    def perform_spreadsheet_import_create(self, objs) -> int:
+        raise NotImplementedError("The creation method for the `spreadsheet_import` action should be defined.")
 
-    def excel_import(self, request):
+    def spreadsheet_import(self, request):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -123,6 +123,6 @@ class ExcelImportActionMixin:
         if not objs:
             return Response({"imported_rows": 0}, status.HTTP_200_OK)
 
-        created_count = self.perform_excel_import_create(objs)
+        created_count = self.perform_spreadsheet_import_create(objs)
 
         return Response({"imported_rows": created_count}, status.HTTP_201_CREATED)

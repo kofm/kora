@@ -131,5 +131,5 @@ class BaseSpreadsheetImportRequestSerializer(sr.Serializer):
         return objs
 
 
-class ExcelImportResponseSerializer(sr.Serializer):
+class SpreadsheetImportResponseSerializer(sr.Serializer):
     imported_rows = sr.IntegerField()

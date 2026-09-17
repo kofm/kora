@@ -12,7 +12,7 @@ class NoWriteFormsBrowsableAPIRenderer(BrowsableAPIRenderer):
     write_methods = {"POST", "PUT", "PATCH"}
 
     def show_form_for_method(self, view, method, request, obj):
-        if method in self.write_methods and view.action != "excel_import":
+        if method in self.write_methods and view.action != "spreadsheet_import":
             return False
 
         return super().show_form_for_method(view, method, request, obj)

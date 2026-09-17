@@ -43,7 +43,7 @@ from register.serializers import (
 )
 from restapi.decorators import document_bulk_create, document_idempotent_target_create
 from restapi.permissions import KoraModelPermissions
-from restapi.serializers.generic import ExcelImportResponseSerializer
+from restapi.serializers.generic import SpreadsheetImportResponseSerializer
 from restapi.serializers.models import (
     CartItemSerializer,
     CartSerializer,
@@ -72,7 +72,7 @@ from restapi.serializers.models import (
     WorkspaceElementSerializer,
     WorkspaceSerializer,
 )
-from restapi.viewsets import ExcelImportActionMixin, JSONLExportMixin, KoraViewSet
+from restapi.viewsets import JSONLExportMixin, KoraViewSet, SpreadsheetImportActionMixin
 
 from .filters import (
     CropFilter,
@@ -109,12 +109,12 @@ class PlantSpeciesViewSet(KoraViewSet):
 
 
 @document_bulk_create(PlantVarietySerializer, name="plant varieties")
-class PlantVarietyViewSet(ExcelImportActionMixin, KoraViewSet):
+class PlantVarietyViewSet(SpreadsheetImportActionMixin, KoraViewSet):
     queryset = PlantVariety.objects.all().select_related("species").prefetch_related("names").order_by("created_at")
     serializer_class = PlantVarietySerializer
     filterset_class = PlantVarietyFilter
 
-    def perform_excel_import_create(self, objs):
+    def perform_spreadsheet_import_create(self, objs):
         with transaction.atomic():
             created = PlantVariety.objects.bulk_create(
                 [obj for obj in objs if obj],
@@ -126,9 +126,9 @@ class PlantVarietyViewSet(ExcelImportActionMixin, KoraViewSet):
             )
         return len(created)
 
-    @extend_schema(responses=ExcelImportResponseSerializer)
+    @extend_schema(responses=SpreadsheetImportResponseSerializer)
     @action(detail=False, methods=["post"], serializer_class=PlantVarietyImportRequestSerializer)
-    def excel_import(self, request):
+    def spreadsheet_import(self, request):
         """Import varieties from a spreadsheet file.
 
         Supported file formats are CSV, XLS, XLSX, and ODS. The first
@@ -147,22 +147,22 @@ class PlantVarietyViewSet(ExcelImportActionMixin, KoraViewSet):
         ``species_id`` already exists. Existing varieties are not updated.
         To create another variety with the same name, use the user interface.
         """
-        return super().excel_import(request)
+        return super().spreadsheet_import(request)
 
 
 @document_bulk_create(EntitySerializer, name="entities")
-class EntityViewSet(ExcelImportActionMixin, KoraViewSet):
+class EntityViewSet(SpreadsheetImportActionMixin, KoraViewSet):
     queryset = Entity.objects.all()
     serializer_class = EntitySerializer
     filterset_class = EntityFilter
 
-    def perform_excel_import_create(self, objs):
+    def perform_spreadsheet_import_create(self, objs):
         created = Entity.objects.bulk_create([obj for obj in objs if obj], batch_size=1000)
         return len(created)
 
-    @extend_schema(responses=ExcelImportResponseSerializer)
+    @extend_schema(responses=SpreadsheetImportResponseSerializer)
     @action(detail=False, methods=["post"], serializer_class=EntityImportRequestSerializer)
-    def excel_import(self, request):
+    def spreadsheet_import(self, request):
         """Import entities from a spreadsheet file.
 
         Supported file formats are CSV, XLS, XLSX, and ODS. The first
@@ -185,7 +185,7 @@ class EntityViewSet(ExcelImportActionMixin, KoraViewSet):
         Existing entities are not updated. Semicolons in ``name`` are treated
         as part of a single entity name.
         """
-        return super().excel_import(request)
+        return super().spreadsheet_import(request)
 
 
 class ProtectionTypeViewSet(viewsets.ModelViewSet):
@@ -195,7 +195,7 @@ class ProtectionTypeViewSet(viewsets.ModelViewSet):
 
 
 @document_bulk_create(ProtectionSerializer, name="protections")
-class ProtectionViewSet(ExcelImportActionMixin, KoraViewSet):
+class ProtectionViewSet(SpreadsheetImportActionMixin, KoraViewSet):
     serializer_class = ProtectionSerializer
     filterset_class = ProtectionFilter
 
@@ -205,7 +205,7 @@ class ProtectionViewSet(ExcelImportActionMixin, KoraViewSet):
             Prefetch("applicants", queryset=entity_qs), Prefetch("maintainers", queryset=entity_qs)
         )
 
-    def perform_excel_import_create(self, objs):
+    def perform_spreadsheet_import_create(self, objs):
         valid_objs = [(obj, apps, mains) for obj, apps, mains in objs if obj]
 
         with transaction.atomic():
@@ -231,9 +231,9 @@ class ProtectionViewSet(ExcelImportActionMixin, KoraViewSet):
 
         return len(protections)
 
-    @extend_schema(responses=ExcelImportResponseSerializer)
+    @extend_schema(responses=SpreadsheetImportResponseSerializer)
     @action(detail=False, methods=["post"], serializer_class=ProtectionImportRequestSerializer)
-    def excel_import(self, request):
+    def spreadsheet_import(self, request):
         """Import protections from a spreadsheet file.
 
         Supported file formats are CSV, XLS, XLSX, and ODS. The first
@@ -276,7 +276,7 @@ class ProtectionViewSet(ExcelImportActionMixin, KoraViewSet):
         ``country`` already exists are skipped and are not updated.
 
         """
-        return super().excel_import(request)
+        return super().spreadsheet_import(request)
 
 
 @document_bulk_create(ProtocolSerializer, name="protocols")
@@ -301,12 +301,12 @@ class StateViewSet(KoraViewSet):
 
 
 @document_bulk_create(DescriptionSerializer, name="descriptions")
-class DescriptionViewSet(ExcelImportActionMixin, KoraViewSet):
+class DescriptionViewSet(SpreadsheetImportActionMixin, KoraViewSet):
     serializer_class = DescriptionSerializer
     queryset = Description.objects.select_related("variety__species", "protocol", "label").all()
     filterset_class = DescriptionFilter
 
-    def perform_excel_import_create(self, objs):
+    def perform_spreadsheet_import_create(self, objs):
         with transaction.atomic():
             descriptions = [description for description, _ in objs]
             Description.objects.bulk_create(descriptions, batch_size=1000)
@@ -320,9 +320,9 @@ class DescriptionViewSet(ExcelImportActionMixin, KoraViewSet):
             )
         return len(descriptions)
 
-    @extend_schema(responses=ExcelImportResponseSerializer)
+    @extend_schema(responses=SpreadsheetImportResponseSerializer)
     @action(detail=False, methods=["post"], serializer_class=DescriptionImportRequestSerializer)
-    def excel_import(self, request):
+    def spreadsheet_import(self, request):
         """Import variety descriptions from a spreadsheet file.
 
         Supported file formats are CSV, XLS, XLSX, and ODS. The first
@@ -352,7 +352,7 @@ class DescriptionViewSet(ExcelImportActionMixin, KoraViewSet):
         the same ``variety_name`` and ``label_name`` within one file are
         reported as errors and the whole import fails.
         """
-        return super().excel_import(request)
+        return super().spreadsheet_import(request)
 
 
 @document_bulk_create(ExpressionSerializer, name="expressions")
@@ -644,7 +644,7 @@ class WorkspaceElementViewSet(KoraViewSet):
         serializer.save(workspace=self.get_workspace())
 
 
-class CropViewSet(ExcelImportActionMixin, JSONLExportMixin, viewsets.ModelViewSet):
+class CropViewSet(SpreadsheetImportActionMixin, JSONLExportMixin, viewsets.ModelViewSet):
     permission_classes = [KoraModelPermissions]
     serializer_class = CropSerializer
     queryset = Crop.objects.select_related("variety__species", "layout__location")
@@ -656,13 +656,13 @@ class CropViewSet(ExcelImportActionMixin, JSONLExportMixin, viewsets.ModelViewSe
             return queryset.mutable()
         return queryset
 
-    def perform_excel_import_create(self, objs):
+    def perform_spreadsheet_import_create(self, objs):
         created = Crop.objects.bulk_create(objs)
         return len(created)
 
-    @extend_schema(responses=ExcelImportResponseSerializer)
+    @extend_schema(responses=SpreadsheetImportResponseSerializer)
     @action(detail=False, methods=["post"], serializer_class=CropImportRequestSerializer)
-    def excel_import(self, request):
+    def spreadsheet_import(self, request):
         """Import crops from a spreadsheet file.
 
         Supported file formats are CSV, XLS, XLSX, and ODS. The first
@@ -681,4 +681,4 @@ class CropViewSet(ExcelImportActionMixin, JSONLExportMixin, viewsets.ModelViewSe
         - ``notes`` (text): notes related to the crop;
 
         """
-        return super().excel_import(request)
+        return super().spreadsheet_import(request)

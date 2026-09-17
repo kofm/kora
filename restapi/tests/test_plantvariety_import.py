@@ -17,10 +17,7 @@ class PlantVarietyImportTest(APITestCase):
         self.client = APIClient()
         self.user = User.objects.create_user(username="testuser", password="testpass")
         self.user.user_permissions.add(
-            *[
-                Permission.objects.get(codename=codename)
-                for codename in ("add_plantvariety", "add_plantvarietyname")
-            ]
+            *[Permission.objects.get(codename=codename) for codename in ("add_plantvariety", "add_plantvarietyname")]
         )
         self.client.login(username="testuser", password="testpass")
         self.species = PlantSpeciesFactory(id=1, common_name="Tomato")
@@ -58,7 +55,7 @@ class PlantVarietyImportTest(APITestCase):
         )
 
         response = self.client.post(
-            reverse("restapi:plantvariety-excel-import"),
+            reverse("restapi:plantvariety-spreadsheet-import"),
             {"file": uploaded_file},
             format="multipart",
         )

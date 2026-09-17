@@ -68,7 +68,7 @@ def layout_detail(request, pk):
         actions.append(
             HeaderAction(
                 label="Import Crops",
-                url=reverse("restapi:crops-excel-import"),
+                url=reverse("restapi:crops-spreadsheet-import"),
                 permission="calculator.add_crop",
             )
         )

@@ -19,10 +19,7 @@ class DescriptionImportTest(APITestCase):
         self.client = APIClient()
         self.user = User.objects.create_user(username="testuser", password="testpass")
         self.user.user_permissions.add(
-            *[
-                Permission.objects.get(codename=codename)
-                for codename in ("add_description", "add_expression")
-            ]
+            *[Permission.objects.get(codename=codename) for codename in ("add_description", "add_expression")]
         )
         self.client.login(username="testuser", password="testpass")
 
@@ -45,14 +42,10 @@ class DescriptionImportTest(APITestCase):
         data = {"file": uploaded_file, "validate_only": validate_only}
         if protocol_id is not None:
             data["protocol_id"] = protocol_id
-        return self.client.post(reverse("restapi:descriptions-excel-import"), data, format="multipart")
+        return self.client.post(reverse("restapi:descriptions-spreadsheet-import"), data, format="multipart")
 
     def test_import_creates_descriptions_and_expressions(self):
-        csv_content = (
-            "variety_name,label_name,notes,1,2\n"
-            "antano,Official,Early maturing,1,1\n"
-            "antano,,No label,2,\n"
-        )
+        csv_content = "variety_name,label_name,notes,1,2\nantano,Official,Early maturing,1,1\nantano,,No label,2,\n"
 
         response = self.post_csv(csv_content, protocol_id=self.protocol.pk)
 
@@ -96,11 +89,7 @@ class DescriptionImportTest(APITestCase):
         self.assertEqual(Expression.objects.count(), 0)
 
     def test_duplicate_rows_in_file_fail_whole_import(self):
-        csv_content = (
-            "variety_name,label_name,1\n"
-            "antano,Official,1\n"
-            "antano,Official,2\n"
-        )
+        csv_content = "variety_name,label_name,1\nantano,Official,1\nantano,Official,2\n"
 
         response = self.post_csv(csv_content, protocol_id=self.protocol.pk)
 
@@ -185,7 +174,7 @@ class DescriptionImportTest(APITestCase):
         )
 
         response = self.client.post(
-            reverse("restapi:descriptions-excel-import"),
+            reverse("restapi:descriptions-spreadsheet-import"),
             {"file": uploaded_file},
             format="multipart",
         )

@@ -615,7 +615,7 @@ class ArchivedLayoutAPITests(APITestCase):
             with self.subTest(validate_only=validate_only):
                 uploaded_file = SimpleUploadedFile("crops.csv", csv_content, content_type="text/csv")
                 response = self.client.post(
-                    reverse("restapi:crops-excel-import"),
+                    reverse("restapi:crops-spreadsheet-import"),
                     {"file": uploaded_file, "validate_only": validate_only},
                 )
 

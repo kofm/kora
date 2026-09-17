@@ -11,7 +11,7 @@ from register.serializers import ProtectionImportRequestSerializer, ProtectionIm
 FIXTURE_PATH = Path(__file__).parent / "fixtures"
 
 
-class ProtectionExcelImportTest(APITestCase):
+class ProtectionSpreadsheetImportTest(APITestCase):
     def setUp(self):
         self.species = PlantSpeciesFactory(id=1)
         self.variety = PlantVarietyFactory(species=self.species)

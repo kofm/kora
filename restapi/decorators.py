@@ -1,6 +1,6 @@
 from drf_spectacular.utils import extend_schema, extend_schema_view
 
-from restapi.serializers.generic import BaseSpreadsheetImportRequestSerializer, ExcelImportResponseSerializer
+from restapi.serializers.generic import BaseSpreadsheetImportRequestSerializer, SpreadsheetImportResponseSerializer
 
 
 def document_bulk_create(serializer_class, *, name=None):
@@ -39,18 +39,18 @@ def document_idempotent_target_create(serializer_class):
     )
 
 
-def document_excel_import(*, name=None, description=None):
-    summary = f"Import {name} from an Excel table" if name else "Import from an Excel table"
+def document_spreadsheet_import(*, name=None, description=None):
+    summary = f"Import {name} from tabular data" if name else "Import from tabular data"
 
     def decorator(cls):
-        cls.excel_import_description = description
+        cls.spreadsheet_import_description = description
 
         schema_decorator = extend_schema_view(
-            excel_import=extend_schema(
+            spreadsheet_import=extend_schema(
                 summary=summary,
                 description=description,
                 request={"multipart/form-data": BaseSpreadsheetImportRequestSerializer},
-                responses=ExcelImportResponseSerializer,
+                responses=SpreadsheetImportResponseSerializer,
             )
         )
 
