@@ -28,7 +28,7 @@ class ProtocolManager(models.Manager):
 
 
 class Protocol(ModelIsDeletableMixin, models.Model):
-    """A Protocol is a list of descriptors (Trait)."""
+    """A Protocol is a list of traits."""
 
     name = models.CharField(max_length=200, help_text="the name of the protocol")
     plantspecies = models.ForeignKey(
@@ -224,7 +224,7 @@ class Trait(models.Model):
                 "numeric_id",
                 "protocol",
                 name="unique_numeric_id_per_protocol",
-                violation_error_message="Each protocol must have unique Descriptor IDs. This one is already used.",
+                violation_error_message="Each protocol must have unique Trait IDs. This one is already used.",
             )
         ]
 

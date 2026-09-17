@@ -149,7 +149,7 @@ def render_icon(value):
 class PlantVarietyTable(tables.Table):
     name = tables.Column(linkify=True)
     described = tables.Column(empty_values=(), verbose_name="Described", orderable=False)
-    accessions = tables.Column(empty_values=(), verbose_name="Accessions", orderable=False)
+    samples = tables.Column(empty_values=(), verbose_name="Samples", orderable=False)
 
     class Meta:
         model = PlantVariety
@@ -160,6 +160,6 @@ class PlantVarietyTable(tables.Table):
         described = Description.objects.filter(variety=record).exists()
         return render_icon(described)
 
-    def render_accessions(self, record):
-        accessions = Sample.objects.filter(variety=record).exists()
-        return render_icon(accessions)
+    def render_samples(self, record):
+        samples = Sample.objects.filter(variety=record).exists()
+        return render_icon(samples)

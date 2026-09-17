@@ -50,10 +50,10 @@ class BaseSampleTable(tables.Table):
 
 
 class SampleTable(BaseSampleTable):
-    """Extension of the SampleBaseTable for the Accession List.
+    """Extension of the SampleBaseTable for the Sample List.
 
     It uses HTMX for dynamic content display. See the template for
-    details.  It also has (HTMX) action buttons to add Accessions to
+    details.  It also has (HTMX) action buttons to add Samples to
     the selected cart.
     """
 
@@ -78,10 +78,10 @@ class SampleTable(BaseSampleTable):
 
 
 class DiscardedSampleTable(BaseSampleTable):
-    """Extension of the SampleBaseTable for the Accession List.
+    """Extension of the SampleBaseTable for the Sample List.
 
     It uses HTMX for dynamic content display. See the template for
-    details.  It also has (HTMX) action buttons to add Accessions to
+    details.  It also has (HTMX) action buttons to add Samples to
     the selected cart.
     """
 

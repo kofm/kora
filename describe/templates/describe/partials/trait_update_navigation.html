@@ -11,7 +11,7 @@
         </a>
     </li>
 </ul>
-<h5>Descriptors</h5>
+<h5>Traits</h5>
 <ul class="nav nav-pills p-1 d-flex flex-column">
     {% for trait in protocol.traits.all %}
         <li class="nav-item">
@@ -28,5 +28,5 @@
 </ul>
 
 {% if not protocol.traits.all %}
-    <p class="text-muted fs-6">No descriptors, yet.</p>
+    <p class="text-muted fs-6">No traits, yet.</p>
 {% endif %}

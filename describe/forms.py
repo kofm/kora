@@ -42,7 +42,7 @@ class TraitForm(forms.ModelForm):
             "description": BootstrapTextInput(
                 attrs={
                     "placeholder": "Description",
-                    "aria-describedby": "descriptorHelp",
+                    "aria-describedby": "traitHelp",
                 }
             ),
             "grouping": forms.CheckboxInput(attrs={"class": "form-check-input"}),
