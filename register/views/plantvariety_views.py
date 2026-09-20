@@ -23,7 +23,7 @@ from breadcrumbs.utils import (
 from calculator.models import Crop
 from collect.models import Sample
 from describe.models import Description
-from frontpage.headers import DetailHeader
+from frontpage.headers import DetailHeader, HeaderAction, ListHeader
 from frontpage.utils.htmx import htmx_response_redirect
 from frontpage.views_decorators import (
     NavPlantActiveContext,
@@ -192,11 +192,22 @@ def plantvariety_list(request):
         )
     )
 
+    actions = []
+    actions.append(
+        HeaderAction(
+            label="Import Varieties",
+            url=reverse("restapi:plantvariety-spreadsheet-import"),
+            permission="calculator.add_plantvariety",
+        )
+    )
+    header = ListHeader(request, PlantVariety, modal=True, actions=actions)
+
     context = {
         "filter": flt,
         "page_obj": page_obj,
         "order_form": order_form,
         **generate_breadcrumbs(request, PlantVariety),
+        "header": header,
     }
 
     return TemplateResponse(request, "register/plantvariety_list.html", context)
