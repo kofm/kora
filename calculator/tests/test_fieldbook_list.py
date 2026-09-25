@@ -18,7 +18,7 @@ class FieldBookListTests(TestCase):
         cls.layout = CropLayoutFactory(name="Visible layout")
         cls.fieldbook = FieldBookFactory(layout=cls.layout, name="Visible fieldbook")
 
-        species = PlantSpeciesFactory(common_name="Wheat", latin_name="Triticum aestivum")
+        species = PlantSpeciesFactory(common_name="Wheat", botanical_name="Triticum aestivum")
         variety = PlantVarietyFactory(species=species)
         first_crop = CropFactory(layout=cls.layout, variety=variety)
         second_crop = CropFactory(layout=cls.layout, variety=variety)

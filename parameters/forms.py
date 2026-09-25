@@ -16,7 +16,7 @@ class VarietalParameterForm(TomSelectModelFormMixin, forms.ModelForm):
                 url=reverse_lazy("register:plantspecies_autocomplete"),
                 value_field="id",
                 label_field="common_name",
-                search_field=["common_name", "latin_name"],
+                search_field=["common_name", "botanical_name"],
             )
         ),
     )

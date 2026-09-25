@@ -13,7 +13,7 @@
         </ol>
     </nav>
     <h1 class="display-3">{{ description }}</h1>
-    <p class="lead">Reference protocol <a href="{% url 'describe:protocol_detail' description.protocol.id %}">{{ description.protocol.name }}</a> (<i>{{ description.protocol.plantspecies.latin_name }}</i>)</p>
+    <p class="lead">Reference protocol <a href="{% url 'describe:protocol_detail' description.protocol.id %}">{{ description.protocol.name }}</a> (<i>{{ description.protocol.plantspecies.botanical_name }}</i>)</p>
     <form method="post">
         {% csrf_token %}
         <div class="mb-3">

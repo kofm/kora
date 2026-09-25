@@ -122,14 +122,14 @@ class VarietalParameterTable(tables.Table):
 
 class PlantSpeciesTable(tables.Table):
     common_name = tables.Column(linkify=True)
-    latin_name = tables.Column(verbose_name="Latin name")
+    botanical_name = tables.Column(verbose_name="Botanical name")
 
     class Meta:
         model = PlantSpecies
-        fields = ("common_name", "latin_name")
+        fields = ("common_name", "botanical_name")
         order_by = "common_name"
 
-    def render_latin_name(self, value):
+    def render_botanical_name(self, value):
         return format_html("<i>{}</i>", value)
 
 
@@ -153,8 +153,8 @@ class PlantVarietyTable(tables.Table):
 
     class Meta:
         model = PlantVariety
-        fields = ("name", "breeder")
-        empty_text = "No cultivars have been catalogued under this plant species."
+        fields = ("name",)
+        empty_text = "No varieties have been recorded for this species."
 
     def render_described(self, record):
         described = Description.objects.filter(variety=record).exists()

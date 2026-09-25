@@ -3,8 +3,8 @@
 "plantspecies-list" = [
   "id",
   "common_name",
-  "latin_name",
-  "plant_type",
+  "botanical_name",
+  "code",
 ]
 
 "plantvariety-list" = [

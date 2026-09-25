@@ -3,7 +3,6 @@ from datetime import date
 from django.core.validators import RegexValidator
 from django.db import models
 from django.urls.base import reverse
-from django.utils.html import format_html
 from django_countries.fields import CountryField
 
 from frontpage.generic import ModelIsDeletableMixin
@@ -89,14 +88,8 @@ class Entity(ModelIsDeletableMixin, models.Model):
 
 class PlantSpecies(ModelIsDeletableMixin, models.Model):
     common_name = models.CharField(max_length=100, unique=True)
-    latin_name = models.CharField(max_length=100)
-    plant_types = (
-        ("tree", "Tree"),
-        ("shrub", "Shrub"),
-        ("vegetable", "Vegetable"),
-        ("herbaceous", "Herbaceous"),
-    )
-    plant_type = models.CharField(max_length=100, choices=plant_types)
+    botanical_name = models.CharField(max_length=100)
+    code = models.CharField(max_length=64, blank=True)
 
     class Meta:
         ordering = ("common_name",)
@@ -104,7 +97,7 @@ class PlantSpecies(ModelIsDeletableMixin, models.Model):
         verbose_name_plural = "plant species"
 
     def __str__(self):
-        return format_html("{} (<i>{}</i>)", self.common_name, self.latin_name)
+        return self.common_name
 
     def get_absolute_url(self):
         return reverse("register:plantspecies_detail", args=[self.pk])

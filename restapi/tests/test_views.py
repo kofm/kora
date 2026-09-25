@@ -147,20 +147,39 @@ class APITests(APITestCase):
         self.assertEqual(len(results), 1)
         self.assertEqual(len(results[0]["description_detail"]["expressions"]), 3)
 
+    def test_create_and_read_plant_species_code(self):
+        response = self.client.post(
+            reverse("restapi:plantspecies-list"),
+            {"common_name": "Rye", "botanical_name": "Secale cereale", "code": "RYE"},
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data["code"], "RYE")
+        species_id = response.data["id"]
+        self.assertEqual(self.client.get(reverse("restapi:plantspecies-detail", args=[species_id])).data["code"], "RYE")
+
+        response = self.client.post(
+            reverse("restapi:plantspecies-list"),
+            {"common_name": "Rice", "botanical_name": "Oryza sativa"},
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data["code"], "")
+
     def test_bulk_create_plant_species(self):
-        species = (("Rye", "Secale cereale"), ("Rice", "Oryza sativa"))
         data = [
-            {
-                "common_name": common_name,
-                "latin_name": latin_name,
-                "plant_type": "herbaceous",
-            }
-            for common_name, latin_name in species
+            {"common_name": "Rye", "botanical_name": "Secale cereale", "code": "RYE"},
+            {"common_name": "Rice", "botanical_name": "Oryza sativa"},
         ]
         response = self.client.post(reverse("restapi:plantspecies-bulk"), data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        common_names = [item["common_name"] for item in response.data]
-        self.assertCountEqual(common_names, [item[0] for item in species])
+        self.assertEqual(
+            {item["common_name"]: item["code"] for item in response.data},
+            {"Rye": "RYE", "Rice": ""},
+        )
+        for item in response.data:
+            self.assertEqual(
+                self.client.get(reverse("restapi:plantspecies-detail", args=[item["id"]])).data["code"],
+                item["code"],
+            )
 
     def test_bulk_create_entities(self):
         names = ("Mr. White", "MegaCorp")
@@ -254,7 +273,7 @@ class SharedModelAPIPermissionTests(APITestCase):
         list_response = self.client.get(reverse("restapi:plantspecies-list"))
         create_response = self.client.post(
             reverse("restapi:plantspecies-list"),
-            {"common_name": "Rye", "latin_name": "Secale cereale", "plant_type": "herbaceous"},
+            {"common_name": "Rye", "botanical_name": "Secale cereale"},
         )
 
         self.assertEqual(list_response.status_code, status.HTTP_403_FORBIDDEN)
@@ -305,7 +324,7 @@ class CalculatorAPIPermissionTests(APITestCase):
         self.crop.refresh_from_db()
         self.assertEqual(self.crop.variety, same_species_variety)
 
-        other_species = PlantSpeciesFactory(common_name="Rice", latin_name="Oryza sativa")
+        other_species = PlantSpeciesFactory(common_name="Rice", botanical_name="Oryza sativa")
         other_species_variety = PlantVarietyFactory(species=other_species)
         response = self.client.patch(update_url, {"variety": other_species_variety.pk})
 

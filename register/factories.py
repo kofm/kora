@@ -8,13 +8,13 @@ from factory.fuzzy import FuzzyText
 from register.models import Entity, PlantSpecies, PlantVariety, PlantVarietyName, Protection, ProtectionType
 
 PLANT_SPECIES = [
-    ("Tomato", "Solanum lycopersicum", "vegetable"),
-    ("Wheat", "Triticum aestivum", "herbaceous"),
-    ("Olive", "Olea europaea", "tree"),
-    ("Rose", "Rosa spp.", "shrub"),
-    ("Mint", "Mentha spicata", "herbaceous"),
-    ("Maize", "Zea mays", "vegetable"),
-    ("Pea", "Pisum sativum", "herbaceous"),
+    ("Tomato", "Solanum lycopersicum"),
+    ("Wheat", "Triticum aestivum"),
+    ("Olive", "Olea europaea"),
+    ("Rose", "Rosa spp."),
+    ("Mint", "Mentha spicata"),
+    ("Maize", "Zea mays"),
+    ("Pea", "Pisum sativum"),
 ]
 
 
@@ -24,8 +24,7 @@ class PlantSpeciesFactory(DjangoModelFactory):
         django_get_or_create = ("common_name",)
 
     common_name = Iterator([species[0] for species in PLANT_SPECIES])
-    latin_name = Iterator([species[1] for species in PLANT_SPECIES])
-    plant_type = Iterator([species[2] for species in PLANT_SPECIES])
+    botanical_name = Iterator([species[1] for species in PLANT_SPECIES])
 
 
 class PlantVarietyFactory(DjangoModelFactory):

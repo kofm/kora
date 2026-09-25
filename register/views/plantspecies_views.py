@@ -17,7 +17,7 @@ from register.tables import PlantVarietyTable
 
 class PlantSpeciesCreate(PermissionRequiredMixin, NavPlantActiveContext, CreateView):
     model = PlantSpecies
-    fields = ("common_name", "latin_name", "plant_type")
+    fields = ("common_name", "botanical_name", "code")
     template_name = "frontpage/modal_form.html"
     permission_required = ["register.add_plantspecies"]
 
@@ -59,7 +59,7 @@ class PlantSpeciesDetailView(crumbs.DetailBreadcrumbsMixin, NavPlantActiveContex
 
 class PlantSpeciesUpdateView(PermissionRequiredMixin, crumbs.UpdateBreadcrumbsMixin, NavPlantActiveContext, UpdateView):
     model = PlantSpecies
-    fields = ("common_name", "latin_name", "plant_type")
+    fields = ("common_name", "botanical_name", "code")
     template_name = "frontpage/_update_form.html"
     permission_required = ["register.change_plantspecies"]
 

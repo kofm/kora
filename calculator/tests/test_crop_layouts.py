@@ -31,8 +31,7 @@ class CropModelParameterTests(TestCase):
     def test_parameter_is_resolved_from_variety(self):
         species = PlantSpeciesFactory(
             common_name="Wheat",
-            latin_name="Triticum",
-            plant_type="herbaceous",
+            botanical_name="Triticum",
         )
         variety = PlantVarietyFactory(name="A", species=species)
         crop = CropFactory(
@@ -63,13 +62,11 @@ class ObservationIntegrityTests(TestCase):
         cls.other_layout = CropLayoutFactory(location=cls.location, name="Other")
         cls.species = PlantSpeciesFactory(
             common_name="Wheat",
-            latin_name="Triticum",
-            plant_type="herbaceous",
+            botanical_name="Triticum",
         )
         cls.other_species = PlantSpeciesFactory(
             common_name="Rice",
-            latin_name="Oryza",
-            plant_type="herbaceous",
+            botanical_name="Oryza",
         )
         cls.variety = PlantVarietyFactory(name="A", species=cls.species)
         cls.other_variety = PlantVarietyFactory(name="B", species=cls.other_species)
@@ -122,8 +119,7 @@ class CalculatorPermissionTests(TestCase):
         cls.layout = CropLayoutFactory(location=location, name="Layout")
         species = PlantSpeciesFactory(
             common_name="Wheat",
-            latin_name="Triticum",
-            plant_type="herbaceous",
+            botanical_name="Triticum",
         )
         variety = PlantVarietyFactory(name="A", species=species)
         cls.crop = CropFactory(layout=cls.layout, variety=variety)
@@ -211,13 +207,11 @@ class TraitTargetCreateViewTests(TestCase):
         cls.other_layout = CropLayoutFactory(location=cls.location, name="Other layout")
         cls.wheat = PlantSpeciesFactory(
             common_name="Wheat",
-            latin_name="Triticum",
-            plant_type="herbaceous",
+            botanical_name="Triticum",
         )
         cls.rice = PlantSpeciesFactory(
             common_name="Rice",
-            latin_name="Oryza",
-            plant_type="herbaceous",
+            botanical_name="Oryza",
         )
         cls.wheat_variety = PlantVarietyFactory(name="Wheat variety", species=cls.wheat)
         cls.rice_variety = PlantVarietyFactory(name="Rice variety", species=cls.rice)
@@ -304,8 +298,7 @@ class TargetDeleteViewTests(TestCase):
         cls.layout = CropLayoutFactory(name="Layout")
         cls.species = PlantSpeciesFactory(
             common_name="Wheat",
-            latin_name="Triticum",
-            plant_type="herbaceous",
+            botanical_name="Triticum",
         )
         cls.variety = PlantVarietyFactory(name="Wheat variety", species=cls.species)
         cls.crop = CropFactory(layout=cls.layout, variety=cls.variety)
@@ -358,8 +351,7 @@ class CropLayoutViewTests(TestCase):
         cls.archived.archive()
         cls.species = PlantSpeciesFactory(
             common_name="Wheat",
-            latin_name="Triticum",
-            plant_type="herbaceous",
+            botanical_name="Triticum",
         )
         cls.variety = PlantVarietyFactory(name="Variety", species=cls.species)
 
@@ -517,7 +509,7 @@ class CropLayoutViewTests(TestCase):
         crop.refresh_from_db()
         self.assertEqual(crop.variety, same_species_variety)
 
-        other_species = PlantSpeciesFactory(common_name="Rice", latin_name="Oryza sativa")
+        other_species = PlantSpeciesFactory(common_name="Rice", botanical_name="Oryza sativa")
         other_species_variety = PlantVarietyFactory(species=other_species)
         response = self.client.post(update_url, {"variety": other_species_variety.pk, "notes": "Invalid"})
 
@@ -564,8 +556,7 @@ class FieldBookTargetDeleteViewTests(TestCase):
         cls.layout = CropLayoutFactory(name="Layout")
         cls.species = PlantSpeciesFactory(
             common_name="Wheat",
-            latin_name="Triticum",
-            plant_type="herbaceous",
+            botanical_name="Triticum",
         )
         cls.variety = PlantVarietyFactory(name="Wheat variety", species=cls.species)
         cls.first_crop = CropFactory(layout=cls.layout, variety=cls.variety, order=0)
@@ -737,8 +728,7 @@ class ArchivedLayoutReadOnlyTests(TestCase):
         cls.layout = CropLayoutFactory(name="Archived layout", ncol=2)
         cls.species = PlantSpeciesFactory(
             common_name="Wheat",
-            latin_name="Triticum aestivum",
-            plant_type="herbaceous",
+            botanical_name="Triticum aestivum",
         )
         cls.variety = PlantVarietyFactory(name="Archive variety", species=cls.species)
         cls.other_variety = PlantVarietyFactory(name="Other variety", species=cls.species)

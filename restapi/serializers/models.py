@@ -32,7 +32,7 @@ from restapi.serializers.generic import BulkModelSerializer
 class PlantSpeciesSerializer(BulkModelSerializer):
     class Meta(BulkModelSerializer.Meta):
         model = PlantSpecies
-        fields = ("id", "common_name", "latin_name", "plant_type")
+        fields = ("id", "common_name", "botanical_name", "code")
 
 
 class PlantVarietyNameSerializer(BulkModelSerializer):
@@ -162,7 +162,7 @@ class TraitSerializer(BulkModelSerializer):
 
 class DescriptionSerializer(BulkModelSerializer):
     variety_name = serializers.CharField(source="variety.name", read_only=True)
-    species = serializers.CharField(source="variety.species.latin_name", read_only=True)
+    species = serializers.CharField(source="variety.species.botanical_name", read_only=True)
     protocol_name = serializers.CharField(source="protocol.name", read_only=True)
     label_name = serializers.CharField(source="label.name", read_only=True)
 

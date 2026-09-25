@@ -19,8 +19,8 @@ class TraitObservationListTests(TestCase):
         cls.user.user_permissions.add(Permission.objects.get(codename="view_traitobservation"))
         cls.url = reverse("calculator:trait_observation_list")
 
-        cls.wheat = PlantSpeciesFactory(common_name="Wheat", latin_name="Triticum", plant_type="herbaceous")
-        cls.rice = PlantSpeciesFactory(common_name="Rice", latin_name="Oryza", plant_type="herbaceous")
+        cls.wheat = PlantSpeciesFactory(common_name="Wheat", botanical_name="Triticum")
+        cls.rice = PlantSpeciesFactory(common_name="Rice", botanical_name="Oryza")
         cls.wheat_variety = PlantVarietyFactory(name="Wheat A", species=cls.wheat)
         cls.other_wheat_variety = PlantVarietyFactory(name="Wheat B", species=cls.wheat)
         cls.unselected_wheat_variety = PlantVarietyFactory(name="Wheat C", species=cls.wheat)

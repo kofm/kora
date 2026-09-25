@@ -6,8 +6,8 @@ from register.models import Entity, PlantSpecies, PlantVariety
 
 class PlantSpeciesAutocompleteView(AutocompleteModelView):
     model = PlantSpecies
-    search_fields = ["common_name", "latin_name"]
-    value_fields = ["id", "common_name", "latin_name"]
+    search_fields = ["common_name", "botanical_name"]
+    value_fields = ["id", "common_name", "botanical_name"]
     ordering = ["-num_var", "common_name"]
 
     def hook_queryset(self, queryset):

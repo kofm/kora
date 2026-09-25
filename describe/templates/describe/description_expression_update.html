@@ -22,7 +22,7 @@
 	<h1 class="mb-0">
 	  {{ description.variety.name }}
 	</h1>
-	<p class="lead"><span class="badge rounded-pill {{ description.label.colour_class }} me-2">{{ description.label }}</span> Reference protocol <a href="{% url 'describe:protocol_detail' description.protocol.id %}">{{ description.protocol.name }}</a> (<i>{{ description.protocol.plantspecies.latin_name }}</i>)</p>
+	<p class="lead"><span class="badge rounded-pill {{ description.label.colour_class }} me-2">{{ description.label }}</span> Reference protocol <a href="{% url 'describe:protocol_detail' description.protocol.id %}">{{ description.protocol.name }}</a> (<i>{{ description.protocol.plantspecies.botanical_name }}</i>)</p>
         <p class="lead">{{ description.notes|default_if_none:"&nbsp;" }}</p>
       </div>
     </div>

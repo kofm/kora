@@ -34,14 +34,13 @@ class NumberInFilter(django_filters.BaseInFilter, django_filters.NumberFilter):
 
 class PlantSpeciesFilter(FilterSet):
     common_name__icontains = CharFilter(field_name="common_name", lookup_expr="icontains")
-    latin_name__icontains = CharFilter(field_name="latin_name", lookup_expr="icontains")
+    botanical_name__icontains = CharFilter(field_name="botanical_name", lookup_expr="icontains")
 
     class Meta:
         model = PlantSpecies
         fields = (
             "common_name__icontains",
-            "latin_name__icontains",
-            "plant_type",
+            "botanical_name__icontains",
         )
 
 

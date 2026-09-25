@@ -10,6 +10,11 @@
   {% list_page_header "register.PlantSpecies" modal=True %}
 {% endblock %}
 
+{% partialdef card_subtitle %}
+<em>{{ species.botanical_name }}</em>
+{% if species.code %}<small>{{ species.code }}</small>{% endif %}
+{% endpartialdef %}
+
 {% block main_div %}
   <div id="results" class="col-lg-9">
     {% block cards %}
@@ -23,8 +28,8 @@
 		<h5 class="card-title text-truncate p-1">
 		  <a class="link-body-emphasis text-decoration-none" href="{{ species.get_absolute_url }}">{{ species.common_name }}</a>
 		</h5>
-		<small class="card-subtitle text-truncate">
-		  <em>{{ species.latin_name }}</em>
+		<small class="card-subtitle text-truncate d-flex flex-column">
+		  {% partial card_subtitle %}
 		</small>
 	      </div>
 	    </div>

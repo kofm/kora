@@ -204,7 +204,8 @@ class PlantSpeciesFilter(FilterSet):
 
     def omni_search(self, queryset, name, value):
         query = Q(common_name__icontains=value)
-        query |= Q(latin_name__icontains=value)
+        query |= Q(botanical_name__icontains=value)
+        query |= Q(code__icontains=value)
         return queryset.filter(query)
 
 
@@ -218,7 +219,7 @@ class PlantVarietyFilter(FilterSet):
                 search_param="common_name__icontains",
                 value_field="id",
                 label_field="common_name",
-                search_field=["common_name", "latin_name"],
+                search_field=["common_name", "botanical_name"],
                 preload="true",
             )
         ),

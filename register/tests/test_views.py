@@ -16,7 +16,7 @@ from register.factories import (
     ProtectionTypeFactory,
 )
 from register.filters import TRIGRAM_SEARCH_THRESHOLD, PlantVarietyFilter, filter_name_generic
-from register.models import PlantVariety
+from register.models import PlantSpecies, PlantVariety
 
 
 class RegisterViewsSmokeTest(ViewSmokeTestMixin, TestCase):
@@ -59,6 +59,37 @@ class RegisterViewsSmokeTest(ViewSmokeTestMixin, TestCase):
     def test_protection_type_instance_views(self):
         self.assert_get(["protection_type_update"], [self.protection_type.pk])
         self.assert_post(["protection_type_delete"], [self.protection_type.pk], status_code=302)
+
+
+class PlantSpeciesFormTests(TestCase):
+    def setUp(self):
+        self.user = UserFactory(is_staff=True, is_superuser=True)
+        self.client.force_login(self.user)
+
+    def test_create_and_update_persist_code(self):
+        response = self.client.post(
+            reverse("register:plantspecies_create"),
+            {"common_name": "Rye", "botanical_name": "Secale cereale", "code": "RYE"},
+        )
+        self.assertEqual(response.status_code, 200)
+        species = PlantSpecies.objects.get(common_name="Rye")
+        self.assertEqual(species.code, "RYE")
+
+        response = self.client.post(
+            reverse("register:plantspecies_update", args=[species.pk]),
+            {"common_name": "Rye", "botanical_name": "Secale cereale", "code": "SEC"},
+        )
+        self.assertEqual(response.status_code, 302)
+        species.refresh_from_db()
+        self.assertEqual(species.code, "SEC")
+
+    def test_create_without_code(self):
+        response = self.client.post(
+            reverse("register:plantspecies_create"),
+            {"common_name": "Rye", "botanical_name": "Secale cereale"},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(PlantSpecies.objects.get(common_name="Rye").code, "")
 
 
 class PlantVarietyCreateViewTests(TestCase):
