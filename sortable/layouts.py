@@ -38,18 +38,18 @@ class SortableLayoutMixin:
 
 
 class BaseSortableCardLayout(SortableLayoutMixin, BaseLayout):
-    template_name = "django_sortable_htmx/card_layout.html"
-    item_template_name = "django_sortable_htmx/card_item.html"
+    template_name = "sortable/card_layout.html"
+    item_template_name = "sortable/card_item.html"
 
 
 class BaseSortableGridLayout(SortableLayoutMixin, BaseGridLayout):
-    template_name = "django_sortable_htmx/grid.html"
+    template_name = "sortable/grid.html"
 
 
 class GroupedSortableCardLayout(BaseSortableCardLayout):
-    template_name = "django_sortable_htmx/grouped_card_layout.html"
-    inner_template_name = "django_sortable_htmx/card_layout.html"
-    item_template_name = "django_sortable_htmx/card_item.html"
+    template_name = "sortable/grouped_card_layout.html"
+    inner_template_name = "sortable/card_layout.html"
+    item_template_name = "sortable/card_item.html"
 
     def __init__(self, *args, group_by: str, **kwargs):
         super().__init__(*args, **kwargs)

@@ -12,8 +12,8 @@ from breadcrumbs.utils import add_parent_breadcrumbs, generate_breadcrumbs
 from calculator.forms import CropUpdateForm
 from calculator.models import Crop, CropLayout, ParameterObservation, TraitObservation
 from calculator.tables import ParameterObservationTable, TraitObservationTable
-from django_sortable_htmx.views import SortableView
 from frontpage.headers import DetailHeader
+from sortable.views import SortableView
 
 
 @permission_required("calculator.view_crop", raise_exception=True)

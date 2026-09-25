@@ -17,13 +17,13 @@ from breadcrumbs.generic import (
 from breadcrumbs.utils import generate_breadcrumbs
 from describe.forms import ProtocolMetadataForm, StateFormSet, TraitForm
 from describe.models import Protocol
-from django_sortable_htmx.layouts import GroupedSortableCardLayout
-from django_sortable_htmx.views import SortableView
 from frontpage.views_decorators import (
     NavDescribeActiveContext,
     nav_describe_active_context,
     public_catalog_view,
 )
+from sortable.layouts import GroupedSortableCardLayout
+from sortable.views import SortableView
 
 
 @public_catalog_view("describe.view_protocol")

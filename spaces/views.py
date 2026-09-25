@@ -9,11 +9,11 @@ from django_tables2.config import RequestConfig
 
 from breadcrumbs.utils import generate_breadcrumbs
 from calculator.tables import CropLayoutTable
-from django_sortable_htmx.views import SortableView
 from frontpage.autocomplete import AutocompleteModelView
 from frontpage.headers import DetailHeader, ListHeader
 from frontpage.utils.htmx import htmx_response_redirect, htmx_response_trigger_close_modal
 from frontpage.views_decorators import htmx_render_blocks, is_htmx
+from sortable.views import SortableView
 from spaces.forms import LocationForm
 from spaces.models import Location
 

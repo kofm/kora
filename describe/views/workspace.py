@@ -10,7 +10,7 @@ from django.views.decorators.http import require_POST
 
 from describe.forms import WorkspaceCreateForm, WorkspaceSelectForm, WorkspaceUpdateForm
 from describe.models import Description, Workspace, WorkspaceElement
-from django_sortable_htmx.views import SortableView
+from sortable.views import SortableView
 
 
 @permission_required("describe.view_workspace", raise_exception=True)

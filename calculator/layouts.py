@@ -1,8 +1,8 @@
 from django.urls import reverse
 
 from calculator.models import Step
-from django_sortable_htmx.layouts import BaseSortableGridLayout
 from frontpage.layouts import BaseCardLayout, BaseGridLayout
+from sortable.layouts import BaseSortableGridLayout
 
 
 class CropSortableGrid(BaseSortableGridLayout):

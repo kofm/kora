@@ -29,10 +29,10 @@ from collect.tables import (
     SampleInStorageTable,
     SampleTable,
 )
-from django_sortable_htmx.views import SortableView
 from frontpage.templatetags.components import get_action_url_from_instance, get_permission_from_instance
 from frontpage.utils.htmx import htmx_response_trigger, htmx_response_trigger_close_modal
 from frontpage.views_decorators import htmx_render_blocks
+from sortable.views import SortableView
 
 
 @htmx_render_blocks(["main"])

@@ -18,8 +18,8 @@ from collect.forms import (
     CartUpdateForm,
 )
 from collect.models import Cart, CartItem, CartKind, Sample, SampleWeight
-from django_sortable_htmx.views import SortableView
 from frontpage.utils.htmx import htmx_response_trigger
+from sortable.views import SortableView
 
 CART_SORTING = {
     "variety": "sample__variety__name",

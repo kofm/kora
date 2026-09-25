@@ -47,7 +47,7 @@ INSTALLED_APPS = [
     "calculator.apps.CalculatorConfig",
     "collect.apps.CollectConfig",
     "restapi",
-    "django_sortable_htmx",
+    "sortable",
     "breadcrumbs",
     "render_block",
     "drf_spectacular",
