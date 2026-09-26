@@ -23,10 +23,18 @@ from frontpage.tables import UserTable
 from frontpage.templatetags.components import ListPageHeader
 from frontpage.utils.htmx import htmx_response_trigger
 from frontpage.views_decorators import htmx_render_block_from_params, is_htmx
+from register.models import PlantSpecies
 
 
 def index(request):
-    return TemplateResponse(request, "frontpage/index.html", {"nav_home": "active", "crumbs": None})
+    start_url = (
+        reverse("register:variety_list") if PlantSpecies.objects.exists() else reverse("register:plantspecies_list")
+    )
+    return TemplateResponse(
+        request,
+        "frontpage/index.html",
+        {"nav_home": "active", "crumbs": None, "start_url": start_url},
+    )
 
 
 def _may_manage_user(actor, target):
