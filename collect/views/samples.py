@@ -1,17 +1,16 @@
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.db import transaction
-from django.http import Http404
+from django.http import Http404, HttpResponse, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.response import TemplateResponse
 from django.urls import reverse, reverse_lazy
-from django.views.generic import DetailView, ListView
+from django.views.decorators.http import require_POST
+from django.views.generic import DetailView
 from django_tables2 import RequestConfig
 
-from breadcrumbs.generic import (
-    DetailBreadcrumbsMixin,
-    ListBreadcrumbsMixin,
-)
+from breadcrumbs.generic import DetailBreadcrumbsMixin
 from breadcrumbs.utils import add_plantvariety_breadcrumbs, breadcrumbs_context, generate_breadcrumbs, list_breadcrumb
 from collect.filters import SampleFilter
 from collect.forms import (
@@ -31,7 +30,7 @@ from collect.tables import (
 )
 from frontpage.templatetags.components import get_action_url_from_instance, get_permission_from_instance
 from frontpage.utils.htmx import htmx_response_trigger, htmx_response_trigger_close_modal
-from frontpage.views_decorators import htmx_render_blocks
+from frontpage.views_decorators import htmx_render_blocks, is_htmx
 from sortable.views import SortableView
 
 
@@ -212,10 +211,40 @@ def sample_delete(request, pk):
     return TemplateResponse(request, "collect/sample_confirm_delete.html", context)
 
 
-class StorageListView(PermissionRequiredMixin, ListBreadcrumbsMixin, ListView):
-    model = Storage
-    queryset = Storage.objects.prefetch_related("storageposition_set").with_position_counts().order_by("order", "pk")
-    permission_required = ["collect.view_storage"]
+@permission_required("collect.view_storage", raise_exception=True)
+def storage_list(request):
+    queryset = Storage.objects.with_position_counts().order_by("order", "pk")
+    paginator = Paginator(queryset, 100)
+    page_number = request.GET.get("page", 1)
+    try:
+        page = paginator.page(page_number)
+    except (PageNotAnInteger, EmptyPage) as exc:
+        raise Http404("Invalid page") from exc
+
+    context = {
+        "object_list": page.object_list,
+        "page_obj": page,
+        "is_paginated": page.has_other_pages(),
+    }
+    if is_htmx(request):
+        return TemplateResponse(request, "collect/storage_list.html#cards", context)
+    context.update(generate_breadcrumbs(request, Storage))
+    return TemplateResponse(request, "collect/storage_list.html", context)
+
+
+@require_POST
+@permission_required("collect.change_storage", raise_exception=True)
+def storage_order_move_to_top(request, pk):
+    with transaction.atomic():
+        Storage.objects.lock_priority()
+        get_object_or_404(Storage, pk=pk)
+        ids = list(Storage.objects.values_list("pk", flat=True))
+        Storage.objects.reorder([pk, *(storage_id for storage_id in ids if storage_id != pk)], complete=True)
+
+    url = reverse("collect:storage_list")
+    if request.headers.get("HX-Request"):
+        return htmx_response_trigger(["listChanged"])
+    return redirect(url)
 
 
 class StorageDetailView(PermissionRequiredMixin, DetailBreadcrumbsMixin, DetailView):
@@ -244,13 +273,21 @@ class StorageSortView(PermissionRequiredMixin, SortableView):
     model = Storage
     permission_required = ["collect.change_storage"]
 
+    def post(self, request):
+        try:
+            ids = self._parse_ids(request)
+            Storage.objects.reorder(ids)
+        except ValueError as exc:
+            return HttpResponseBadRequest(str(exc))
+        return HttpResponse()
+
 
 @permission_required("collect.add_storage", raise_exception=True)
 def storage_create(request):
     form = StorageCreateForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
         with transaction.atomic():
-            storage = form.save()
+            storage = Storage.objects.append(form.save(commit=False))
             positions_count = form.cleaned_data["positions"]
             for i in range(positions_count):
                 StoragePosition.objects.create(name=f"{i + 1}", storage=storage)
@@ -280,7 +317,9 @@ def storage_delete(request, pk):
         return redirect(reverse_lazy("collect:storage_list"))
 
     if request.POST:
-        storage.delete()
+        with transaction.atomic():
+            Storage.objects.lock_priority()
+            storage.delete()
         return redirect(reverse_lazy("collect:storage_list"))
 
     context = {"storage": storage, **generate_breadcrumbs(request, Storage, storage)}

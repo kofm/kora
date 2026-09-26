@@ -1,17 +1,32 @@
-<div class="col-2 border m-3 p-3 rounded-3 draggable">
-
-    <h5 class="draggable">
-      <a href="{{ object.get_absolute_url }}" class="link-body-emphasis text-decoration-none">
-        {{ object }}
-      </a>
-    </h5>
+<div class="col draggable">
+  <div class="border p-3 rounded-3 h-100">
+    <div class="d-flex justify-content-between align-items-start">
+      <h5 class="draggable">
+        <a href="{{ object.get_absolute_url }}" class="link-body-emphasis text-decoration-none">
+          {{ object }}
+        </a>
+      </h5>
+      {% if perms.collect.change_storage %}
+        <div class="dropdown dropend text-muted">
+          <button type="button" class="btn btn-link link-body-emphasis p-0" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Storage actions" data-bs-popper-config='{"strategy":"fixed"}'>
+            <i class="bi bi-three-dots-vertical fs-5"></i>
+          </button>
+          <ul class="dropdown-menu">
+            <h6 class="dropdown-header">Move storage</h6>
+            <li><button type="button" class="dropdown-item" hx-post="{% url 'collect:storage-sort-to-top' object.pk %}">Move to top</button></li>
+            <li><button type="button" class="dropdown-item disabled">Move to...</button></li>
+            <li><button type="button" class="dropdown-item disabled">Move to bottom</button></li>
+          </ul>
+        </div>
+      {% endif %}
+    </div>
 
     <h6 class="card-subtitle mb-2 text-muted">
-        <span class="badge rounded-pill text-bg-secondary">
-            {{ object.stored_positions_count }}/{{ object.total_positions_count }}
-        </span>
+      <span class="badge rounded-pill text-bg-secondary">
+        {{ object.stored_positions_count }}/{{ object.total_positions_count }}
+      </span>
     </h6>
 
     <input type="hidden" name="order" value="{{ object.pk }}">
-
+  </div>
 </div>

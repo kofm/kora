@@ -228,10 +228,20 @@ class VarietalParameterSerializer(BulkModelSerializer):
         )
 
 
+class StorageListSerializer(serializers.ListSerializer):
+    def create(self, validated_data):
+        return Storage.objects.append_bulk([Storage(**item) for item in validated_data])
+
+
 class StorageSerializer(BulkModelSerializer):
     class Meta(BulkModelSerializer.Meta):
         model = Storage
         fields = ("id", "name", "order")
+        read_only_fields = ("order",)
+        list_serializer_class = StorageListSerializer
+
+    def create(self, validated_data):
+        return Storage.objects.append(Storage(**validated_data))
 
 
 class StoragePositionSerializer(BulkModelSerializer):

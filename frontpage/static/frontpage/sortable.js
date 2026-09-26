@@ -16,6 +16,7 @@ export function initializeSortableElements(container = document) {
             delay: 250,
             delayOnTouchOnly: true,
             disabled: element.dataset.sortable !== "true",
+            handle: element.dataset.sortableHandle || undefined,
             swapClass: "border-primary",
             onEnd: (event) => handleSortEnd(event),
         });

@@ -36,21 +36,72 @@ class StorageManager(models.Manager):
     def with_position_counts(self):
         return self.get_queryset().with_position_counts()
 
+    def lock_priority(self):
+        """Serialize Storage priority writes, including appends to an empty table."""
+        from django.db import connections
+
+        with connections[self.db].cursor() as cursor:
+            cursor.execute("SELECT pg_advisory_xact_lock(%s)", [74189520])
+
+    def append(self, storage):
+        with transaction.atomic(using=self.db):
+            self.lock_priority()
+            last = self.get_queryset().aggregate(Max("order"))["order__max"]
+            storage.order = last + 1 if last is not None else 0
+            storage.save(using=self.db)
+        return storage
+
+    def append_bulk(self, storages):
+        if not storages:
+            return []
+        with transaction.atomic(using=self.db):
+            self.lock_priority()
+            last = self.get_queryset().aggregate(Max("order"))["order__max"]
+            for index, storage in enumerate(storages, start=(last + 1 if last is not None else 0)):
+                storage.order = index
+            return self.bulk_create(storages, batch_size=1000)
+
+    def reorder(self, ids, *, complete=False):
+        """Permute the existing priority values of the supplied containers."""
+        with transaction.atomic(using=self.db):
+            self.lock_priority()
+            if not ids or len(ids) != len(set(ids)):
+                raise ValueError("Provide distinct storage IDs.")
+            objects = list(self.get_queryset().filter(pk__in=ids))
+            if len(objects) != len(ids) or (complete and len(objects) != self.count()):
+                raise ValueError("Storage IDs do not match the current containers.")
+            priorities = sorted(obj.order for obj in objects)
+            by_id = {obj.pk: obj for obj in objects}
+            changed = []
+            for pk, priority in zip(ids, priorities, strict=True):
+                obj = by_id[pk]
+                if obj.order != priority:
+                    obj.order = priority
+                    changed.append(obj)
+            if changed:
+                self.bulk_update(changed, ["order"], batch_size=500)
+
 
 class Storage(models.Model):
-    """Container of multiple seed samples.
+    """Container for Samples.
 
-    The number of slots available for seed samples is defined by how
-    many StoragePositions are associated with each instance.
+    The number of slots available for samples is defined by
+    StoragePositions associated with each instance.
+
     """
 
     name = models.CharField(max_length=200, unique=True)
-    order = models.PositiveIntegerField(default=0)
+    order = models.PositiveIntegerField()
 
     objects = StorageManager()
 
     class Meta:
-        ordering = ("name",)
+        ordering = ("order", "pk")
+        constraints = [
+            models.UniqueConstraint(
+                fields=("order",), name="unique_storage_priority", deferrable=models.Deferrable.DEFERRED
+            )
+        ]
         verbose_name_plural = "storage"
 
     def __str__(self) -> str:

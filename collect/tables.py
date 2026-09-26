@@ -1,3 +1,5 @@
+from typing import Any
+
 import django_tables2 as tables
 
 from collect.models import Sample
@@ -21,13 +23,9 @@ class BaseSampleTable(tables.Table):
 
     class Meta(TableHoverFixed.Meta):
         model = Sample
-        fields: tuple = (
-            "sample_id",
-            "growing_season",
-            "notes",
-        )
+        fields: tuple = ("sample_id", "growing_season", "notes")
         empty_text = "There are no seed samples to be displayed."
-        row_attrs = TableHoverFixed.Meta.row_attrs | {
+        row_attrs: dict[str, Any] = TableHoverFixed.Meta.row_attrs | {
             "class": lambda record: "table-danger" if record.is_being_discarded else ""
         }
 

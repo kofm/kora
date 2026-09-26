@@ -86,7 +86,9 @@ class SampleRestoreForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        empty_positions = StoragePosition.objects.empty_positions_for_sample(self.instance.pk)
+        empty_positions = StoragePosition.objects.empty_positions_for_sample(self.instance.pk).order_by(
+            "storage__order", "storage__pk", "name"
+        )
         self.fields["position"].queryset = empty_positions
         self.fields["position"].initial = empty_positions.first()
 

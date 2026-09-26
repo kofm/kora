@@ -5,9 +5,11 @@ from django.db import transaction
 from django.db.models.deletion import ProtectedError
 from django.db.models.query import Prefetch
 from drf_spectacular.utils import extend_schema
-from rest_framework import mixins, status, viewsets
+from rest_framework import mixins, serializers, status, viewsets
 from rest_framework.decorators import action
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import get_object_or_404
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.serializers import ValidationError
 
@@ -502,11 +504,33 @@ class ParameterTargetViewSet(TargetViewSet):
     )
 
 
+class StorageReorderSerializer(serializers.Serializer):
+    order = serializers.ListField(child=serializers.IntegerField(min_value=1), allow_empty=False)
+
+
 @document_bulk_create(StorageSerializer, name="storages")
 class StorageViewSet(KoraViewSet):
     queryset = Storage.objects.all()
     serializer_class = StorageSerializer
     filterset_class = StorageFilter
+
+    @extend_schema(request=StorageReorderSerializer, responses={204: None})
+    @action(detail=False, methods=["post"], url_path="reorder", permission_classes=[IsAuthenticated])
+    def reorder(self, request):
+        if not request.user.has_perm("collect.change_storage"):
+            raise PermissionDenied()
+        serializer = StorageReorderSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        try:
+            Storage.objects.reorder(serializer.validated_data["order"], complete=True)
+        except ValueError as exc:
+            raise ValidationError({"order": str(exc)}) from exc
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def perform_destroy(self, instance):
+        with transaction.atomic():
+            Storage.objects.lock_priority()
+            instance.delete()
 
 
 @document_bulk_create(StoragePositionSerializer, name="storagepositions")
