@@ -559,9 +559,11 @@ def trait_target_observation_create(request, pk):
     form.fields["state"].label = str(target.trait)
     if request.method == "POST" and form.is_valid():
         with transaction.atomic():
-            target = TraitTarget.objects.select_for_update().select_related(
-                "step__fieldbook__layout", "step__crop", "trait__protocol"
-            ).get(pk=target.pk)
+            target = (
+                TraitTarget.objects.select_for_update()
+                .select_related("step__fieldbook__layout", "step__crop", "trait__protocol")
+                .get(pk=target.pk)
+            )
             if not target_is_complete(target):
                 state = get_object_or_404(states, pk=form.cleaned_data["state"])
                 TraitObservation.objects.create(
@@ -604,9 +606,11 @@ def parameter_target_observation_create(request, pk):
         if form.cleaned_data["parameter"] != target.parameter:
             return HttpResponseBadRequest()
         with transaction.atomic():
-            target = ParameterTarget.objects.select_for_update().select_related(
-                "step__fieldbook__layout", "step__crop", "parameter"
-            ).get(pk=target.pk)
+            target = (
+                ParameterTarget.objects.select_for_update()
+                .select_related("step__fieldbook__layout", "step__crop", "parameter")
+                .get(pk=target.pk)
+            )
             if not target_is_complete(target):
                 observation = form.save(commit=False)
                 observation.created_by = request.user

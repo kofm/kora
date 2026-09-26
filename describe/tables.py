@@ -20,7 +20,6 @@ class DescriptionTable(tables.Table):
         fields = ("variety__name", "variety__species__common_name", "label", "protocol__name")
         template_name = "describe/partials/description_table.html"
         per_page = 10
-        attrs = {"class": "table table-hover table-fixed"}
 
     def render_label(self, record, value):
         return format_html(

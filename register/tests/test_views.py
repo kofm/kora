@@ -35,7 +35,7 @@ class RegisterViewsSmokeTest(ViewSmokeTestMixin, TestCase):
 
     def test_plantspecies_instance_views(self):
         self.assert_get(["plantspecies_create", "plantspecies_list", "plantspecies_autocomplete"])
-        self.assert_get(["plantspecies_detail", "plantspecies_delete", "plantspecies_update"], [self.plantspecies.pk])
+        self.assert_get(["plantspecies_delete", "plantspecies_update"], [self.plantspecies.pk])
         self.assert_post(["plantspecies_update"], [self.plantspecies.pk])
         self.assert_post(["plantspecies_delete"], [self.plantspecies.pk], status_code=302)
 

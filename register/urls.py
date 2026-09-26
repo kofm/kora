@@ -9,7 +9,6 @@ app_name = "register"
 urlpatterns = [
     path("species/create", views.PlantSpeciesCreate.as_view(), name="plantspecies_create"),
     path("species/", views.plantspecies_list, name="plantspecies_list"),
-    path("species/<int:pk>", views.PlantSpeciesDetailView.as_view(), name="plantspecies_detail"),
     path("species/<int:pk>/update", views.PlantSpeciesUpdateView.as_view(), name="plantspecies_update"),
     path("species/<int:pk>/delete", views.PlantSpeciesDeleteView.as_view(), name="plantspecies_delete"),
     path("species/autocomplete", views.PlantSpeciesAutocompleteView.as_view(), name="plantspecies_autocomplete"),

@@ -37,6 +37,7 @@ class ProtectionListTable(ProtectionTable):
         exclude = ("date_start", "date_end", "reference")
         template_name = "register/partials/protection_table.html"
         per_page = 10
+        empty_text = "There are no protections to be displayed."
 
     def render_note(self, record):
         notes = smart_truncate_string(record.note, 18)
@@ -96,6 +97,7 @@ class EntityTable(tables.Table, CountryRenderer):
         fields = ("name", "type", "country")
         template_name = "register/partials/entity_table.html"
         per_page = 10
+        empty_text = "There are no entities to be displayed."
 
 
 class VarietalParameterTable(tables.Table):
@@ -121,16 +123,28 @@ class VarietalParameterTable(tables.Table):
 
 
 class PlantSpeciesTable(tables.Table):
-    common_name = tables.Column(linkify=True)
+    id = tables.Column("#")
+    common_name = tables.Column()
     botanical_name = tables.Column(verbose_name="Botanical name")
+    actions = tables.TemplateColumn(
+        template_name="register/partials/plantspecies_table_actions.html",
+        verbose_name="",
+        orderable=False,
+        attrs={"td": {"class": "text-end"}},
+    )
 
-    class Meta:
+    class Meta(TableHoverFixed.Meta):
         model = PlantSpecies
-        fields = ("common_name", "botanical_name")
+        fields = ("id", "common_name", "botanical_name", "code")
         order_by = "common_name"
+        template_name = "frontpage/partials/htmx_table.html"
+        empty_text = "There are no plant species to be displayed."
 
     def render_botanical_name(self, value):
-        return format_html("<i>{}</i>", value)
+        return format_html('<i class="fw-light">{}</i>', value)
+
+    def render_id(self, value):
+        return format_html('<span class="detail-page-id-badge">{}</span>', value)
 
 
 class PlantVarietyEntityTable(tables.Table):
@@ -144,22 +158,3 @@ class PlantVarietyEntityTable(tables.Table):
 def render_icon(value):
     icon = "bi-check" if value else "bi-dash"
     return format_html('<i class="bi {}"></i>', icon)
-
-
-class PlantVarietyTable(tables.Table):
-    name = tables.Column(linkify=True)
-    described = tables.Column(empty_values=(), verbose_name="Described", orderable=False)
-    samples = tables.Column(empty_values=(), verbose_name="Samples", orderable=False)
-
-    class Meta:
-        model = PlantVariety
-        fields = ("name",)
-        empty_text = "No varieties have been recorded for this species."
-
-    def render_described(self, record):
-        described = Description.objects.filter(variety=record).exists()
-        return render_icon(described)
-
-    def render_samples(self, record):
-        samples = Sample.objects.filter(variety=record).exists()
-        return render_icon(samples)

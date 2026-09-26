@@ -100,7 +100,7 @@ class PlantSpecies(ModelIsDeletableMixin, models.Model):
         return self.common_name
 
     def get_absolute_url(self):
-        return reverse("register:plantspecies_detail", args=[self.pk])
+        return f"{reverse('register:variety_list')}?species={self.pk}"
 
     @classmethod
     def get_create_url(cls):

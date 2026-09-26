@@ -1,0 +1,13 @@
+{% load components %}
+{% if perms.register.change_plantspecies %}
+  <a class="row-action text-decoration-none" hx-get="{{ record.get_update_url }}" {% modal_attrs %}>
+    <span class="badge rounded-pill text-bg-secondary">Edit</span>
+  </a>
+{% endif %}
+{% if perms.register.delete_plantspecies %}
+  {% if record.is_deletable %}
+    <a class="row-action text-decoration-none" hx-get="{{ record.get_delete_url }}" {% modal_attrs %}>
+      <span class="badge rounded-pill text-bg-danger">Delete</span>
+    </a>
+  {% endif %}
+{% endif %}

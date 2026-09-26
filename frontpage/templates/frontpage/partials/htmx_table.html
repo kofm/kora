@@ -51,3 +51,8 @@
     </div>
   </li>
 {% endblock pagination.next %}
+
+
+{% block table.tbody.empty_text %}
+  <tr><td class="text-muted" colspan="{{ table.columns|length }}"><small>{{ table.empty_text }}</small></td></tr>
+{% endblock table.tbody.empty_text %}

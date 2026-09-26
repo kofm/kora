@@ -13,8 +13,10 @@
       class="row-action"
       hx-post="{% url 'describe:workspace_element_create' %}"
       hx-vals='{"description_id": "{{ record.pk }}"}'
-      hx-target="#workspaceBody">
-      <span class="badge rounded-pill text-bg-secondary ms-1">Add</span>
+      hx-target="#workspaceBody"
+      title="Add to active workspace"
+    >
+      <span class="badge rounded-pill text-bg-secondary ms-1"><i class='bi bi-collection'></i></span>
     </a>
   {% endif %}
 </div>

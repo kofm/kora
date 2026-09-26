@@ -26,7 +26,7 @@ class BaseSampleTable(tables.Table):
             "growing_season",
             "notes",
         )
-        empty_text = "There are no matching seed samples to be displayed."
+        empty_text = "There are no seed samples to be displayed."
         row_attrs = TableHoverFixed.Meta.row_attrs | {
             "class": lambda record: "table-danger" if record.is_being_discarded else ""
         }
