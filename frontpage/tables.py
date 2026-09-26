@@ -8,7 +8,7 @@ class TableHoverFixed(tables.Table):
         attrs = {"class": "table table-hover table-fixed small-table"}
         row_attrs = {
             "_": lambda record: format_html(
-                "on click[event.target.closest('.row-action') == null] go to url '{}'",
+                "on click[event.target.closest('.row-action, .row-link') == null] go to url '{}'",
                 record.get_absolute_url() if hasattr(record, "get_absolute_url") else "",
             ),
             "role": "button",

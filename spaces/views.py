@@ -1,9 +1,13 @@
+from decimal import Decimal
+from typing import Any
+
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.db.models import Count
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.urls import reverse
+from django.utils.html import format_html
 from django.views.generic.edit import UpdateView
 from django_tables2.config import RequestConfig
 
@@ -14,8 +18,10 @@ from frontpage.headers import DetailHeader, ListHeader
 from frontpage.utils.htmx import htmx_response_redirect, htmx_response_trigger_close_modal
 from frontpage.views_decorators import htmx_render_blocks, is_htmx
 from sortable.views import SortableView
+from spaces.filters import LocationFilter
 from spaces.forms import LocationForm
 from spaces.models import Location
+from spaces.tables import LocationTable
 
 
 class LocationAutocompleteView(AutocompleteModelView):
@@ -24,14 +30,15 @@ class LocationAutocompleteView(AutocompleteModelView):
 
 
 @permission_required("spaces.view_location")
+@htmx_render_blocks(["main"])
 def location_list(request):
-    context = {}
-    context["object_list"] = Location.objects.all().order_by("order", "name")
-    if is_htmx(request):
-        return TemplateResponse(request, "spaces/location_list.html#sortable", context)
-    header = ListHeader(request, Location, modal=True)
-    context.update({"header": header, **generate_breadcrumbs(request, Location)})
-    return TemplateResponse(request, "spaces/location_list.html", context)
+    context: dict[str, Any] = {}
+    flt = LocationFilter(request.GET, Location.objects.all())
+    table = LocationTable(flt.qs)
+    RequestConfig(request, paginate={"per_page": 12}).configure(table)
+    context["header"] = ListHeader(request, Location, modal=True)
+    context.update({"table": table, "filter": flt, **generate_breadcrumbs(request, Location)})
+    return TemplateResponse(request, "frontpage/list.html", context)
 
 
 class SortLocation(PermissionRequiredMixin, SortableView):
@@ -51,8 +58,22 @@ def location_detail(request, pk):
     table = CropLayoutTable(layouts)
     RequestConfig(request).configure(table)
     header = DetailHeader(request, location, delete_modal=True)
+    lat = location.latitude
+    lon = location.longitude
+    coords = format_html(
+        '<a class="row-link text-decoration-none link-body-emphasis text-muted" '
+        'href="https://www.openstreetmap.org/?mlat={}&mlon={}#map=15/{}/{}" '
+        'target="_blank" rel="noopener noreferrer">{}, {}</a>',
+        lat,
+        lon,
+        lat,
+        lon,
+        f"{Decimal(str(lat)):.4f}",
+        f"{Decimal(str(lon)):.4f}",
+    )
     context = {
         "location": location,
+        "coords": coords,
         "table": table,
         "header": header,
         **generate_breadcrumbs(request, Location, location),
@@ -66,7 +87,7 @@ def location_create(request):
     if form.is_valid():
         form.save()
         if is_htmx(request):
-            return htmx_response_trigger_close_modal(["LocationUpdated"])
+            return htmx_response_trigger_close_modal(["resultsChanged"])
         return redirect(reverse("spaces:location_list"))
     return TemplateResponse(
         request,
@@ -77,7 +98,7 @@ def location_create(request):
 
 class LocationUpdateView(PermissionRequiredMixin, UpdateView):
     model = Location
-    fields = "__all__"
+    fields = ("name", "latitude", "longitude")
     permission_required = ["spaces.change_location"]
 
     def get_success_url(self):
