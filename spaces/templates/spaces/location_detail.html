@@ -8,7 +8,7 @@
 {% block container %}
   {% render_breadcrumbs %}
   {% render_header header %}
-  <p class="lead">{{ coords }}</p>
+  {% if coords %}<p class="lead">{{ coords }}</p>{% endif %}
 
   {% url 'calculator:location_layout_create' location.pk as layout_create_url %}
   <hr/>

@@ -364,6 +364,16 @@ class CropLayoutViewTests(TestCase):
         self.assertContains(response, self.layout.get_absolute_url())
         self.assertNotContains(response, self.archived.get_absolute_url())
 
+    def test_location_detail_without_complete_coordinates(self):
+        for latitude, longitude in ((None, None), (None, 12.5), (45.5, None)):
+            with self.subTest(latitude=latitude, longitude=longitude):
+                self.location.latitude = latitude
+                self.location.longitude = longitude
+                self.location.save(update_fields=["latitude", "longitude"])
+                response = self.client.get(reverse("spaces:location_detail", args=(self.location.pk,)))
+                self.assertEqual(response.status_code, 200)
+                self.assertNotContains(response, "openstreetmap.org")
+
     def test_archived_layout_can_be_viewed_and_restored(self):
         CropFactory(layout=self.archived, variety=self.variety)
 

@@ -60,17 +60,19 @@ def location_detail(request, pk):
     header = DetailHeader(request, location, delete_modal=True)
     lat = location.latitude
     lon = location.longitude
-    coords = format_html(
-        '<a class="row-link text-decoration-none link-body-emphasis text-muted" '
-        'href="https://www.openstreetmap.org/?mlat={}&mlon={}#map=15/{}/{}" '
-        'target="_blank" rel="noopener noreferrer">{}, {}</a>',
-        lat,
-        lon,
-        lat,
-        lon,
-        f"{Decimal(str(lat)):.4f}",
-        f"{Decimal(str(lon)):.4f}",
-    )
+    coords = ""
+    if lat is not None and lon is not None:
+        coords = format_html(
+            '<a class="row-link text-decoration-none link-body-emphasis text-muted" '
+            'href="https://www.openstreetmap.org/?mlat={}&mlon={}#map=15/{}/{}" '
+            'target="_blank" rel="noopener noreferrer">{}, {}</a>',
+            lat,
+            lon,
+            lat,
+            lon,
+            f"{Decimal(str(lat)):.4f}",
+            f"{Decimal(str(lon)):.4f}",
+        )
     context = {
         "location": location,
         "coords": coords,
