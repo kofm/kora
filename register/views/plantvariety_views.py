@@ -197,7 +197,7 @@ def plantvariety_list(request):
         HeaderAction(
             label="Import Varieties",
             url=reverse("restapi:plantvariety-spreadsheet-import"),
-            permission="calculator.add_plantvariety",
+            permission="register.add_plantvariety",
         )
     )
     header = ListHeader(request, PlantVariety, modal=True, actions=actions)
