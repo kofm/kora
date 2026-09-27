@@ -1,3 +1,22 @@
+## 0.6.0-beta.2 (2026-09-27)
+
+### Added
+
+- **collect**: add commands to move storage containers to top, bottom, or before another container
+- **collect**: improve reordering of storage containers
+- **spaces**: replace location list with filterable table with map links
+- **frontpage**: guide new users to species setup when no varieties exist
+- **register**: rename latin_name to botanical_name and add species code
+- **register**: add import action to plant variety list header
+
+### Fixed
+
+- **spaces**: handle missing coordinates in location detail page
+
+### Performance Improvements
+
+- **evaluate**: improve responsiveness of fieldbook listing
+
 ## 0.6.0-beta.1 (2026-09-13)
 
 ## 0.6.0-beta.0 (2026-09-13)
