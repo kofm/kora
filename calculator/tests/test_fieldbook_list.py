@@ -82,6 +82,15 @@ class FieldBookListTests(TestCase):
         self.assertContains(response, "<td>4</td>", count=2, html=True)
         self.assertContains(response, "75.0%")
 
+    def test_layout_detail_shows_same_fieldbook_progress(self):
+        self.user.user_permissions.add(Permission.objects.get(codename="view_croplayout"))
+
+        response = self.client.get(reverse("calculator:layout_detail", args=[self.layout.pk]), {"tab": "fieldbooks"})
+
+        self.assertContains(response, self.fieldbook.get_absolute_url())
+        self.assertContains(response, "<td>4</td>", count=2, html=True)
+        self.assertContains(response, "75.0%")
+
     def test_generic_creation_uses_selected_visible_layout_and_refreshes_results(self):
         self.user.user_permissions.add(Permission.objects.get(codename="add_fieldbook"))
         response = self.client.post(

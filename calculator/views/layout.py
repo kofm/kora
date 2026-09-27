@@ -12,7 +12,7 @@ from breadcrumbs.utils import add_parent_breadcrumbs, breadcrumbs_context, gener
 from calculator.filters import CropLayoutFilter
 from calculator.forms import CropLayoutForm, CropModelForm, InLocationCropLayoutForm, ManagementForm
 from calculator.layouts import CropSortableGrid
-from calculator.models import CropLayout
+from calculator.models import CropLayout, set_fieldbook_progress_counts
 from calculator.tables import CropLayoutListTable, FieldBookInLayoutTable
 from frontpage.headers import ArchivalDetailHeader, HeaderAction, ListHeader
 from frontpage.utils.assets import add_layout_assets
@@ -59,9 +59,8 @@ def layout_detail(request, pk):
         is_sortable=False,
         is_read_only=layout.is_archived,
     )
-    fieldbooks = list(layout.fieldbooks.with_progress_data().all())
-    for fieldbook in fieldbooks:
-        fieldbook.set_progress_counts()
+    fieldbooks = list(layout.fieldbooks.all())
+    set_fieldbook_progress_counts(fieldbooks)
     fieldbook_table = FieldBookInLayoutTable(fieldbooks)
     actions = []
     if not layout.is_archived:

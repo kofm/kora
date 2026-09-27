@@ -4,6 +4,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.db.models import Count
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.functional import cached_property
@@ -159,20 +160,6 @@ class FieldBookQuerySet(models.QuerySet):
     def mutable(self):
         return self.filter(layout__archived_at__isnull=True)
 
-    def with_progress_data(self):
-        return self.prefetch_related(
-            models.Prefetch(
-                "steps",
-                queryset=Step.objects.prefetch_related(
-                    "traittarget",
-                    "parametertarget",
-                    "traitobservation__state",
-                    "parameterobservation",
-                ),
-                to_attr="steps_for_progress",
-            )
-        )
-
 
 class FieldBook(ModelIsDeletableMixin, models.Model):
     cant_delete_msg = "You can't remove this FieldBook because there are planned observations."
@@ -210,37 +197,6 @@ class FieldBook(ModelIsDeletableMixin, models.Model):
             .exists()
         )
 
-    def set_progress_counts(self):
-        planned_target_count = 0
-        observation_count = 0
-        fulfilled_target_count = 0
-
-        for step in self.steps_for_progress:
-            trait_observation_counts = {}
-            for observation in step.traitobservation.all():
-                trait_id = observation.state.trait_id
-                trait_observation_counts[trait_id] = trait_observation_counts.get(trait_id, 0) + 1
-
-            parameter_observation_counts = {}
-            for observation in step.parameterobservation.all():
-                parameter_id = observation.parameter_id
-                parameter_observation_counts[parameter_id] = parameter_observation_counts.get(parameter_id, 0) + 1
-
-            observation_count += sum(trait_observation_counts.values()) + sum(parameter_observation_counts.values())
-            for target in step.traittarget.all():
-                planned_target_count += target.required_count
-                fulfilled_target_count += min(target.required_count, trait_observation_counts.get(target.trait_id, 0))
-            for target in step.parametertarget.all():
-                planned_target_count += target.required_count
-                fulfilled_target_count += min(
-                    target.required_count,
-                    parameter_observation_counts.get(target.parameter_id, 0),
-                )
-
-        self.planned_target_count = planned_target_count
-        self.observation_count = observation_count
-        self.percent_completed = 100.0 * fulfilled_target_count / planned_target_count if planned_target_count else 0.0
-
     def validate_display_config(self):
         display = self.display_config
 
@@ -274,6 +230,52 @@ class FieldBook(ModelIsDeletableMixin, models.Model):
         if self.display_config:
             return f"{self.display_config['model']}:{self.display_config['id']}:{self.display_config['field']}"
         return None
+
+
+def set_fieldbook_progress_counts(fieldbooks):
+    """Set live progress on a batch of fieldbooks without loading individual observations."""
+    fieldbooks = list(fieldbooks)
+    if not fieldbooks:
+        return
+
+    fieldbook_ids = [fieldbook.pk for fieldbook in fieldbooks]
+    counts = {pk: [0, 0, 0] for pk in fieldbook_ids}  # planned, observed, fulfilled
+
+    trait_observations = {}
+    for fieldbook_id, step_id, trait_id, count in (
+        TraitObservation.objects.filter(step__fieldbook_id__in=fieldbook_ids)
+        .values_list("step__fieldbook_id", "step_id", "state__trait_id")
+        .annotate(count=Count("pk"))
+        .order_by()
+    ):
+        counts[fieldbook_id][1] += count
+        trait_observations[step_id, trait_id] = count
+
+    parameter_observations = {}
+    for fieldbook_id, step_id, parameter_id, count in (
+        ParameterObservation.objects.filter(step__fieldbook_id__in=fieldbook_ids)
+        .values_list("step__fieldbook_id", "step_id", "parameter_id")
+        .annotate(count=Count("pk"))
+        .order_by()
+    ):
+        counts[fieldbook_id][1] += count
+        parameter_observations[step_id, parameter_id] = count
+
+    for target_model, identity_field, observations in (
+        (TraitTarget, "trait_id", trait_observations),
+        (ParameterTarget, "parameter_id", parameter_observations),
+    ):
+        for fieldbook_id, step_id, identity, required_count in target_model.objects.filter(
+            step__fieldbook_id__in=fieldbook_ids
+        ).values_list("step__fieldbook_id", "step_id", identity_field, "required_count"):
+            counts[fieldbook_id][0] += required_count
+            counts[fieldbook_id][2] += min(required_count, observations.get((step_id, identity), 0))
+
+    for fieldbook in fieldbooks:
+        planned, observed, fulfilled = counts[fieldbook.pk]
+        fieldbook.planned_target_count = planned
+        fieldbook.observation_count = observed
+        fieldbook.percent_completed = 100.0 * fulfilled / planned if planned else 0.0
 
 
 class StepQuerySet(models.QuerySet):

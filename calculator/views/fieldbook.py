@@ -34,6 +34,7 @@ from calculator.models import (
     Step,
     TraitObservation,
     TraitTarget,
+    set_fieldbook_progress_counts,
 )
 from calculator.tables import FieldBookTable, ParameterObservationTable, TraitObservationTable
 from calculator.targets import (
@@ -80,14 +81,12 @@ def fieldbook_list(request):
     queryset = (
         FieldBook.objects.filter(layout__archived_at__isnull=True)  # zuban: ignore[attr-defined]
         .select_related("layout__location")
-        .with_progress_data()
         .order_by("name", "pk")
     )
     fieldbook_filter = FieldBookFilter(request.GET, queryset=queryset)
     table = FieldBookTable(fieldbook_filter.qs)
     RequestConfig(request, paginate={"per_page": 15}).configure(table)
-    for row in table.page.object_list:
-        row.record.set_progress_counts()
+    set_fieldbook_progress_counts(row.record for row in table.page.object_list)
     context = {
         "filter": fieldbook_filter,
         "table": table,
