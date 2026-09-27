@@ -17,7 +17,6 @@ from frontpage.autocomplete import AutocompleteModelView
 from frontpage.headers import DetailHeader, ListHeader
 from frontpage.utils.htmx import htmx_response_redirect, htmx_response_trigger_close_modal
 from frontpage.views_decorators import htmx_render_blocks, is_htmx
-from sortable.views import SortableView
 from spaces.filters import LocationFilter
 from spaces.forms import LocationForm
 from spaces.models import Location
@@ -26,7 +25,7 @@ from spaces.tables import LocationTable
 
 class LocationAutocompleteView(AutocompleteModelView):
     model = Location
-    ordering = ["order", "name"]
+    ordering = ["name", "pk"]
 
 
 @permission_required("spaces.view_location")
@@ -38,13 +37,7 @@ def location_list(request):
     RequestConfig(request, paginate={"per_page": 12}).configure(table)
     context["header"] = ListHeader(request, Location, modal=True)
     context.update({"table": table, "filter": flt, **generate_breadcrumbs(request, Location)})
-    return TemplateResponse(request, "frontpage/list.html", context)
-
-
-class SortLocation(PermissionRequiredMixin, SortableView):
-    model = Location
-    permission_required = ["spaces.change_location"]
-    raise_exception = True
+    return TemplateResponse(request, "spaces/location_list.html", context)
 
 
 @permission_required("spaces.view_location")
