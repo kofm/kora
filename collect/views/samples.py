@@ -1,3 +1,4 @@
+from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
@@ -19,6 +20,7 @@ from collect.forms import (
     SampleRestoreForm,
     SampleWeightForm,
     StorageCreateForm,
+    StorageMoveToForm,
     StorageUpdateForm,
 )
 from collect.models import Germinability, Sample, SampleStatus, SampleWeight, Storage, StoragePosition
@@ -234,17 +236,34 @@ def storage_list(request):
 
 @require_POST
 @permission_required("collect.change_storage", raise_exception=True)
-def storage_order_move_to_top(request, pk):
-    with transaction.atomic():
-        Storage.objects.lock_priority()
-        get_object_or_404(Storage, pk=pk)
-        ids = list(Storage.objects.values_list("pk", flat=True))
-        Storage.objects.reorder([pk, *(storage_id for storage_id in ids if storage_id != pk)], complete=True)
+def storage_order_move_to_boundary(request, pk):
+    try:
+        Storage.objects.move(pk, to=request.POST.get("boundary"))
+        messages.success(request, "Container successfully moved.")
+    except ValueError as exc:
+        return HttpResponseBadRequest(str(exc))
+    except Storage.DoesNotExist as exc:
+        raise Http404 from exc
 
-    url = reverse("collect:storage_list")
     if request.headers.get("HX-Request"):
         return htmx_response_trigger(["listChanged"])
-    return redirect(url)
+    return redirect(reverse("collect:storage_list"))
+
+
+@permission_required("collect.change_storage", raise_exception=True)
+def storage_order_move_to(request, pk):
+    get_object_or_404(Storage, pk=pk)
+    form = StorageMoveToForm(request.POST if request.method == "POST" else None)
+    if request.method == "POST" and form.is_valid():
+        try:
+            Storage.objects.move(pk, before=form.cleaned_data["storage"].pk)
+        except Storage.DoesNotExist as exc:
+            raise Http404 from exc
+        messages.success(request, "Container successfully moved.")
+        if request.headers.get("HX-Request"):
+            return htmx_response_trigger_close_modal(["listChanged"])
+        return redirect(reverse("collect:storage_list"))
+    return TemplateResponse(request, "collect/partials/storage_move.html", {"form": form})
 
 
 class StorageDetailView(PermissionRequiredMixin, DetailBreadcrumbsMixin, DetailView):

@@ -1,4 +1,4 @@
-from collect.models import StoragePosition
+from collect.models import Storage, StoragePosition
 from frontpage.autocomplete import AutocompleteModelView
 
 
@@ -11,3 +11,10 @@ class StoragePositionAutocompleteView(AutocompleteModelView):
     def hook_queryset(self, queryset):
         queryset = queryset.select_related("storage").empty_positions_for_sample()
         return queryset
+
+
+class StorageAutocompleteView(AutocompleteModelView):
+    model = Storage
+    value_fields = ["id"]
+    search_fields = ["name"]
+    ordering = ["order", "pk"]

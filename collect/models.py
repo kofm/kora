@@ -61,25 +61,102 @@ class StorageManager(models.Manager):
                 storage.order = index
             return self.bulk_create(storages, batch_size=1000)
 
+    def move(self, source_pk, *, before=None, to=None):
+        if (before is None) == (to is None):
+            raise ValueError("Specify exactly one of 'before' or 'to'.")
+
+        if to not in (None, "top", "bottom"):
+            raise ValueError("'to' must be 'top' or 'bottom'.")
+
+        with transaction.atomic(using=self.db):
+            self.lock_priority()
+
+            if before is not None:
+                objects = {obj.pk: obj for obj in self.get_queryset().filter(pk__in=[source_pk, before])}
+                if len(objects) != 2 and source_pk != before:
+                    raise Storage.DoesNotExist
+
+                source = objects.get(source_pk)
+                target = objects.get(before)
+
+                if source is None or target is None:
+                    raise Storage.DoesNotExist
+
+                if source.pk == target.pk:
+                    return
+
+                if source.order > target.order:
+                    ids = list(
+                        self.get_queryset()
+                        .filter(order__gte=target.order, order__lte=source.order)
+                        .order_by("order", "pk")
+                        .values_list("pk", flat=True)
+                    )
+                    ids.remove(source_pk)
+                    ids.insert(0, source_pk)
+
+                else:
+                    ids = list(
+                        self.get_queryset()
+                        .filter(order__gte=source.order, order__lt=target.order)
+                        .order_by("order", "pk")
+                        .values_list("pk", flat=True)
+                    )
+                    ids.remove(source_pk)
+                    ids.append(source_pk)
+
+            else:
+                source = self.get_queryset().get(pk=source_pk)
+
+                if to == "top":
+                    ids = list(
+                        self.get_queryset()
+                        .filter(order__lte=source.order)
+                        .order_by("order", "pk")
+                        .values_list("pk", flat=True)
+                    )
+                    ids.remove(source_pk)
+                    ids.insert(0, source_pk)
+
+                else:  # bottom
+                    ids = list(
+                        self.get_queryset()
+                        .filter(order__gte=source.order)
+                        .order_by("order", "pk")
+                        .values_list("pk", flat=True)
+                    )
+                    ids.remove(source_pk)
+                    ids.append(source_pk)
+
+            self._reorder(ids)
+
+    def _reorder(self, ids, *, complete=False):
+        if not ids or len(ids) != len(set(ids)):
+            raise ValueError("Provide distinct storage IDs.")
+
+        objects = list(self.get_queryset().filter(pk__in=ids))
+
+        if len(objects) != len(ids) or (complete and len(objects) != self.count()):
+            raise ValueError("Storage IDs do not match the current records.")
+
+        priorities = sorted(obj.order for obj in objects)
+        by_id = {obj.pk: obj for obj in objects}
+
+        changed = []
+        for pk, priority in zip(ids, priorities, strict=True):
+            obj = by_id[pk]
+            if obj.order != priority:
+                obj.order = priority
+                changed.append(obj)
+
+        if changed:
+            self.bulk_update(changed, ["order"], batch_size=500)
+
     def reorder(self, ids, *, complete=False):
         """Permute the existing priority values of the supplied containers."""
         with transaction.atomic(using=self.db):
             self.lock_priority()
-            if not ids or len(ids) != len(set(ids)):
-                raise ValueError("Provide distinct storage IDs.")
-            objects = list(self.get_queryset().filter(pk__in=ids))
-            if len(objects) != len(ids) or (complete and len(objects) != self.count()):
-                raise ValueError("Storage IDs do not match the current containers.")
-            priorities = sorted(obj.order for obj in objects)
-            by_id = {obj.pk: obj for obj in objects}
-            changed = []
-            for pk, priority in zip(ids, priorities, strict=True):
-                obj = by_id[pk]
-                if obj.order != priority:
-                    obj.order = priority
-                    changed.append(obj)
-            if changed:
-                self.bulk_update(changed, ["order"], batch_size=500)
+            self._reorder(ids, complete=complete)
 
 
 class Storage(models.Model):

@@ -51,7 +51,7 @@ class SampleForm(TomSelectModelFormMixin, forms.ModelForm):
         queryset=StoragePosition.objects.all(),
         widget=ModelTomSelect(
             ts_config=TomSelectConfig(
-                url=reverse_lazy("collect:storage_autocomplete"),
+                url=reverse_lazy("collect:storageposition_autocomplete"),
                 value_field="id",
             ),
         ),
@@ -205,3 +205,17 @@ class StorageUpdateForm(forms.ModelForm):
             self.save_m2m()
 
         return instance
+
+
+class StorageMoveToForm(forms.Form):
+    storage = ModelChoiceField(
+        label="Target storage",
+        help_text="Select the storage container this one should be moved before.",
+        queryset=Storage.objects.all(),
+        widget=ModelTomSelect(
+            ts_config=TomSelectConfig(
+                url=reverse_lazy("collect:storage_autocomplete"),
+                value_field="id",
+            ),
+        ),
+    )

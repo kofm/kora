@@ -1,8 +1,12 @@
-<div class="col draggable">
-  <div class="border p-3 rounded-3 h-100">
+{% load components %}
+<div class="col draggable"  style="cursor: pointer;" _="on click
+            if event.target.closest('.dropdown') == null
+            go to url {{ object.get_absolute_url }}
+            end">
+  <div class="card shadow-sm p-3 h-100 border-hover">
     <div class="d-flex justify-content-between align-items-start">
-      <h5 class="draggable">
-        <a href="{{ object.get_absolute_url }}" class="link-body-emphasis text-decoration-none">
+      <h6 class="draggable text-truncate">
+        <a href="{{ object.get_absolute_url }}" class="link-body-emphasis text-decoration-none" title="{{ object }}">
           {{ object }}
         </a>
       </h5>
@@ -13,9 +17,9 @@
           </button>
           <ul class="dropdown-menu">
             <h6 class="dropdown-header">Move storage</h6>
-            <li><button type="button" class="dropdown-item" hx-post="{% url 'collect:storage-sort-to-top' object.pk %}">Move to top</button></li>
-            <li><button type="button" class="dropdown-item disabled">Move to...</button></li>
-            <li><button type="button" class="dropdown-item disabled">Move to bottom</button></li>
+            <li><button type="button" class="dropdown-item" hx-post="{% url 'collect:storage_move_to_boundary' object.pk %}" hx-vals='{"boundary": "top"}'>Move to top</button></li>
+            <li><button type="button" class="dropdown-item" hx-disinherit="*" hx-get="{% url 'collect:storage_move_to' object.pk %}" {% modal_attrs %}>Move before...</button></li>
+            <li><button type="button" class="dropdown-item" hx-post="{% url 'collect:storage_move_to_boundary' object.pk %}" hx-vals='{"boundary": "bottom"}'>Move to bottom</button></li>
           </ul>
         </div>
       {% endif %}

@@ -15,10 +15,6 @@
     <div id="storage-cards" class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 g-3 mb-3 sortable" data-sortable="{{ perms.collect.change_storage|yesno:'true,false' }}">
       {% for object in object_list %}
         {% include "collect/partials/storage_card.html" %}
-      {% empty %}
-        <p>
-          <small class="text-muted">There are no storage containers to be displayed.</small>
-        </p>
       {% endfor %}
     </div>
   </form>
@@ -28,7 +24,13 @@
 {% block container %}
   {% render_breadcrumbs %}
   {% list_page_header "collect.Storage" %}
-  <div hx-get="{% url 'collect:storage_list' %}" hx-trigger="listChanged from:body" hx-target="#storage-results" hx-swap="outerHTML" hx-push-url="true">
-    {% partial cards %}
-  </div>
+  {% if object_list %}
+    <div hx-get="" hx-trigger="listChanged from:body" hx-target="#storage-results" hx-swap="outerHTML" hx-push-url="true">
+      {% partial cards %}
+    </div>
+  {% else %}
+    <section class="border border-dashed rounded-3 p-5 text-center bg-body-tertiary" aria-live="polite">
+        <h2 class="h5 mb-2">No items yet</h2>
+    </section>
+  {% endif %}
 {% endblock %}

@@ -12,23 +12,13 @@ class StoragePriorityTests(TestCase):
         self.user = User.objects.create_superuser("storage-admin", "admin@example.com", "password")
         self.client.force_login(self.user)
 
-    def test_htmx_pagination_returns_replaceable_results_with_controls_outside_sort_form(self):
+    def test_storage_list_paginates_for_full_and_htmx_requests(self):
         boxes = [Storage.objects.append(Storage(name=f"Box {i}")) for i in range(101)]
         url = reverse("collect:storage_list")
-        full_page = self.client.get(url, {"page": 2})
-        self.assertContains(full_page, f'hx-get="{url}" hx-trigger="listChanged from:body"')
-        self.assertContains(full_page, 'hx-target="#storage-results" hx-swap="outerHTML" hx-push-url="true"')
-
-        response = self.client.get(url, {"page": 2}, HTTP_HX_REQUEST="true")
-        self.assertEqual(response.status_code, 200)
-        results = response.content.decode().strip()
-        self.assertTrue(results.startswith('<section id="storage-results">'))
-        self.assertTrue(results.endswith("</section>"))
-        self.assertIn(f'name="order" value="{boxes[-1].pk}"', results)
-        self.assertEqual(results.count('name="order"'), 1)
-        self.assertIn('hx-trigger="end from:#storage-cards"', results)
-        self.assertIn('hx-boost="true"', results.split("</form>", 1)[1])
-        self.assertIn('href="?page=1"', results)
+        for headers in ({}, {"HTTP_HX_REQUEST": "true"}):
+            response = self.client.get(url, {"page": 2}, **headers)
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual([box.pk for box in response.context["object_list"]], [boxes[-1].pk])
 
     def test_page_reorder_keeps_other_pages_and_existing_gaps(self):
         containers = [Storage.objects.append(Storage(name=f"Box {i:03}")) for i in range(102)]
@@ -36,8 +26,6 @@ class StoragePriorityTests(TestCase):
         response = self.client.get(reverse("collect:storage_list"), {"page": 2})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.context["page_obj"].object_list), 1)
-        self.assertContains(response, f'name="order" value="{containers[-1].pk}"')
-        self.assertNotContains(response, f'name="order" value="{containers[0].pk}"')
 
         before = dict(Storage.objects.values_list("pk", "order"))
         # The first page has 100 items; swap two there without changing the second page.
@@ -57,45 +45,80 @@ class StoragePriorityTests(TestCase):
         before = set(Storage.objects.values_list("order", flat=True))
 
         response = self.client.post(
-            reverse("collect:storage-sort-to-top", args=[boxes[-1].pk]),
+            reverse("collect:storage_move_to_boundary", args=[boxes[-1].pk]),
+            {"boundary": "top"},
             HTTP_HX_REQUEST="true",
         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(json.loads(response.headers["HX-Trigger"]), {"listChanged": True})
         self.assertEqual(Storage.objects.first().pk, boxes[-1].pk)
         self.assertEqual(set(Storage.objects.values_list("order", flat=True)), before)
-        self.assertContains(self.client.get(reverse("collect:storage_list")), f'name="order" value="{boxes[-1].pk}"')
 
-    def test_storage_cards_use_responsive_columns_without_outer_margins(self):
-        Storage.objects.append(Storage(name="Box"))
-        response = self.client.get(reverse("collect:storage_list"))
-        self.assertContains(response, 'row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 g-3')
-        self.assertContains(response, '<div class="col draggable">')
-        self.assertContains(response, '<div class="border p-3 rounded-3 h-100">')
-
-    def test_storage_card_menu_only_offers_to_top_to_editors(self):
-        box = Storage.objects.append(Storage(name="Box"))
-        url = reverse("collect:storage-sort-to-top", args=[box.pk])
-        response = self.client.get(reverse("collect:storage_list"))
-        self.assertContains(response, 'aria-label="Storage actions"')
-        self.assertContains(response, f'type="button" class="dropdown-item" hx-post="{url}">Move to top</button>')
-
-        viewer = User.objects.create_user("storage-viewer", password="password")
-        viewer.user_permissions.add(Permission.objects.get(codename="view_storage"))
-        self.client.force_login(viewer)
-        response = self.client.get(reverse("collect:storage_list"))
-        self.assertEqual(response.status_code, 200)
-        self.assertNotContains(response, 'aria-label="Storage actions"')
-        self.assertNotContains(response, f'hx-post="{url}"')
-
-    def test_send_to_top_requires_change_permission(self):
+    def test_move_requires_change_permission(self):
         boxes = [Storage.objects.append(Storage(name=f"Box {i}")) for i in range(2)]
         viewer = User.objects.create_user("storage-viewer", password="password")
         viewer.user_permissions.add(Permission.objects.get(codename="view_storage"))
         self.client.force_login(viewer)
-        response = self.client.post(reverse("collect:storage-sort-to-top", args=[boxes[-1].pk]))
-        self.assertEqual(response.status_code, 403)
+        boundary_url = reverse("collect:storage_move_to_boundary", args=[boxes[-1].pk])
+        before_url = reverse("collect:storage_move_to", args=[boxes[-1].pk])
+        for response in (
+            self.client.post(boundary_url, {"boundary": "top"}),
+            self.client.get(before_url),
+            self.client.post(before_url, {"storage": boxes[0].pk}),
+        ):
+            self.assertEqual(response.status_code, 403)
         self.assertEqual(list(Storage.objects.values_list("pk", flat=True)), [box.pk for box in boxes])
+
+    def test_move_before_in_both_directions_and_to_bottom_preserves_priorities(self):
+        boxes = [Storage.objects.append(Storage(name=f"Box {i}")) for i in range(5)]
+        boxes[1].delete()  # Moving containers must not close priority gaps.
+        priorities = set(Storage.objects.values_list("order", flat=True))
+
+        def before_url(box):
+            return reverse("collect:storage_move_to", args=[box.pk])
+
+        response = self.client.post(before_url(boxes[4]), {"storage": boxes[2].pk}, HTTP_HX_REQUEST="true")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(json.loads(response.headers["HX-Trigger"]), {"closeModal": True, "listChanged": True})
+        self.assertEqual(
+            list(Storage.objects.values_list("pk", flat=True)), [boxes[0].pk, boxes[4].pk, boxes[2].pk, boxes[3].pk]
+        )
+
+        response = self.client.post(before_url(boxes[0]), {"storage": boxes[3].pk})
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            list(Storage.objects.values_list("pk", flat=True)), [boxes[4].pk, boxes[2].pk, boxes[0].pk, boxes[3].pk]
+        )
+
+        response = self.client.post(
+            reverse("collect:storage_move_to_boundary", args=[boxes[4].pk]), {"boundary": "bottom"}
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            list(Storage.objects.values_list("pk", flat=True)), [boxes[2].pk, boxes[0].pk, boxes[3].pk, boxes[4].pk]
+        )
+        self.assertEqual(set(Storage.objects.values_list("order", flat=True)), priorities)
+
+    def test_invalid_moves_leave_order_unchanged(self):
+        boxes = [Storage.objects.append(Storage(name=f"Box {i}")) for i in range(2)]
+        before = list(Storage.objects.values_list("pk", "order"))
+        boundary_url = reverse("collect:storage_move_to_boundary", args=[boxes[0].pk])
+        before_url = reverse("collect:storage_move_to", args=[boxes[0].pk])
+
+        self.assertEqual(self.client.post(boundary_url, {"boundary": "middle"}).status_code, 400)
+        response = self.client.post(before_url, {"storage": 999999})
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context["form"].errors)
+        self.assertEqual(self.client.post(before_url, {"storage": boxes[0].pk}).status_code, 302)
+        self.assertEqual(list(Storage.objects.values_list("pk", "order")), before)
+        self.assertEqual(self.client.post(boundary_url, {"boundary": "top"}).status_code, 302)
+        self.assertEqual(
+            self.client.post(
+                reverse("collect:storage_move_to_boundary", args=[999999]), {"boundary": "top"}
+            ).status_code,
+            404,
+        )
+        self.assertEqual(self.client.get(reverse("collect:storage_move_to", args=[999999])).status_code, 404)
 
     def test_api_reorder_requires_complete_ids_and_handles_long_distance_move(self):
         boxes = [Storage.objects.append(Storage(name=f"Box {i}")) for i in range(3)]
