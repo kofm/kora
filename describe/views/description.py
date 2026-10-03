@@ -154,24 +154,38 @@ def description_find_similar(request):
 
     description = get_object_or_404(Description, pk=description_id)
     protocol_id = description.protocol.pk
-    expressions = Expression.objects.prefetch_related("state__trait").filter(
+    expressions = Expression.objects.select_related("state__trait").filter(
         description=description_id, state__trait__grouping=True
     )
     if not expressions:
         messages.warning(request, "No asterisked expressions available for this variety.")
-    filter_expression = defaultdict(list)
+    recorded_states = defaultdict(set)
     for expression in expressions:
-        filter_expression[str(expression.state.trait.pk)].append(expression.state.pk)
-    update_description_filter(request, expressions=dict(filter_expression), protocol=protocol_id)
+        recorded_states[expression.state.trait_id].add(expression.state_id)
+
+    traits = Trait.objects.filter(protocol=protocol_id).with_states()
+    filter_expression = {}
+    for trait in traits:
+        selected = recorded_states.get(trait.pk)
+        if not selected:
+            continue
+        states = list(trait.states.all())
+        if trait.type_of_expression == Trait.TypeOfExpression.QUANTITATIVE:
+            expanded = set(selected)
+            for index, state in enumerate(states):
+                if state.pk in selected:
+                    expanded.update(neighbor.pk for neighbor in states[max(0, index - 1) : index + 2])
+            selected = expanded
+        filter_expression[str(trait.pk)] = [state.pk for state in states if state.pk in selected]
+    update_description_filter(request, expressions=filter_expression, protocol=protocol_id)
 
     if not is_htmx(request):
         url = reverse("describe:description_list")
         query_string = urlencode({"reset": "false"})
         return redirect(f"{url}?{query_string}")
 
-    traits = Trait.objects.filter(protocol=protocol_id).prefetch_related("states").order_by("numeric_id")
     form = ProtocolForm(initial={"protocol": protocol_id})
-    formset = ExpressionFilterFormSet(traits=traits, expressions=dict(filter_expression))
+    formset = ExpressionFilterFormSet(traits=traits, expressions=filter_expression)
 
     return TemplateResponse(request, "describe/description_list.html", {"form_protocol": form, "formset": formset})
 

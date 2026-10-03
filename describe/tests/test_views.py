@@ -1,9 +1,12 @@
+from html.parser import HTMLParser
+
 from django.contrib.auth.models import Permission
 from django.test import TestCase
 from django.urls import reverse
 
 from describe.factories import (
     DescriptionFactory,
+    ExpressionFactory,
     ProtocolFactory,
     StateFactory,
     StateGroupFactory,
@@ -30,6 +33,77 @@ class DescribeViewsSmokeTest(ViewSmokeTestMixin, TestCase):
         self.assert_get(["description_list", "description_compare"])
         self.assert_get(["description_detail", "description_expression_update"], [self.description.id])
         self.assert_post(["description_delete"], [self.description.id], status_code=302)
+
+
+class FindSimilarTests(TestCase):
+    def setUp(self):
+        self.client.force_login(UserFactory(is_superuser=True))
+        self.description = DescriptionFactory()
+        self.url = reverse("describe:description_find_similar")
+
+    def make_trait(self, codes, *, grouping=True, expression_type="QN"):
+        trait = TraitFactory(
+            protocol=self.description.protocol,
+            grouping=grouping,
+            type_of_expression=expression_type,
+        )
+        states = [StateFactory(trait=trait, numeric_id=code) for code in codes]
+        return trait, states
+
+    def record(self, *states):
+        for state in states:
+            ExpressionFactory(description=self.description, state=state)
+
+    def assert_selections(self, expected, *, htmx=False):
+        headers = {"HTTP_HX_REQUEST": "true"} if htmx else {}
+        response = self.client.get(self.url, {"description_id": self.description.pk}, **headers)
+        self.assertEqual(response.status_code, 200 if htmx else 302)
+        session_filter = self.client.session["description_filter"]
+        self.assertEqual(session_filter["expressions"], expected)
+        self.assertEqual(session_filter["protocol"], self.description.protocol_id)
+        if htmx:
+
+            class CheckedInputs(HTMLParser):
+                def __init__(self):
+                    super().__init__()
+                    self.values = set()
+
+                def handle_starttag(self, tag, attrs):
+                    attrs = dict(attrs)
+                    if tag == "input" and "checked" in attrs and attrs.get("name", "").endswith("-expressions"):
+                        self.values.add(int(attrs["value"]))
+
+            parser = CheckedInputs()
+            parser.feed(response.content.decode())
+            self.assertEqual(parser.values, {pk for states in expected.values() for pk in states})
+        else:
+            self.assertEqual(response.url, reverse("describe:description_list") + "?reset=false")
+
+    def test_quantitative_neighbors_follow_available_codes_and_stop_at_boundaries(self):
+        trait, states = self.make_trait([1, 3, 5, 7, 9])
+        for index, neighbors in ((0, states[:2]), (2, states[1:4]), (4, states[3:])):
+            self.description.expressions.all().delete()
+            self.record(states[index])
+            expected = {str(trait.pk): [state.pk for state in neighbors]}
+            for htmx in (False, True):
+                with self.subTest(code=states[index].numeric_id, htmx=htmx):
+                    self.assert_selections(expected, htmx=htmx)
+
+    def test_only_grouping_quantitative_traits_are_expanded(self):
+        expected = {}
+        for expression_type in ("QN", "QL", "PQ", ""):
+            trait, states = self.make_trait([4, 5, 6], expression_type=expression_type)
+            self.record(states[1])
+            selected = states if expression_type == "QN" else states[1:2]
+            expected[str(trait.pk)] = [state.pk for state in selected]
+        _, non_grouping_states = self.make_trait([4, 5, 6], grouping=False)
+        self.record(non_grouping_states[1])
+        self.assert_selections(expected, htmx=True)
+
+    def test_multiple_recorded_states_combine_overlapping_neighbors(self):
+        trait, states = self.make_trait([1, 3, 5, 7, 9])
+        self.record(states[1], states[2])
+        self.assert_selections({str(trait.pk): [state.pk for state in states[:4]]})
 
 
 class WorkspaceOwnershipTests(TestCase):
