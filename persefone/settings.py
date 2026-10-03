@@ -220,6 +220,8 @@ DJANGO_EASY_AUDIT_UNREGISTERED_CLASSES_EXTRA = getenv_list(
 DJANGO_EASY_AUDIT_UNREGISTERED_CLASSES_EXTRA.extend(
     [
         "describe.StateGroup",
+        "describe.Workspace",
+        "describe.WorkspaceElement",
         "collect.StoragePosition",
         "calculator.FieldBook",
         "calculator.Step",
