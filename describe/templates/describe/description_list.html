@@ -46,114 +46,121 @@
       <h2 class="fs-4">Search</h2>
 
       <div class="sticky-top overflow-auto pe-2" style="max-height: calc(100vh - 300px);">
-	<form id="varietyForm" class="mb-2" hx-get=".{% querystring reset='true' %}" hx-trigger="keyup delay:500ms" hx-target="#table" _="on change from #expressionForm or change from #protocolForm or change from #strictForm reset() the #varietyForm">
-	  <label class="form-label" for="{{ form_variety.variety.id_for_label }}">
-	    {{ form_variety.variety.label }}:
-	  </label>
-	  {{ form_variety.variety }}
-	</form>
+	      <form id="varietyForm" class="mb-2" hx-get=".{% querystring reset='true' %}" hx-trigger="keyup delay:500ms" hx-target="#table" _="on change from #expressionForm or change from #protocolForm or change from #strictForm reset() the #varietyForm">
+	        <label class="form-label" for="{{ form_variety.variety.id_for_label }}">
+	          {{ form_variety.variety.label }}:
+	        </label>
+	        {{ form_variety.variety }}
+	      </form>
 
-	{% block protocol_filter %}
-	  <form id="protocolForm" autocomplete="off" hx-get="{% url 'describe:description_form' %}" hx-trigger="change"  hx-target="#expression_filter" hx-swap-oob="true" hx-on::after-request='htmx.ajax("GET", "{% url "describe:description_list" %}", {target: "#table", indicator: "#spinner"})' hx-ext="tomselect">
-	    <label class="form-label" for="{{ form_protocol.protocol.id_for_label }}">
-	      {{ form_protocol.protocol.label }}:
-	    </label>
-	    {{ form_protocol.protocol }}
-	  </form>
-	{% endblock %}
+	      {% block protocol_filter %}
+	        <form id="protocolForm" autocomplete="off" hx-get="{% url 'describe:description_form' %}" hx-trigger="change"  hx-target="#expression_filter" hx-swap-oob="true" hx-on::after-request='htmx.ajax("GET", "{% url "describe:description_list" %}", {target: "#table", indicator: "#spinner"})' hx-ext="tomselect">
+	          <label class="form-label" for="{{ form_protocol.protocol.id_for_label }}">
+	            {{ form_protocol.protocol.label }}:
+	          </label>
+	          {{ form_protocol.protocol }}
+	        </form>
+	      {% endblock %}
 
-	<form id="strictForm" hx-post="." autocomplete="off" hx-vals='{"strict_changed": "true"}' class="mb-2" hx-trigger="change" hx-target="#table" hx-indicator="#spinner">
-	  <div class="form-check mt-1">
-	    {{ form_strict.strict }}
-	    <label class="form-check-label" for="{{ form_strict.strict.id_for_label }}">
-	      Strict Search:
-	    </label>
-	  </div>
-	</form>
+	      <form id="strictForm" hx-post="." autocomplete="off" hx-vals='{"strict_changed": "true"}' class="mb-2" hx-trigger="change" hx-target="#table" hx-indicator="#spinner">
+	        <div class="form-check mt-1">
+	          {{ form_strict.strict }}
+	          <label class="form-check-label" for="{{ form_strict.strict.id_for_label }}">
+	            Strict Search:
+	          </label>
+	        </div>
+	      </form>
 
-	<form id="labelForm" class="mb-2" autocomplete="off" hx-post="." hx-trigger="change" hx-target="#table" hx-indicator="#spinner">
-	  <label class="form-label" for="{{ form_label.labels.id_for_label }}">
-	    {{ form_label.labels.label }}:
-	  </label>
-	  {{ form_label.labels }}
-	  <input name="label_form" type="hidden" value="1"/>
-	</form>
+	      <form id="labelForm" class="mb-2" autocomplete="off" hx-post="." hx-trigger="change" hx-target="#table" hx-indicator="#spinner">
+	        <label class="form-label" for="{{ form_label.labels.id_for_label }}">
+	          {{ form_label.labels.label }}:
+	        </label>
+	        {{ form_label.labels }}
+	        <input name="label_form" type="hidden" value="1"/>
+	      </form>
 
-	<div id="expression_filter" hx-swap-oob="true">
-	  {% block expression_filter %}
-	    <form id="expressionForm" autocomplete="off" hx-post="." hx-trigger="change" hx-target="#table" hx-indicator="#spinner">
-	      {{ formset.management_form }}
-	      <fieldset>
-		<label class="form-label">Expressions:</label>
-		<div class="accordion">
-		  {% for form in formset %}
-		    {% with value=form.expressions.value %}
-		      <div class="accordion-item">
-			{{ form.trait }}
-			<h2 class="accordion-header">
-			  <button class="accordion-button {{ value|yesno:",collapsed" }}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ forloop.counter }}" aria-expanded="{{ value|yesno:"true,false" }}" aria-controls="collapse{{ forloop.counter }}">
-			    {{ form.expressions.label }}
-			  </button>
-			</h2>
+	      <div id="expression_filter" hx-swap-oob="true">
+	        {% block expression_filter %}
+	          <form id="expressionForm" autocomplete="off" hx-post="." hx-trigger="change" hx-target="#table" hx-indicator="#spinner">
+	            {{ formset.management_form }}
+	            <fieldset>
+		            <label class="form-label">Expressions:</label>
+		            <div class="accordion">
+		              {% for form in formset %}
+		                {% with value=form.expressions.value %}
+		                  <div class="accordion-item">
+			                  {{ form.trait }}
+			                  <h2 class="accordion-header">
+			                    <button class="accordion-button {{ value|yesno:",collapsed" }}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ forloop.counter }}" aria-expanded="{{ value|yesno:"true,false" }}" aria-controls="collapse{{ forloop.counter }}">
+			                      {{ form.expressions.label }}
+			                    </button>
+			                  </h2>
 
-			<div id="collapse{{ forloop.counter }}" class="accordion-collapse collapse {{ value|yesno:"show," }}">
-			  <div class="accordion-body">
-			    {% for checkbox in form.expressions %}
-			      <div class="form-check">
-				{{ checkbox.tag }}
-				<label class="form-check-label" for="{{ checkbox.id_for_label }}">
-				  {{ checkbox.choice_label }}
-				</label>
-			      </div>
-			    {% endfor %}
-			  </div>
-			</div>
-		      </div>
-		    {% endwith %}
-		  {% endfor %}
-		</div>
-	      </fieldset>
-	    </form>
-	  {% endblock %}
-	</div>
+			                  <div id="collapse{{ forloop.counter }}" class="accordion-collapse collapse {{ value|yesno:"show," }}">
+			                    <div class="accordion-body">
+			                      {% for checkbox in form.expressions %}
+			                        <div class="form-check">
+				                        {{ checkbox.tag }}
+				                        <label class="form-check-label" for="{{ checkbox.id_for_label }}">
+				                          {{ checkbox.choice_label }}
+				                        </label>
+			                        </div>
+			                      {% endfor %}
+			                    </div>
+			                  </div>
+		                  </div>
+		                {% endwith %}
+		              {% endfor %}
+		            </div>
+	            </fieldset>
+	          </form>
+	        {% endblock %}
+	      </div>
       </div>
     </div>
 
     <!-- Right Column: Results Table -->
     <div class="col-lg-8">
       {% block description_table %}
-	<div id="table" hx-target="#table" class="position-relative">
+	      <div id="table" hx-target="#table" class="position-relative">
 
-	  <div class="d-inline-flex flex-column justify-content-start">
-	    <h2 class="fs-4">Results</h2>
-	    <small class="text-muted">
-	      {% with num_pages=table.paginator.count %}
-		{{ num_pages }} matches.
-		{% if num_pages %}
-		  <a href="{% querystring reset='false' export='true' %}" class="icon-link icon-link-hover text-decoration-none link-body-emphasis">
-		    Download
-		    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-down-circle" viewBox="0 0 16 16">
-		      <path fill-rule="evenodd" d="M1 8a7 7 0 1 0 14 0A7 7 0 0 0 1 8m15 0A8 8 0 1 1 0 8a8 8 0 0 1 16 0M8.5 4.5a.5.5 0 0 0-1 0v5.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293z"/>
-		    </svg>
-		  </a>
-		{% endif %}
-	      {% endwith %}
-	    </small>
+	        <div class="d-inline-flex flex-column justify-content-start">
+	          <h2 class="fs-4">Results</h2>
+	          <small class="text-muted">
+	            {% with num_pages=table.paginator.count %}
+		            {{ num_pages }} matches.
+		            {% if num_pages and perms.describe.view_description and results_filtered %}
+		              <a href="{% querystring reset='false' export='true' %}" class="icon-link icon-link-hover text-decoration-none link-body-emphasis" title="Export search filter and results">
+		                <span class="badge rounded-pill text-bg-secondary"><i class="bi bi-arrow-down"></i></span>
+		              </a>
+                  {% if user.is_authenticated and perms.describe.add_workspaceelement and results_filtered %}
+                    <a href="#"
+                      class="row-action"
+                      hx-post="{{ bulk_add_url }}"
+                      hx-target="#workspaceBody"
+                      hx-confirm="Add all {{ num_pages }} matching descriptions to the active workspace? Existing entries will be skipped."
+                      title="Add all results to active workspace">
+                      <span class="badge rounded-pill text-bg-secondary ms-1"><i class="bi bi-collection"></i></span>
+                    </a>
+                  {% endif %}
+		            {% endif %}
+	            {% endwith %}
+	          </small>
 
 
 
-	  </div>
+	        </div>
 
 
-	  <div id="table-content" _="on click from the <a.btn/> in me reset() the #varietyForm">
-	    {% render_table table %}
-	  </div>
+	        <div id="table-content" _="on click from the <a.btn/> in me reset() the #varietyForm">
+	          {% render_table table %}
+	        </div>
 
-	  <div id="spinner" class="spinner-grow htmx-indicator top-25 end-50 position-absolute" role="status">
-	    <span class="visually-hidden">Loading...</span>
-	  </div>
+	        <div id="spinner" class="spinner-grow htmx-indicator top-25 end-50 position-absolute" role="status">
+	          <span class="visually-hidden">Loading...</span>
+	        </div>
 
-	</div>
+	      </div>
       {% endblock %}
     </div>
   </div>

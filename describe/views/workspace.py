@@ -10,6 +10,8 @@ from django.views.decorators.http import require_POST
 
 from describe.forms import WorkspaceCreateForm, WorkspaceSelectForm, WorkspaceUpdateForm
 from describe.models import Description, Workspace, WorkspaceElement
+from describe.tables import DescriptionTable
+from describe.views.utils import description_results, init_description_filter
 from sortable.views import SortableView
 
 
@@ -84,14 +86,13 @@ def workspace_element_create(request):
     if not description_id:
         return JsonResponse({"error": "Invalid input"}, status=409)
 
-    workspace = Workspace.objects.filter(user=request.user, is_active=True).first()
-    if not workspace:
-        messages.error(request, "No workspace selected.")
-        return HttpResponse(headers={"HX-Reswap": "none"})
-
-    description = get_object_or_404(Description, pk=description_id)
-
     with transaction.atomic():
+        workspace = Workspace.objects.select_for_update().filter(user=request.user, is_active=True).first()
+        if not workspace:
+            messages.error(request, "No workspace selected.")
+            return HttpResponse(headers={"HX-Reswap": "none"})
+
+        description = get_object_or_404(Description, pk=description_id)
         element, created = WorkspaceElement.objects.get_or_create(description=description, workspace=workspace)
         if not created:
             messages.warning(request, f"{description} is already in Workspace '{workspace.name}'")
@@ -101,6 +102,46 @@ def workspace_element_create(request):
         element.order = order_max + 1 if order_max else 1
         element.save()
         messages.success(request, f"{description} added to Workspace '{workspace.name}'")
+
+    return redirect(reverse("describe:workspace_detail"))
+
+
+@permission_required("describe.add_workspaceelement", raise_exception=True)
+@require_POST
+def workspace_elements_add_results(request):
+    description_filter = init_description_filter(request, preserve=True)
+    descriptions, filtered, _ = description_results(Description.objects.all(), description_filter, request.GET)
+    if not filtered:
+        return HttpResponseBadRequest("Apply a filter before adding all results.")
+
+    # Let the table validate public sort names and translate them to ORM fields.
+    table = DescriptionTable(descriptions, order_by=request.GET.get("sort", "").split(","))
+    descriptions = table.data.data
+    ordering = descriptions.query.order_by or Description._meta.ordering
+    descriptions = descriptions.order_by(*ordering, "pk").prefetch_related(None)
+
+    with transaction.atomic():
+        workspace = Workspace.objects.select_for_update().filter(user=request.user, is_active=True).first()
+        if not workspace:
+            messages.error(request, "No workspace selected.")
+            return HttpResponse(headers={"HX-Reswap": "none"})
+
+        existing = set(workspace.descriptions.values_list("description_id", flat=True))
+        matches = list(descriptions.values_list("pk", flat=True))
+        new_ids = [pk for pk in matches if pk not in existing]
+        order_max = workspace.descriptions.aggregate(Max("order"))["order__max"] or 0
+        WorkspaceElement.objects.bulk_create(
+            [
+                WorkspaceElement(workspace=workspace, description_id=pk, order=order_max + index)
+                for index, pk in enumerate(new_ids, start=1)
+            ],
+            batch_size=1000,
+        )
+        messages.success(
+            request,
+            f"Added {len(new_ids)} descriptions to Workspace '{workspace.name}'; "
+            f"skipped {len(matches) - len(new_ids)} already present.",
+        )
 
     return redirect(reverse("describe:workspace_detail"))
 

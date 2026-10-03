@@ -37,12 +37,12 @@ from describe.models import Description, DescriptionLabel, Expression, Protocol,
 from describe.tables import DescriptionTable
 from describe.views.protocol import NavDescribeActiveContext
 from describe.views.utils import (
+    description_results,
     init_description_filter,
     make_descriptions_dict,
     make_species_descriptions_dict,
     make_species_protocols_dict,
     make_traits_expressions_dict,
-    process_description_filter,
     render_export_file_to_response,
     update_description_filter,
 )
@@ -55,7 +55,6 @@ from frontpage.views_decorators import (
     nav_active,
     public_catalog_view,
 )
-from register.filters import filter_name_generic
 from register.models import PlantVariety
 
 CharField.register_lookup(Lower)
@@ -100,15 +99,9 @@ def _description_list(request):
 
     context = {}
 
-    descriptions = process_description_filter(
-        Description.objects.with_expressions().select_related("label"), description_filter
+    descriptions, filtered, variety = description_results(
+        Description.objects.with_expressions().select_related("label"), description_filter, request.GET
     )
-
-    if "variety" in request.GET:
-        form = DescriptionVarietyForm(request.GET)
-        if form.is_valid():
-            variety_name = form.cleaned_data["variety"]
-            descriptions = filter_name_generic(descriptions, "variety__name", variety_name)
 
     if "export" in request.GET:
         return render_export_file_to_response(
@@ -128,6 +121,12 @@ def _description_list(request):
     context["form_label"] = DescriptionFilterLabelForm(initial={"label": description_filter["label"]})
     context["formset"] = ExpressionFilterFormSet(traits=traits, expressions=description_filter["expressions"])
     context["table"] = table
+    context["results_filtered"] = filtered
+    context["bulk_add_url"] = (
+        reverse("describe:workspace_elements_add_results")
+        + "?"
+        + urlencode({"variety": variety, "sort": str(table.order_by or "")})
+    )
     context.update(generate_breadcrumbs(request, Description))
 
     return TemplateResponse(request, "describe/description_list.html", context)
@@ -205,7 +204,7 @@ def description_compare(request):
     # Get all the available Descriptions for any of the Variety-Name
     # combinations present in the workspace.
     # This includes descriptions from other protocols, too.
-    pairs = elems.values_list("description__variety_id", "description__label").distinct()
+    pairs = elems.values_list("description__variety_id", "description__label").distinct()[:50]
     query = Q()
     for variety_id, label in pairs:
         query |= Q(variety_id=variety_id, label=label)

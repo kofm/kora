@@ -5,8 +5,10 @@ from itertools import groupby
 from django.db.models import QuerySet
 from django.http import HttpRequest, HttpResponse
 
+from describe.forms import DescriptionVarietyForm
 from describe.models import Description, DescriptionLabel, Protocol, State
 from frontpage.views_decorators import is_htmx
+from register.filters import filter_name_generic
 
 
 def join_description_expressions(
@@ -171,9 +173,9 @@ def render_export_file_to_response(protocol, filter_label, filter_expression, de
     return response
 
 
-def init_description_filter(request: HttpRequest):
+def init_description_filter(request: HttpRequest, *, preserve=False):
     reset = request.GET.get("reset") != "false"
-    if not is_htmx(request) and reset:
+    if not preserve and not is_htmx(request) and reset:
         reset_description_filter(request)
 
     if "description_filter" not in request.session:
@@ -199,6 +201,21 @@ def update_description_filter(request, **kwargs):
     for key, value in kwargs.items():
         request.session["description_filter"][key] = value
     request.session.modified = True
+
+
+def description_results(descriptions, description_filter, params):
+    """Return list matches and whether the inputs impose an effective restriction."""
+    form = DescriptionVarietyForm(params)
+    variety = form.cleaned_data["variety"] if form.is_valid() else ""
+    descriptions = process_description_filter(descriptions, description_filter)
+    descriptions = filter_name_generic(descriptions, "variety__name", variety)
+    filtered = bool(
+        variety
+        or description_filter["label"]
+        or description_filter["expressions"]
+        or (description_filter["strict"] and description_filter["protocol"])
+    )
+    return descriptions, filtered, variety
 
 
 def process_description_filter(descriptions: QuerySet[Description], description_filter: dict) -> QuerySet[Description]:

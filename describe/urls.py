@@ -26,6 +26,7 @@ urlpatterns = [
     path("workspace/<int:pk>/delete", wsp.workspace_delete, name="workspace_delete"),
     path("workspace/activate", wsp.workspace_activate, name="workspace_activate"),
     path("workspace/element/create", wsp.workspace_element_create, name="workspace_element_create"),
+    path("workspace/elements/add-results", wsp.workspace_elements_add_results, name="workspace_elements_add_results"),
     path("workspace/element/<int:pk>/delete", wsp.workspace_element_delete, name="workspace_element_delete"),
     path("workspace/sort", wsp.WorkspaceSortableView.as_view(), name="workspace_sort"),
     path("workspace/compare", dsc.description_compare, name="description_compare"),

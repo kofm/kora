@@ -6,6 +6,7 @@ from django.urls import reverse
 
 from describe.factories import (
     DescriptionFactory,
+    DescriptionLabelFactory,
     ExpressionFactory,
     ProtocolFactory,
     StateFactory,
@@ -14,7 +15,7 @@ from describe.factories import (
     WorkspaceElementFactory,
     WorkspaceFactory,
 )
-from describe.models import Trait
+from describe.models import Trait, WorkspaceElement
 from frontpage.factories import UserFactory
 from frontpage.testcases import ViewSmokeTestMixin
 
@@ -147,6 +148,92 @@ class WorkspaceOwnershipTests(TestCase):
         self.element.refresh_from_db()
         self.assertEqual(own_element.order, 7)
         self.assertEqual(self.element.order, 4)
+
+
+class BulkWorkspaceResultsTests(TestCase):
+    def setUp(self):
+        self.user = UserFactory(is_superuser=True)
+        self.client.force_login(self.user)
+        self.workspace = WorkspaceFactory(user=self.user)
+        self.protocol = ProtocolFactory()
+        self.url = reverse("describe:workspace_elements_add_results")
+        self.label = DescriptionLabelFactory(name="Bulk results label")
+
+    def set_filter(self, **overrides):
+        session = self.client.session
+        session["description_filter"] = {
+            "protocol": self.protocol.pk,
+            "strict": False,
+            "label": [],
+            "expressions": {},
+            **overrides,
+        }
+        session.save()
+
+    def test_all_pages_use_every_filter_and_append_sorted_without_duplicates(self):
+        state = StateFactory(trait__protocol=self.protocol)
+        matches = [
+            DescriptionFactory(protocol=self.protocol, label=self.label, variety__name=f"zz {index:02}")
+            for index in range(12)
+        ]
+        label = matches[0].label
+        for description in matches:
+            ExpressionFactory(description=description, state=state)
+
+        # Each excluded description violates just one of the effective filters.
+        excluded = [
+            DescriptionFactory(label=label, variety__name="zz other protocol"),
+            DescriptionFactory(protocol=self.protocol, label=None, variety__name="zz other label"),
+            DescriptionFactory(protocol=self.protocol, label=label, variety__name="zz missing expression"),
+            DescriptionFactory(protocol=self.protocol, label=label, variety__name="unrelated"),
+        ]
+        for description in (excluded[0], excluded[1], excluded[3]):
+            ExpressionFactory(description=description, state=state)
+        existing = WorkspaceElementFactory(workspace=self.workspace, description=matches[0], order=7)
+        other_workspace = WorkspaceFactory(user=UserFactory())
+        self.set_filter(strict=True, label=[label.pk], expressions={str(state.trait_id): [state.pk]})
+        params = {"variety": "zz", "sort": "-variety__name", "page": 1}
+
+        response = self.client.post(self.url, query_params=params)
+
+        self.assertEqual(response.status_code, 302)
+        expected = [matches[0].pk] + [description.pk for description in reversed(matches[1:])]
+        self.assertEqual(list(self.workspace.descriptions.values_list("description_id", flat=True)), expected)
+        self.assertEqual(list(self.workspace.descriptions.values_list("order", flat=True)), list(range(7, 19)))
+        self.assertFalse(other_workspace.descriptions.exists())
+        existing.refresh_from_db()
+        self.assertEqual(existing.order, 7)
+        # A repeated HTMX click must neither duplicate nor reorder membership.
+        self.client.post(self.url, query_params=params, HTTP_HX_REQUEST="true")
+        self.assertEqual(list(self.workspace.descriptions.values_list("description_id", flat=True)), expected)
+
+    def test_protocol_alone_is_not_filtering_but_variety_search_is(self):
+        match = DescriptionFactory(protocol=self.protocol, label=self.label, variety__name="zz match")
+        DescriptionFactory(protocol=self.protocol, label=self.label, variety__name="unrelated")
+        self.set_filter()
+        response = self.client.post(self.url, HTTP_HX_REQUEST="true")
+        self.assertEqual(response.status_code, 400)
+        self.assertFalse(self.workspace.descriptions.exists())
+        list_url = reverse("describe:description_list")
+        response = self.client.get(list_url, {"reset": "false"})
+        self.assertNotContains(response, 'title="Add all results to active workspace"')
+        response = self.client.get(list_url, {"reset": "false", "variety": "zz"})
+        self.assertContains(response, 'title="Add all results to active workspace"')
+        self.assertContains(response, "Add all 1 matching descriptions")
+        self.client.post(self.url, query_params={"variety": "zz"})
+        self.assertEqual(list(self.workspace.descriptions.values_list("description_id", flat=True)), [match.pk])
+
+    def test_no_owned_active_workspace_does_not_use_another_users_workspace(self):
+        self.workspace.is_active = False
+        self.workspace.save()
+        other_workspace = WorkspaceFactory(user=UserFactory())
+        DescriptionFactory(protocol=self.protocol, label=self.label)
+        self.set_filter(strict=True)
+
+        response = self.client.post(self.url, HTTP_HX_REQUEST="true")
+
+        self.assertEqual(response.headers["HX-Reswap"], "none")
+        self.assertFalse(WorkspaceElement.objects.filter(workspace__in=[self.workspace, other_workspace]).exists())
 
 
 class TraitExpressionTypeTests(TestCase):
