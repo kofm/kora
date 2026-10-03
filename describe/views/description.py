@@ -113,6 +113,7 @@ def _description_list(request):
     if "export" in request.GET:
         return render_export_file_to_response(
             protocol_id,
+            description_filter["label"],
             description_filter["expressions"],
             descriptions,
         )

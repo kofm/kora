@@ -5,7 +5,7 @@ from itertools import groupby
 from django.db.models import QuerySet
 from django.http import HttpRequest, HttpResponse
 
-from describe.models import Description, Protocol, State
+from describe.models import Description, DescriptionLabel, Protocol, State
 from frontpage.views_decorators import is_htmx
 
 
@@ -113,6 +113,13 @@ def render_header(string):
     ]
 
 
+def render_filter_label(filter_label):
+    if filter_label:
+        labels = DescriptionLabel.objects.filter(pk__in=filter_label).values_list("name", flat=True)
+        return ["Labels: " + ", ".join(labels)]
+    return []
+
+
 def render_filter_expression_to_text(filter_expression):
     states = [state for _, states in filter_expression.items() for state in states]
     states = (
@@ -146,13 +153,14 @@ def render_search_info(protocol_id):
 
 def render_description_list(descriptions):
     header = render_header(f"Results ({descriptions.count()}):")
-    body = [f"- {description}" for description in descriptions]
+    body = [f"- {description} -- {description.label}" for description in descriptions]
     return header + body
 
 
-def render_export_file_to_response(protocol, filter_expression, descriptions):
+def render_export_file_to_response(protocol, filter_label, filter_expression, descriptions):
     text = (
         render_search_info(protocol)
+        + render_filter_label(filter_label)
         + render_filter_expression_to_text(filter_expression)
         + render_description_list(descriptions)
     )
