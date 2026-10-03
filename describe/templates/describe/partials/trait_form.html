@@ -68,7 +68,6 @@
 	  {% endif %}
         </div>
         <div class="col">
-
 	  <label class="form-label" for="{{ form.description.id_for_label }}">Description:</label>
           {{ form.description|add_validation_classes }}
 	  {% if form.numeric_id.errors %}
@@ -80,6 +79,15 @@
               {{ form.description.help_text }}
             </div>
 	  {% endif %}
+        </div>
+        <div class="col-2">
+          <label class="form-label" for="{{ form.type_of_expression.id_for_label }}">Type:</label>
+          {{ form.type_of_expression|add_validation_classes }}
+          {% if form.type_of_expression.errors %}
+            <div class="invalid-feedback">
+              {{ form.type_of_expression.errors|join:", "|escape }}
+            </div>
+          {% endif %}
         </div>
       </div>
       <div class="row g-2 m-2">
@@ -100,12 +108,7 @@
     <div class="card-body">
       {% if formset %}
         <h5>States</h5>
-        <p class="text-muted">
-          Enter the trait states and their
-          corresponding numeric codes. Each state reflects a
-          clearly definable expression of the
-          characteristic.
-        </p>
+        <p class="text-muted">Enter the possible trait states and their corresponding numeric codes. Each state reflects a clearly definable expression of the trait.</p>
         {{ formset.management_form }}
         {% for form in formset %}
           {% include "describe/partials/state_form.html" %}

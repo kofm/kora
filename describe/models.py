@@ -198,6 +198,11 @@ class TraitQuerySet(models.QuerySet):
 
 
 class Trait(models.Model):
+    class TypeOfExpression(models.TextChoices):
+        QUALITATIVE = "QL", "Qualitative"
+        QUANTITATIVE = "QN", "Quantitative"
+        PSEUDO_QUALITATIVE = "PQ", "Pseudo-qualitative"
+
     numeric_id = models.IntegerField(
         verbose_name="ID",
         help_text="Numbering code",
@@ -214,6 +219,13 @@ class Trait(models.Model):
         help_text="The reference protocol of the trait",
     )
     grouping = models.BooleanField(default=False, help_text="Is this a highly discriminating characteristic?")
+    type_of_expression = models.CharField(
+        max_length=2,
+        choices=TypeOfExpression.choices,
+        blank=True,
+        default="",
+        help_text="Type of expression of the trait",
+    )
 
     objects = TraitQuerySet.as_manager()
 

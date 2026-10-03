@@ -230,15 +230,38 @@ class APITests(APITestCase):
         self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
         self.assertEqual(len(resp.data), 2)
 
+    def test_trait_expression_type_round_trip_preserves_omitted_value_and_allows_clearing(self):
+        protocol = ProtocolFactory()
+        response = self.client.post(
+            reverse("restapi:traits-list"),
+            {"numeric_id": 1, "description": "Stem length", "protocol": protocol.pk, "type_of_expression": "QN"},
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data["type_of_expression"], "QN")
+        url = reverse("restapi:traits-detail", args=[response.data["id"]])
+        self.assertEqual(self.client.get(url).data["type_of_expression"], "QN")
+
+        response = self.client.patch(url, {"description": "Stem: length"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(self.client.get(url).data["type_of_expression"], "QN")
+
+        response = self.client.patch(url, {"type_of_expression": ""})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(self.client.get(url).data["type_of_expression"], "")
+
     def test_bulk_create_trait(self):
         protocol = ProtocolFactory()
         data = [
-            {"numeric_id": 1, "description": "Stem length", "protocol": protocol.pk},
+            {"numeric_id": 1, "description": "Stem length", "protocol": protocol.pk, "type_of_expression": "QN"},
             {"numeric_id": 2, "description": "Flowers colour", "protocol": protocol.pk},
         ]
         resp = self.client.post(reverse("restapi:traits-bulk"), data)
         self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
         self.assertEqual(len(resp.data), 2)
+        self.assertEqual({item["numeric_id"]: item["type_of_expression"] for item in resp.data}, {1: "QN", 2: ""})
+        for item in resp.data:
+            url = reverse("restapi:traits-detail", args=[item["id"]])
+            self.assertEqual(self.client.get(url).data["type_of_expression"], item["type_of_expression"])
 
     def test_bulk_create_state(self):
         trait = TraitFactory()

@@ -36,7 +36,7 @@ from register.models import PlantSpecies, PlantVariety
 class TraitForm(forms.ModelForm):
     class Meta:
         model = Trait
-        fields = ("numeric_id", "description", "grouping", "protocol")
+        fields = ("numeric_id", "description", "grouping", "type_of_expression", "protocol")
         widgets = {
             "numeric_id": BootstrapNumberInput(attrs={"placeholder": "ID"}),
             "description": BootstrapTextInput(
@@ -46,6 +46,7 @@ class TraitForm(forms.ModelForm):
                 }
             ),
             "grouping": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "type_of_expression": forms.Select(attrs={"class": "form-select"}),
             "protocol": forms.HiddenInput,
         }
 

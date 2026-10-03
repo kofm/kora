@@ -11,6 +11,7 @@ from describe.factories import (
     WorkspaceElementFactory,
     WorkspaceFactory,
 )
+from describe.models import Trait
 from frontpage.factories import UserFactory
 from frontpage.testcases import ViewSmokeTestMixin
 
@@ -72,6 +73,28 @@ class WorkspaceOwnershipTests(TestCase):
         self.element.refresh_from_db()
         self.assertEqual(own_element.order, 7)
         self.assertEqual(self.element.order, 4)
+
+
+class TraitExpressionTypeTests(TestCase):
+    def test_editor_creates_unspecified_trait_and_can_set_and_clear_expression_type(self):
+        self.client.force_login(UserFactory(is_superuser=True))
+        protocol = ProtocolFactory()
+        data = {"numeric_id": 1, "description": "Leaf colour", "protocol": protocol.pk}
+
+        response = self.client.post(reverse("describe:trait_create", args=[protocol.pk]), data)
+        self.assertEqual(response.status_code, 302)
+        trait = Trait.objects.get(protocol=protocol, numeric_id=1)
+        self.assertEqual(trait.type_of_expression, "")
+        url = reverse("describe:trait_update", args=[trait.pk])
+        self.assertContains(self.client.get(url), 'name="type_of_expression"')
+
+        data.update({"states-TOTAL_FORMS": 0, "states-INITIAL_FORMS": 0})
+        for expression_type in ("QL", "QN", "PQ", ""):
+            with self.subTest(expression_type=expression_type):
+                response = self.client.post(url, {**data, "type_of_expression": expression_type})
+                self.assertEqual(response.status_code, 200)
+                trait.refresh_from_db()
+                self.assertEqual(trait.type_of_expression, expression_type)
 
 
 class TraitAutocompleteTests(TestCase):

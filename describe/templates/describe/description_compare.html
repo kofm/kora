@@ -4,7 +4,7 @@
 {% load breadcrumbs %}
 
 {% block title %}
-  Compare descriptions
+  Workspace {{ workspace }} - Compare descriptions
 {% endblock %}
 
 {% block container %}
@@ -79,9 +79,9 @@
 		<td class="table-secondary"  colspan="{{ species_data.descriptions|length }}"></td>
 	      </tr>
 	      {% for trait, expression_data in trait_data.items %}
-		  <tr class="{{ expression_data.all_equal|yesno:",table-info" }}{{ trait.2|yesno:" fw-bold," }}">
-		    <td>
-		      {{ trait.0 }}. {{ trait.1 }} {% if trait.2 %}&#10033;{% endif %}
+		<tr class="{{ expression_data.all_equal|yesno:",table-info" }}{{ trait.2|yesno:" fw-bold," }}">
+		  <td>
+		    {{ trait.0 }}. {{ trait.1 }} {% if trait.2 %}&#10033;{% endif %}
 		  </td>
 		  {% for description_expressions in expression_data.expressions %}
 		    <td>

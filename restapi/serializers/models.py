@@ -156,6 +156,7 @@ class TraitSerializer(BulkModelSerializer):
             "numeric_id",
             "description",
             "grouping",
+            "type_of_expression",
             "protocol",
         )
 
