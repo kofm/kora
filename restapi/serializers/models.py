@@ -178,6 +178,7 @@ class DescriptionSerializer(BulkModelSerializer):
             "species",
             "protocol",
             "protocol_name",
+            "notes",
         )
 
 
