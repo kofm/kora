@@ -1,0 +1,91 @@
+.description-comparison-scroll {
+  max-height: 70vh;
+  overflow: auto;
+  position: relative;
+}
+
+.description-comparison-scroll:focus-visible {
+  outline: 2px solid var(--bs-primary);
+  outline-offset: 2px;
+}
+
+.description-comparison-table {
+  --comparison-trait-width: 18rem;
+
+  table-layout: fixed;
+  width: max(100%, calc(var(--comparison-trait-width) + var(--comparison-columns) * 12rem));
+}
+
+.description-comparison-trait-column {
+  width: var(--comparison-trait-width);
+}
+
+@media (max-width: 575.98px) {
+  .description-comparison-table {
+    /* Leave room for expression values beside the sticky trait column on phones. */
+    --comparison-trait-width: 11rem;
+  }
+}
+
+.description-comparison-table > thead > tr > th {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background-color: var(--bs-tertiary-bg);
+  white-space: normal;
+}
+
+.description-comparison-table > thead > tr > th:first-child {
+  left: 0;
+  z-index: 4;
+}
+
+.description-comparison-table > tbody > tr > th {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  /* Inherit the row background so sticky cells preserve difference highlights. */
+  background-color: var(--bs-table-bg);
+  padding-top: .8rem;
+  padding-bottom: .8rem;
+  font-size: .9rem;
+  font-weight: inherit;
+}
+
+.description-comparison-table th,
+.description-comparison-table td {
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+
+.description-comparison-different {
+  --bs-table-bg: var(--bs-warning-bg-subtle);
+  --bs-table-color: var(--bs-body-color);
+}
+
+.description-comparison-table > tbody > .description-comparison-different > th {
+  box-shadow: inset 3px 0 var(--bs-warning-border-subtle);
+}
+
+.description-comparison-variety {
+  display: block;
+  color: var(--bs-body-color);
+  font-size: .9rem;
+}
+
+.description-comparison-label {
+  max-width: 100%;
+  margin-top: .25rem;
+  white-space: normal;
+}
+
+/* Keep separators between protocol groups despite small-table's last-row rule. */
+.description-comparison-table > tbody > tr:last-child > th,
+.description-comparison-table > tbody > tr:last-child > td {
+  border-bottom-width: 1px;
+}
+
+.description-comparison-table > tbody:last-child > tr:last-child > th,
+.description-comparison-table > tbody:last-child > tr:last-child > td {
+  border-bottom-width: 0;
+}

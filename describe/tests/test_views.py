@@ -18,6 +18,7 @@ from describe.factories import (
 from describe.models import Trait, WorkspaceElement
 from frontpage.factories import UserFactory
 from frontpage.testcases import ViewSmokeTestMixin
+from register.factories import PlantSpeciesFactory, PlantVarietyFactory
 
 
 class DescribeViewsSmokeTest(ViewSmokeTestMixin, TestCase):
@@ -34,6 +35,109 @@ class DescribeViewsSmokeTest(ViewSmokeTestMixin, TestCase):
         self.assert_get(["description_list", "description_compare"])
         self.assert_get(["description_detail", "description_expression_update"], [self.description.id])
         self.assert_post(["description_delete"], [self.description.id], status_code=302)
+
+
+class DescriptionCompareTests(TestCase):
+    def test_species_protocol_sections_keep_columns_and_comparison_indicators(self):
+        user = UserFactory()
+        self.client.force_login(user)
+        workspace = WorkspaceFactory(user=user)
+        label = DescriptionLabelFactory(name="Reference", colour="blue")
+        species = PlantSpeciesFactory(common_name="Comparison species A")
+        protocol = ProtocolFactory(plantspecies=species, name="Primary protocol")
+        varieties = [PlantVarietyFactory(species=species, name=name) for name in ("Alpha", "Beta")]
+        descriptions = [
+            DescriptionFactory(variety=variety, protocol=protocol, label=label) for variety in varieties
+        ]
+        for description in descriptions:
+            WorkspaceElementFactory(workspace=workspace, description=description)
+
+        differing = TraitFactory(protocol=protocol, numeric_id=1, description="Height", grouping=True)
+        for description, name, code in zip(descriptions, ("Short", "Tall"), (1, 2), strict=True):
+            state = StateFactory(trait=differing, numeric_id=code, description=name)
+            ExpressionFactory(description=description, state=state)
+        equal = TraitFactory(protocol=protocol, numeric_id=2, description="Colour", grouping=False)
+        green = StateFactory(trait=equal, numeric_id=1, description="Green")
+        for description in descriptions:
+            ExpressionFactory(description=description, state=green)
+        missing = TraitFactory(protocol=protocol, numeric_id=3, description="Shape", grouping=False)
+        round_state = StateFactory(trait=missing, numeric_id=1, description="Round")
+        ExpressionFactory(description=descriptions[0], state=round_state)
+
+        # A second protocol is included for the same variety/label even when not saved in the workspace.
+        other_protocol = ProtocolFactory(plantspecies=species, name="Secondary protocol")
+        other_description = DescriptionFactory(variety=varieties[0], protocol=other_protocol, label=label)
+        other_trait = TraitFactory(protocol=other_protocol, numeric_id=1, description="Width", grouping=False)
+        wide = StateFactory(trait=other_trait, numeric_id=1, description="Wide")
+        ExpressionFactory(description=other_description, state=wide)
+
+        other_species = PlantSpeciesFactory(common_name="Comparison species B")
+        third_protocol = ProtocolFactory(plantspecies=other_species, name="Other species protocol")
+        third_description = DescriptionFactory(
+            variety=PlantVarietyFactory(species=other_species, name="Gamma"), protocol=third_protocol, label=label
+        )
+        WorkspaceElementFactory(workspace=workspace, description=third_description)
+        third_trait = TraitFactory(protocol=third_protocol, numeric_id=1, description="Texture", grouping=False)
+        smooth = StateFactory(trait=third_trait, numeric_id=1, description="Smooth")
+        ExpressionFactory(description=third_description, state=smooth)
+
+        response = self.client.get(reverse("describe:description_compare"))
+        self.assertContains(response, species.common_name)
+        self.assertContains(response, other_species.common_name)
+        self.assertContains(response, 'badge rounded-pill label-blue', count=3)
+
+        class ComparisonParser(HTMLParser):
+            def __init__(self):
+                super().__init__()
+                self.tables = []
+                self.table = None
+                self.cell = None
+
+            def handle_starttag(self, tag, attrs):
+                attrs = dict(attrs)
+                if tag == "table" and "description-comparison-table" in attrs.get("class", "").split():
+                    self.table = []
+                    self.tables.append(self.table)
+                elif self.table is not None:
+                    if tag == "tr":
+                        self.cells = []
+                        self.table.append((attrs.get("class", "").split(), self.cells))
+                    elif tag in ("td", "th"):
+                        self.cell = []
+
+            def handle_data(self, data):
+                if self.cell is not None:
+                    self.cell.append(data)
+
+            def handle_endtag(self, tag):
+                if tag in ("td", "th") and self.cell is not None:
+                    self.cells.append(" ".join("".join(self.cell).split()))
+                    self.cell = None
+                elif tag == "table":
+                    self.table = None
+
+        parser = ComparisonParser()
+        parser.feed(response.content.decode())
+        self.assertEqual(len(parser.tables), 2)
+        first, second = parser.tables
+        self.assertEqual([cells for _, cells in first], [
+            ["Trait", "Alpha Reference", "Beta Reference"],
+            ["Primary protocol", ""],
+            ["1. Height ✱", "1. Short", "2. Tall"],
+            ["2. Colour", "1. Green", "1. Green"],
+            ["3. Shape", "1. Round", "—"],
+            ["Secondary protocol", ""],
+            ["1. Width", "1. Wide", "—"],
+        ])
+        self.assertIn("description-comparison-different", first[2][0])
+        self.assertIn("fw-bold", first[2][0])
+        for index in (3, 4, 6):
+            self.assertNotIn("description-comparison-different", first[index][0])
+        self.assertEqual([cells for _, cells in second], [
+            ["Trait", "Gamma Reference"],
+            ["Other species protocol", ""],
+            ["1. Texture", "1. Smooth"],
+        ])
 
 
 class FindSimilarTests(TestCase):

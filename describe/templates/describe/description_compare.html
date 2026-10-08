@@ -1,5 +1,4 @@
 {% extends "frontpage/base.html" %}
-{% load crispy_forms_tags %}
 {% load static %}
 {% load breadcrumbs %}
 
@@ -7,98 +6,66 @@
   Workspace {{ workspace }} - Compare descriptions
 {% endblock %}
 
+{% block style %}
+  <link rel="stylesheet" href="{% static 'describe/description_compare.css' %}">
+{% endblock %}
+
 {% block container %}
-
-  <style>
-
-   .table-container {
-     height: 70vh; /* 70% of the viewport height */
-     overflow-y: auto;
-     overflow-x: auto;
-     position: relative;
-   }
-
-   table {
-     position: relative;
-     width: 100%;
-   }
-
-   thead {
-     position: sticky;
-     top: 0;
-     z-index: 3;
-   }
-
-   thead th:first-child,
-   tbody td:first-child {
-     position: sticky;
-     left: 0;
-     z-index: 2;
-     width: 18rem;
-   }
-
-   td:not(:first-child),
-   th:not(:first-child) {
-     width: 8rem;
-   }
-  </style>
-
   {% render_breadcrumbs %}
-
-  <h1 class="mb-3">
-    {{ workspace }}
-    <small class="text-muted">Compare Workspace</small>
-  </h1>
-
+  {% include "frontpage/headers/list.html" with title=workspace subtitle="Compare descriptions" %}
 
   {% for species, species_data in compare_table.items %}
+    <section class="description-comparison mb-4">
+      {% if compare_table|length > 1 %}
+        <h2 class="h5 mb-2">{{ species.1 }}</h2>
+      {% endif %}
 
-    {% if compare_table|length > 1 %}
-      <h2 class="mb-2">{{ species.1 }}</h2>
-    {% endif %}
-
-    {% with id_for_table=species.1|slugify|capfirst  %}
-
-      <div id="table{{ id_for_table }}" class="table-container my-3" style="overflow-x: auto;">
-
-	<table class="table" style="table-layout: fixed;">
-	  <thead>
-	    <tr>
-	      <th></th>
-	      {% for desc in species_data.descriptions %}
-		<th>{{ desc.1 }}<br/>{{ desc.2 }}</th>
-	      {% endfor %}
-	    </tr>
-	  </thead>
-	  <tbody>
-	    {% for protocol, trait_data in species_data.protocols.items %}
-	      <tr>
-		<td class="table-secondary">
-		  <h3>{{ protocol }}</h6>
-		</td>
-		<td class="table-secondary"  colspan="{{ species_data.descriptions|length }}"></td>
-	      </tr>
-	      {% for trait, expression_data in trait_data.items %}
-		<tr class="{{ expression_data.all_equal|yesno:",table-info" }}{{ trait.2|yesno:" fw-bold," }}">
-		  <td>
-		    {{ trait.0 }}. {{ trait.1 }} {% if trait.2 %}&#10033;{% endif %}
-		  </td>
-		  {% for description_expressions in expression_data.expressions %}
-		    <td>
-		      {% for expression in description_expressions %}
-			{% if not forloop.first %}<br/>{% endif %}{{ expression.0 }}
-		      {% empty %}
-			&mdash;
-		      {% endfor %}
-		    </td>
-		  {% endfor %}
-		</tr>
-	      {% endfor %}
-	    {% endfor %}
-	  </tbody>
-	</table>
+      <div class="description-comparison-scroll border rounded" tabindex="0" role="region" aria-label="{{ species.1 }} description comparison">
+        <table class="table small-table description-comparison-table mb-0" style="--comparison-columns: {{ species_data.descriptions|length }};">
+          <caption class="visually-hidden">{{ species.1 }} descriptions in workspace {{ workspace }}</caption>
+          <colgroup>
+            <col class="description-comparison-trait-column">
+            {% for desc in species_data.descriptions %}<col>{% endfor %}
+          </colgroup>
+          <thead>
+            <tr>
+              <th scope="col">Trait</th>
+              {% for desc in species_data.descriptions %}
+                <th scope="col">
+                  <span class="description-comparison-variety">{{ desc.variety }}</span>
+                  {% if desc.label %}
+                    <span class="badge rounded-pill {{ desc.label.colour_class }} description-comparison-label">{{ desc.label }}</span>
+                  {% endif %}
+                </th>
+              {% endfor %}
+            </tr>
+          </thead>
+          {% for protocol, trait_data in species_data.protocols.items %}
+            <tbody>
+              <tr class="description-comparison-protocol table-secondary">
+                <th scope="rowgroup"><h3 class="h6 mb-0">{{ protocol }}</h3></th>
+                <td colspan="{{ species_data.descriptions|length }}"></td>
+              </tr>
+              {% for trait, expression_data in trait_data.items %}
+                <tr class="{{ expression_data.all_equal|yesno:",description-comparison-different" }}{{ trait.2|yesno:" fw-bold," }}">
+                  <th scope="row">
+                    {{ trait.0 }}. {{ trait.1 }} {% if trait.2 %}&#10033;{% endif %}
+                  </th>
+                  {% for description_expressions in expression_data.expressions %}
+                    <td>
+                      {% for expression in description_expressions %}
+                        {% if not forloop.first %}<br>{% endif %}{{ expression.0 }}
+                      {% empty %}
+                        &mdash;
+                      {% endfor %}
+                    </td>
+                  {% endfor %}
+                </tr>
+              {% endfor %}
+            </tbody>
+          {% endfor %}
+        </table>
       </div>
-    {% endwith %}
+    </section>
   {% endfor %}
-
 {% endblock %}

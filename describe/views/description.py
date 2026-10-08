@@ -218,6 +218,12 @@ def description_compare(request):
 
     descriptions_dictionary = make_species_descriptions_dict(descriptions)
     compare_table = make_species_protocols_dict(protocols, descriptions_dictionary)
+    labels = {label.name: label for label in DescriptionLabel.objects.filter(descriptions__in=descriptions).distinct()}
+    for species_data in compare_table.values():
+        species_data["descriptions"] = [
+            {"variety": variety_name, "label": labels.get(label_name)}
+            for _, variety_name, label_name in species_data["descriptions"]
+        ]
 
     context = {"compare_table": compare_table, "workspace": wsp}
     context.update(generate_breadcrumbs(request, Workspace, wsp))
