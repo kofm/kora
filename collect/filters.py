@@ -1,5 +1,6 @@
 from crispy_forms.layout import Field, Layout
 from django import forms
+from django.db import connections
 from django.db.models import Q
 from django.urls import reverse_lazy
 from django_filters import CharFilter, FilterSet, ModelMultipleChoiceFilter
@@ -23,7 +24,7 @@ class SampleFilter(FilterSet):
     omni = CharFilter(
         method="omni_search",
         label="Text search",
-        widget=forms.TextInput(attrs={"placeholder": "Search variety or notes..."}),
+        widget=forms.TextInput(attrs={"placeholder": "Search sample ID, variety or notes..."}),
     )
     variety__species = ModelMultipleChoiceFilter(
         queryset=PlantSpecies.objects.all(),
@@ -45,4 +46,15 @@ class SampleFilter(FilterSet):
     def omni_search(self, queryset, _, value):
         if not value:
             return queryset
-        return queryset.filter(Q(variety__names__name__icontains=value) | Q(notes__icontains=value)).distinct()
+        query = Q(variety__names__name__icontains=value) | Q(notes__icontains=value)
+        if value.isdecimal():
+            try:
+                sample_id = int(value)
+            except ValueError:
+                # Extremely long numeric text can exceed Python's conversion limit.
+                pass
+            else:
+                minimum, maximum = connections[queryset.db].ops.integer_field_range("PositiveIntegerField")
+                if (minimum is None or sample_id >= minimum) and (maximum is None or sample_id <= maximum):
+                    query |= Q(sample_id=sample_id)
+        return queryset.filter(query).distinct()
