@@ -393,6 +393,7 @@ class WorkspaceQuerySet(models.QuerySet):
             "descriptions",
             "descriptions__description",
             "descriptions__description__protocol",
+            "descriptions__description__label",
             "descriptions__description__variety",
             "descriptions__description__variety__species",
         )

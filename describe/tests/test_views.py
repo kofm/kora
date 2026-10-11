@@ -2,7 +2,9 @@ import json
 from html.parser import HTMLParser
 
 from django.contrib.auth.models import Permission
+from django.db import connection
 from django.test import TestCase
+from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 
 from describe.factories import (
@@ -276,6 +278,53 @@ class FindSimilarTests(TestCase):
         trait, states = self.make_trait([1, 3, 5, 7, 9])
         self.record(states[1], states[2])
         self.assert_selections({str(trait.pk): [state.pk for state in states[:4]]})
+
+
+class WorkspaceSidebarTests(TestCase):
+    def setUp(self):
+        self.user = UserFactory(is_superuser=True)
+        self.client.force_login(self.user)
+        self.workspace = WorkspaceFactory(user=self.user)
+        self.url = reverse("describe:workspace_detail")
+
+    def test_labels_are_coloured_and_optional(self):
+        label = DescriptionLabelFactory(name="Sidebar reference", colour="blue")
+        protocol = ProtocolFactory(name="Sidebar protocol")
+        for description_label in (label, None):
+            WorkspaceElementFactory(
+                workspace=self.workspace,
+                description=DescriptionFactory(protocol=protocol, label=description_label),
+            )
+
+        response = self.client.get(self.url)
+
+        self.assertContains(response, "Sidebar protocol", count=2)
+        self.assertContains(
+            response,
+            '<span class="badge rounded-pill label-blue ms-1">Sidebar reference</span>',
+            html=True,
+        )
+        self.assertContains(response, 'class="badge rounded-pill', count=1)
+
+    def test_rendering_more_labels_does_not_add_per_item_queries(self):
+        def add_element(index):
+            label = DescriptionLabelFactory(name=f"Sidebar label {index}")
+            WorkspaceElementFactory(
+                workspace=self.workspace,
+                description=DescriptionFactory(label=label),
+            )
+
+        add_element(0)
+        with CaptureQueriesContext(connection) as small_workspace:
+            response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+
+        for index in range(1, 5):
+            add_element(index)
+        with self.assertNumQueries(len(small_workspace)):
+            response = self.client.get(self.url)
+        for index in range(5):
+            self.assertContains(response, f"Sidebar label {index}")
 
 
 class WorkspaceOwnershipTests(TestCase):

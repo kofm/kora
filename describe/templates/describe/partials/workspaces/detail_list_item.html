@@ -16,6 +16,11 @@
 	        </a>
         </small>
     </div>
-    <small class="text-muted">{{ object.description.protocol.name }}, {{ object.description.name }}</small>
+    <small class="text-muted">
+        {{ object.description.protocol.name }}
+        {% if object.description.label %}
+            <span class="badge rounded-pill {{ object.description.label.colour_class }} ms-1">{{ object.description.label }}</span>
+        {% endif %}
+    </small>
     <input type="hidden" name="order" value="{{ object.pk }}">
 </div>
