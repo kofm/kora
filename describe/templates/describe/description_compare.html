@@ -3,7 +3,7 @@
 {% load breadcrumbs %}
 
 {% block title %}
-  Workspace {{ workspace }} - Compare descriptions
+  {% if workspace %}Workspace {{ workspace }} - {% endif %}Compare descriptions
 {% endblock %}
 
 {% block style %}
@@ -11,9 +11,19 @@
 {% endblock %}
 
 {% block container %}
-  {% render_breadcrumbs %}
-  {% include "frontpage/headers/list.html" with title=workspace subtitle="Compare descriptions" %}
+  <div id="comparison-breadcrumbs" hx-get="{% url 'describe:description_compare' %}?partial=breadcrumbs" hx-trigger="workspaceChanged from:body" hx-swap="innerHTML">
+    {% partialdef breadcrumbs inline %}
+      {% render_breadcrumbs %}
+    {% endpartialdef %}
+  </div>
+  <div id="comparison-header" hx-get="{% url 'describe:description_compare' %}?partial=header" hx-trigger="workspaceChanged from:body" hx-swap="innerHTML">
+    {% partialdef header inline %}
+      {% include "frontpage/headers/list.html" with title=workspace|default:"No active workspace" subtitle="Compare descriptions" %}
+    {% endpartialdef %}
+  </div>
 
+  <div id="comparison-content" hx-get="{% url 'describe:description_compare' %}?partial=comparison" hx-trigger="workspaceElementsChanged from:body" hx-swap="innerHTML">
+    {% partialdef comparison inline %}
   {% for species, species_data in compare_table.items %}
     <section class="description-comparison mb-4">
       {% if compare_table|length > 1 %}
@@ -22,7 +32,7 @@
 
       <div class="description-comparison-scroll border rounded" tabindex="0" role="region" aria-label="{{ species.1 }} description comparison">
         <table class="table small-table description-comparison-table mb-0" style="--comparison-columns: {{ species_data.descriptions|length }};">
-          <caption class="visually-hidden">{{ species.1 }} descriptions in workspace {{ workspace }}</caption>
+          <caption class="visually-hidden">{{ species.1 }} description comparison</caption>
           <colgroup>
             <col class="description-comparison-trait-column">
             {% for desc in species_data.descriptions %}<col>{% endfor %}
@@ -67,5 +77,15 @@
         </table>
       </div>
     </section>
+  {% empty %}
+    <p class="text-muted mt-4">
+      {% if workspace %}
+        This workspace is empty. Add descriptions from the description list to compare them.
+      {% else %}
+        No workspace is active. Choose or create a workspace using the sidebar to compare descriptions.
+      {% endif %}
+    </p>
   {% endfor %}
+    {% endpartialdef %}
+  </div>
 {% endblock %}

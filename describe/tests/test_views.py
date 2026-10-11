@@ -1,3 +1,4 @@
+import json
 from html.parser import HTMLParser
 
 from django.contrib.auth.models import Permission
@@ -138,6 +139,72 @@ class DescriptionCompareTests(TestCase):
             ["Other species protocol", ""],
             ["1. Texture", "1. Smooth"],
         ])
+
+        # A repeated pair from another protocol must not introduce a column;
+        # every protocol's cells must follow the reordered sidebar columns.
+        WorkspaceElement.objects.filter(description=descriptions[0]).update(order=2)
+        WorkspaceElement.objects.filter(description=descriptions[1]).update(order=1)
+        WorkspaceElementFactory(workspace=workspace, description=other_description, order=3)
+        response = self.client.get(
+            reverse("describe:description_compare"), {"partial": "comparison"}, HTTP_HX_REQUEST="true"
+        )
+        reordered = ComparisonParser()
+        reordered.feed(response.content.decode())
+        self.assertEqual([cells for _, cells in reordered.tables[0]], [
+            ["Trait", "Beta Reference", "Alpha Reference"],
+            ["Primary protocol", ""],
+            ["1. Height ✱", "2. Tall", "1. Short"],
+            ["2. Colour", "1. Green", "1. Green"],
+            ["3. Shape", "—", "1. Round"],
+            ["Secondary protocol", ""],
+            ["1. Width", "—", "1. Wide"],
+        ])
+
+    def test_empty_comparison_stays_available_for_sidebar_interactions(self):
+        user = UserFactory()
+        self.client.force_login(user)
+        url = reverse("describe:description_compare")
+        workspace = WorkspaceFactory(user=user, is_active=False)
+        for active in (False, True):
+            workspace.is_active = active
+            workspace.save()
+            for partial in (None, "comparison"):
+                response = (
+                    self.client.get(url, {"partial": partial}, HTTP_HX_REQUEST="true")
+                    if partial else self.client.get(url)
+                )
+                self.assertContains(response, "This workspace is empty" if active else "No workspace is active")
+
+    def test_sidebar_mutations_refresh_the_correct_comparison_regions(self):
+        user = UserFactory(is_superuser=True)
+        self.client.force_login(user)
+        WorkspaceFactory(user=user)
+        other = WorkspaceFactory(user=user, is_active=False)
+        headers = {"HTTP_HX_REQUEST": "true"}
+
+        def mutate(name, data=None, pk=None, events=()):
+            response = self.client.post(reverse(f"describe:{name}", args=[pk] if pk else None), data or {}, **headers)
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(set(json.loads(response.headers.get("HX-Trigger", "{}"))), set(events))
+            return response
+
+        both = ("workspaceChanged", "workspaceElementsChanged")
+        mutate("workspace_activate", {"workspace": other.pk}, events=both)
+        mutate("workspace_activate", {"workspace": other.pk})
+        mutate("workspace_update", {"name": "Renamed workspace"}, other.pk, ("workspaceChanged",))
+        response = self.client.get(reverse("describe:description_compare"), {"partial": "breadcrumbs"}, **headers)
+        self.assertContains(response, "Renamed workspace")
+        mutate("workspace_update", {"name": "Renamed workspace"}, other.pk)
+        element = WorkspaceElementFactory(workspace=other)
+        mutate("workspace_sort", {"order": [element.pk]}, events=("workspaceElementsChanged",))
+        mutate("workspace_element_delete", pk=element.pk, events=("workspaceElementsChanged",))
+        response = self.client.get(reverse("describe:description_compare"), {"partial": "comparison"}, **headers)
+        self.assertContains(response, "This workspace is empty")
+        mutate("workspace_delete", pk=other.pk, events=both)
+        response = self.client.get(reverse("describe:description_compare"), {"partial": "header"}, **headers)
+        self.assertContains(response, "No active workspace")
+        mutate("workspace_create", {"name": "Created workspace"}, events=both)
+        mutate("workspace_activate", {"workspace": ""}, events=both)
 
 
 class FindSimilarTests(TestCase):

@@ -194,17 +194,28 @@ def description_find_similar(request):
 @login_required
 def description_compare(request):
     wsp = Workspace.objects.filter(user=request.user, is_active=True).first()
-    if not wsp:
-        return redirect(reverse("describe:description_list"))
+    template = "describe/description_compare.html"
+    partial = request.GET.get("partial") if is_htmx(request) else None
+    if partial not in {"header", "breadcrumbs", "comparison"}:
+        partial = None
+    context = {"workspace": wsp, "compare_table": {}}
+    if partial != "comparison":
+        context.update(generate_breadcrumbs(request, Workspace, wsp, skip_if_htmx=False))
+    if partial in {"header", "breadcrumbs"}:
+        return TemplateResponse(request, f"{template}#{partial}", context)
 
-    elems = WorkspaceElement.objects.select_related("description__variety__species").filter(workspace=wsp)
-    if not elems:
-        return redirect(reverse("describe:description_list"))
+    # Keep the first occurrence of each variety/label pair in sidebar order.
+    elems = (
+        WorkspaceElement.objects.filter(workspace=wsp).order_by("order", "pk")
+        if wsp else WorkspaceElement.objects.none()
+    )
+    pairs = list(dict.fromkeys(elems.values_list("description__variety_id", "description__label_id")))[:50]
+    if not pairs:
+        return TemplateResponse(request, f"{template}#{partial}" if partial else template, context)
 
     # Get all the available Descriptions for any of the Variety-Name
-    # combinations present in the workspace.
-    # This includes descriptions from other protocols, too.
-    pairs = elems.values_list("description__variety_id", "description__label").distinct()[:50]
+    # combinations present in the workspace.  This includes
+    # descriptions from other protocols, too.
     query = Q()
     for variety_id, label in pairs:
         query |= Q(variety_id=variety_id, label=label)
@@ -217,6 +228,12 @@ def description_compare(request):
     )
 
     descriptions_dictionary = make_species_descriptions_dict(descriptions)
+    label_names = dict(DescriptionLabel.objects.filter(pk__in=[label for _, label in pairs]).values_list("pk", "name"))
+    column_order = {(variety, label_names.get(label)): index for index, (variety, label) in enumerate(pairs)}
+    for species, columns in descriptions_dictionary.items():
+        descriptions_dictionary[species] = dict(
+            sorted(columns.items(), key=lambda item: column_order[(item[0][0], item[0][2])])
+        )
     compare_table = make_species_protocols_dict(protocols, descriptions_dictionary)
     labels = {label.name: label for label in DescriptionLabel.objects.filter(descriptions__in=descriptions).distinct()}
     for species_data in compare_table.values():
@@ -225,14 +242,8 @@ def description_compare(request):
             for _, variety_name, label_name in species_data["descriptions"]
         ]
 
-    context = {"compare_table": compare_table, "workspace": wsp}
-    context.update(generate_breadcrumbs(request, Workspace, wsp))
-
-    return TemplateResponse(
-        request,
-        "describe/description_compare.html",
-        context,
-    )
+    context["compare_table"] = compare_table
+    return TemplateResponse(request, f"{template}#{partial}" if partial else template, context)
 
 
 @public_catalog_view("describe.view_description")

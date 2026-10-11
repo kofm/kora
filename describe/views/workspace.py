@@ -12,7 +12,18 @@ from describe.forms import WorkspaceCreateForm, WorkspaceSelectForm, WorkspaceUp
 from describe.models import Description, Workspace, WorkspaceElement
 from describe.tables import DescriptionTable
 from describe.views.utils import description_results, init_description_filter
+from frontpage.utils.htmx import htmx_response_trigger
+from frontpage.views_decorators import is_htmx
 from sortable.views import SortableView
+
+
+def workspace_changed_response(request, events):
+    if not is_htmx(request):
+        return redirect(reverse("describe:workspace_detail"))
+    response = workspace_detail(request)
+    if events:
+        response.headers["HX-Trigger"] = htmx_response_trigger(events).headers["HX-Trigger"]
+    return response
 
 
 @permission_required("describe.view_workspace", raise_exception=True)
@@ -20,8 +31,11 @@ from sortable.views import SortableView
 def workspace_activate(request):
     form = WorkspaceSelectForm(request.POST, user=request.user)
     if form.is_valid() and "workspace" in request.POST:
+        previous = Workspace.objects.filter(user=request.user, is_active=True).first()
+        selected = form.cleaned_data["workspace"]
         form.save()
-        return redirect(reverse("describe:workspace_detail"))
+        events = ["workspaceChanged", "workspaceElementsChanged"] if previous != selected else []
+        return workspace_changed_response(request, events)
     return HttpResponseBadRequest()
 
 
@@ -46,7 +60,7 @@ def workspace_create(request):
             workspace.user = request.user
             workspace.is_active = True
             workspace.save()
-            return redirect(reverse("describe:workspace_detail"))
+            return workspace_changed_response(request, ["workspaceChanged", "workspaceElementsChanged"])
     return render(
         request,
         "describe/partials/workspace_detail.html",
@@ -60,8 +74,9 @@ def workspace_update(request, pk):
     if request.method == "POST":
         form = WorkspaceCreateForm(request.POST, instance=workspace)
         if form.is_valid():
+            changed = form.has_changed()
             workspace = form.save()
-            return redirect(reverse("describe:workspace_detail"))
+            return workspace_changed_response(request, ["workspaceChanged"] if changed else [])
     form = WorkspaceUpdateForm(instance=workspace)
     return render(
         request,
@@ -75,7 +90,7 @@ def workspace_delete(request, pk):
     workspace = get_object_or_404(Workspace, pk=pk, user=request.user)
     if request.method == "POST":
         workspace.delete()
-        return redirect(reverse("describe:workspace_detail"))
+        return workspace_changed_response(request, ["workspaceChanged", "workspaceElementsChanged"])
     return render(request, "describe/partials/workspace_confirm_delete.html", {"workspace": workspace})
 
 
@@ -151,7 +166,7 @@ def workspace_elements_add_results(request):
 def workspace_element_delete(request, pk):
     element = get_object_or_404(WorkspaceElement, pk=pk, workspace__user=request.user)
     element.delete()
-    return HttpResponse()
+    return htmx_response_trigger(["workspaceElementsChanged"])
 
 
 class WorkspaceSortableView(PermissionRequiredMixin, SortableView):
@@ -161,3 +176,9 @@ class WorkspaceSortableView(PermissionRequiredMixin, SortableView):
 
     def get_queryset(self):
         return WorkspaceElement.objects.filter(workspace__user=self.request.user, workspace__is_active=True)
+
+    def post(self, request):
+        response = super().post(request)
+        if response.status_code == 200:
+            response.headers["HX-Trigger"] = htmx_response_trigger(["workspaceElementsChanged"]).headers["HX-Trigger"]
+        return response
