@@ -1,3 +1,24 @@
+## 0.6.0-beta.3 (2026-10-11)
+
+### Added
+
+- Improved the visual hierarchy of several tables throughout the app
+- **collect**: The sample listing now supports searching for an exact sample number
+- **collect**: Added the sample number to cart items list in the sidebar
+- **describe**: Improved visual hierarchy of descriptions list table
+- **describe**: Support live updates of the description comparison in response to workspace sidebar interactions
+- **describe**: Improved the layout of the descriptions comparison tables
+- **describe**: Introduced a new command to add all search results to the currently active workspace
+- **describe**: The text export of Description search results now contains labels
+- **describe**: "Find similar varieties" now includes adjacent states for quantitative (QN) Traits
+- **describe**: Allow specifying Traits' type of expression
+
+### Fixed
+
+- **describe**: Last updated time is now correclty set whenever the user updates a descriptions
+- **describe**: Restored display description labels in workspace detail list items
+- **API**: Added the missing `notes` field to description serializer
+
 ## 0.6.0-beta.2 (2026-09-27)
 
 ### Added
