@@ -7,7 +7,7 @@
     <h6>
       <a class="text-decoration-none link-body-emphasis"
 		href="{{ object.sample.get_absolute_url }}">
-	{{ object.sample.variety.name }} ({{ object.sample.variety.species.common_name }})
+	<span class="detail-page-id-badge">{{ object.sample.sample_id }}</span> {{ object.sample.variety.name }} ({{ object.sample.variety.species.common_name }})
       </a>
       <small class="text-muted">{{ object.sample.position }}</small>
     </h6>
