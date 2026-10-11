@@ -5,6 +5,10 @@ from parameters.models import Parameter, VarietalParameter
 
 
 class ParameterTable(tables.Table):
+    code = tables.Column(attrs={"td": {"class": "fw-light"}})
+    name = tables.Column(attrs={"td": {"class": "fw-bold"}})
+    description = tables.Column(attrs={"td": {"class": "text-muted"}})
+
     class Meta(TableHoverFixed.Meta):
         model = Parameter
         exclude = ("id",)
@@ -13,6 +17,9 @@ class ParameterTable(tables.Table):
 
 
 class VarietalParameterTable(tables.Table):
+    variety__name = tables.Column("Variety", attrs={"td": {"class": "fw-bold"}})
+    parameter__name = tables.Column("Parameter", attrs={"td": {"class": "text-muted"}})
+    note = tables.Column("Notes", attrs={"td": {"class": "fw-light"}})
     actions = tables.TemplateColumn(
         template_name="parameters/partials/varietalparameter_table_actions.html",
         verbose_name="",
@@ -22,7 +29,7 @@ class VarietalParameterTable(tables.Table):
 
     class Meta:
         model = VarietalParameter
-        fields = ("variety__name", "parameter__name", "parameter__code", "value", "url_ref", "note")
+        fields = ("variety__name", "parameter__code", "parameter__name", "value", "note")
         empty_text = "There are no associated parameters."
         per_page = 15
         template_name = "frontpage/partials/htmx_table.html"

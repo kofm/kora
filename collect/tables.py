@@ -1,6 +1,7 @@
 from typing import Any
 
 import django_tables2 as tables
+from django.utils.html import format_html
 
 from collect.models import Sample
 from frontpage.tables import TableHoverFixed
@@ -13,8 +14,8 @@ class BaseSampleTable(tables.Table):
         orderable=False,
         attrs={"td": {"class": "text-nowrap"}},
     )
-    growing_season = tables.Column("Grown")
-    notes = tables.Column(attrs={"td": {"class": "text-nowrap text-truncate"}})
+    growing_season = tables.Column("Grown", attrs={"td": {"class": "text-muted"}})
+    notes = tables.Column(attrs={"td": {"class": "text-nowrap text-truncate fw-light"}})
     actions = tables.TemplateColumn(
         template_name="collect/partials/sample_table_actions.html",
         verbose_name="",
@@ -22,12 +23,16 @@ class BaseSampleTable(tables.Table):
     )
 
     class Meta(TableHoverFixed.Meta):
+        attrs = {"class": "table table-hover table-fixed small-table compact-table"}
         model = Sample
         fields: tuple = ("sample_id", "growing_season", "notes")
         empty_text = "There are no seed samples to be displayed."
         row_attrs: dict[str, Any] = TableHoverFixed.Meta.row_attrs | {
             "class": lambda record: "table-danger" if record.is_being_discarded else ""
         }
+
+    def render_sample_id(self, value):
+        return format_html('<span class="detail-page-id-badge">{}</span>', value)
 
     def render_notes(self, record):
         notes = smart_truncate_string(record.notes)
@@ -55,10 +60,9 @@ class SampleTable(BaseSampleTable):
     the selected cart.
     """
 
-    variety__name = tables.Column("Variety")
-    variety__species__common_name = tables.Column("Species")
+    variety__name = tables.Column("Variety", attrs={"td": {"class": "fw-bold"}})
+    variety__species__common_name = tables.Column("Species", attrs={"td": {"class": "fw-light"}})
     position = tables.Column()
-    growing_season = tables.Column("Grown")
 
     class Meta(BaseSampleTable.Meta):
         model = Sample
@@ -83,9 +87,8 @@ class DiscardedSampleTable(BaseSampleTable):
     the selected cart.
     """
 
-    variety__name = tables.Column("Variety")
-    variety__species__common_name = tables.Column("Species")
-    growing_season = tables.Column("Grown")
+    variety__name = tables.Column("Variety", attrs={"td": {"class": "fw-bold"}})
+    variety__species__common_name = tables.Column("Species", attrs={"td": {"class": "fw-light"}})
     actions = tables.TemplateColumn(
         template_name="collect/partials/discarded_sample_table_actions.html",
         verbose_name="",
@@ -123,6 +126,7 @@ class DuplicatedSampleTable(BaseSampleTable):
 
 class SampleInStorageTable(BaseSampleTable):
     position__name = tables.Column("Position")
+    variety = tables.Column(attrs={"td": {"class": "fw-bold"}})
 
     class Meta(BaseSampleTable.Meta):
         fields = (

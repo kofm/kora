@@ -16,6 +16,11 @@ class CountryRenderer:
 
 
 class ProtectionTable(tables.Table, CountryRenderer):
+    type = tables.Column(attrs={"td": {"class": "fw-bold"}})
+    date_start = tables.Column(attrs={"td": {"class": "text-muted"}})
+    date_end = tables.Column(attrs={"td": {"class": "text-muted"}})
+    note = tables.Column(attrs={"td": {"class": "fw-light"}})
+
     class Meta(TableHoverFixed.Meta):
         model = Protection
         exclude = ("id", "variety")
@@ -23,7 +28,9 @@ class ProtectionTable(tables.Table, CountryRenderer):
 
 
 class ProtectionListTable(ProtectionTable):
-    variety = tables.Column(linkify=True)
+    variety = tables.Column(attrs={"td": {"class": "fw-bold"}})
+    status = tables.Column(attrs={"td": {"class": "fw-light"}})
+    type = tables.Column()
 
     class Meta(TableHoverFixed.Meta):
         model = Protection
@@ -45,7 +52,7 @@ class ProtectionListTable(ProtectionTable):
 
 
 class PlantVarietyDescriptionTable(tables.Table):
-    protocol__name = tables.Column("Protocol")
+    protocol__name = tables.Column("Protocol", attrs={"td": {"class": "fw-bold"}})
     updated_at = tables.DateTimeColumn(verbose_name="Last updated", short=False)
     notes = tables.Column("Notes")
     actions = tables.TemplateColumn(
@@ -83,8 +90,8 @@ class PlantVarietySampleTable(BaseSampleTable):
         fields = (
             "sample_id",
             "position",
-            "growing_season",
             "weight",
+            "growing_season",
             "notes",
             "actions",
         )
@@ -92,6 +99,9 @@ class PlantVarietySampleTable(BaseSampleTable):
 
 
 class EntityTable(tables.Table, CountryRenderer):
+    name = tables.Column(attrs={"td": {"class": "fw-bold"}})
+    type = tables.Column(attrs={"td": {"class": "text-muted"}})
+
     class Meta(TableHoverFixed.Meta):
         model = Entity
         fields = ("name", "type", "country")
@@ -101,7 +111,9 @@ class EntityTable(tables.Table, CountryRenderer):
 
 
 class VarietalParameterTable(tables.Table):
-    """Table display of varietal parameters."""
+    parameter__name = tables.Column("Parameter", attrs={"td": {"class": "fw-bold"}})
+    parameter__code = tables.Column("Code", attrs={"td": {"class": "fw-light"}})
+    note = tables.Column("Notes", attrs={"td": {"class": "fw-light"}})
 
     actions = tables.TemplateColumn(
         template_name="parameters/partials/varietalparameter_table_actions.html",
@@ -111,12 +123,12 @@ class VarietalParameterTable(tables.Table):
     )
 
     class Meta:
+        attrs = {"class": "table table-hover table-fixed small-table compact-table"}
         model = VarietalParameter
         page_field = "para_page"
         template_name = "django_tables2/bootstrap5.html"
-        fields = ("parameter__name", "parameter__code", "value", "url_ref", "note")
+        fields = ("parameter__name", "parameter__code", "value", "note")
         per_page = 5
-        attrs = {"class": "table table-hover table-fixed"}
 
     def render_value(self, record):
         return format_html("{} {}", record.value, record.parameter.measure_unit)
@@ -124,8 +136,9 @@ class VarietalParameterTable(tables.Table):
 
 class PlantSpeciesTable(tables.Table):
     id = tables.Column("#")
-    common_name = tables.Column()
-    botanical_name = tables.Column(verbose_name="Botanical name")
+    common_name = tables.Column(attrs={"td": {"class": "fw-bold"}})
+    botanical_name = tables.Column(verbose_name="Botanical name", attrs={"td": {"class": "fst-italic"}})
+    code = tables.Column(attrs={"td": {"class": "fw-light"}})
     actions = tables.TemplateColumn(
         template_name="register/partials/plantspecies_table_actions.html",
         verbose_name="",
@@ -139,9 +152,6 @@ class PlantSpeciesTable(tables.Table):
         order_by = "common_name"
         template_name = "frontpage/partials/htmx_table.html"
         empty_text = "There are no plant species to be displayed."
-
-    def render_botanical_name(self, value):
-        return format_html('<i class="fw-light">{}</i>', value)
 
     def render_id(self, value):
         return format_html('<span class="detail-page-id-badge">{}</span>', value)

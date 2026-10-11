@@ -8,6 +8,7 @@ from spaces.models import Location
 
 
 class LocationTable(tables.Table):
+    name = tables.Column(attrs={"td": {"class": "fw-bold"}})
     coordinates = tables.Column("Coordinates")
 
     class Meta(TableHoverFixed.Meta):

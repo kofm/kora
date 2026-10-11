@@ -6,10 +6,10 @@ from frontpage.tables import TableHoverFixed
 
 
 class DescriptionTable(tables.Table):
-    variety__name = tables.Column("Variety", attrs={"td": {"class": "table-cell-primary"}})
-    variety__species__common_name = tables.Column("Species", attrs={"td": {"class": "table-cell-secondary"}})
-    protocol__name = tables.Column("Protocol", attrs={"td": {"class": "table-cell-secondary"}})
-    updated_at = tables.DateTimeColumn(verbose_name="Last updated", short=False)
+    variety__name = tables.Column("Variety", attrs={"td": {"class": "fw-bold"}})
+    variety__species__common_name = tables.Column("Species")
+    protocol__name = tables.Column("Protocol")
+    updated_at = tables.DateTimeColumn(verbose_name="Last updated", short=False, attrs={"td": {"class": "text-muted"}})
     actions = tables.TemplateColumn(
         template_name="describe/partials/description_table_actions.html",
         verbose_name="",

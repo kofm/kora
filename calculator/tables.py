@@ -30,7 +30,7 @@ class ManagementTypeTable(tables.Table):
 
 
 class BaseCropLayoutTable(tables.Table):
-    name = tables.Column(linkify=True)
+    name = tables.Column(attrs={"td": {"class": "fw-bold"}})
     crop_count = tables.Column(verbose_name="Crops", orderable=False)
     fieldbook_count = tables.Column(verbose_name="Field books", orderable=False)
 
@@ -49,7 +49,8 @@ class CropLayoutTable(BaseCropLayoutTable):
 
 class CropLayoutListTable(BaseCropLayoutTable):
     location = tables.Column()
-    status = tables.Column(orderable=False, empty_values=())
+    status = tables.Column(orderable=False, empty_values=(), attrs={"td": {"class": "text-muted"}})
+    updated_at = tables.Column(attrs={"td": {"class": "text-muted"}})
 
     class Meta(BaseCropLayoutTable.Meta):
         fields = ("name", "location", "status", "crop_count", "fieldbook_count", "updated_at")
@@ -60,7 +61,7 @@ class CropLayoutListTable(BaseCropLayoutTable):
 
 
 class BaseFieldBookTable(tables.Table):
-    name = tables.Column(linkify=True)
+    name = tables.Column(attrs={"td": {"class": "fw-bold"}})
     observation_count = tables.Column(verbose_name="Observations", orderable=False)
     planned_target_count = tables.Column(verbose_name="Planned", orderable=False)
     percent_completed = tables.Column(verbose_name="Completion", orderable=False)
@@ -127,7 +128,7 @@ class TraitObservationTable(ObservationMutationTable):
 
 
 class TraitObservationListTable(tables.Table):
-    variety = tables.Column(accessor="crop.variety")
+    variety = tables.Column(accessor="crop.variety", attrs={"td": {"class": "fw-bold"}})
     layout = tables.Column(accessor="crop.layout", linkify=True)
     fieldbook = tables.Column(accessor="step.fieldbook", linkify=True)
     protocol = tables.Column(accessor="state.trait.protocol", orderable=False)
@@ -162,7 +163,7 @@ class ParameterObservationTable(ObservationMutationTable):
 
 
 class ParameterObservationListTable(tables.Table):
-    variety = tables.Column(accessor="crop.variety")
+    variety = tables.Column(accessor="crop.variety", attrs={"td": {"class": "fw-bold"}})
     layout = tables.Column(accessor="crop.layout", linkify=True)
     fieldbook = tables.Column(accessor="step.fieldbook", linkify=True)
     parameter = tables.Column(orderable=False)

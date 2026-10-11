@@ -392,14 +392,6 @@
     white-space: nowrap;
 }
 
-.table .table-cell-primary {
-    font-weight: 600;
-}
-
-.table .table-cell-secondary {
-    color: var(--bs-secondary-color);
-}
-
 /* Keep the hover fade, but also reveal actions for keyboard and touch users. */
 .compact-table tbody tr:focus-within .row-action {
     opacity: 1;

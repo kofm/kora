@@ -49,7 +49,7 @@
       <h2 id="names">
 	Names <a class="btn btn-sm btn-outline-primary" href="{% url 'register:denomination_create' variety.pk %}">Create</a>
       </h2>
-      <table class="table table-hover">
+      <table class="table table-hover small-table">
         <thead>
           <th scope="col">Name</th>
           <th scope="col">Date</th>
@@ -58,8 +58,8 @@
         <tbody>
           {% for name in variety.names.all %}
             <tr>
-              <td>{{ name.name }}</td>
-              <td>{{ name.change_date }}</td>
+              <td class="fw-bold">{{ name.name }}</td>
+              <td class="text-muted">{{ name.change_date }}</td>
               <td class="d-flex justify-content-end align-items-center gap-2">
                 <a class="row-action" href="{% url 'register:denomination_update' name.pk %}">
 		  <span class="badge rounded-pill text-bg-secondary">Update</span>

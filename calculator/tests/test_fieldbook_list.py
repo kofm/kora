@@ -87,7 +87,7 @@ class FieldBookListTests(TestCase):
 
         response = self.client.get(reverse("calculator:layout_detail", args=[self.layout.pk]), {"tab": "fieldbooks"})
 
-        self.assertContains(response, self.fieldbook.get_absolute_url())
+        self.assertContains(response, self.fieldbook.name)
         self.assertContains(response, "<td>4</td>", count=2, html=True)
         self.assertContains(response, "75.0%")
 
