@@ -2,7 +2,7 @@
   <a class="row-action" href="{% url 'describe:description_find_similar' %}?description_id={{ record.pk }}"
     class="btn btn-sm btn-outline-secondary rounded-circle"
     title="Find similar varieties">
-    <span class="badge rounded-pill text-bg-secondary">Similar</span>
+    <span class="badge rounded-pill text-bg-secondary"><i class="bi bi-search"></i></span>
   </a>
   {% if user.is_authenticated %}
     <a href="#"

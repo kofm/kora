@@ -1,4 +1,5 @@
 {% extends "frontpage/base.html" %}
+
 {% load description_extras %}
 {% load frontpage_extras %}
 {% load components %}
@@ -25,24 +26,23 @@
   <div class="my-3">
     <a class="btn btn-sm btn-outline-secondary" href="{% url 'describe:description_find_similar' %}{% querystring description_id=description.pk %}">
       <i class="bi bi-search"></i>
-      Find Similar
+      Find similar
     </a>
 
     {% if user.is_authenticated %}
       <a href="#"
-	       class="btn btn-sm btn-outline-secondary"
-	       hx-post="{% url 'describe:workspace_element_create' %}"
-	       hx-vals='{"description_id": "{{ description.pk }}"}'
-	       hx-target="#workspaceBody">
-	<i class="bi bi-star-fill"></i> Add to Workspace
+	      class="btn btn-sm btn-outline-secondary"
+	      hx-post="{% url 'describe:workspace_element_create' %}"
+	      hx-vals='{"description_id": "{{ description.pk }}"}'
+	      hx-target="#workspaceBody">
+	      <i class="bi bi-collection"></i> Add to workspace
       </a>
     {% endif %}
     <a class="btn btn-sm btn-outline-secondary" hx-get="{% url 'describe:description_duplicate' description.pk %}" {% modal_attrs %}>
-      <i class="bi bi-copy"></i> Duplicate
+      <i class="bi bi-copy"></i> Duplicate description
     </a>
   </div>
   <div class="border rounded p-4 my-2">
-
 
     <table class="table">
 
@@ -54,29 +54,26 @@
       </thead>
 
       <tbody>
-	{% for trait, row in table.items %}
-	  <tr class="{{ trait.2|yesno:"fw-bold," }}">
-	    <td>{{ trait.0 }}</td>
-	    <td>{{ trait.1 }}  {% if trait.2 %}&#10033;{% endif %}</td>
-	    <td>
-	      {% for expression in row.expressions.0 %}
-		{% if not forloop.first %}<br/>{% endif %}
-		{{ expression.0 }}
+	      {% for trait, row in table.items %}
+	        <tr class="{{ trait.2|yesno:"fw-bold," }}">
+	          <td>{{ trait.0 }}</td>
+	          <td>{{ trait.1 }}  {% if trait.2 %}&#10033;{% endif %}</td>
+	          <td>
+	            {% for expression in row.expressions.0 %}
+		            {% if not forloop.first %}<br/>{% endif %}
+		            {{ expression.0 }}
+	            {% endfor %}
+	          </td>
+	          <td>
+	            {% for expression in row.expressions.0 %}
+		            {% if not forloop.first %}<br/>{% endif %}
+		            {{ expression.1 }}
+	            {% endfor %}
+	          </td>
+	        </tr>
 	      {% endfor %}
-	    </td>
-	    <td>
-	      {% for expression in row.expressions.0 %}
-		{% if not forloop.first %}<br/>{% endif %}
-		{{ expression.1 }}
-	      {% endfor %}
-	    </td>
-	  </tr>
-	{% endfor %}
       </tbody>
     </table>
-
-
   </div>
-  <p class="text-end text-muted">Created: {{ description.created_at|date }} - Last updated: {{ description.updated_at|date }}</p>
-
+  <p class="text-end text-muted">Created on {{ description.created_at }} - Last updated on {{ description.updated_at }}</p>
 {% endblock %}

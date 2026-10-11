@@ -7,7 +7,7 @@
     hx-on::after-request="htmx.ajax('GET', '{% url 'describe:description_list' %}', {target: '#table', indicator: '#spinner'})"
     title="Find similar varieties"
   >
-    <span class="badge rounded-pill text-bg-secondary">Similar</span>
+    <span class="badge rounded-pill text-bg-secondary"><i class="bi bi-search"></i></span>
   </a>
   {% if user.is_authenticated %}
     <a href="#"
