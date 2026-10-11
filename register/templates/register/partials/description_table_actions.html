@@ -1,6 +1,7 @@
 <div class="d-flex justify-content-end gap-2">
   <a class="row-action" href="{% url 'describe:description_find_similar' %}?description_id={{ record.pk }}"
-    class="btn btn-sm btn-outline-secondary rounded-circle">
+    class="btn btn-sm btn-outline-secondary rounded-circle"
+    title="Find similar varieties">
     <span class="badge rounded-pill text-bg-secondary">Similar</span>
   </a>
   {% if user.is_authenticated %}

@@ -367,3 +367,46 @@
 .small-table .orderable {
     cursor: pointer;
 }
+
+/* Compact tables: reserve ten rows so HTMX swaps do not move pagination. */
+.table-container-compact {
+    min-height: 41rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.table-container-compact nav {
+    margin-top: auto;
+}
+
+.compact-table {
+    min-width: 42rem;
+}
+
+.compact-table > tbody > tr > td {
+    height: 3.5rem;
+    padding-top: .6rem;
+    padding-bottom: .6rem;
+    vertical-align: middle;
+    /* Keep row height stable; long values remain available through horizontal scrolling. */
+    white-space: nowrap;
+}
+
+.table .table-cell-primary {
+    font-weight: 600;
+}
+
+.table .table-cell-secondary {
+    color: var(--bs-secondary-color);
+}
+
+/* Keep the hover fade, but also reveal actions for keyboard and touch users. */
+.compact-table tbody tr:focus-within .row-action {
+    opacity: 1;
+}
+
+@media (hover: none) {
+    .compact-table .row-action {
+        opacity: 1;
+    }
+}

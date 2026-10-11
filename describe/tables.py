@@ -6,9 +6,9 @@ from frontpage.tables import TableHoverFixed
 
 
 class DescriptionTable(tables.Table):
-    variety__name = tables.Column("Variety")
-    variety__species__common_name = tables.Column("Species")
-    protocol__name = tables.Column("Protocol")
+    variety__name = tables.Column("Variety", attrs={"td": {"class": "table-cell-primary"}})
+    variety__species__common_name = tables.Column("Species", attrs={"td": {"class": "table-cell-secondary"}})
+    protocol__name = tables.Column("Protocol", attrs={"td": {"class": "table-cell-secondary"}})
     actions = tables.TemplateColumn(
         template_name="describe/partials/description_table_actions.html",
         verbose_name="",
@@ -16,6 +16,7 @@ class DescriptionTable(tables.Table):
     )
 
     class Meta(TableHoverFixed.Meta):
+        attrs = {"class": "table table-hover table-fixed small-table compact-table"}
         model = Description
         fields = ("variety__name", "variety__species__common_name", "label", "protocol__name")
         template_name = "describe/partials/description_table.html"
