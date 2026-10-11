@@ -4,11 +4,12 @@ from collections import defaultdict
 from collections.abc import Iterable
 
 from django.contrib.auth.models import User
-from django.db import models
+from django.db import models, transaction
 from django.db.models import F, Prefetch, UniqueConstraint
 from django.db.models.aggregates import Count
 from django.db.models.functions import Coalesce
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.functional import cached_property
 
 from frontpage.generic import ModelIsDeletableMixin
@@ -69,6 +70,10 @@ class Protocol(ModelIsDeletableMixin, models.Model):
 
 
 class DescriptionQuerySet(models.QuerySet):
+    def touch(self):
+        """Mark the selected descriptions' content as updated."""
+        return self.update(updated_at=timezone.now())
+
     def filter_by_expressions(self, expressions_filter: dict):
         """Filter Descriptions by Expression.
 
@@ -364,6 +369,32 @@ class State(models.Model):
         return group
 
 
+class ExpressionQuerySet(models.QuerySet):
+    def bulk_create(
+        self,
+        objs,
+        batch_size=None,
+        ignore_conflicts=False,
+        update_conflicts=False,
+        update_fields=None,
+        unique_fields=None,
+    ):
+        objs = list(objs)
+        self._for_write = True
+        with transaction.atomic(using=self.db):
+            created = super().bulk_create(
+                objs,
+                batch_size=batch_size,
+                ignore_conflicts=ignore_conflicts,
+                update_conflicts=update_conflicts,
+                update_fields=update_fields,
+                unique_fields=unique_fields,
+            )
+            description_ids = {obj.description_id for obj in created}
+            Description.objects.using(self.db).filter(pk__in=description_ids).touch()
+        return created
+
+
 class Expression(models.Model):
     """Store the variety state of expression related to a specific trait within a Description.
 
@@ -374,6 +405,8 @@ class Expression(models.Model):
     state = models.ForeignKey(State, on_delete=models.PROTECT)
     description = models.ForeignKey(Description, on_delete=models.CASCADE, related_name="expressions")
     note = models.CharField(max_length=512, blank=True, help_text="Add any additional information here.")
+
+    objects = ExpressionQuerySet.as_manager()
 
     class Meta:
         ordering = ("state__trait__numeric_id",)

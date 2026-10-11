@@ -1,4 +1,4 @@
-from django.db.models.signals import post_migrate
+from django.db.models.signals import post_delete, post_migrate, post_save
 from django.dispatch import receiver
 
 from frontpage.utils.permissions import (
@@ -6,6 +6,15 @@ from frontpage.utils.permissions import (
     group_assign_model_permissions,
     skip_if_not_app,
 )
+
+from .models import Description, Expression
+
+
+@receiver(post_save, sender=Expression)
+@receiver(post_delete, sender=Expression)
+def touch_expression_description(sender, instance, using, raw=False, **kwargs):
+    if not raw:
+        Description.objects.using(using).filter(pk=instance.description_id).touch()
 
 
 @receiver(post_migrate)
