@@ -1,0 +1,5 @@
+{% extends "frontpage/modal_confirm_delete.html" %}
+
+{% block body %}
+  <p>You are about to delete a value for parameter <b>{{ param.parameter.name }}</b> relative to the variety <b>{{ param.variety }}</b>.<br /> The value is: <b>{{ param.get_value_display }}</b></p>
+{% endblock %}

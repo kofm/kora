@@ -95,7 +95,7 @@ class ParameterValue(TypedValue):
         return super().save(*args, **kwargs)
 
 
-class VarietalParameter(ParameterValue):
+class VarietalParameter(ModelIsDeletableMixin, ParameterValue):
     """
     Varietal parameters values
     """
@@ -111,3 +111,9 @@ class VarietalParameter(ParameterValue):
     @classmethod
     def get_create_url(cls):
         return reverse("parameters:varietalparameter_create")
+
+    def get_update_url(self):
+        return reverse("parameters:varietalparameter_update", args=(self.pk,))
+
+    def get_delete_url(self):
+        return reverse("parameters:varietalparameter_delete", args=(self.pk,))

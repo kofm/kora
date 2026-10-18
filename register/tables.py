@@ -116,12 +116,7 @@ class VarietalParameterTable(tables.Table):
     parameter__code = tables.Column("Code", attrs={"td": {"class": "fw-light"}})
     note = tables.Column("Notes", attrs={"td": {"class": "fw-light"}})
 
-    actions = tables.TemplateColumn(
-        template_name="parameters/partials/varietalparameter_table_actions.html",
-        verbose_name="",
-        orderable=False,
-        attrs={"td": {"class": "text-end"}},
-    )
+    actions = EditDeleteColumn(preserve_next=True)
 
     class Meta:
         attrs = {"class": "table table-hover table-fixed small-table compact-table"}

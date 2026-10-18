@@ -1,3 +1,5 @@
+from urllib.parse import urlencode
+
 import django_tables2 as tables
 from django.contrib.auth.models import User
 from django.template.loader import render_to_string
@@ -9,18 +11,22 @@ class EditDeleteColumn(tables.Column):
 
     empty_values = ()
 
-    def __init__(self):
+    def __init__(self, *, preserve_next=False):
+        self.preserve_next = preserve_next
         super().__init__(verbose_name="", orderable=False, attrs={"td": {"class": "text-end"}})
 
     def render(self, record, table):
         user = table.request.user
         opts = record._meta
+        urls = {"update_url": record.get_update_url(), "delete_url": record.get_delete_url()}
+        if self.preserve_next:
+            query = urlencode({"next": table.request.get_full_path()})
+            urls = {name: f"{url}{'&' if '?' in url else '?'}{query}" for name, url in urls.items()}
         return render_to_string(
             "frontpage/partials/edit_delete_column.html",
             {
                 "record": record,
-                "update_url": record.get_update_url(),
-                "delete_url": record.get_delete_url(),
+                **urls,
                 "can_edit": user.has_perm(f"{opts.app_label}.change_{opts.model_name}"),
                 "can_delete": user.has_perm(f"{opts.app_label}.delete_{opts.model_name}"),
             },

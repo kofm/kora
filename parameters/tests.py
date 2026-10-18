@@ -1,3 +1,5 @@
+from urllib.parse import urlencode
+
 from django.test import TestCase
 from django.urls import reverse
 
@@ -78,6 +80,51 @@ class VarietalParameterFormTests(TestCase):
         self.assertEqual(reference.parameter_id, original_parameter_id)
         self.assertEqual(reference.value_integer, 2)
         self.assertEqual(reference.note, "Corrected value")
+
+    def test_modal_mutations_refresh_values_list(self):
+        self.client.force_login(UserFactory(is_superuser=True))
+        origin = f"{reverse('parameters:varietalparameter_list')}?page=2&parameter=1"
+        for action in ("update", "delete"):
+            with self.subTest(action=action):
+                reference = VarietalParameter.objects.create(
+                    variety=PlantVarietyFactory(), parameter=ParameterFactory(type="integer"), value_integer=1
+                )
+                url = reverse(f"parameters:varietalparameter_{action}", args=[reference.pk])
+                response = self.client.post(
+                    f"{url}?{urlencode({'next': origin})}",
+                    {"value_integer": "2"},
+                    HTTP_HX_REQUEST="true",
+                )
+                self.assertEqual(response.status_code, 200)
+                self.assertJSONEqual(response.headers["HX-Trigger"], {"closeModal": True, "resultsChanged": True})
+                if action == "update":
+                    reference.refresh_from_db()
+                    self.assertEqual(reference.value_integer, 2)
+                else:
+                    self.assertFalse(VarietalParameter.objects.filter(pk=reference.pk).exists())
+
+    def test_modal_mutations_redirect_back_to_variety_detail(self):
+        self.client.force_login(UserFactory(is_superuser=True))
+        variety = PlantVarietyFactory()
+        origin = f"{reverse('register:variety_detail', args=[variety.pk])}?para_page=2"
+        for action in ("update", "delete"):
+            with self.subTest(action=action):
+                reference = VarietalParameter.objects.create(
+                    variety=variety, parameter=ParameterFactory(type="integer"), value_integer=1
+                )
+                url = reverse(f"parameters:varietalparameter_{action}", args=[reference.pk])
+                response = self.client.post(
+                    f"{url}?{urlencode({'next': origin})}",
+                    {"value_integer": "2"},
+                    HTTP_HX_REQUEST="true",
+                )
+                self.assertEqual(response.status_code, 200)
+                self.assertEqual(response.headers["HX-Redirect"], origin)
+                if action == "update":
+                    reference.refresh_from_db()
+                    self.assertEqual(reference.value_integer, 2)
+                else:
+                    self.assertFalse(VarietalParameter.objects.filter(pk=reference.pk).exists())
 
     def test_rejects_variety_from_different_species(self):
         selected_species = PlantSpeciesFactory()

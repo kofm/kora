@@ -1,9 +1,11 @@
+from urllib.parse import urlsplit
+
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.http import HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
-from django.urls import reverse_lazy
+from django.urls import Resolver404, resolve, reverse_lazy
 from django.urls.base import reverse
 from django.views.generic import CreateView, DeleteView, UpdateView
 from django_tables2 import RequestConfig
@@ -165,6 +167,20 @@ def variety_varietalparameter_create(request, variety_pk):
     )
 
 
+def _varietalparameter_success_response(request):
+    success_url = get_safe_next_url(request, reverse("parameters:varietalparameter_list"))
+    if not is_htmx(request):
+        return redirect(success_url)
+
+    try:
+        origin = resolve(urlsplit(success_url).path).view_name
+    except Resolver404:
+        origin = None
+    if origin == "parameters:varietalparameter_list":
+        return htmx_response_trigger_close_modal(["resultsChanged"])
+    return htmx_response_redirect(success_url)
+
+
 @permission_required("parameters.change_varietalparameter", raise_exception=True)
 def varietalparameter_update(request, pk):
     value = get_object_or_404(VarietalParameter, pk=pk)
@@ -173,9 +189,9 @@ def varietalparameter_update(request, pk):
         form = VarietalParameterUpdateForm(request.POST, instance=value)
         if form.is_valid():
             form.save()
-            success_url = get_safe_next_url(request, reverse("parameters:varietalparameter_list"))
-            return redirect(success_url)
-    return TemplateResponse(request, "parameters/varietalparameter_update.html", {"form": form})
+            return _varietalparameter_success_response(request)
+    template = "frontpage/modal_form.html" if is_htmx(request) else "parameters/varietalparameter_update.html"
+    return TemplateResponse(request, template, {"form": form, "instance": value})
 
 
 @permission_required("parameters.delete_varietalparameter", raise_exception=True)
@@ -183,9 +199,13 @@ def varietalparameter_delete(request, pk):
     param = get_object_or_404(VarietalParameter, pk=pk)
     if request.method == "POST":
         param.delete()
-        success_url = get_safe_next_url(request, reverse("parameters:varietalparameter_list"))
-        return redirect(success_url)
-    return TemplateResponse(request, "parameters/varietalparameter_confirm_delete.html", {"param": param})
+        return _varietalparameter_success_response(request)
+    template = (
+        "parameters/partials/varietalparameter_modal_confirm_delete.html"
+        if is_htmx(request)
+        else "parameters/varietalparameter_confirm_delete.html"
+    )
+    return TemplateResponse(request, template, {"param": param, "instance": param})
 
 
 class ParameterAutocompleteView(AutocompleteModelView):

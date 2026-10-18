@@ -23,12 +23,7 @@ class VarietalParameterTable(tables.Table):
     variety__name = tables.Column("Variety", attrs={"td": {"class": "fw-bold"}})
     parameter__name = tables.Column("Parameter", attrs={"td": {"class": "text-muted"}})
     note = tables.Column("Notes", attrs={"td": {"class": "fw-light"}})
-    actions = tables.TemplateColumn(
-        template_name="parameters/partials/varietalparameter_table_actions.html",
-        verbose_name="",
-        orderable=False,
-        attrs={"td": {"class": "text-end"}},
-    )
+    actions = EditDeleteColumn(preserve_next=True)
 
     class Meta:
         model = VarietalParameter
