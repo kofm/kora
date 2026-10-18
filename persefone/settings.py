@@ -37,7 +37,6 @@ INSTALLED_APPS = [
     "crispy_forms",
     "crispy_bootstrap5",
     "django_countries",
-    "widget_tweaks",
     "easyaudit",
     "register.apps.RegisterConfig",
     "describe.apps.DescribeConfig",

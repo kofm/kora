@@ -3,8 +3,6 @@
 {% load static %}
 {% load crispy_forms_tags %}
 {% load breadcrumbs %}
-{% load widget_tweaks %}
-{% load frontpage_extras %}
 
 {% partialdef expression_update %}
   {% partial header %}
@@ -61,12 +59,12 @@
 		<div class="mb-3">
 		  {{ form.label.label_tag }}
 		  {{ form.label.errors }}
-		  {{ form.label|add_class:'form-select'|add_valid_class:'is-valid' }}
+		  {{ form.label }}
 		</div>
 		<div class="mb-3">
 		  {{ form.notes.label_tag }}
 		  {{ form.notes.errors }}
-		  {{ form.notes|add_class:'form-control'|add_valid_class:'is-valid' }}
+		  {{ form.notes }}
 		</div>
 
 		<button class="btn btn-primary" type="submit">

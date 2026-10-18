@@ -2,10 +2,33 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Div, Field, Layout, LayoutObject, Submit
 from django import forms
 from django.contrib.auth.models import Group, User
+from django.forms.boundfield import BoundField
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 
 from frontpage.widgets import ModelTomSelect, ModelTomSelectMultiple, TomSelectMultiple
+
+
+class ValidationStyledBoundField(BoundField):
+    """Apply inline-form feedback without changing the widget's stored attributes."""
+
+    def as_widget(self, widget=None, attrs=None, only_initial=False):
+        mode = self.form.validation_styles.get(self.name)
+        if mode and self.form.is_bound:
+            css_class = "is-invalid" if self.errors else "is-valid"
+            if not self.errors or mode == "both":
+                widget = widget or self.field.widget
+                attrs = dict(attrs or {})
+                classes = [*widget.attrs.get("class", "").split(), *attrs.get("class", "").split(), css_class]
+                attrs["class"] = " ".join(dict.fromkeys(classes))
+        return super().as_widget(widget=widget, attrs=attrs, only_initial=only_initial)
+
+
+class ValidationStyledFormMixin:
+    """Map inline field names to 'valid' (success only) or 'both' feedback."""
+
+    bound_field_class = ValidationStyledBoundField
+    validation_styles = {}
 
 
 class AdminUserUpdateForm(forms.ModelForm):

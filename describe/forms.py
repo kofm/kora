@@ -19,7 +19,7 @@ from describe.models import (
     Trait,
     Workspace,
 )
-from frontpage.forms import TomSelectModelFormMixin
+from frontpage.forms import TomSelectModelFormMixin, ValidationStyledFormMixin
 from frontpage.widgets import (
     BootstrapNumberInput,
     BootstrapTextInput,
@@ -33,7 +33,9 @@ from frontpage.widgets import (
 from register.models import PlantSpecies, PlantVariety
 
 
-class TraitForm(forms.ModelForm):
+class TraitForm(ValidationStyledFormMixin, forms.ModelForm):
+    validation_styles = {"numeric_id": "both", "description": "both", "type_of_expression": "both"}
+
     class Meta:
         model = Trait
         fields = ("numeric_id", "description", "grouping", "type_of_expression", "protocol")
@@ -196,17 +198,28 @@ class DescriptionDuplicateForm(forms.ModelForm):
         widgets = {"name": LabelSelect()}
 
 
-class DescriptionUpdateForm(forms.ModelForm):
+class DescriptionUpdateForm(ValidationStyledFormMixin, forms.ModelForm):
+    validation_styles = {"label": "valid", "notes": "valid"}
+
     label = forms.ModelChoiceField(queryset=DescriptionLabel.objects.all(), widget=LabelSelect())
-    notes = forms.CharField(widget=forms.Textarea, required=False)
+    notes = forms.CharField(widget=forms.Textarea(attrs={"class": "form-control"}), required=False)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        widget = self.fields["label"].widget
+        widget.attrs["class"] = f"{widget.attrs.get('class', '')} form-select".strip()
 
     class Meta:
         model = Description
         fields = ("label", "notes")
 
 
-class ExpressionForm(forms.ModelForm):
-    state = forms.ModelChoiceField(queryset=State.objects.none(), blank=False)
+class ExpressionForm(ValidationStyledFormMixin, forms.ModelForm):
+    validation_styles = {"state": "valid", "note": "valid"}
+
+    state = forms.ModelChoiceField(
+        queryset=State.objects.none(), blank=False, widget=forms.Select(attrs={"class": "form-select"})
+    )
 
     class Meta:
         model = Expression
