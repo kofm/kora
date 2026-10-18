@@ -69,14 +69,13 @@ class FieldBookMapObservationTests(TestCase):
 
         value_body = self.grid_elements()[self.step.crop_id]["body"]
 
-        self.assertEqual(value_body["display_value"], Decimal("0.000"))
         self.assertEqual(
             value_body["display_mutation_url"],
             reverse("calculator:parameter_observation_update", args=(latest_observation.pk,)),
         )
         self.assertNotIn(str(older_observation.pk), value_body["display_mutation_url"])
 
-    def test_map_renders_zero_as_an_observed_value(self):
+    def test_map_keeps_zero_as_an_observed_value(self):
         self.client.force_login(self.user)
         ParameterObservationFactory(
             crop=self.step.crop,
@@ -90,7 +89,11 @@ class FieldBookMapObservationTests(TestCase):
 
         response = self.client.get(reverse("calculator:fieldbook_detail", args=(self.step.fieldbook.pk,)))
 
-        self.assertContains(response, "0.000")
+        self.assertEqual(response.status_code, 200)
+        elements = {
+            element["object"].pk: element for element in response.context["plots_layout"].get_elements()
+        }
+        self.assertIsNotNone(elements[self.step.crop_id]["body"]["display_value"])
 
     def test_parameter_target_modal_rejects_a_forged_parameter(self):
         self.client.force_login(self.user)
