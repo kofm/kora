@@ -88,7 +88,7 @@ class FieldBookTable(BaseFieldBookTable):
 
 
 class FieldBookInLayoutTable(BaseFieldBookTable):
-    pass
+    name = tables.Column(linkify=True)
 
 
 class CropParameterTable(tables.Table):
