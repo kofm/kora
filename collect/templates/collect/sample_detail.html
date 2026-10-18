@@ -22,6 +22,12 @@
   </style>
 {% endblock %}
 
+{% partialdef sample_update %}
+  {% partial log %}
+  {% partial weight %}
+  {% partial germinability %}
+{% endpartialdef %}
+
 {% block title %}
   {{ sample }}
 {% endblock %}
@@ -56,19 +62,19 @@
 
     {% card_col_rows sample.growing_season "Growing Season" %}
 
-    {% block weight %}
+    {% partialdef weight inline %}
       <div id="weightCard" hx-swap-oob="true">
 	{% card_col_rows sample.get_weight_display "Weight" %}
       </div>
-    {% endblock %}
+    {% endpartialdef %}
 
-    {% block germinability %}
+    {% partialdef germinability inline %}
       <div id="germinabilityCard" hx-swap-oob="true">
 	{% with record=sample.germinability_set.last %}
 	  {% card_col_rows record|default:"-" "Germinability" %}
 	{% endwith %}
       </div>
-    {% endblock %}
+    {% endpartialdef %}
 
 
     {% url 'collect:storage_detail' sample.position.storage.pk as storage_url %}
@@ -80,7 +86,7 @@
   <div class="row g-4 pb-4">
 
     <!-- Sample Log -->
-    {% block log %}
+    {% partialdef log inline %}
       <div id="log" class="col-md-6" hx-trigger="logItemUpdated from:body" hx-get="{% url 'collect:sample_detail' sample.pk %}" hx-target="#log" hx-swap="outerHTML">
 	<div class="card shadow-sm h-100 overflow-hidden">
           <div class="card-header d-flex justify-content-between align-items-center">
@@ -120,7 +126,7 @@
 
 	</div>
       </div>
-    {% endblock %}
+    {% endpartialdef %}
 
     <div class="col-md-6">
       <div class="card shadow-sm h-100">

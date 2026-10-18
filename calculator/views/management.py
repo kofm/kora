@@ -12,12 +12,12 @@ from calculator.models import ManagementType
 from calculator.tables import ManagementTypeTable
 from frontpage.headers import ListHeader
 from frontpage.utils.htmx import htmx_response_trigger_close_modal
-from frontpage.views_decorators import htmx_render_blocks, is_htmx, nav_active
+from frontpage.views_decorators import htmx_render_partial, is_htmx, nav_active
 
 
 @permission_required("calculator.view_managementtype", raise_exception=True)
 @nav_active("nav_plan")
-@htmx_render_blocks(["main"])
+@htmx_render_partial("main", template_name="frontpage/list.html")
 def managementtype_list(request):
     managementtype_filter = ManagementTypeFilter(request.GET, queryset=ManagementType.objects.all())
     table = ManagementTypeTable(managementtype_filter.qs)

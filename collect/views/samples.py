@@ -32,11 +32,11 @@ from collect.tables import (
 )
 from frontpage.templatetags.components import get_action_url_from_instance, get_permission_from_instance
 from frontpage.utils.htmx import htmx_response_trigger, htmx_response_trigger_close_modal
-from frontpage.views_decorators import htmx_render_blocks, is_htmx
+from frontpage.views_decorators import htmx_render_partial, is_htmx
 from sortable.views import SortableView
 
 
-@htmx_render_blocks(["main"])
+@htmx_render_partial("main")
 @permission_required("collect.view_sample")
 def sample_list(request):
     flt = SampleFilter(request.GET, queryset=Sample.objects.all())
@@ -58,7 +58,7 @@ def sample_list(request):
     return TemplateResponse(request, "collect/sample_list.html", context)
 
 
-@htmx_render_blocks(["main"])
+@htmx_render_partial("main")
 @permission_required("collect.view_sample")
 def discarded_sample_list(request):
     flt = SampleFilter(request.GET, queryset=Sample.all_objects.discarded())
@@ -121,7 +121,7 @@ def discarded_sample_restore(request, pk):
     return TemplateResponse(request, "frontpage/modal_form.html", {"form": form})
 
 
-@htmx_render_blocks(["log", "weight", "germinability"])
+@htmx_render_partial("sample_update")
 @permission_required("collect.view_sample")
 def sample_detail(request, pk):
     sample = Sample.objects.detail().with_availability().get(pk=pk)

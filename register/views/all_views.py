@@ -21,7 +21,7 @@ from breadcrumbs.utils import (
 from frontpage.views_decorators import (
     NavDescribeActiveContext,
     NavPlantActiveContext,
-    htmx_render_blocks,
+    htmx_render_partial,
     nav_describe_active_context,
     nav_plant_active_context,
     public_catalog_view,
@@ -34,7 +34,7 @@ from register.tables import EntityTable, PlantVarietyEntityTable, ProtectionList
 
 @nav_plant_active_context
 @public_catalog_view("register.view_protection")
-@htmx_render_blocks(["main"])
+@htmx_render_partial("main", template_name="frontpage/list.html")
 def protection_list(request):
     queryset = Protection.objects.select_related("variety", "variety__species").all()
     flt = ProtectionOmniFilter(request.GET, queryset=queryset)
@@ -190,7 +190,7 @@ class EntityDeleteView(PermissionRequiredMixin, NavDescribeActiveContext, Delete
 
 @nav_describe_active_context
 @public_catalog_view("register.view_entity")
-@htmx_render_blocks(["main"])
+@htmx_render_partial("main", template_name="frontpage/list.html")
 def entity_list(request):
     flt = EntityFilter(request.GET, queryset=Entity.objects.all())
     table = EntityTable(flt.qs)

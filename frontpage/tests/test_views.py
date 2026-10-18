@@ -16,6 +16,15 @@ class ViewSmokeTests(TestCase):
         response = self.client.get(reverse("frontpage:admin"))
         self.assertEqual(response.status_code, 200)
 
+    def test_user_list_refresh_returns_only_the_users_region(self):
+        response = self.client.get(
+            reverse("frontpage:admin"), {"partial": "users", "sort": "username"}, HTTP_HX_REQUEST="true"
+        )
+
+        self.assertContains(response, 'id="users"', count=1)
+        self.assertContains(response, self.user.username)
+        self.assertNotContains(response, 'id="navbar-admin"')
+
 
 class AccountAdministrationPermissionTests(TestCase):
     def test_staff_status_alone_does_not_allow_user_administration(self):

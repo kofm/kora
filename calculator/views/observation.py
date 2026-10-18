@@ -18,12 +18,12 @@ from calculator.tables import ParameterObservationListTable, TraitObservationLis
 from calculator.targets import observation_target, target_recorded_count
 from describe.models import State
 from frontpage.utils.htmx import htmx_response_trigger_close_modal
-from frontpage.views_decorators import htmx_render_blocks, nav_active
+from frontpage.views_decorators import htmx_render_partial, nav_active
 
 
 @permission_required("calculator.view_traitobservation", raise_exception=True)
 @nav_active("nav_plan")
-@htmx_render_blocks(["main"])
+@htmx_render_partial("main", template_name="frontpage/list.html")
 def trait_observation_list(request):
     queryset = TraitObservation.objects.select_related(
         "step__fieldbook",
@@ -45,7 +45,7 @@ def trait_observation_list(request):
 
 @permission_required("calculator.view_parameterobservation", raise_exception=True)
 @nav_active("nav_plan")
-@htmx_render_blocks(["main"])
+@htmx_render_partial("main", template_name="frontpage/list.html")
 def parameter_observation_list(request):
     queryset = ParameterObservation.objects.select_related(
         "step__fieldbook",

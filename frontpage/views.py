@@ -22,7 +22,7 @@ from frontpage.forms import AdminUserUpdateForm, UserUpdateForm
 from frontpage.tables import UserTable
 from frontpage.templatetags.components import ListPageHeader
 from frontpage.utils.htmx import htmx_response_trigger
-from frontpage.views_decorators import htmx_render_block_from_params, is_htmx
+from frontpage.views_decorators import htmx_render_partial, is_htmx
 from register.models import PlantSpecies
 
 
@@ -50,7 +50,7 @@ def appearance_set(request):
 
 
 @permission_required("auth.view_user", raise_exception=True)
-@htmx_render_block_from_params()
+@htmx_render_partial(allowed_partials=("users",))
 def admin(request):
     queryset = User.objects.all()
     table_user = UserTable(queryset)

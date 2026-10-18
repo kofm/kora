@@ -53,7 +53,7 @@ from frontpage.headers import DetailHeader, ListHeader
 from frontpage.navigation import BasePrevNextNav
 from frontpage.utils.assets import add_layout_assets
 from frontpage.utils.htmx import htmx_response_redirect, htmx_response_trigger, htmx_response_trigger_close_modal
-from frontpage.views_decorators import htmx_render_blocks, is_htmx, nav_active
+from frontpage.views_decorators import htmx_render_partial, is_htmx, nav_active
 
 try:
     from cropmodels.init import AVAILABLE_CROP_MODELS, STATISTICS_MODELS
@@ -76,7 +76,7 @@ class FieldBookDetailHeader(DetailHeader):
 
 @permission_required("calculator.view_fieldbook", raise_exception=True)
 @nav_active("nav_plan")
-@htmx_render_blocks(["main"])
+@htmx_render_partial("main", template_name="frontpage/list.html")
 def fieldbook_list(request):
     queryset = (
         FieldBook.objects.filter(layout__archived_at__isnull=True)  # zuban: ignore[attr-defined]

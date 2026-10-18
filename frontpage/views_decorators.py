@@ -5,10 +5,9 @@ import copy
 from django.conf import settings
 from django.contrib.auth.decorators import login_not_required, permission_required
 from django.http.request import HttpRequest, QueryDict
-from django.http.response import HttpResponse
+from django.template.response import SimpleTemplateResponse
 from django.utils.functional import wraps
 from django.views.decorators.http import require_safe
-from render_block import render_block_to_string
 
 
 def public_catalog_view(permission):
@@ -49,89 +48,36 @@ def is_htmx(request: HttpRequest):
     return request.headers.get("Hx-Request", False)
 
 
-def htmx_render_blocks(blocks: list[str]):
+def htmx_render_partial(
+    partial: str | None = None, *, template_name: str | None = None, allowed_partials: tuple[str, ...] = ()
+):
+    """Select a native partial without eagerly rendering the template response.
+
+    For views returning an unrendered response with a single template name.
+    Supply a fixed partial, or allow callers to select one with ``?partial=``.
+    Optionally select the partial from a shared template instead of the view's
+    full-page template. Missing/unknown selectors leave the response unchanged.
+    Redirects and other non-template responses pass through unchanged.
+    """
     def decorator(view):
         @wraps(view)
         def _view(request, *args, **kwargs):
-            resp = view(request, *args, **kwargs)
+            response = view(request, *args, **kwargs)
+            if not is_htmx(request) or not isinstance(response, SimpleTemplateResponse):
+                return response
 
-            if not is_htmx(request):
-                return resp
+            selected = partial
+            if selected is None:
+                selected = request.GET.get("partial")
+                if selected not in allowed_partials:
+                    return response
 
-            if not hasattr(resp, "render"):
-                raise ValueError("@htmx_render_block_from_params should be used with TemplateResponse")
-
-            rendered_blocks = [
-                render_block_to_string(
-                    resp.template_name,
-                    b,
-                    context=resp.context_data,
-                    request=request,
-                )
-                for b in blocks
-            ]
-
-            resp = HttpResponse(
-                content="\n".join(rendered_blocks),
-                status=resp.status_code,
-                headers=resp.headers,
-            )
-
-            return resp
+            response.template_name = f"{template_name or response.template_name}#{selected}"
+            return response
 
         return _view
 
     return decorator
-
-
-def htmx_render_block_from_params():
-    def decorator(view):
-        @wraps(view)
-        def _view(request, *args, **kwargs):
-            resp = view(request, *args, **kwargs)
-
-            if not is_htmx(request):
-                return resp
-
-            if not hasattr(resp, "render"):
-                raise ValueError("@htmx_render_block_from_params should be used with TemplateResponse")
-
-            blocks_to_use = _get_param_from_request(request, "use_block")
-
-            if not blocks_to_use:
-                return resp
-
-            rendered_blocks = [
-                render_block_to_string(
-                    resp.template_name,
-                    b,
-                    context=resp.context_data,
-                    request=request,
-                )
-                for b in list(blocks_to_use)
-            ]
-            resp = HttpResponse(
-                content="\n".join(rendered_blocks),
-                status=resp.status_code,
-                headers=resp.headers,
-            )
-
-            return resp
-
-        return _view
-
-    return decorator
-
-
-def _get_param_from_request(request, param):
-    """
-    Checks GET then POST params for specified param
-    """
-    if param in request.GET:
-        return request.GET.getlist(param)
-    elif request.method == "POST" and param in request.POST:
-        return request.POST.getlist(param)
-    return None
 
 
 def make_get_request(request: HttpRequest) -> HttpRequest:

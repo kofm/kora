@@ -6,6 +6,11 @@
 {% load widget_tweaks %}
 {% load frontpage_extras %}
 
+{% partialdef expression_update %}
+  {% partial header %}
+  {% partial description_form %}
+{% endpartialdef %}
+
 {% block title %}{{ description }}{% endblock %}
 
 {% block javascript %}
@@ -16,7 +21,7 @@
 
   {% render_breadcrumbs %}
 
-  {% block header %}
+  {% partialdef header inline %}
     <div id="header" class="row" hx-swap-oob="true">
       <div class="col">
 	<h1 class="mb-0">
@@ -26,7 +31,7 @@
         <p class="lead">{{ description.notes|default_if_none:"&nbsp;" }}</p>
       </div>
     </div>
-  {% endblock %}
+  {% endpartialdef %}
 
   <div class="row mb-5">
 
@@ -51,7 +56,7 @@
 
 	<div id="description-collapse" class="collapse">
 	  <div class="card-body position-relative" hx-ext="tomselect">
-	    {% block description_form %}
+	    {% partialdef description_form inline %}
 	      <form hx-post="" hx-target="closest .card-body">
 		<div class="mb-3">
 		  {{ form.label.label_tag }}
@@ -76,7 +81,7 @@
 		  <input type="hidden" name="undo" value="true">
 		</form>
 	      {% endif %}
-	    {% endblock %}
+	    {% endpartialdef %}
 	  </div>
 	</div>
 

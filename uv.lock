@@ -333,18 +333,6 @@ wheels = [
 ]
 
 [[package]]
-name = "django-render-block"
-version = "0.11"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "django" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/6b/2f/588cf58f7b37ab3b7994727d590381aed747173ef5670457c798518621dc/django_render_block-0.11.tar.gz", hash = "sha256:17886dd3bff222fe8a2f019509c6c53e0e4a38fe684e80d48e8697a879e1301b", size = 12432, upload-time = "2025-05-13T11:48:51.333Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/ef/ef/f80dddb0e05887cda30b7c8140a2b0caa957d31d68fcfec84cb445d792ef/django_render_block-0.11-py3-none-any.whl", hash = "sha256:e6a7161393fb59ee803ab0a97ce96286897abafa42835215e019b47ebc442727", size = 9652, upload-time = "2025-05-13T11:48:50.247Z" },
-]
-
-[[package]]
 name = "django-stubs"
 version = "6.0.5"
 source = { registry = "https://pypi.org/simple" }
@@ -649,7 +637,6 @@ dependencies = [
     { name = "django-crispy-forms" },
     { name = "django-easy-audit" },
     { name = "django-filter" },
-    { name = "django-render-block" },
     { name = "django-tables2" },
     { name = "django-widget-tweaks" },
     { name = "djangorestframework" },
@@ -693,7 +680,6 @@ requires-dist = [
     { name = "django-crispy-forms", specifier = "==1.14" },
     { name = "django-easy-audit", specifier = "==1.3.9a2" },
     { name = "django-filter", specifier = ">=25.1" },
-    { name = "django-render-block", specifier = ">=0.10" },
     { name = "django-tables2", specifier = ">=2.7.5" },
     { name = "django-widget-tweaks", specifier = ">=1.5.0" },
     { name = "djangorestframework", specifier = ">=3.16.0" },

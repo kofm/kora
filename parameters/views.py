@@ -12,7 +12,7 @@ from breadcrumbs.utils import generate_breadcrumbs
 from frontpage.autocomplete import AutocompleteModelView
 from frontpage.utils.htmx import htmx_response_redirect, htmx_response_trigger_close_modal
 from frontpage.utils.shortcuts import get_safe_next_url
-from frontpage.views_decorators import htmx_render_blocks, is_htmx, nav_active
+from frontpage.views_decorators import htmx_render_partial, is_htmx, nav_active
 from parameters.filters import ParameterFilter, VarietalParameterFilter
 from parameters.forms import (
     ParameterForm,
@@ -30,7 +30,7 @@ from .models import Parameter, VarietalParameter
 
 
 @nav_active("nav_plan")
-@htmx_render_blocks(["main"])
+@htmx_render_partial("main", template_name="frontpage/list.html")
 def parameter_list(request):
     queryset = Parameter.objects.all()
     flt = ParameterFilter(request.GET, queryset=queryset)
@@ -97,7 +97,7 @@ class ParameterDelete(PermissionRequiredMixin, DeleteView):
         return super().post(request, *args, **kwargs)
 
 
-@htmx_render_blocks(["main"])
+@htmx_render_partial("main", template_name="frontpage/list.html")
 @permission_required("parameters.view_varietalparameter", raise_exception=True)
 def varietalparameter_list(request):
     flt = VarietalParameterFilter(

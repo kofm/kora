@@ -16,7 +16,7 @@ from calculator.tables import CropLayoutTable
 from frontpage.autocomplete import AutocompleteModelView
 from frontpage.headers import DetailHeader, ListHeader
 from frontpage.utils.htmx import htmx_response_redirect, htmx_response_trigger_close_modal
-from frontpage.views_decorators import htmx_render_blocks, is_htmx
+from frontpage.views_decorators import htmx_render_partial, is_htmx
 from spaces.filters import LocationFilter
 from spaces.forms import LocationForm
 from spaces.models import Location
@@ -29,7 +29,7 @@ class LocationAutocompleteView(AutocompleteModelView):
 
 
 @permission_required("spaces.view_location")
-@htmx_render_blocks(["main"])
+@htmx_render_partial("main", template_name="frontpage/list.html")
 def location_list(request):
     context: dict[str, Any] = {}
     flt = LocationFilter(request.GET, Location.objects.all())
@@ -41,7 +41,7 @@ def location_list(request):
 
 
 @permission_required("spaces.view_location")
-@htmx_render_blocks(["layouts"])
+@htmx_render_partial("layouts")
 def location_detail(request, pk):
     location = get_object_or_404(Location, pk=pk)
     layouts = location.crop_layouts.visible().annotate(

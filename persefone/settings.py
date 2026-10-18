@@ -49,7 +49,6 @@ INSTALLED_APPS = [
     "restapi",
     "sortable",
     "breadcrumbs",
-    "render_block",
     "drf_spectacular",
 ]
 

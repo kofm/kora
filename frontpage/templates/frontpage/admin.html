@@ -37,14 +37,14 @@
 
     <section class="col-12 col-md-12 col-lg-8">
       <div data-bs-spy="scroll" data-bs-target="#navbar-admin" data-bs-smooth-scroll="true" class="" tabindex="0">
-	{% block users %}
-	  <div id="users" hx-get="" hx-trigger="usersUpdated from:body" hx-vals='{"use_block": "users"}'>
+	{% partialdef users inline %}
+	  <div id="users" hx-get="" hx-trigger="usersUpdated from:body" hx-vals='{"partial": "users"}'>
 	    {% include 'frontpage/partials/list_page_header.html' %}
 	    <div hx-target="#users" hx-swap="outerHTML">
 	      {% render_table table_user %}
 	    </div>
 	  </div>
-	{% endblock %}
+	{% endpartialdef %}
 
       </div>
     </section>

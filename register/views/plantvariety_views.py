@@ -27,7 +27,7 @@ from frontpage.headers import DetailHeader, HeaderAction, ListHeader
 from frontpage.utils.htmx import htmx_response_redirect
 from frontpage.views_decorators import (
     NavPlantActiveContext,
-    htmx_render_blocks,
+    htmx_render_partial,
     nav_plant_active_context,
     public_catalog_view,
 )
@@ -162,7 +162,7 @@ def plantvarietyname_delete(request, pk):
 
 @nav_plant_active_context
 @public_catalog_view("register.view_plantvariety")
-@htmx_render_blocks(["cards"])
+@htmx_render_partial("cards")
 def plantvariety_list(request):
     queryset = PlantVariety.objects.all()
     order_form = PlantVarietyCardsOrderForm(request.GET or None)

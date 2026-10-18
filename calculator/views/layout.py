@@ -17,7 +17,7 @@ from calculator.tables import CropLayoutListTable, FieldBookInLayoutTable
 from frontpage.headers import ArchivalDetailHeader, HeaderAction, ListHeader
 from frontpage.utils.assets import add_layout_assets
 from frontpage.utils.htmx import htmx_response_redirect, htmx_response_trigger_close_modal
-from frontpage.views_decorators import htmx_render_blocks, is_htmx, nav_active
+from frontpage.views_decorators import htmx_render_partial, is_htmx, nav_active
 from spaces.models import Location
 
 LAYOUT_DETAIL_TABS = {"crops", "fieldbooks", "management"}
@@ -25,7 +25,7 @@ LAYOUT_DETAIL_TABS = {"crops", "fieldbooks", "management"}
 
 @permission_required("calculator.view_croplayout", raise_exception=True)
 @nav_active("nav_plan")
-@htmx_render_blocks(["main"])
+@htmx_render_partial("main", template_name="frontpage/list.html")
 def layout_list(request):
     queryset = CropLayout.objects.select_related("location").annotate(
         crop_count=Count("crops", distinct=True),

@@ -7,7 +7,7 @@ from django_tables2 import RequestConfig
 
 from breadcrumbs.utils import generate_breadcrumbs
 from frontpage.utils.htmx import htmx_response_redirect, htmx_response_trigger_close_modal
-from frontpage.views_decorators import NavPlantActiveContext, htmx_render_blocks, is_htmx, public_catalog_view
+from frontpage.views_decorators import NavPlantActiveContext, htmx_render_partial, is_htmx, public_catalog_view
 from register.filters import PlantSpeciesFilter
 from register.models import PlantSpecies
 from register.tables import PlantSpeciesTable
@@ -33,7 +33,7 @@ class PlantSpeciesCreate(PermissionRequiredMixin, NavPlantActiveContext, CreateV
 
 
 @public_catalog_view("register.view_plantspecies")
-@htmx_render_blocks(["main"])
+@htmx_render_partial("main", template_name="frontpage/list.html")
 def plantspecies_list(request):
     flt = PlantSpeciesFilter(request.GET, PlantSpecies.objects.all())
     table = PlantSpeciesTable(flt.qs)

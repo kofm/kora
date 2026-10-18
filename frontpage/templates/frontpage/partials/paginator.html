@@ -7,7 +7,7 @@
     <ul class="pagination justify-content-center">
       {% if page_obj.has_previous %}
 	<li class="page-item">
-	  <a class="page-link" href="{% querystring page=page_obj.previous_page_number without "use_block" %}" hx-get="{% querystring page=page_obj.previous_page_number without "use_block" %}">
+	  <a class="page-link" href="{% querystring page=page_obj.previous_page_number without "partial" %}" hx-get="{% querystring page=page_obj.previous_page_number without "partial" %}">
 	    &laquo;
 	  </a>
 	</li>
@@ -17,12 +17,12 @@
 
       {% for p in page_range %}
 	<li class="page-item {% if p == page_obj.number %}active{% endif %}">
-	  <a class="page-link" hx-get="{% querystring page=p without "use_block" %}" href="{% querystring page=p without "use_block" %}">{{ p }}</a>
+	  <a class="page-link" hx-get="{% querystring page=p without "partial" %}" href="{% querystring page=p without "partial" %}">{{ p }}</a>
 	</li>
       {% endfor %}
 
       {% if page_obj.has_next %}
-	<li class="page-item"> <a class="page-link" href="#" hx-get="{% querystring page=page_obj.next_page_number  without "use_block" %}">&raquo;</a> </li>
+	<li class="page-item"> <a class="page-link" href="#" hx-get="{% querystring page=page_obj.next_page_number  without "partial" %}">&raquo;</a> </li>
       {% endif %}
     </ul>
   </nav>

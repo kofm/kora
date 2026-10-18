@@ -9,7 +9,12 @@
 
 {% block title %}Samples{% endblock %}
 
+{% partialdef main %}
+{% include "frontpage/list.html#main" with additional_results_partial="collect/sample_list.html#additional_results" %}
+{% endpartialdef %}
+
 {% block additional_results %}
+  {% partialdef additional_results inline %}
   {% if discarded_count %}
     There {{ discarded_count|pluralize:"is,are" }}
     <a class="link-body-emphasis"
@@ -17,6 +22,7 @@
       {{ discarded_count }} discarded</a>
     sample{{ discarded_count|pluralize }} matching.
   {% endif %}
+  {% endpartialdef %}
 {% endblock %}
 
 {% block page_header %}

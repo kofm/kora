@@ -49,7 +49,7 @@ from describe.views.utils import (
 from frontpage.utils.htmx import htmx_response_redirect
 from frontpage.utils.models import copy_model_concrete_fields
 from frontpage.views_decorators import (
-    htmx_render_blocks,
+    htmx_render_partial,
     is_htmx,
     make_get_request,
     nav_active,
@@ -64,7 +64,7 @@ nav_describe = nav_active("nav_describe")
 
 @nav_describe
 @public_catalog_view("describe.view_description")
-@htmx_render_blocks(["description_table"])
+@htmx_render_partial("description_table")
 def description_list(request):
     return _description_list(request)
 
@@ -132,7 +132,7 @@ def _description_list(request):
     return TemplateResponse(request, "describe/description_list.html", context)
 
 
-@htmx_render_blocks(["expression_filter"])
+@htmx_render_partial("expression_filter")
 @permission_required("describe.add_description", raise_exception=True)
 def description_form(request):
     protocol_id = request.GET.get("protocol", None)
@@ -144,7 +144,7 @@ def description_form(request):
     return TemplateResponse(request, "describe/description_list.html", {"formset": formset})
 
 
-@htmx_render_blocks(["expression_filter", "protocol_filter"])
+@htmx_render_partial("similar_filters")
 def description_find_similar(request):
     """Populate filter form with similar traits based on a reference description."""
     description_id = request.GET.get("description_id")
@@ -338,7 +338,7 @@ class DescriptionDeleteView(PermissionRequiredMixin, DeleteBreadcrumbsMixin, Nav
 
 
 @permission_required("describe.change_expression", raise_exception=True)
-@htmx_render_blocks(["header", "description_form"])
+@htmx_render_partial("expression_update")
 def description_expression_update(request, pk):
     context = {}
     description = Description.objects.select_related("variety__species", "protocol__plantspecies", "label").get(pk=pk)

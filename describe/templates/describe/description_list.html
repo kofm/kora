@@ -32,6 +32,11 @@
   </style>
 {% endblock %}
 
+{% partialdef similar_filters %}
+  {% partial expression_filter %}
+  {% partial protocol_filter %}
+{% endpartialdef %}
+
 {% block title %}Descriptions{% endblock %}
 
 {% block container %}
@@ -53,14 +58,14 @@
 	        {{ form_variety.variety }}
 	      </form>
 
-	      {% block protocol_filter %}
+	      {% partialdef protocol_filter inline %}
 	        <form id="protocolForm" autocomplete="off" hx-get="{% url 'describe:description_form' %}" hx-trigger="change"  hx-target="#expression_filter" hx-swap-oob="true" hx-on::after-request='htmx.ajax("GET", "{% url "describe:description_list" %}", {target: "#table", indicator: "#spinner"})' hx-ext="tomselect">
 	          <label class="form-label" for="{{ form_protocol.protocol.id_for_label }}">
 	            {{ form_protocol.protocol.label }}:
 	          </label>
 	          {{ form_protocol.protocol }}
 	        </form>
-	      {% endblock %}
+	      {% endpartialdef %}
 
 	      <form id="strictForm" hx-post="." autocomplete="off" hx-vals='{"strict_changed": "true"}' class="mb-2" hx-trigger="change" hx-target="#table" hx-indicator="#spinner">
 	        <div class="form-check mt-1">
@@ -80,7 +85,7 @@
 	      </form>
 
 	      <div id="expression_filter" hx-swap-oob="true">
-	        {% block expression_filter %}
+	        {% partialdef expression_filter inline %}
 	          <form id="expressionForm" autocomplete="off" hx-post="." hx-trigger="change" hx-target="#table" hx-indicator="#spinner">
 	            {{ formset.management_form }}
 	            <fieldset>
@@ -114,14 +119,14 @@
 		            </div>
 	            </fieldset>
 	          </form>
-	        {% endblock %}
+	        {% endpartialdef %}
 	      </div>
       </div>
     </div>
 
     <!-- Right Column: Results Table -->
     <div class="col-lg-8">
-      {% block description_table %}
+      {% partialdef description_table inline %}
 	      <div id="table" hx-target="#table" class="position-relative">
 
 	        <div class="d-inline-flex flex-column justify-content-start">
@@ -161,7 +166,7 @@
 	        </div>
 
 	      </div>
-      {% endblock %}
+      {% endpartialdef %}
     </div>
   </div>
 

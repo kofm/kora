@@ -15,8 +15,8 @@
   {% detail_section_header "Crop Layouts" create_url=layout_create_url %}
 
   <div id="layouts" class="mt-3 mb-5" hx-target="this">
-    {% block layouts %}
+    {% partialdef layouts inline %}
       {% render_table table %}
-    {% endblock %}
+    {% endpartialdef %}
   </div>
 {% endblock %}

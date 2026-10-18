@@ -9,7 +9,12 @@
 
 {% block title %}Discarded Samples{% endblock %}
 
+{% partialdef main %}
+  {% include "frontpage/list.html#main" with additional_results_partial="collect/discarded_sample_list.html#additional_results" %}
+{% endpartialdef %}
+
 {% block additional_results %}
+  {% partialdef additional_results inline %}
   {% if table.paginator.count %}
     <a href="#"
       class="link-danger link-opacity-75 text-decoration-none"
@@ -19,6 +24,7 @@
       Delete
     </a>
   {% endif %}
+  {% endpartialdef %}
 {% endblock %}
 
 {% block page_header %}

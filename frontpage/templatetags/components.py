@@ -5,7 +5,6 @@ from django import template
 from django.contrib.auth import get_permission_codename
 from django.template.exceptions import TemplateSyntaxError
 from django.urls import NoReverseMatch, reverse
-from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 
 from frontpage.headers import BaseHeader
@@ -155,11 +154,6 @@ def detail_section_header(context, title, create_url=None, permission=None, crea
         "title_class": title_class,
         "create_modal": create_modal,
     }
-
-
-@register.simple_tag()
-def hx_vals_use_block(block):
-    return format_html('hx-vals=\'{{"use_block": "{}"}}\'', block)
 
 
 def get_action_url_from_instance(action, instance):
