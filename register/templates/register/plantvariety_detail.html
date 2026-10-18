@@ -1,95 +1,69 @@
 {% extends "frontpage/base.html" %}
-{% load register_extras %}
-{% load static %}
-{% load breadcrumbs %}
-{% load components %}
-{% load frontpage_extras %}
+{% load static breadcrumbs components %}
 {% load render_table from django_tables2 %}
 
 {% block javascript %}
   <link rel="stylesheet" href="{% static 'flags/sprite.css' %}">
 {% endblock %}
 
-{% block title %}
-  {{ variety.name }} ({{ variety.species.botanical_name }})
-{% endblock %}
+{% block title %}{{ variety.name }} ({{ variety.species.botanical_name }}){% endblock %}
 
 {% block container %}
-
-  {% render_breadcrumbs %}
-
-  {% render_header header %}
-
-  <div class="row mt-5">
-    <div class="col">
-      <h2 id="descriptions">
-        Descriptions
-        <a class="btn btn-sm btn-outline-primary" hx-get="{% url 'describe:description_create' %}?variety={{ variety.pk }}" {% modal_attrs %}>Create</a>
-      </h2>
-
-      {% render_table tables.description %}
+  {% partialdef header inline %}
+    {% if header_partial %}<title>Kora - {{ variety.name }} ({{ variety.species.botanical_name }})</title>{% endif %}
+    <div id="variety-header" hx-get="{{ request.path }}?partial=header"
+         hx-trigger="varietyNamesChanged from:body" hx-target="this" hx-swap="outerHTML">
+      {% render_breadcrumbs %}
+      {% render_header header %}
     </div>
-  </div>
+  {% endpartialdef %}
+
+  {% partialdef descriptions inline %}
+    <section id="descriptions" class="mt-5">
+      <h2>Descriptions
+        {% if perms.describe.add_description %}<a class="btn btn-sm btn-outline-primary" hx-get="{% url 'describe:description_create' %}?variety={{ variety.pk }}" {% modal_attrs %}>Create</a>{% endif %}
+      </h2>
+      {% include "register/partials/variety_table.html" with table=tables.descriptions section="descriptions" event="varietyDescriptionsChanged" %}
+    </section>
+  {% endpartialdef %}
 
   {% if perms.collect.view_sample %}
-    <div class="row mt-5">
-      <div class="col">
-	<h2 id="samples">Samples <a href="{% url 'collect:sample_create' %}?variety_id={{ variety.pk }}" class="btn btn-sm btn-outline-primary">Create</a></h2>
-	{% if variety.sample_set.count %}
-          {% render_table tables.sample %}
-	{% else %}
-          <p class="text-muted">There are no seed samples of this variety.</p>
-	{% endif %}
-      </div>
-    </div>
+    {% partialdef samples inline %}
+      <section id="samples" class="mt-5">
+        <h2>Samples
+          {% if perms.collect.add_sample %}<a href="{% url 'collect:sample_create' %}?variety_id={{ variety.pk }}" class="btn btn-sm btn-outline-primary">Create</a>{% endif %}
+        </h2>
+        {% include "register/partials/variety_table.html" with table=tables.samples section="samples" event="varietySamplesChanged" %}
+      </section>
+    {% endpartialdef %}
   {% endif %}
 
-  <div class="row mt-5">
-    <div class="col">
-      <h2 id="names">
-	Names <a class="btn btn-sm btn-outline-primary" href="{% url 'register:denomination_create' variety.pk %}">Create</a>
+  {% partialdef names inline %}
+    <section id="names" class="mt-5">
+      <h2>Names
+        {% if perms.register.add_plantvarietyname %}<a class="btn btn-sm btn-outline-primary" hx-get="{% url 'register:denomination_create' variety.pk %}" {% modal_attrs %}>Create</a>{% endif %}
       </h2>
-      <table class="table table-hover small-table">
-        <thead>
-          <th scope="col">Name</th>
-          <th scope="col">Date</th>
-          <th scope="col" class="col-1">&nbsp;</th>
-        </thead>
-        <tbody>
-          {% for name in variety.names.all %}
-            <tr>
-              <td class="fw-bold">{{ name.name }}</td>
-              <td class="text-muted">{{ name.change_date }}</td>
-              <td class="d-flex justify-content-end align-items-center gap-2">
-                <a class="row-action" href="{% url 'register:denomination_update' name.pk %}">
-		  <span class="badge rounded-pill text-bg-secondary">Update</span>
-		</a>
-                <a class="row-action" href="{% url 'register:denomination_delete' name.pk %}">
-		  <span class="badge rounded-pill text-bg-danger">Delete</span>
-		</a>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  </div>
+      {% include "register/partials/variety_table.html" with table=tables.names section="names" event="varietyNamesChanged" %}
+    </section>
+  {% endpartialdef %}
 
-
-  <div class="row mt-5">
-    <div class="col">
-      <h2 id="protections">Protections<a class="btn btn-sm btn-outline-primary ms-2" href="{% url 'register:protection_create' variety.pk %}">Create</a></h2>
-      {% render_table tables.protection %}
-    </div>
-  </div>
+  {% partialdef protections inline %}
+    <section id="protections" class="mt-5">
+      <h2>Protections
+        {% if perms.register.add_protection %}<a class="btn btn-sm btn-outline-primary" hx-get="{% url 'register:protection_create' variety.pk %}" {% modal_attrs %}>Create</a>{% endif %}
+      </h2>
+      {% include "register/partials/variety_table.html" with table=tables.protections section="protections" event="varietyProtectionsChanged" %}
+    </section>
+  {% endpartialdef %}
 
   {% if perms.parameters.view_varietalparameter %}
-    <div class="row mt-5">
-      <div class="col">
-	<h2 id="parameters">Values <a class="btn btn-sm btn-outline-primary" hx-get="{% url 'register:varietalparameter_create' variety.pk %}" {% modal_attrs %}>Create</a></h2>
-	{% render_table tables.parameter %}
-      </div>
-    </div>
+    {% partialdef parameters inline %}
+      <section id="parameters" class="mt-5">
+        <h2>Values
+          {% if perms.parameters.add_varietalparameter %}<a class="btn btn-sm btn-outline-primary" hx-get="{% url 'register:varietalparameter_create' variety.pk %}" {% modal_attrs %}>Create</a>{% endif %}
+        </h2>
+        {% include "register/partials/variety_table.html" with table=tables.parameters section="parameters" event="varietalParametersChanged" %}
+      </section>
+    {% endpartialdef %}
   {% endif %}
-
-
 {% endblock %}

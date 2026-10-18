@@ -179,6 +179,9 @@ class PlantVarietyName(models.Model):
     def get_absolute_url(self):
         return reverse("register:variety_detail", args=[self.variety.pk])
 
+    def get_update_url(self):
+        return reverse("register:denomination_update", args=[self.pk])
+
     def get_delete_url(self):
         return reverse("register:denomination_delete", args=[self.pk])
 

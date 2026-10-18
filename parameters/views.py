@@ -1,11 +1,9 @@
-from urllib.parse import urlsplit
-
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.http import HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
-from django.urls import Resolver404, resolve, reverse_lazy
+from django.urls import reverse_lazy
 from django.urls.base import reverse
 from django.views.generic import CreateView, DeleteView, UpdateView
 from django_tables2 import RequestConfig
@@ -13,7 +11,7 @@ from django_tables2 import RequestConfig
 from breadcrumbs.utils import generate_breadcrumbs
 from frontpage.autocomplete import AutocompleteModelView
 from frontpage.headers import ListHeader
-from frontpage.utils.htmx import htmx_response_redirect, htmx_response_trigger_close_modal
+from frontpage.utils.htmx import htmx_response_trigger_close_modal
 from frontpage.utils.shortcuts import get_safe_next_url
 from frontpage.views_decorators import htmx_render_partial, is_htmx, nav_active
 from parameters.filters import ParameterFilter, VarietalParameterFilter
@@ -131,7 +129,7 @@ def varietalparameter_create(request):
             form.save()
             success_url = reverse("parameters:varietalparameter_list")
             if is_htmx(request):
-                return htmx_response_redirect(success_url)
+                return htmx_response_trigger_close_modal(["resultsChanged", "varietalParametersChanged"])
             return redirect(success_url)
     else:
         form = VarietalParameterForm(initial=request.GET.dict(), parameter_refresh_url=request.get_full_path())
@@ -155,7 +153,7 @@ def variety_varietalparameter_create(request, variety_pk):
             instance.save()
             success_url = reverse("register:variety_detail", args=[variety.pk])
             if is_htmx(request):
-                return htmx_response_redirect(success_url)
+                return htmx_response_trigger_close_modal(["resultsChanged", "varietalParametersChanged"])
             return redirect(success_url)
     else:
         form = VarietyVarietalParameterForm(initial=request.GET.dict(), parameter_refresh_url=request.get_full_path())
@@ -167,20 +165,6 @@ def variety_varietalparameter_create(request, variety_pk):
     )
 
 
-def _varietalparameter_success_response(request):
-    success_url = get_safe_next_url(request, reverse("parameters:varietalparameter_list"))
-    if not is_htmx(request):
-        return redirect(success_url)
-
-    try:
-        origin = resolve(urlsplit(success_url).path).view_name
-    except Resolver404:
-        origin = None
-    if origin == "parameters:varietalparameter_list":
-        return htmx_response_trigger_close_modal(["resultsChanged"])
-    return htmx_response_redirect(success_url)
-
-
 @permission_required("parameters.change_varietalparameter", raise_exception=True)
 def varietalparameter_update(request, pk):
     value = get_object_or_404(VarietalParameter, pk=pk)
@@ -189,7 +173,9 @@ def varietalparameter_update(request, pk):
         form = VarietalParameterUpdateForm(request.POST, instance=value)
         if form.is_valid():
             form.save()
-            return _varietalparameter_success_response(request)
+            if is_htmx(request):
+                return htmx_response_trigger_close_modal(["resultsChanged", "varietalParametersChanged"])
+            return redirect(get_safe_next_url(request, reverse("parameters:varietalparameter_list")))
     template = "frontpage/modal_form.html" if is_htmx(request) else "parameters/varietalparameter_update.html"
     return TemplateResponse(request, template, {"form": form, "instance": value})
 
@@ -199,7 +185,9 @@ def varietalparameter_delete(request, pk):
     param = get_object_or_404(VarietalParameter, pk=pk)
     if request.method == "POST":
         param.delete()
-        return _varietalparameter_success_response(request)
+        if is_htmx(request):
+            return htmx_response_trigger_close_modal(["resultsChanged", "varietalParametersChanged"])
+        return redirect(get_safe_next_url(request, reverse("parameters:varietalparameter_list")))
     template = (
         "parameters/partials/varietalparameter_modal_confirm_delete.html"
         if is_htmx(request)

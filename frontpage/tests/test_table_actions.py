@@ -1,5 +1,4 @@
 from html.parser import HTMLParser
-from urllib.parse import parse_qs, urlsplit
 
 from django.contrib.auth.models import Permission
 from django.test import TestCase
@@ -8,7 +7,6 @@ from django.urls import reverse
 from calculator.factories import ManagementFactory, ManagementTypeFactory, ParameterObservationFactory
 from frontpage.factories import UserFactory
 from parameters.factories import ParameterFactory
-from parameters.models import VarietalParameter
 from register.factories import PlantSpeciesFactory, PlantVarietyFactory
 
 
@@ -56,24 +54,6 @@ class EditDeleteActionsTests(TestCase):
                         if allowed:
                             self.assertEqual(links[url]["hx-target"], "#modal")
                             self.assertEqual(links[url]["data-bs-toggle"], "modal")
-
-    def test_varietal_parameter_actions_preserve_origin_for_refresh_or_redirect(self):
-        self.client.force_login(UserFactory(is_superuser=True))
-        reference = VarietalParameter.objects.create(
-            variety=PlantVarietyFactory(), parameter=ParameterFactory(type="integer"), value_integer=1
-        )
-        origins = (
-            f"{reverse('parameters:varietalparameter_list')}?parameter={reference.parameter_id}&page=1",
-            f"{reverse('register:variety_detail', args=[reference.variety_id])}?para_page=1",
-        )
-        for origin in origins:
-            with self.subTest(origin=origin):
-                response = self.client.get(origin)
-                self.assertEqual(response.status_code, 200)
-                links = ActionMarkup(response.content.decode()).links
-                for action_url in (reference.get_update_url(), reference.get_delete_url()):
-                    url = next(url for url in links if urlsplit(url).path == action_url)
-                    self.assertEqual(parse_qs(urlsplit(url).query)["next"], [origin])
 
     def test_protected_records_explain_disabled_delete_on_initial_and_htmx_lists(self):
         user = UserFactory(is_superuser=True)

@@ -19,10 +19,12 @@ from breadcrumbs.utils import (
     generate_breadcrumbs,
 )
 from frontpage.headers import DetailHeader, HeaderAction, ListHeader
+from frontpage.utils.htmx import htmx_response_trigger_close_modal
 from frontpage.views_decorators import (
     NavDescribeActiveContext,
     NavPlantActiveContext,
     htmx_render_partial,
+    is_htmx,
     nav_describe_active_context,
     nav_plant_active_context,
     public_catalog_view,
@@ -64,10 +66,13 @@ def protection_create(request: HttpRequest, variety_id: int):
             instance.variety = variety
             instance.save()
             form.save_m2m()
+            if is_htmx(request):
+                return htmx_response_trigger_close_modal(["varietyProtectionsChanged"])
             return redirect(instance.get_absolute_url())
+    else:
+        form = ProtectionForm()
     to_dupe_pk = request.GET.get("duplicate")
-    form = ProtectionForm()
-    if to_dupe_pk:
+    if to_dupe_pk and request.method != "POST":
         try:
             dupe = Protection.objects.get(pk=to_dupe_pk)
             initial = {
@@ -85,7 +90,9 @@ def protection_create(request: HttpRequest, variety_id: int):
     breadcrumbs = generate_breadcrumbs(request, Protection)
     breadcrumbs = add_plantvariety_breadcrumbs(breadcrumbs, variety)
     context.update(breadcrumbs)
-    return TemplateResponse(request, "frontpage/_create_form.html", context)
+    context["object_to_create"] = "Protection"
+    template = "frontpage/modal_form.html" if is_htmx(request) else "frontpage/_create_form.html"
+    return TemplateResponse(request, template, context)
 
 
 @nav_plant_active_context
@@ -97,6 +104,8 @@ def protection_update(request, pk):
         form = ProtectionForm(request.POST, instance=protection)
         if form.is_valid():
             instance = form.save()
+            if is_htmx(request):
+                return htmx_response_trigger_close_modal(["varietyProtectionsChanged"])
             return redirect(instance.get_absolute_url())
     else:
         form = ProtectionForm(instance=protection)
@@ -104,7 +113,9 @@ def protection_update(request, pk):
     breadcrumbs = generate_breadcrumbs(request, Protection, protection)
     breadcrumbs = add_plantvariety_breadcrumbs(breadcrumbs, protection.variety)
     context.update(breadcrumbs)
-    return TemplateResponse(request, "frontpage/_update_form.html", context)
+    context["instance"] = protection
+    template = "frontpage/modal_form.html" if is_htmx(request) else "frontpage/_update_form.html"
+    return TemplateResponse(request, template, context)
 
 
 class ProtectionDeleteView(PermissionRequiredMixin, DeleteBreadcrumbsMixin, NavPlantActiveContext, DeleteView):
@@ -112,6 +123,20 @@ class ProtectionDeleteView(PermissionRequiredMixin, DeleteBreadcrumbsMixin, NavP
     model = Protection
     permission_required = ["register.delete_protection"]
     success_url = reverse_lazy("register:protection_list")
+
+    def get_template_names(self):
+        if is_htmx(self.request):
+            return ["frontpage/modal_confirm_delete.html"]
+        return super().get_template_names()
+
+    def get_context_data(self, **kwargs):
+        return super().get_context_data(instance=self.object, **kwargs)
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        if is_htmx(self.request):
+            return htmx_response_trigger_close_modal(["varietyProtectionsChanged"])
+        return response
 
 
 @nav_plant_active_context

@@ -1,8 +1,9 @@
-from django.conf import settings
 from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator
 from django.db.models import Exists, F, OuterRef, Prefetch
+from django.http import HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.urls import reverse
@@ -24,10 +25,11 @@ from calculator.models import Crop
 from collect.models import Sample
 from describe.models import Description
 from frontpage.headers import DetailHeader, HeaderAction, ListHeader
-from frontpage.utils.htmx import htmx_response_redirect
+from frontpage.utils.htmx import htmx_response_redirect, htmx_response_trigger_close_modal
 from frontpage.views_decorators import (
     NavPlantActiveContext,
     htmx_render_partial,
+    is_htmx,
     nav_plant_active_context,
     public_catalog_view,
 )
@@ -37,6 +39,7 @@ from register.forms import PlantVarietyForm, PlantVarietyNameForm
 from register.models import PlantVariety, PlantVarietyName, Protection
 from register.tables import (
     PlantVarietyDescriptionTable,
+    PlantVarietyNameTable,
     PlantVarietySampleTable,
     ProtectionTable,
     VarietalParameterTable,
@@ -57,22 +60,44 @@ def plantvariety_create(request):
 @nav_plant_active_context
 @public_catalog_view("register.view_plantvariety")
 def plantvariety_detail(request, pk):
-    variety = PlantVariety.objects.select_related("species").get(pk=pk)
-
+    variety = get_object_or_404(PlantVariety.objects.select_related("species"), pk=pk)
+    sections = {
+        "descriptions": (
+            PlantVarietyDescriptionTable,
+            lambda: Description.objects.select_related("protocol", "label").filter(variety=pk),
+        ),
+        "samples": (PlantVarietySampleTable, lambda: Sample.objects.with_availability().filter(variety=pk)),
+        "names": (PlantVarietyNameTable, lambda: variety.names.all()),
+        "protections": (ProtectionTable, lambda: Protection.objects.filter(variety=pk)),
+        "parameters": (
+            VarietalParameterTable,
+            lambda: VarietalParameter.objects.select_related("parameter").filter(variety=pk),
+        ),
+    }
+    private_sections = {"samples": "collect.view_sample", "parameters": "parameters.view_varietalparameter"}
+    partial = request.GET.get("partial") if is_htmx(request) else None
+    if partial not in (*sections, "header"):
+        partial = None
     tables = {}
-    descriptions = Description.objects.select_related("protocol", "label").filter(variety=pk)
-    tables["description"] = PlantVarietyDescriptionTable(descriptions)
-    protections = Protection.objects.filter(variety=pk)
-    tables["protection"] = ProtectionTable(protections)
-    if request.user.is_authenticated or not settings.PUBLIC:
-        samples = Sample.objects.with_availability().filter(variety=pk)
-        tables["sample"] = PlantVarietySampleTable(samples)
-        parameters = VarietalParameter.objects.select_related("parameter").filter(variety=pk)
-        tables["parameter"] = VarietalParameterTable(parameters)
+    for section, (table_class, queryset) in sections.items():
+        if partial and partial != section:
+            continue
+        if section in private_sections and not request.user.has_perm(private_sections[section]):
+            if partial:
+                raise PermissionDenied
+            continue
+        table = table_class(queryset(), prefix=f"{section}-", template_name="frontpage/partials/htmx_table.html")
+        RequestConfig(request).configure(table)
+        query = request.GET.copy()
+        query["partial"] = section
+        query[table.prefixed_page_field] = table.page.number
+        table.refresh_url = f"{request.path}?{query.urlencode()}"
+        tables[section] = table
 
-    req_config = RequestConfig(request)
-    for key in tables:
-        req_config.configure(tables[key])
+    if partial in sections:
+        return TemplateResponse(
+            request, f"register/plantvariety_detail.html#{partial}", {"variety": variety, "tables": tables}
+        )
 
     header = DetailHeader(
         request,
@@ -81,9 +106,12 @@ def plantvariety_detail(request, pk):
         subtitle=variety.species.common_name,
         show_id=True,
     )
-    breadcrumbs = generate_breadcrumbs(request, PlantVariety, variety)
-    context = {"variety": variety, "tables": tables, "header": header, **breadcrumbs}
-    return TemplateResponse(request, "register/plantvariety_detail.html", context)
+    breadcrumbs = generate_breadcrumbs(request, PlantVariety, variety, skip_if_htmx=False)
+    context = {
+        "variety": variety, "tables": tables, "header": header, "header_partial": partial == "header", **breadcrumbs
+    }
+    template = "register/plantvariety_detail.html"
+    return TemplateResponse(request, f"{template}#header" if partial == "header" else template, context)
 
 
 class PlantVarietyDelete(PermissionRequiredMixin, NavPlantActiveContext, CrumbsDeleteView):
@@ -105,6 +133,8 @@ def plantvarietyname_create(request, pk):
             instance = form.save(commit=False)
             instance.variety = variety
             instance.save()
+            if is_htmx(request):
+                return htmx_response_trigger_close_modal(["varietyNamesChanged"])
             return redirect(reverse("register:variety_detail", args=[pk]))
     else:
         form = PlantVarietyNameForm()
@@ -117,7 +147,9 @@ def plantvarietyname_create(request, pk):
     context["form"] = form
     context["model_name"] = "Denomination"
     context.update(breadcrumbs_context(breadcrumbs))
-    return TemplateResponse(request, "frontpage/_create_form.html", context)
+    context["object_to_create"] = "Denomination"
+    template = "frontpage/modal_form.html" if is_htmx(request) else "frontpage/_create_form.html"
+    return TemplateResponse(request, template, context)
 
 
 @permission_required("register.change_plantvarietyname", raise_exception=True)
@@ -135,12 +167,16 @@ def plantvarietyname_update(request, pk):
         form = PlantVarietyNameForm(request.POST, instance=instance)
         if form.is_valid():
             form.save()
+            if is_htmx(request):
+                return htmx_response_trigger_close_modal(["varietyNamesChanged"])
             return redirect(reverse_lazy("register:variety_detail", args=[instance.variety.pk]))
     else:
         form = PlantVarietyNameForm(instance=instance)
     context["form"] = form
     context["object"] = instance
-    return TemplateResponse(request, "frontpage/_update_form.html", context)
+    context["instance"] = instance
+    template = "frontpage/modal_form.html" if is_htmx(request) else "frontpage/_update_form.html"
+    return TemplateResponse(request, template, context)
 
 
 @permission_required("register.delete_plantvarietyname", raise_exception=True)
@@ -155,9 +191,17 @@ def plantvarietyname_delete(request, pk):
     ]
     context = {"object": instance, **breadcrumbs_context(breadcrumbs)}
     if request.method == "POST":
+        if not instance.is_deletable():
+            return HttpResponseBadRequest("The last denomination cannot be deleted.")
         instance.delete()
+        if is_htmx(request):
+            return htmx_response_trigger_close_modal(["varietyNamesChanged"])
         return redirect(reverse_lazy("register:variety_detail", args=[instance.variety.pk]))
-    return TemplateResponse(request, "register/plantvarietyname_confirm_delete.html", context)
+    context["instance"] = instance
+    template = (
+        "frontpage/modal_confirm_delete.html" if is_htmx(request) else "register/plantvarietyname_confirm_delete.html"
+    )
+    return TemplateResponse(request, template, context)
 
 
 @nav_plant_active_context

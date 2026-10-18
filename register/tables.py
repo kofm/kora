@@ -7,7 +7,7 @@ from describe.models import Description
 from frontpage.tables import EditDeleteColumn, TableHoverFixed
 from frontpage.utils.text import smart_truncate_string
 from parameters.models import VarietalParameter
-from register.models import Entity, PlantSpecies, PlantVariety, Protection
+from register.models import Entity, PlantSpecies, PlantVariety, PlantVarietyName, Protection
 
 
 class CountryRenderer:
@@ -15,7 +15,17 @@ class CountryRenderer:
         return format_html('<i class="{}"></i>', record.country.flag_css)
 
 
+class PlantVarietyNameTable(tables.Table):
+    actions = EditDeleteColumn()
+
+    class Meta(TableHoverFixed.Meta):
+        model = PlantVarietyName
+        fields = ("name", "change_date", "actions")
+        per_page = 5
+
+
 class ProtectionTable(tables.Table, CountryRenderer):
+    actions = EditDeleteColumn()
     type = tables.Column(attrs={"td": {"class": "fw-bold"}})
     date_start = tables.Column(attrs={"td": {"class": "text-muted"}})
     date_end = tables.Column(attrs={"td": {"class": "text-muted"}})
@@ -41,7 +51,7 @@ class ProtectionListTable(ProtectionTable):
             "country",
             "note",
         )
-        exclude = ("date_start", "date_end", "reference")
+        exclude = ("date_start", "date_end", "reference", "actions")
         template_name = "register/partials/protection_table.html"
         per_page = 10
         empty_text = "There are no protections to be displayed."
@@ -116,12 +126,11 @@ class VarietalParameterTable(tables.Table):
     parameter__code = tables.Column("Code", attrs={"td": {"class": "fw-light"}})
     note = tables.Column("Notes", attrs={"td": {"class": "fw-light"}})
 
-    actions = EditDeleteColumn(preserve_next=True)
+    actions = EditDeleteColumn()
 
     class Meta:
         attrs = {"class": "table table-hover table-fixed small-table compact-table"}
         model = VarietalParameter
-        page_field = "para_page"
         template_name = "django_tables2/bootstrap5.html"
         fields = ("parameter__name", "parameter__code", "value", "note")
         per_page = 5
