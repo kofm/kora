@@ -18,6 +18,7 @@ from breadcrumbs.utils import (
     add_plantvariety_breadcrumbs,
     generate_breadcrumbs,
 )
+from frontpage.headers import DetailHeader, HeaderAction, ListHeader
 from frontpage.views_decorators import (
     NavDescribeActiveContext,
     NavPlantActiveContext,
@@ -40,7 +41,15 @@ def protection_list(request):
     flt = ProtectionOmniFilter(request.GET, queryset=queryset)
     table = ProtectionListTable(flt.qs)
     RequestConfig(request).configure(table)
-    context = {"table": table, "filter": flt, **generate_breadcrumbs(request, Protection)}
+    actions = [
+        HeaderAction("Configure", Protection.get_configure_url(), "register.add_protection", modal=True),
+    ]
+    context = {
+        "table": table,
+        "filter": flt,
+        "header": ListHeader(request, Protection, modal=True, actions=actions),
+        **generate_breadcrumbs(request, Protection),
+    }
     return TemplateResponse(request, "register/protection_list.html", context)
 
 
@@ -114,7 +123,11 @@ def protection_detail(request, pk):
     return TemplateResponse(
         request,
         "register/protection_detail.html",
-        {"protection": instance, **breadcrumbs},
+        {
+            "protection": instance,
+            "header": DetailHeader(request, instance, title=instance.type, subtitle=instance.variety),
+            **breadcrumbs,
+        },
     )
 
 
@@ -169,7 +182,12 @@ def entity_detail(request, pk):
     qs = PlantVariety.objects.select_related("species").prefetch_related("protection_set").filter(query).distinct()
     table = PlantVarietyEntityTable(qs)
     RequestConfig(request).configure(table)
-    context = {"entity": entity, "table": table, **generate_breadcrumbs(request, Entity, entity)}
+    context = {
+        "entity": entity,
+        "table": table,
+        "header": DetailHeader(request, entity),
+        **generate_breadcrumbs(request, Entity, entity),
+    }
     return TemplateResponse(request, "register/entity_detail.html", context)
 
 
@@ -195,6 +213,6 @@ def entity_list(request):
     flt = EntityFilter(request.GET, queryset=Entity.objects.all())
     table = EntityTable(flt.qs)
     RequestConfig(request).configure(table)
-    context = {"table": table, "filter": flt}
+    context = {"table": table, "filter": flt, "header": ListHeader(request, Entity, modal=True)}
     context.update(generate_breadcrumbs(request, Entity))
     return TemplateResponse(request, "register/entity_list.html", context)

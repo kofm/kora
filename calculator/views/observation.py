@@ -17,6 +17,7 @@ from calculator.models import Crop, ParameterObservation, TraitObservation
 from calculator.tables import ParameterObservationListTable, TraitObservationListTable
 from calculator.targets import observation_target, target_recorded_count
 from describe.models import State
+from frontpage.headers import ListHeader
 from frontpage.utils.htmx import htmx_response_trigger_close_modal
 from frontpage.views_decorators import htmx_render_partial, nav_active
 
@@ -38,6 +39,7 @@ def trait_observation_list(request):
     context = {
         "filter": observation_filter,
         "table": table,
+        "header": ListHeader(request, TraitObservation, title="Observations", subtitle="Traits"),
         **breadcrumbs_context([("Trait observations", reverse("calculator:trait_observation_list"))]),
     }
     return TemplateResponse(request, "calculator/trait_observation_list.html", context)
@@ -60,6 +62,7 @@ def parameter_observation_list(request):
     context = {
         "filter": observation_filter,
         "table": table,
+        "header": ListHeader(request, ParameterObservation, title="Observations", subtitle="Parameters"),
         **breadcrumbs_context([("Parameter observations", reverse("calculator:parameter_observation_list"))]),
     }
     return TemplateResponse(request, "calculator/parameter_observation_list.html", context)

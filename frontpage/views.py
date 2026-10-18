@@ -19,6 +19,7 @@ from django_tables2 import RequestConfig
 
 from breadcrumbs.utils import breadcrumbs_context, generate_breadcrumbs
 from frontpage.forms import AdminUserUpdateForm, UserUpdateForm
+from frontpage.headers import DetailHeader
 from frontpage.tables import UserTable
 from frontpage.templatetags.components import ListPageHeader
 from frontpage.utils.htmx import htmx_response_trigger
@@ -123,7 +124,11 @@ def user_delete(request, username):
 
 @login_required
 def user_detail(request):
-    return TemplateResponse(request, "frontpage/user_detail.html", generate_breadcrumbs(request, User, request.user))
+    context = {
+        "header": DetailHeader(request, request.user),
+        **generate_breadcrumbs(request, User, request.user),
+    }
+    return TemplateResponse(request, "frontpage/user_detail.html", context)
 
 
 @login_required

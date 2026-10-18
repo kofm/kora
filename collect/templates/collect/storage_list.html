@@ -23,7 +23,7 @@
 
 {% block container %}
   {% render_breadcrumbs %}
-  {% list_page_header "collect.Storage" %}
+  {% render_header header %}
   {% if object_list %}
     <div hx-get="" hx-trigger="listChanged from:body" hx-target="#storage-results" hx-swap="outerHTML" hx-push-url="true">
       {% partial cards %}

@@ -16,7 +16,7 @@
 
 {% block container %}
     {% render_breadcrumbs %}
-    {% detail_page_header entity %}
+    {% render_header header %}
     <p class="lead fw-lighter mt-1">
         {{ entity.get_type_display }} based in {{ entity.country.name }} <i class="{{ entity.country.flag_css }}"></i>
     </p>

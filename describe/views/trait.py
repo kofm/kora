@@ -17,6 +17,7 @@ from describe.models import (
     StateGroup,
     Trait,
 )
+from frontpage.headers import DetailHeader
 from frontpage.utils.htmx import htmx_response_trigger
 from frontpage.views_decorators import is_htmx
 
@@ -103,6 +104,7 @@ def trait_relate_states(request, pk):
         template_partial = "describe/trait_relate_states.html#target_states"
         return TemplateResponse(request, template_partial, context)
 
+    context["header"] = DetailHeader(request, trait, subtitle=trait.protocol.name)
     context["form"] = TraitStatesForm()
 
     # These URLs are needed for the protocol and trait `TomSelect`

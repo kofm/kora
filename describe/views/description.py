@@ -46,6 +46,7 @@ from describe.views.utils import (
     render_export_file_to_response,
     update_description_filter,
 )
+from frontpage.headers import DetailHeader, HeaderAction, ListHeader
 from frontpage.utils.htmx import htmx_response_redirect
 from frontpage.utils.models import copy_model_concrete_fields
 from frontpage.views_decorators import (
@@ -127,6 +128,12 @@ def _description_list(request):
         + "?"
         + urlencode({"variety": variety, "sort": str(table.order_by or "")})
     )
+    context["header"] = ListHeader(
+        request,
+        Description,
+        modal=True,
+        actions=[HeaderAction("Configure", Description.get_configure_url(), "describe.add_description", modal=True)],
+    )
     context.update(generate_breadcrumbs(request, Description))
 
     return TemplateResponse(request, "describe/description_list.html", context)
@@ -141,7 +148,21 @@ def description_form(request):
     update_description_filter(request, expressions={}, protocol=protocol_id)
     traits = Trait.objects.filter(protocol=protocol_id).prefetch_related("states").order_by("numeric_id")
     formset = ExpressionFilterFormSet(traits=traits)
-    return TemplateResponse(request, "describe/description_list.html", {"formset": formset})
+    return TemplateResponse(
+        request,
+        "describe/description_list.html",
+        {
+            "formset": formset,
+            "header": ListHeader(
+                request,
+                Description,
+                modal=True,
+                actions=[
+                    HeaderAction("Configure", Description.get_configure_url(), "describe.add_description", modal=True),
+                ],
+            ),
+        },
+    )
 
 
 @htmx_render_partial("similar_filters")
@@ -256,7 +277,11 @@ def description_detail(request, pk):
     traits = protocol.with_traits_and_states()
     table = make_traits_expressions_dict(traits, description_dict)
 
-    context = {"description": description, "table": table}
+    context = {
+        "description": description,
+        "table": table,
+        "header": DetailHeader(request, description, title=description.variety),
+    }
     breadcrumbs = generate_breadcrumbs(request, Description, description)
     breadcrumbs = add_plantvariety_breadcrumbs(breadcrumbs, description.variety)
 

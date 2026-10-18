@@ -10,6 +10,7 @@ from django_tables2 import RequestConfig
 
 from breadcrumbs.utils import generate_breadcrumbs
 from frontpage.autocomplete import AutocompleteModelView
+from frontpage.headers import ListHeader
 from frontpage.utils.htmx import htmx_response_redirect, htmx_response_trigger_close_modal
 from frontpage.utils.shortcuts import get_safe_next_url
 from frontpage.views_decorators import htmx_render_partial, is_htmx, nav_active
@@ -36,7 +37,13 @@ def parameter_list(request):
     flt = ParameterFilter(request.GET, queryset=queryset)
     table = ParameterTable(flt.qs)
     RequestConfig(request).configure(table)
-    context = {"page_obj": queryset, "table": table, "filter": flt, **generate_breadcrumbs(request, Parameter)}
+    context = {
+        "page_obj": queryset,
+        "table": table,
+        "filter": flt,
+        "header": ListHeader(request, Parameter, modal=True),
+        **generate_breadcrumbs(request, Parameter),
+    }
     return TemplateResponse(request, "parameters/parameter_list.html", context)
 
 
@@ -108,6 +115,7 @@ def varietalparameter_list(request):
     context = {
         "table": table,
         "filter": flt,
+        "header": ListHeader(request, VarietalParameter, modal=True),
         **generate_breadcrumbs(request, VarietalParameter),
     }
     return TemplateResponse(request, "parameters/varietalparameter_list.html", context)

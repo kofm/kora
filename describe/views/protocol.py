@@ -17,6 +17,7 @@ from breadcrumbs.generic import (
 from breadcrumbs.utils import generate_breadcrumbs
 from describe.forms import ProtocolMetadataForm, StateFormSet, TraitForm
 from describe.models import Protocol
+from frontpage.headers import DetailHeader, ListHeader
 from frontpage.views_decorators import (
     NavDescribeActiveContext,
     nav_describe_active_context,
@@ -37,7 +38,7 @@ def protocol_list(request):
         sort_view="describe:protocol_sort",
         is_sortable=request.user.has_perm("describe.change_protocol"),
     )
-    context.update({"layout": layout})
+    context.update({"layout": layout, "header": ListHeader(request, Protocol)})
     return TemplateResponse(request, "describe/protocol_list.html", context)
 
 
@@ -49,7 +50,10 @@ class ProtocolSortView(PermissionRequiredMixin, SortableView):
 @public_catalog_view("describe.view_protocol")
 def protocol_detail(request, pk):
     instance = Protocol.objects.select_related("plantspecies").prefetch_related("traits__states").get(pk=pk)
-    context = {"protocol": instance}
+    context = {
+        "protocol": instance,
+        "header": DetailHeader(request, instance, title=instance.name, subtitle=instance.plantspecies),
+    }
     context.update(generate_breadcrumbs(request, Protocol, instance))
     return TemplateResponse(request, "describe/protocol_detail.html", context)
 

@@ -6,6 +6,7 @@ from django.views.generic import CreateView, DeleteView, UpdateView
 from django_tables2 import RequestConfig
 
 from breadcrumbs.utils import generate_breadcrumbs
+from frontpage.headers import ListHeader
 from frontpage.utils.htmx import htmx_response_redirect, htmx_response_trigger_close_modal
 from frontpage.views_decorators import NavPlantActiveContext, htmx_render_partial, is_htmx, public_catalog_view
 from register.filters import PlantSpeciesFilter
@@ -38,7 +39,12 @@ def plantspecies_list(request):
     flt = PlantSpeciesFilter(request.GET, PlantSpecies.objects.all())
     table = PlantSpeciesTable(flt.qs)
     RequestConfig(request, paginate={"per_page": 12}).configure(table)
-    context = {"table": table, "filter": flt, **generate_breadcrumbs(request, PlantSpecies)}
+    context = {
+        "table": table,
+        "filter": flt,
+        "header": ListHeader(request, PlantSpecies, modal=True),
+        **generate_breadcrumbs(request, PlantSpecies),
+    }
     return TemplateResponse(request, "register/plantspecies_list.html", context)
 
 

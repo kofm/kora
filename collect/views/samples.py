@@ -30,6 +30,7 @@ from collect.tables import (
     SampleInStorageTable,
     SampleTable,
 )
+from frontpage.headers import DetailHeader, ListHeader
 from frontpage.templatetags.components import get_action_url_from_instance, get_permission_from_instance
 from frontpage.utils.htmx import htmx_response_trigger, htmx_response_trigger_close_modal
 from frontpage.views_decorators import htmx_render_partial, is_htmx
@@ -52,6 +53,7 @@ def sample_list(request):
         "table": table,
         "filter": flt,
         "discarded_count": discarded_count,
+        "header": ListHeader(request, Sample),
     }
     context.update(generate_breadcrumbs(request, Sample))
 
@@ -149,7 +151,13 @@ def sample_detail(request, pk):
     crumbs = generate_breadcrumbs(request, Sample, sample)
     crumbs = add_plantvariety_breadcrumbs(crumbs, sample.variety)
 
-    context = {"sample": sample, "log": log, "duplicates_table": duplicates_table, **crumbs}
+    context = {
+        "sample": sample,
+        "log": log,
+        "duplicates_table": duplicates_table,
+        "header": DetailHeader(request, sample, subtitle=sample.variety),
+        **crumbs,
+    }
 
     return TemplateResponse(request, "collect/sample_detail.html", context)
 
@@ -230,6 +238,7 @@ def storage_list(request):
     }
     if is_htmx(request):
         return TemplateResponse(request, "collect/storage_list.html#cards", context)
+    context["header"] = ListHeader(request, Storage)
     context.update(generate_breadcrumbs(request, Storage))
     return TemplateResponse(request, "collect/storage_list.html", context)
 
@@ -285,6 +294,7 @@ class StorageDetailView(PermissionRequiredMixin, DetailBreadcrumbsMixin, DetailV
         table = SampleInStorageTable(seed_samples)
         RequestConfig(self.request).configure(table)
         context["table"] = table
+        context["header"] = DetailHeader(self.request, self.object, subtitle="Storage")
         return context
 
 

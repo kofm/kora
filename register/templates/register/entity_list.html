@@ -4,14 +4,9 @@
 {% load render_table from django_tables2 %}
 {% load static %}
 {% load breadcrumbs %}
-{% load components %}
 
 {% block javascript %}
   <link rel="stylesheet" href="{% static 'flags/sprite.css' %}">
 {% endblock %}
 
 {% block title %}Entities{% endblock %}
-
-{% block page_header %}
-  {% list_page_header "register.Entity" modal=True %}
-{% endblock %}

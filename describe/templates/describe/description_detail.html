@@ -10,7 +10,7 @@
 {% block container %}
 
   {% render_breadcrumbs %}
-  {% detail_page_header description title=description.variety %}
+  {% render_header header %}
 
   <p class="lead mt-1">Compiled according to
     <a href="{% url 'describe:protocol_detail' description.protocol.id %}">

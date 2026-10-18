@@ -1,7 +1,6 @@
 {% extends "frontpage/list.html" %}
 
 {% load static %}
-{% load components %}
 {% load django_tables2 %}
 
 {% block javascript %}
@@ -9,10 +8,6 @@
 {% endblock %}
 
 {% block title %}Protections{% endblock %}
-
-{% block page_header %}
-  {% list_page_header "register.Protection" modal=True %}
-{% endblock %}
 
 {% block secondary_buttons %}
 {% endblock %}
