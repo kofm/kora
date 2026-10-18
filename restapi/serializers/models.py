@@ -9,10 +9,17 @@ from calculator.models import (
     FieldBook,
     ParameterObservation,
     ParameterTarget,
+    Step,
     TraitObservation,
     TraitTarget,
 )
-from calculator.targets import TargetPlan, TargetPlanValidationError, create_targets, validate_target_identity
+from calculator.targets import (
+    TargetPlan,
+    TargetPlanValidationError,
+    create_targets,
+    target_is_complete,
+    validate_target_identity,
+)
 from collect.models import Cart, CartItem, Sample, Storage, StoragePosition
 from describe.models import (
     Description,
@@ -384,13 +391,38 @@ class ObservationSerializer(serializers.ModelSerializer):
     variety_name = serializers.CharField(source="crop.variety.name", read_only=True)
     species = serializers.IntegerField(source="crop.variety.species_id", read_only=True)
     species_common_name = serializers.CharField(source="crop.variety.species.common_name", read_only=True)
-    step = serializers.PrimaryKeyRelatedField(read_only=True, allow_null=True)
+    step = serializers.PrimaryKeyRelatedField(queryset=Step.objects.mutable(), required=False, allow_null=True)
     step_display = serializers.StringRelatedField(source="step", read_only=True)
     created_by = serializers.PrimaryKeyRelatedField(read_only=True)
     created_by_display = serializers.StringRelatedField(source="created_by", read_only=True)
 
     class Meta:
         abstract = True
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        step = attrs.get("step")
+        if step is not None and step.crop_id != attrs["crop"].pk:
+            raise serializers.ValidationError({"crop": "The observation crop must match its step crop."})
+        return attrs
+
+    def get_target_queryset(self, attrs):
+        raise NotImplementedError
+
+    def create(self, validated_data):
+        if validated_data.get("step") is None:
+            return super().create(validated_data)
+
+        with transaction.atomic():
+            target = self.get_target_queryset(validated_data).select_for_update().first()
+            if target is None:
+                raise serializers.ValidationError({self.target_error_field: self.target_error_message})
+            if target_is_complete(target):
+                raise serializers.ValidationError({"step": "The observation target is already complete."})
+            try:
+                return super().create(validated_data)
+            except DjangoValidationError as exc:
+                raise serializers.ValidationError(serializers.as_serializer_error(exc)) from exc
 
 
 class FieldBookSerializer(serializers.ModelSerializer):
@@ -417,6 +449,12 @@ class FieldBookSerializer(serializers.ModelSerializer):
 
 
 class TraitObservationSerializer(ObservationSerializer):
+    target_error_field = "state"
+    target_error_message = "The state must belong to a trait targeted by this step."
+
+    def get_target_queryset(self, attrs):
+        return TraitTarget.objects.filter(step=attrs["step"], trait_id=attrs["state"].trait_id)
+
     state_display = serializers.StringRelatedField(source="state", read_only=True)
     trait = serializers.IntegerField(source="state.trait_id", read_only=True)
     trait_numeric_id = serializers.IntegerField(source="state.trait.numeric_id", read_only=True)
@@ -454,6 +492,7 @@ class TraitObservationSerializer(ObservationSerializer):
         )
 
     def validate(self, attrs):
+        attrs = super().validate(attrs)
         crop = attrs.get("crop")
         state = attrs.get("state")
         if crop and state and crop.variety.species_id != state.trait.protocol.plantspecies_id:
@@ -462,6 +501,12 @@ class TraitObservationSerializer(ObservationSerializer):
 
 
 class ParameterObservationSerializer(TypedValueSerializerMixin, ObservationSerializer):
+    target_error_field = "parameter"
+    target_error_message = "The parameter must be targeted by this step."
+
+    def get_target_queryset(self, attrs):
+        return ParameterTarget.objects.filter(step=attrs["step"], parameter=attrs["parameter"])
+
     parameter_code = serializers.CharField(source="parameter.code", read_only=True)
     parameter_name = serializers.CharField(source="parameter.name", read_only=True)
     parameter_display = serializers.CharField(source="parameter.code", read_only=True)

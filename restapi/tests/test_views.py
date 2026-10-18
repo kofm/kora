@@ -521,6 +521,40 @@ class ObservationAPITests(APITestCase):
         self.assertEqual(date_response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(empty_response.status_code, status.HTTP_400_BAD_REQUEST)
 
+    def test_step_creation_preserves_association_and_rejects_completed_targets(self):
+        self.grant("add_traitobservation", "add_parameterobservation")
+        step = StepFactory(crop=self.crop, fieldbook__layout=self.crop.layout)
+        trait_target = TraitTarget.objects.create(step=step, trait=self.state.trait)
+        parameter_target = ParameterTarget.objects.create(step=step, parameter=self.parameter)
+
+        for route, target, fields, observations in (
+            (
+                "trait-observations-list",
+                trait_target,
+                {"state": self.state.pk},
+                self.crop.traitobservation,
+            ),
+            (
+                "parameter-observations-list",
+                parameter_target,
+                {"parameter": self.parameter.pk, "value_decimal": "4.250"},
+                self.crop.parameterobservation,
+            ),
+        ):
+            with self.subTest(route=route):
+                url = reverse(f"restapi:{route}")
+                payload = {"crop": self.crop.pk, "step": step.pk, **fields}
+                response = self.client.post(url, payload)
+
+                self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+                observation = observations.get(pk=response.data["id"])
+                self.assertEqual(observation.step, step)
+                self.assertEqual(observation.created_by, self.user)
+
+                response = self.client.post(url, payload)
+                self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+                self.assertEqual(observations.filter(step=step).count(), target.required_count)
+
     def test_reference_patch_validates_the_resulting_typed_value(self):
         self.grant("add_varietalparameter", "change_varietalparameter")
         parameter = ParameterFactory(type="boolean")
