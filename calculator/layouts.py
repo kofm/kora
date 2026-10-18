@@ -45,7 +45,7 @@ class FieldBookGrid(BaseGridLayout):
         self.add_asset("css", ["calculator/css/fieldbook-grid.css"])
         self.add_asset("js", ["frontpage/selection.js"])
         self.steps = Step.objects.prefetch_related(
-            "traittarget", "parametertarget", "traitobservation__state", "parameterobservation"
+            "traittarget", "parametertarget", "traitobservation__state", "parameterobservation__parameter"
         ).filter(fieldbook_id=fieldbook.pk)
         self.is_read_only = fieldbook.layout.is_archived
         self.can_add_trait_observation = can_add_trait_observation
@@ -133,8 +133,7 @@ class FieldBookGrid(BaseGridLayout):
                 can_change = self.can_change_trait_observation
                 update_view_name = "calculator:trait_observation_update"
             else:
-                field = self.display.get("field", "value")
-                data["display_value"] = getattr(observation, f"parameter_{field}")
+                data["display_value"] = f"{observation.get_value_display()}"
                 can_change = self.can_change_parameter_observation
                 update_view_name = "calculator:parameter_observation_update"
 

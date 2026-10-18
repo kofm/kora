@@ -6,9 +6,22 @@ from frontpage.widgets import ModelTomSelect, TomSelectConfig
 from register.models import PlantSpecies, PlantVariety
 
 from .models import Parameter, VarietalParameter
+from .value_forms import TypedValueFormMixin
+from .values import VALUE_FIELDS
 
 
-class VarietalParameterForm(TomSelectModelFormMixin, forms.ModelForm):
+class ParameterForm(forms.ModelForm):
+    class Meta:
+        model = Parameter
+        fields = ("code", "name", "description", "type", "measure_unit")
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not self.instance._state.adding:
+            self.fields["type"].disabled = True
+
+
+class VarietalParameterForm(TypedValueFormMixin, TomSelectModelFormMixin, forms.ModelForm):
     species = forms.ModelChoiceField(
         queryset=PlantSpecies.objects.all(),
         widget=ModelTomSelect(
@@ -48,11 +61,18 @@ class VarietalParameterForm(TomSelectModelFormMixin, forms.ModelForm):
 
     class Meta:
         model = VarietalParameter
-        fields = ("species", "variety", "parameter", "value", "note", "url_ref")
+        fields = ("species", "variety", "parameter", *VALUE_FIELDS, "note", "url_ref")
         labels = {"url_ref": "URL"}
 
 
-class VarietyVarietalParameterForm(forms.ModelForm):
+class VarietalParameterUpdateForm(TypedValueFormMixin, forms.ModelForm):
+    class Meta:
+        model = VarietalParameter
+        fields = (*VALUE_FIELDS, "note", "url_ref")
+        labels = {"url_ref": "URL"}
+
+
+class VarietyVarietalParameterForm(TypedValueFormMixin, forms.ModelForm):
     parameter = forms.ModelChoiceField(
         queryset=Parameter.objects.all(),
         widget=ModelTomSelect(
@@ -68,5 +88,5 @@ class VarietyVarietalParameterForm(forms.ModelForm):
 
     class Meta:
         model = VarietalParameter
-        fields = ("parameter", "value", "note", "url_ref")
+        fields = ("parameter", *VALUE_FIELDS, "note", "url_ref")
         labels = {"url_ref": "URL"}

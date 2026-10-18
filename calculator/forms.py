@@ -20,40 +20,38 @@ from describe.models import Protocol, State, Trait
 from frontpage.forms import TomSelectModelFormMixin
 from frontpage.widgets import BootstrapNumberInput, ModelTomSelect, TomSelect, TomSelectConfig
 from parameters.models import Parameter
+from parameters.value_forms import TypedValueFormMixin
+from parameters.values import VALUE_FIELDS
 from register.models import PlantSpecies, PlantVariety
 from spaces.models import Location
 
 
-class ObservationParameterForm(forms.ModelForm):
+class ObservationParameterForm(TypedValueFormMixin, forms.ModelForm):
     class Meta:
         model = ParameterObservation
-        fields = ("parameter", "parameter_value", "parameter_date", "notes")
-        widgets = {"parameter": TomSelect, "parameter_date": DateInput(attrs={"type": "date"})}
+        fields = ("parameter", *VALUE_FIELDS, "notes")
+        widgets = {"parameter": TomSelect}
 
 
-class ParameterObservationUpdateForm(forms.ModelForm):
+class ParameterObservationUpdateForm(TypedValueFormMixin, forms.ModelForm):
     class Meta:
         model = ParameterObservation
-        fields = ("parameter_value", "parameter_date", "notes")
-        widgets = {"parameter_date": DateInput(attrs={"type": "date"})}
+        fields = (*VALUE_FIELDS, "notes")
 
 
-class ParameterTargetObservationForm(forms.ModelForm):
+class ParameterTargetObservationForm(TypedValueFormMixin, forms.ModelForm):
     class Meta:
         model = ParameterObservation
-        fields = ("parameter", "parameter_value", "parameter_date", "notes")
+        fields = ("parameter", *VALUE_FIELDS, "notes")
         widgets = {
             "parameter": HiddenInput,
-            "parameter_value": forms.NumberInput(
-                attrs={"class": "form-control form-control-lg", "placeholder": "Enter value"}
-            ),
-            "parameter_date": DateInput(attrs={"class": "form-control form-control-lg", "type": "date"}),
             "notes": forms.TextInput(attrs={"class": "form-control form-control-lg", "placeholder": "Notes"}),
         }
 
-    def __init__(self, *args, parameter=None, **kwargs):
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.parameter_obj = parameter
+        if self.parameter_obj:
+            self.fields[f"value_{self.parameter_obj.type}"].widget.attrs["class"] = "form-control form-control-lg"
         self.delete_url = None
 
 
@@ -412,10 +410,7 @@ class FieldBookDisplayForm(forms.Form):
         choices += [(f"trait:{trait.pk}:value", f"{trait}") for trait in traits]
         parameters = Parameter.objects.filter(parametertarget__step__fieldbook_id=fieldbook.pk).distinct()
         for parameter in parameters:
-            choices += [
-                (f"parameter:{parameter.pk}:{field}", f"{parameter.name} ({field.capitalize()})")
-                for field in ("value", "date")
-            ]
+            choices.append((f"parameter:{parameter.pk}:value", parameter.name))
         self.fields["display_config"].choices = choices
 
     def save(self):

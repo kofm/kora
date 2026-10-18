@@ -2,12 +2,13 @@ from crispy_forms import layout
 from django import forms
 from django.db.models import Q
 from django.urls import reverse_lazy
-from django_filters import FilterSet, ModelChoiceFilter, ModelMultipleChoiceFilter, NumberFilter
+from django_filters import ChoiceFilter, FilterSet, ModelChoiceFilter, ModelMultipleChoiceFilter
 from django_filters.filters import CharFilter
 
 from frontpage.forms import HTMXFormMixin, SearchAndClearButtons, TomSelectModelFormMixin
 from frontpage.widgets.tomselect import ModelTomSelect, ModelTomSelectMultiple, TomSelectConfig
 from parameters.models import Parameter, VarietalParameter
+from parameters.value_filters import TypedValueFilter
 from register.models import PlantSpecies, PlantVariety
 
 
@@ -18,6 +19,7 @@ class ParameterFilterForm(HTMXFormMixin, forms.Form):
         super().__init__(*args, **kwargs)
         self.helper.layout = layout.Layout(
             layout.Field("search"),
+            layout.Field("type"),
             layout.Div(
                 layout.Submit("search", "Search", css_class="btn-sm"),
                 layout.HTML('<a class="btn btn-sm btn-secondary" href=".">Clear</a>'),
@@ -28,10 +30,11 @@ class ParameterFilterForm(HTMXFormMixin, forms.Form):
 
 class ParameterFilter(FilterSet):
     search = CharFilter(label="Parameter", method="filter_name")
+    type = ChoiceFilter(choices=Parameter.Type.choices)
 
     class Meta:
         model = Parameter
-        fields = ("search",)
+        fields = ("search", "type")
         form = ParameterFilterForm
 
     def filter_name(self, queryset, name, value):
@@ -50,11 +53,15 @@ class VarietalParameterFilterForm(TomSelectModelFormMixin, HTMXFormMixin, forms.
             layout.Field("parameter"),
             layout.Field("value_min"),
             layout.Field("value_max"),
+            layout.Field("value_boolean"),
+            layout.Field("value_text"),
+            layout.Field("value_date_start"),
+            layout.Field("value_date_end"),
             SearchAndClearButtons(),
         )
 
 
-class VarietalParameterFilter(FilterSet):
+class VarietalParameterFilter(TypedValueFilter):
     species = ModelChoiceFilter(
         field_name="variety__species",
         queryset=PlantSpecies.objects.all(),
@@ -95,8 +102,6 @@ class VarietalParameterFilter(FilterSet):
         ),
         label="Parameter",
     )
-    value_min = NumberFilter(field_name="value", lookup_expr="gte", label="Value minimum")
-    value_max = NumberFilter(field_name="value", lookup_expr="lte", label="Value maximum")
 
     class Meta:
         fields = ()

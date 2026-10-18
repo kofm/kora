@@ -12,9 +12,14 @@ from breadcrumbs.utils import generate_breadcrumbs
 from frontpage.autocomplete import AutocompleteModelView
 from frontpage.utils.htmx import htmx_response_redirect, htmx_response_trigger_close_modal
 from frontpage.utils.shortcuts import get_safe_next_url
-from frontpage.views_decorators import htmx_render_block_from_params, htmx_render_blocks, is_htmx, nav_active
+from frontpage.views_decorators import htmx_render_blocks, is_htmx, nav_active
 from parameters.filters import ParameterFilter, VarietalParameterFilter
-from parameters.forms import VarietalParameterForm, VarietyVarietalParameterForm
+from parameters.forms import (
+    ParameterForm,
+    VarietalParameterForm,
+    VarietalParameterUpdateForm,
+    VarietyVarietalParameterForm,
+)
 from parameters.tables import (
     ParameterTable,
     VarietalParameterTable,
@@ -37,7 +42,7 @@ def parameter_list(request):
 
 class ParameterCreate(PermissionRequiredMixin, CreateView):
     model = Parameter
-    fields = "__all__"
+    form_class = ParameterForm
     success_url = reverse_lazy("parameters:parameter_list")
     template_name = "frontpage/modal_form.html"
     permission_required = ["parameters.add_parameter"]
@@ -51,15 +56,18 @@ class ParameterCreate(PermissionRequiredMixin, CreateView):
 
 class ParameterUpdate(PermissionRequiredMixin, UpdateView):
     model = Parameter
-    fields = "__all__"
+    form_class = ParameterForm
     template_name = "frontpage/modal_form.html"
     success_url = reverse_lazy("parameters:parameter_list")
     permission_required = ["parameters.change_parameter"]
 
+    def get_context_data(self, **kwargs):
+        return super().get_context_data(instance=self.object, **kwargs)
+
     def form_valid(self, form):
         self.object = form.save()
         if is_htmx(self.request):
-            return htmx_response_redirect(reverse("parameters:parameter_detail", args=[self.object.pk]))
+            return htmx_response_trigger_close_modal(["resultsChanged"])
         return super().form_valid(form)
 
 
@@ -68,27 +76,25 @@ class ParameterDelete(PermissionRequiredMixin, DeleteView):
     success_url = reverse_lazy("parameters:parameter_list")
     permission_required = ["parameters.delete_parameter"]
 
+    def get_template_names(self):
+        if is_htmx(self.request):
+            return ["frontpage/modal_confirm_delete.html"]
+        return super().get_template_names()
+
+    def get_context_data(self, **kwargs):
+        return super().get_context_data(instance=self.object, **kwargs)
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        if is_htmx(self.request):
+            return htmx_response_trigger_close_modal(["resultsChanged"])
+        return response
+
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
         if not self.object.is_deletable:
             return HttpResponseBadRequest("This parameter has observations and cannot be deleted.")
         return super().post(request, *args, **kwargs)
-
-
-@nav_active("nav_describe")
-@htmx_render_block_from_params()
-def parameter_detail(request, pk):
-    parameter = get_object_or_404(Parameter, pk=pk)
-    queryset = VarietalParameter.objects.select_related("variety__species", "parameter").filter(parameter=parameter)
-    table = VarietalParameterTable(queryset)
-    rq = RequestConfig(request)
-    rq.configure(table)
-    context = {
-        "parameter": parameter,
-        "table": table,
-        **generate_breadcrumbs(request, Parameter, parameter),
-    }
-    return TemplateResponse(request, "parameters/parameter_detail.html", context)
 
 
 @htmx_render_blocks(["main"])
@@ -110,7 +116,7 @@ def varietalparameter_list(request):
 @permission_required("parameters.add_varietalparameter", raise_exception=True)
 def varietalparameter_create(request):
     if request.method == "POST":
-        form = VarietalParameterForm(request.POST)
+        form = VarietalParameterForm(request.POST, parameter_refresh_url=request.get_full_path())
         if form.is_valid():
             form.save()
             success_url = reverse("parameters:varietalparameter_list")
@@ -118,7 +124,7 @@ def varietalparameter_create(request):
                 return htmx_response_redirect(success_url)
             return redirect(success_url)
     else:
-        form = VarietalParameterForm()
+        form = VarietalParameterForm(initial=request.GET.dict(), parameter_refresh_url=request.get_full_path())
 
     return TemplateResponse(
         request,
@@ -132,7 +138,7 @@ def variety_varietalparameter_create(request, variety_pk):
     variety = get_object_or_404(PlantVariety, pk=variety_pk)
 
     if request.method == "POST":
-        form = VarietyVarietalParameterForm(request.POST)
+        form = VarietyVarietalParameterForm(request.POST, parameter_refresh_url=request.get_full_path())
         if form.is_valid():
             instance = form.save(commit=False)
             instance.variety = variety
@@ -142,7 +148,7 @@ def variety_varietalparameter_create(request, variety_pk):
                 return htmx_response_redirect(success_url)
             return redirect(success_url)
     else:
-        form = VarietyVarietalParameterForm()
+        form = VarietyVarietalParameterForm(initial=request.GET.dict(), parameter_refresh_url=request.get_full_path())
 
     return TemplateResponse(
         request,
@@ -154,9 +160,9 @@ def variety_varietalparameter_create(request, variety_pk):
 @permission_required("parameters.change_varietalparameter", raise_exception=True)
 def varietalparameter_update(request, pk):
     value = get_object_or_404(VarietalParameter, pk=pk)
-    form = VarietyVarietalParameterForm(instance=value)
+    form = VarietalParameterUpdateForm(instance=value)
     if request.method == "POST":
-        form = VarietyVarietalParameterForm(request.POST, instance=value)
+        form = VarietalParameterUpdateForm(request.POST, instance=value)
         if form.is_valid():
             form.save()
             success_url = get_safe_next_url(request, reverse("parameters:varietalparameter_list"))
@@ -179,6 +185,3 @@ class ParameterAutocompleteView(AutocompleteModelView):
     search_fields = ["code", "name"]
     value_fields = ["id", "code", "name"]
     ordering = ["code", "name", "pk"]
-
-    def get_label(self, obj):
-        return f"{obj.name} ({obj.measure_unit})"

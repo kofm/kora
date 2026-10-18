@@ -1,0 +1,4 @@
+<div class="input-group{% if is_invalid %} is-invalid{% endif %}">
+  {% include "django/forms/widgets/number.html" %}
+  <span class="input-group-text" id="{{ addon_id }}">{{ unit }}</span>
+</div>

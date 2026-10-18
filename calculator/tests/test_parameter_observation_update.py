@@ -1,4 +1,3 @@
-from datetime import date
 from decimal import Decimal
 
 from django.contrib.auth.models import Permission
@@ -30,18 +29,44 @@ class ParameterObservationUpdateTests(TestCase):
             crop=self.step.crop,
             step=self.step,
             parameter=self.parameter,
-            parameter_value=Decimal("1.000"),
+            value_decimal=Decimal("1.000"),
             notes="Original notes",
             created_by=self.user,
         )
+
+    def test_observation_headings_use_names_and_keep_units_on_numeric_inputs(self):
+        self.user.user_permissions.add(
+            Permission.objects.get(codename="add_parameterobservation"),
+            Permission.objects.get(codename="view_step"),
+        )
+        self.parameter.name = "Stem length"
+        self.parameter.measure_unit = "cm"
+        self.parameter.save()
+        target = ParameterTarget.objects.get(step=self.step, parameter=self.parameter)
+        target.required_count = 2
+        target.save()
+
+        for view, pk, heading in (
+            ("parameter_observation_update", self.observation.pk, '<h2 class="fs-5">Stem length</h2>'),
+            ("parameter_target_observation_create", target.pk, '<h2 class="fs-5">Stem length</h2>'),
+            (
+                "step_detail",
+                self.step.pk,
+                '<span class="col-form-label fs-5 fw-semibold">Stem length</span>',
+            ),
+        ):
+            with self.subTest(view=view):
+                response = self.client.get(reverse(f"calculator:{view}", args=(pk,)))
+                self.assertContains(response, heading, html=True)
+                self.assertContains(response, 'class="input-group-text"')
+                self.assertContains(response, ">cm</span>")
 
     def test_update_changes_editable_fields_without_changing_associations(self):
         recorded_at = self.observation.recorded_at
         response = self.client.post(
             reverse("calculator:parameter_observation_update", args=(self.observation.pk,)),
             {
-                "parameter_value": "2.500",
-                "parameter_date": "2025-04-03",
+                "value_decimal": "2.500",
                 "notes": "Updated notes",
                 "parameter": self.other_parameter.pk,
                 "crop": self.step.crop.pk,
@@ -52,8 +77,7 @@ class ParameterObservationUpdateTests(TestCase):
         )
 
         self.observation.refresh_from_db()
-        self.assertEqual(self.observation.parameter_value, Decimal("2.500"))
-        self.assertEqual(self.observation.parameter_date, date(2025, 4, 3))
+        self.assertEqual(self.observation.value_decimal, Decimal("2.500"))
         self.assertEqual(self.observation.notes, "Updated notes")
         self.assertEqual(self.observation.parameter, self.parameter)
         self.assertEqual(self.observation.crop, self.step.crop)
@@ -65,21 +89,20 @@ class ParameterObservationUpdateTests(TestCase):
             {"closeModal": True, "observationParameterUpdated": True},
         )
 
-    def test_update_rejects_clearing_value_and_date(self):
+    def test_update_rejects_clearing_value(self):
         response = self.client.post(
             reverse("calculator:parameter_observation_update", args=(self.observation.pk,)),
-            {"parameter_value": "", "parameter_date": "", "notes": "Updated notes"},
+            {"value_decimal": "", "notes": "Updated notes"},
         )
 
         self.assertEqual(response.status_code, 200)
         self.assertFormError(
             response.context["form"],
-            None,
-            "Constraint “at_least_one_of_value_or_date” is violated.",
+            "value_decimal",
+            "This field is required.",
         )
         self.observation.refresh_from_db()
-        self.assertEqual(self.observation.parameter_value, Decimal("1.000"))
-        self.assertIsNone(self.observation.parameter_date)
+        self.assertEqual(self.observation.value_decimal, Decimal("1.000"))
         self.assertEqual(self.observation.notes, "Original notes")
 
     def test_delete_removes_observation_and_emits_refresh_events(self):

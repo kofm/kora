@@ -49,12 +49,12 @@ class FieldBookMapObservationTests(TestCase):
         )
         self.assertEqual(elements[self.step_without_target.crop_id]["body"]["display_mutation_url"], "")
 
-    def test_blank_display_field_updates_the_latest_existing_observation(self):
+    def test_display_updates_the_latest_existing_observation(self):
         older_observation = ParameterObservationFactory(
             crop=self.step.crop,
             step=self.step,
             parameter=self.parameter,
-            parameter_value=Decimal("4.000"),
+            value_decimal=Decimal("4.000"),
             created_by=self.user,
             recorded_at=now() - timedelta(days=1),
         )
@@ -62,25 +62,19 @@ class FieldBookMapObservationTests(TestCase):
             crop=self.step.crop,
             step=self.step,
             parameter=self.parameter,
-            parameter_value=Decimal("0.000"),
+            value_decimal=Decimal("0.000"),
             created_by=self.user,
             recorded_at=now(),
         )
 
         value_body = self.grid_elements()[self.step.crop_id]["body"]
-        date_body = self.grid_elements(field="date")[self.step.crop_id]["body"]
 
         self.assertEqual(value_body["display_value"], Decimal("0.000"))
         self.assertEqual(
             value_body["display_mutation_url"],
             reverse("calculator:parameter_observation_update", args=(latest_observation.pk,)),
         )
-        self.assertIsNone(date_body["display_value"])
-        self.assertEqual(
-            date_body["display_mutation_url"],
-            reverse("calculator:parameter_observation_update", args=(latest_observation.pk,)),
-        )
-        self.assertNotIn(str(older_observation.pk), date_body["display_mutation_url"])
+        self.assertNotIn(str(older_observation.pk), value_body["display_mutation_url"])
 
     def test_map_renders_zero_as_an_observed_value(self):
         self.client.force_login(self.user)
@@ -88,7 +82,7 @@ class FieldBookMapObservationTests(TestCase):
             crop=self.step.crop,
             step=self.step,
             parameter=self.parameter,
-            parameter_value=Decimal("0.000"),
+            value_decimal=Decimal("0.000"),
             created_by=self.user,
         )
         self.step.fieldbook.set_display_config("parameter", self.parameter.pk)
@@ -106,8 +100,7 @@ class FieldBookMapObservationTests(TestCase):
             reverse("calculator:parameter_target_observation_create", args=(self.target.pk,)),
             {
                 "parameter": other_parameter.pk,
-                "parameter_value": "2.500",
-                "parameter_date": "",
+                "value_decimal": "2.500",
                 "notes": "",
             },
         )

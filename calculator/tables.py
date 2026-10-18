@@ -152,17 +152,19 @@ class TraitObservationListTable(tables.Table):
 
 
 class ParameterObservationTable(ObservationMutationTable):
+    value = tables.Column(accessor="get_value_display", orderable=False)
     mutation_view_name = "calculator:parameter_observation_update"
 
     class Meta:
         model = ParameterObservation
-        fields = ("parameter", "parameter_value", "parameter_date", "notes", "recorded_at", "created_by")
+        fields = ("parameter", "value", "notes", "recorded_at", "created_by")
         template_name = "frontpage/partials/htmx_table.html"
         attrs = {"class": "table table-hover table-fixed small-table"}
         empty_text = "Nothing here."
 
 
 class ParameterObservationListTable(tables.Table):
+    value = tables.Column(accessor="get_value_display", orderable=False)
     variety = tables.Column(accessor="crop.variety", attrs={"td": {"class": "fw-bold"}})
     layout = tables.Column(accessor="crop.layout", linkify=True)
     fieldbook = tables.Column(accessor="step.fieldbook", linkify=True)
@@ -177,8 +179,7 @@ class ParameterObservationListTable(tables.Table):
             "layout",
             "fieldbook",
             "parameter",
-            "parameter_value",
-            "parameter_date",
+            "value",
             "notes",
             "recorded_at",
             "created_by",

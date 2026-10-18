@@ -57,13 +57,13 @@ class FieldBookListTests(TestCase):
             crop=first_crop,
             step=first_step,
             parameter=parameter,
-            parameter_value=1,
+            value_decimal=1,
             created_by=cls.user,
         )
         ParameterObservation.objects.create(
             crop=first_crop,
             parameter=parameter,
-            parameter_value=2,
+            value_decimal=2,
             created_by=cls.user,
         )
 

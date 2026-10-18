@@ -78,7 +78,11 @@ def trait_observation_create(request, crop_id):
         observation.created_by = request.user
         observation.save()
         return htmx_response_trigger_close_modal(["traitObservationUpdated"])
-    return TemplateResponse(request, "frontpage/modal_form.html", {"form": form})
+    return TemplateResponse(
+        request,
+        "frontpage/modal_form.html",
+        {"form": form, "object_to_create": "Observation"},
+    )
 
 
 @permission_required("calculator.change_traitobservation", raise_exception=True)
@@ -122,7 +126,7 @@ def parameter_observation_create(request, crop_id):
         pk=crop_id,
     )
     if request.method == "POST":
-        form = ObservationParameterForm(request.POST)
+        form = ObservationParameterForm(request.POST, parameter_refresh_url=request.get_full_path())
         if form.is_valid():
             obs = form.save(commit=False)
             obs.crop = crop
@@ -130,8 +134,12 @@ def parameter_observation_create(request, crop_id):
             obs.save()
             return htmx_response_trigger_close_modal(["observationParameterUpdated"])
     else:
-        form = ObservationParameterForm()
-    return TemplateResponse(request, "frontpage/modal_form.html", {"form": form})
+        form = ObservationParameterForm(initial=request.GET.dict(), parameter_refresh_url=request.get_full_path())
+    return TemplateResponse(
+        request,
+        "frontpage/modal_form.html",
+        {"form": form, "object_to_create": "Observation"},
+    )
 
 
 @permission_required("calculator.change_parameterobservation", raise_exception=True)

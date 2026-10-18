@@ -169,7 +169,7 @@
         <div class="observation-target row g-3 align-items-center border rounded p-3 mx-0">
           <div class="observation-target-label col-12 col-lg-4">
             <p class="fs6 text-muted my-0">Parameter</p>
-            <span class="col-form-label fs-5 fw-semibold">{{ form.parameter_obj.name }} ({{ form.parameter_obj.measure_unit }})</span>
+            <span class="col-form-label fs-5 fw-semibold">{{ form.parameter_obj.name }}</span>
           </div>
           <div class="col-12 col-lg-7">
             <div class="d-flex justify-content-center mb-2">
@@ -179,8 +179,7 @@
               <form hx-post="{% url 'calculator:parameter_observation_in_step_create' step.pk %}" hx-swap="none">
                 <div class="d-flex flex-column gap-2">
                   {{ form.parameter }}
-                  {{ form.parameter_value }}
-                  {{ form.parameter_date }}
+                  {{ form.value_field }}
                   {{ form.notes }}
                   <button name="btn-save" type="submit" class="btn btn-outline-primary mt-2">Confirm</button>
                 </div>

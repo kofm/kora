@@ -15,6 +15,8 @@ from calculator.models import (
 from collect.models import Germinability, Sample, SampleWeight, Storage, StoragePosition
 from describe.models import Description, Expression, Protocol, State, Trait
 from parameters.models import Parameter, VarietalParameter
+from parameters.value_filters import TypedValueFilter
+from parameters.values import VALUE_FIELDS
 from register.filters import filter_name_generic
 from register.models import Entity, PlantSpecies, PlantVariety, Protection
 
@@ -279,17 +281,12 @@ class ParameterTargetFilter(TargetFilter):
         fields = ("parameter",)
 
 
-class ParameterObservationFilter(ObservationFilter):
+class ParameterObservationFilter(TypedValueFilter, ObservationFilter):
     parameter__in = NumberInFilter(field_name="parameter", lookup_expr="in")
-    value = NumberFilter(field_name="parameter_value")
-    value_min = NumberFilter(field_name="parameter_value", lookup_expr="gte")
-    value_max = NumberFilter(field_name="parameter_value", lookup_expr="lte")
-    parameter_date_start = DateFilter(field_name="parameter_date", lookup_expr="gte")
-    parameter_date_end = DateFilter(field_name="parameter_date", lookup_expr="lte")
 
     class Meta:
         model = ParameterObservation
-        fields = ("crop", "parameter", "parameter_value", "parameter_date")
+        fields = ("crop", "parameter", *VALUE_FIELDS)
 
 
 class SampleFilter(FilterSet):
@@ -334,17 +331,14 @@ class CropFilter(FilterSet):
 class ParameterFilter(FilterSet):
     class Meta:
         model = Parameter
-        fields = {"code": ["exact", "icontains"]}
+        fields = {"code": ["exact", "icontains"], "type": ["exact"]}
 
 
-class VarietalParameterFilter(FilterSet):
+class VarietalParameterFilter(TypedValueFilter):
     variety__in = NumberInFilter(field_name="variety", lookup_expr="in")
     parameter_code = CharFilter("parameter__code")
     parameter_code__in = CharInFilter(field_name="parameter__code", lookup_expr="in")
 
     class Meta:
         model = VarietalParameter
-        fields = (
-            "variety",
-            "parameter",
-        )
+        fields = ("variety", "parameter", *VALUE_FIELDS)

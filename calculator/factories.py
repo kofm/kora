@@ -71,7 +71,7 @@ class StepFactory(DjangoModelFactory):
 class ParameterObservationFactory(DjangoModelFactory):
     crop = SubFactory(CropFactory)
     parameter = SubFactory("parameters.factories.ParameterFactory")
-    parameter_value = 1
+    value_decimal = 1
     created_by = SubFactory("frontpage.factories.UserFactory")
 
     class Meta:

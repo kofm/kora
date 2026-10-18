@@ -9,6 +9,13 @@ class ParameterTable(tables.Table):
     name = tables.Column(attrs={"td": {"class": "fw-bold"}})
     description = tables.Column(attrs={"td": {"class": "text-muted"}})
 
+    actions = tables.TemplateColumn(
+        template_name="parameters/partials/parameter_table_actions.html",
+        verbose_name="",
+        orderable=False,
+        attrs={"td": {"class": "text-end"}},
+    )
+
     class Meta(TableHoverFixed.Meta):
         model = Parameter
         exclude = ("id",)
@@ -17,6 +24,7 @@ class ParameterTable(tables.Table):
 
 
 class VarietalParameterTable(tables.Table):
+    value = tables.Column(accessor="get_value_display", orderable=False)
     variety__name = tables.Column("Variety", attrs={"td": {"class": "fw-bold"}})
     parameter__name = tables.Column("Parameter", attrs={"td": {"class": "text-muted"}})
     note = tables.Column("Notes", attrs={"td": {"class": "fw-light"}})

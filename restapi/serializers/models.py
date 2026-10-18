@@ -25,6 +25,7 @@ from describe.models import (
     WorkspaceElement,
 )
 from parameters.models import Parameter, VarietalParameter
+from parameters.values import VALUE_FIELDS, validate_typed_value
 from register.models import Entity, PlantSpecies, PlantVariety, PlantVarietyName, Protection, ProtectionType
 from restapi.serializers.generic import BulkModelSerializer
 
@@ -209,17 +210,41 @@ class ExpressionSerializer(BulkModelSerializer):
 class ParameterSerializer(BulkModelSerializer):
     class Meta(BulkModelSerializer.Meta):
         model = Parameter
-        fields = ("id", "code", "name", "description", "measure_unit")
+        fields = ("id", "code", "name", "description", "measure_unit", "type")
+        extra_kwargs = {"type": {"required": True}}
+
+    def validate_type(self, value):
+        if self.instance is not None and value != self.instance.type:
+            raise serializers.ValidationError("Parameter type cannot be changed.")
+        return value
 
 
-class VarietalParameterSerializer(BulkModelSerializer):
+class TypedValueSerializerMixin:
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        parameter = attrs.get("parameter", getattr(self.instance, "parameter", None))
+        if self.instance is not None and parameter is not None and parameter.pk != self.instance.parameter_id:
+            raise serializers.ValidationError({"parameter": "Parameter cannot be changed after creation."})
+        if parameter is not None:
+            values = {field: attrs.get(field, getattr(self.instance, field, None)) for field in VALUE_FIELDS}
+            try:
+                validate_typed_value(parameter, values)
+            except DjangoValidationError as exc:
+                errors = exc.message_dict
+                if "__all__" in errors:
+                    errors["non_field_errors"] = errors.pop("__all__")
+                raise serializers.ValidationError(errors) from exc
+        return attrs
+
+
+class VarietalParameterSerializer(TypedValueSerializerMixin, BulkModelSerializer):
     parameter_code = serializers.CharField(source="parameter.code", read_only=True)
 
     class Meta(BulkModelSerializer.Meta):
         model = VarietalParameter
         fields = (
             "id",
-            "value",
+            *VALUE_FIELDS,
             "variety",
             "parameter",
             "parameter_code",
@@ -436,10 +461,10 @@ class TraitObservationSerializer(ObservationSerializer):
         return attrs
 
 
-class ParameterObservationSerializer(ObservationSerializer):
+class ParameterObservationSerializer(TypedValueSerializerMixin, ObservationSerializer):
     parameter_code = serializers.CharField(source="parameter.code", read_only=True)
     parameter_name = serializers.CharField(source="parameter.name", read_only=True)
-    parameter_display = serializers.StringRelatedField(source="parameter", read_only=True)
+    parameter_display = serializers.CharField(source="parameter.code", read_only=True)
 
     class Meta:
         model = ParameterObservation
@@ -461,18 +486,12 @@ class ParameterObservationSerializer(ObservationSerializer):
             "parameter_code",
             "parameter_name",
             "parameter_display",
-            "parameter_value",
-            "parameter_date",
+            *VALUE_FIELDS,
             "recorded_at",
             "created_by",
             "created_by_display",
             "notes",
         )
-
-    def validate(self, attrs):
-        if attrs.get("parameter_value") is None and attrs.get("parameter_date") is None:
-            raise serializers.ValidationError("At least one of parameter_value or parameter_date is required.")
-        return attrs
 
 
 class WorkspaceElementSerializer(BulkModelSerializer):
@@ -684,7 +703,7 @@ class ParameterTargetSerializer(TargetSerializer):
     parameter = BulkResolvedPrimaryKeyRelatedField(queryset=Parameter.objects.all())
     parameter_code = serializers.CharField(source="parameter.code", read_only=True)
     parameter_name = serializers.CharField(source="parameter.name", read_only=True)
-    parameter_display = serializers.StringRelatedField(source="parameter", read_only=True)
+    parameter_display = serializers.CharField(source="parameter.code", read_only=True)
 
     class Meta(TargetSerializer.Meta):
         model = ParameterTarget

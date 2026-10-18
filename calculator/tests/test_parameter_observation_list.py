@@ -31,6 +31,16 @@ class ParameterObservationListTests(TestCase):
     def setUp(self):
         self.client.force_login(self.user)
 
+    def test_parameter_cells_show_names_and_values_keep_numeric_units(self):
+        self.parameter.measure_unit = "cm"
+        self.parameter.save()
+        ParameterObservationFactory(crop=self.crop, parameter=self.parameter, value_decimal=Decimal("12.5"))
+
+        response = self.client.get(self.url)
+
+        self.assertContains(response, "<td>Stem length</td>", html=True)
+        self.assertContains(response, "<td>12.5 cm</td>", html=True)
+
     def test_observation_lists_require_model_view_permission(self):
         unauthorized_user = UserFactory(username="observation-unauthorized")
         self.client.force_login(unauthorized_user)
@@ -43,16 +53,16 @@ class ParameterObservationListTests(TestCase):
         lower_boundary = ParameterObservationFactory(
             crop=self.crop,
             parameter=self.parameter,
-            parameter_value=Decimal("50"),
+            value_decimal=Decimal("50"),
         )
         upper_boundary = ParameterObservationFactory(
             crop=self.crop,
             parameter=self.parameter,
-            parameter_value=Decimal("60"),
+            value_decimal=Decimal("60"),
         )
-        ParameterObservationFactory(crop=self.crop, parameter=self.parameter, parameter_value=Decimal("49.999"))
-        ParameterObservationFactory(crop=self.crop, parameter=self.parameter, parameter_value=Decimal("60.001"))
-        ParameterObservationFactory(crop=self.crop, parameter=self.other_parameter, parameter_value=Decimal("55"))
+        ParameterObservationFactory(crop=self.crop, parameter=self.parameter, value_decimal=Decimal("49.999"))
+        ParameterObservationFactory(crop=self.crop, parameter=self.parameter, value_decimal=Decimal("60.001"))
+        ParameterObservationFactory(crop=self.crop, parameter=self.other_parameter, value_decimal=Decimal("55"))
 
         response = self.client.get(
             self.url,
@@ -66,33 +76,34 @@ class ParameterObservationListTests(TestCase):
         self.assertEqual(len(response.context["table"].data), 3)
 
     def test_parameter_and_recorded_date_ranges_filter_independently(self):
+        parameter = ParameterFactory(type="date")
         matching = ParameterObservationFactory(
             crop=self.crop,
-            parameter=self.parameter,
-            parameter_value=None,
-            parameter_date=date(2025, 2, 15),
+            parameter=parameter,
+            value_decimal=None,
+            value_date=date(2025, 2, 15),
             recorded_at=timezone.make_aware(datetime(2025, 3, 10, 12)),
         )
         ParameterObservationFactory(
             crop=self.crop,
-            parameter=self.parameter,
-            parameter_value=None,
-            parameter_date=date(2025, 2, 14),
+            parameter=parameter,
+            value_decimal=None,
+            value_date=date(2025, 2, 14),
             recorded_at=timezone.make_aware(datetime(2025, 3, 10, 12)),
         )
         ParameterObservationFactory(
             crop=self.crop,
-            parameter=self.parameter,
-            parameter_value=None,
-            parameter_date=date(2025, 2, 15),
+            parameter=parameter,
+            value_decimal=None,
+            value_date=date(2025, 2, 15),
             recorded_at=timezone.make_aware(datetime(2025, 3, 11, 12)),
         )
 
         response = self.client.get(
             self.url,
             {
-                "parameter_date_start": "2025-02-15",
-                "parameter_date_end": "2025-02-15",
+                "value_date_start": "2025-02-15",
+                "value_date_end": "2025-02-15",
                 "recorded_at_start": "2025-03-10",
                 "recorded_at_end": "2025-03-10",
             },

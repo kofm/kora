@@ -111,6 +111,7 @@ class EntityTable(tables.Table, CountryRenderer):
 
 
 class VarietalParameterTable(tables.Table):
+    value = tables.Column(orderable=False)
     parameter__name = tables.Column("Parameter", attrs={"td": {"class": "fw-bold"}})
     parameter__code = tables.Column("Code", attrs={"td": {"class": "fw-light"}})
     note = tables.Column("Notes", attrs={"td": {"class": "fw-light"}})
@@ -131,7 +132,7 @@ class VarietalParameterTable(tables.Table):
         per_page = 5
 
     def render_value(self, record):
-        return format_html("{} {}", record.value, record.parameter.measure_unit)
+        return record.get_value_display()
 
 
 class PlantSpeciesTable(tables.Table):

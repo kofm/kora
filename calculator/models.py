@@ -13,6 +13,7 @@ from django.utils.timezone import now
 from describe.models import State, Trait
 from frontpage.generic import ModelIsDeletableMixin
 from parameters.models import Parameter, ParameterValue
+from parameters.values import TypedValue
 from register.models import PlantVariety
 from spaces.models import Location
 
@@ -117,7 +118,8 @@ class Crop(ModelIsDeletableMixin, models.Model):
 class CropParameter(ParameterValue):
     crop = models.ForeignKey(Crop, on_delete=models.CASCADE, related_name="parameters")
 
-    class Meta:
+    class Meta(ParameterValue.Meta):
+        abstract = False
         ordering = ["parameter__code"]
 
 
@@ -444,21 +446,14 @@ class ParameterObservationQuerySet(models.QuerySet):
         return self.filter(crop__layout__archived_at__isnull=True)
 
 
-class ParameterObservation(Observation):
+class ParameterObservation(Observation, TypedValue):
     parameter = models.ForeignKey(Parameter, on_delete=models.PROTECT)
-    parameter_value = models.DecimalField(max_digits=10, decimal_places=3, null=True, blank=True)
-    parameter_date = models.DateField(null=True, blank=True)
 
     objects = ParameterObservationQuerySet.as_manager()
 
-    class Meta:
+    class Meta(TypedValue.Meta):
+        abstract = False
         ordering = ("-recorded_at", "-pk")
-        constraints = [
-            models.CheckConstraint(
-                condition=models.Q(parameter_value__isnull=False) | models.Q(parameter_date__isnull=False),
-                name="at_least_one_of_value_or_date",
-            )
-        ]
 
     def __str__(self) -> str:
         return f"Parameter value recorded at {self.recorded_at} on Crop {self.crop_id}"

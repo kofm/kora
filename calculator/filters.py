@@ -9,7 +9,6 @@ from django_filters import (
     FilterSet,
     ModelChoiceFilter,
     ModelMultipleChoiceFilter,
-    NumberFilter,
 )
 
 from calculator.models import CropLayout, FieldBook, ManagementType, ParameterObservation, TraitObservation
@@ -17,6 +16,7 @@ from describe.models import Protocol, Trait
 from frontpage.forms import HTMXFormMixin, SearchAndClearButtons, TomSelectModelFormMixin
 from frontpage.widgets import ModelTomSelect, ModelTomSelectMultiple, TomSelectConfig
 from parameters.models import Parameter
+from parameters.value_filters import TypedValueFilter
 from register.models import PlantSpecies, PlantVariety
 from spaces.models import Location
 
@@ -248,15 +248,17 @@ class ParameterObservationFilterForm(TomSelectModelFormMixin, HTMXFormMixin, for
             Field("parameter"),
             Field("value_min"),
             Field("value_max"),
-            Field("parameter_date_start"),
-            Field("parameter_date_end"),
+            Field("value_date_start"),
+            Field("value_date_end"),
+            Field("value_boolean"),
+            Field("value_text"),
             Field("recorded_at_start"),
             Field("recorded_at_end"),
             SearchAndClearButtons(),
         )
 
 
-class ParameterObservationFilter(FilterSet):
+class ParameterObservationFilter(TypedValueFilter):
     species = ModelChoiceFilter(
         field_name="crop__variety__species",
         queryset=PlantSpecies.objects.all(),
@@ -314,20 +316,6 @@ class ParameterObservationFilter(FilterSet):
             )
         ),
         label="Parameter",
-    )
-    value_min = NumberFilter(field_name="parameter_value", lookup_expr="gte", label="Value minimum")
-    value_max = NumberFilter(field_name="parameter_value", lookup_expr="lte", label="Value maximum")
-    parameter_date_start = DateFilter(
-        field_name="parameter_date",
-        lookup_expr="gte",
-        label="Parameter date from",
-        widget=forms.DateInput(attrs={"type": "date"}),
-    )
-    parameter_date_end = DateFilter(
-        field_name="parameter_date",
-        lookup_expr="lte",
-        label="Parameter date through",
-        widget=forms.DateInput(attrs={"type": "date"}),
     )
     recorded_at_start = DateFilter(
         field_name="recorded_at",

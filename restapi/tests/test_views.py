@@ -456,6 +456,27 @@ class ObservationAPITests(APITestCase):
         content = b"".join(response.streaming_content).decode()
         return [json.loads(line) for line in content.splitlines()]
 
+    def test_parameter_display_preserves_codes_for_observations_and_targets(self):
+        self.grant("view_parameterobservation", "view_parametertarget")
+        self.parameter.code = "STEM_LENGTH"
+        self.parameter.name = "Stem length"
+        self.parameter.save()
+        step = StepFactory(crop=self.crop, fieldbook__layout=self.crop.layout)
+        target = ParameterTarget.objects.create(step=step, parameter=self.parameter)
+        observation = ParameterObservationFactory(
+            crop=self.crop, step=step, parameter=self.parameter, created_by=self.user
+        )
+
+        for route, record in (
+            ("parameter-observations-detail", observation),
+            ("parameter-targets-detail", target),
+        ):
+            with self.subTest(route=route):
+                response = self.client.get(reverse(f"restapi:{route}", args=(record.pk,)))
+                self.assertEqual(response.status_code, status.HTTP_200_OK)
+                self.assertEqual(response.data["parameter_display"], "STEM_LENGTH")
+                self.assertEqual(response.data["parameter_name"], "Stem length")
+
     def test_trait_creation_validates_species_and_assigns_authenticated_user(self):
         self.grant("add_traitobservation")
         recorded_at = timezone.now().replace(microsecond=0)
@@ -482,23 +503,67 @@ class ObservationAPITests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("state", response.data)
 
-    def test_parameter_creation_accepts_value_or_date_and_rejects_neither(self):
+    def test_parameter_creation_accepts_typed_values_and_rejects_missing_value(self):
         self.grant("add_parameterobservation")
         url = reverse("restapi:parameter-observations-list")
 
         value_response = self.client.post(
             url,
-            {"crop": self.crop.pk, "parameter": self.parameter.pk, "parameter_value": "4.250"},
+            {"crop": self.crop.pk, "parameter": self.parameter.pk, "value_decimal": "4.250"},
         )
         date_response = self.client.post(
             url,
-            {"crop": self.crop.pk, "parameter": self.parameter.pk, "parameter_date": "2026-05-20"},
+            {"crop": self.crop.pk, "parameter": ParameterFactory(type="date").pk, "value_date": "2026-05-20"},
         )
         empty_response = self.client.post(url, {"crop": self.crop.pk, "parameter": self.parameter.pk})
 
         self.assertEqual(value_response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(date_response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(empty_response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_reference_patch_validates_the_resulting_typed_value(self):
+        self.grant("add_varietalparameter", "change_varietalparameter")
+        parameter = ParameterFactory(type="boolean")
+        response = self.client.post(
+            reverse("restapi:varietalparameter-list"),
+            {"variety": self.crop.variety_id, "parameter": parameter.pk, "value_boolean": False},
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        url = reverse("restapi:varietalparameter-detail", args=[response.data["id"]])
+        self.assertEqual(self.client.patch(url, {"note": "Confirmed"}).status_code, status.HTTP_200_OK)
+        replacement = ParameterFactory(type="boolean")
+        reassigned = self.client.patch(url, {"parameter": replacement.pk})
+        self.assertEqual(reassigned.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("parameter", reassigned.data)
+        self.assertEqual(
+            self.client.patch(url, {"parameter": self.parameter.pk}).status_code, status.HTTP_400_BAD_REQUEST
+        )
+        self.assertEqual(self.client.patch(url, {"value_integer": 0}).status_code, status.HTTP_400_BAD_REQUEST)
+        reference = parameter.varietalparameter_set.get(pk=response.data["id"])
+        self.assertIs(reference.value_boolean, False)
+        self.assertEqual(reference.parameter, parameter)
+        self.assertEqual(reference.note, "Confirmed")
+
+    def test_bulk_reference_creation_rejects_wrong_types_without_partial_writes(self):
+        self.grant("add_varietalparameter")
+        parameter = ParameterFactory(type="text")
+        response = self.client.post(
+            reverse("restapi:varietalparameter-bulk"),
+            [
+                {"variety": self.crop.variety_id, "parameter": parameter.pk, "value_text": "Early"},
+                {"variety": self.crop.variety_id, "parameter": parameter.pk, "value_decimal": "2.5"},
+            ],
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertFalse(parameter.varietalparameter_set.exists())
+
+    def test_parameter_api_rejects_type_changes(self):
+        self.grant("change_parameter")
+        response = self.client.patch(reverse("restapi:parameter-detail", args=[self.parameter.pk]), {"type": "date"})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.parameter.refresh_from_db()
+        self.assertEqual(self.parameter.type, "decimal")
 
     def test_archived_observations_are_readable_and_exportable_but_immutable(self):
         observation = TraitObservationFactory(crop=self.crop, state=self.state, created_by=self.user)

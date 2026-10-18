@@ -45,7 +45,7 @@ class CropModelParameterTests(TestCase):
             description="Thermal time requirement",
             measure_unit="degree days",
         )
-        VarietalParameter.objects.create(variety=variety, parameter=parameter, value=125)
+        VarietalParameter.objects.create(variety=variety, parameter=parameter, value_decimal=125)
         crop_model = CropModel(crop)
         crop_model.inputs = [parameter.code]
 
@@ -325,7 +325,7 @@ class TargetDeleteViewTests(TestCase):
             crop=self.crop,
             step=self.step,
             parameter=self.parameter,
-            parameter_value=1,
+            value_decimal=1,
             created_by=self.user,
         )
 
@@ -603,7 +603,7 @@ class FieldBookTargetDeleteViewTests(TestCase):
             crop=self.second_crop,
             step=unselected_step,
             parameter=self.parameter,
-            parameter_value=1,
+            value_decimal=1,
             created_by=self.user,
         )
 
@@ -762,7 +762,7 @@ class ArchivedLayoutReadOnlyTests(TestCase):
             crop=cls.first_crop,
             step=cls.step,
             parameter=cls.parameter,
-            parameter_value=1,
+            value_decimal=1,
             created_by=cls.user,
         )
         cls.layout.archive()
