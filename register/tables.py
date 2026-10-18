@@ -1,6 +1,7 @@
 import django_tables2 as tables
 from django.utils.html import format_html
 
+from calculator.models import Crop
 from collect.models import Sample
 from collect.tables import BaseSampleTable
 from describe.models import Description
@@ -13,6 +14,18 @@ from register.models import Entity, PlantSpecies, PlantVariety, PlantVarietyName
 class CountryRenderer:
     def render_country(self, record):
         return format_html('<i class="{}"></i>', record.country.flag_css)
+
+
+class PlantVarietyCropTable(tables.Table):
+    id = tables.Column(verbose_name="Crop", linkify=True)
+    layout = tables.Column(linkify=True, attrs={"a": {"class": "row-link"}})
+    location = tables.Column(accessor="layout.location", linkify=True, attrs={"a": {"class": "row-link"}})
+
+    class Meta(TableHoverFixed.Meta):
+        model = Crop
+        fields = ("id", "layout", "location", "notes")
+        per_page = 10
+        empty_text = "There are no crops in visible layouts."
 
 
 class PlantVarietyNameTable(tables.Table):

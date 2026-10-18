@@ -21,7 +21,7 @@ class VarietyPartialPermissionsTests(TestCase):
         view = public_catalog_view("register.view_plantvariety")(unwrap(plantvariety_detail))
         factory = RequestFactory()
         for visitor in (AnonymousUser(), user):
-            for section in ("descriptions", "names", "protections", "samples", "parameters"):
+            for section in ("descriptions", "names", "protections", "samples", "parameters", "crops"):
                 with self.subTest(visitor=visitor, section=section):
                     request = factory.get(
                         reverse("register:variety_detail", args=[variety.pk]),
@@ -29,7 +29,7 @@ class VarietyPartialPermissionsTests(TestCase):
                         HTTP_HX_REQUEST="true",
                     )
                     request.user = visitor
-                    if section in ("samples", "parameters"):
+                    if section in ("samples", "parameters", "crops"):
                         with self.assertRaises(PermissionDenied):
                             view(request, variety.pk)
                     else:

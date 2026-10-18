@@ -38,6 +38,15 @@
     {% endpartialdef %}
   {% endif %}
 
+  {% if perms.calculator.view_crop %}
+    {% partialdef crops inline %}
+      <section id="crops" class="mt-5">
+        <h2>Crops</h2>
+        {% include "register/partials/variety_table.html" with table=tables.crops section="crops" event="varietyCropsChanged" %}
+      </section>
+    {% endpartialdef %}
+  {% endif %}
+
   {% partialdef names inline %}
     <section id="names" class="mt-5">
       <h2>Names

@@ -38,6 +38,7 @@ from register.filters import PlantVarietyCardsOrderForm, PlantVarietyFilter
 from register.forms import PlantVarietyForm, PlantVarietyNameForm
 from register.models import PlantVariety, PlantVarietyName, Protection
 from register.tables import (
+    PlantVarietyCropTable,
     PlantVarietyDescriptionTable,
     PlantVarietyNameTable,
     PlantVarietySampleTable,
@@ -67,6 +68,10 @@ def plantvariety_detail(request, pk):
             lambda: Description.objects.select_related("protocol", "label").filter(variety=pk),
         ),
         "samples": (PlantVarietySampleTable, lambda: Sample.objects.with_availability().filter(variety=pk)),
+        "crops": (
+            PlantVarietyCropTable,
+            lambda: Crop.objects.mutable().select_related("layout__location").filter(variety=pk),
+        ),
         "names": (PlantVarietyNameTable, lambda: variety.names.all()),
         "protections": (ProtectionTable, lambda: Protection.objects.filter(variety=pk)),
         "parameters": (
@@ -74,7 +79,11 @@ def plantvariety_detail(request, pk):
             lambda: VarietalParameter.objects.select_related("parameter").filter(variety=pk),
         ),
     }
-    private_sections = {"samples": "collect.view_sample", "parameters": "parameters.view_varietalparameter"}
+    private_sections = {
+        "samples": "collect.view_sample",
+        "crops": "calculator.view_crop",
+        "parameters": "parameters.view_varietalparameter",
+    }
     partial = request.GET.get("partial") if is_htmx(request) else None
     if partial not in (*sections, "header"):
         partial = None

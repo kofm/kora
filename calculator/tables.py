@@ -127,7 +127,7 @@ class TraitObservationListTable(tables.Table):
     layout = tables.Column(accessor="crop.layout", linkify=True)
     fieldbook = tables.Column(accessor="step.fieldbook", linkify=True)
     protocol = tables.Column(accessor="state.trait.protocol", orderable=False)
-    trait = tables.Column(accessor="state.trait", orderable=False)
+    trait = tables.Column(accessor="state.trait")
     state = tables.Column(orderable=False)
     recorded_at = tables.Column(verbose_name="Date")
 
@@ -163,7 +163,7 @@ class ParameterObservationListTable(tables.Table):
     variety = tables.Column(accessor="crop.variety", attrs={"td": {"class": "fw-bold"}})
     layout = tables.Column(accessor="crop.layout", linkify=True)
     fieldbook = tables.Column(accessor="step.fieldbook", linkify=True)
-    parameter = tables.Column(orderable=False)
+    parameter = tables.Column()
     recorded_at = tables.Column(verbose_name="Recorded date")
     created_by = tables.Column(verbose_name="Recorder", orderable=False)
 
