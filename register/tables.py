@@ -4,7 +4,7 @@ from django.utils.html import format_html
 from collect.models import Sample
 from collect.tables import BaseSampleTable
 from describe.models import Description
-from frontpage.tables import TableHoverFixed
+from frontpage.tables import EditDeleteColumn, TableHoverFixed
 from frontpage.utils.text import smart_truncate_string
 from parameters.models import VarietalParameter
 from register.models import Entity, PlantSpecies, PlantVariety, Protection
@@ -140,12 +140,7 @@ class PlantSpeciesTable(tables.Table):
     common_name = tables.Column(attrs={"td": {"class": "fw-bold"}})
     botanical_name = tables.Column(verbose_name="Botanical name", attrs={"td": {"class": "fst-italic"}})
     code = tables.Column(attrs={"td": {"class": "fw-light"}})
-    actions = tables.TemplateColumn(
-        template_name="register/partials/plantspecies_table_actions.html",
-        verbose_name="",
-        orderable=False,
-        attrs={"td": {"class": "text-end"}},
-    )
+    actions = EditDeleteColumn()
 
     class Meta(TableHoverFixed.Meta):
         model = PlantSpecies

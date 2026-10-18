@@ -1,6 +1,30 @@
 import django_tables2 as tables
 from django.contrib.auth.models import User
+from django.template.loader import render_to_string
 from django.utils.html import format_html
+
+
+class EditDeleteColumn(tables.Column):
+    """Standard modal actions for models implementing ModelIsDeletableMixin and URL helpers."""
+
+    empty_values = ()
+
+    def __init__(self):
+        super().__init__(verbose_name="", orderable=False, attrs={"td": {"class": "text-end"}})
+
+    def render(self, record, table):
+        user = table.request.user
+        opts = record._meta
+        return render_to_string(
+            "frontpage/partials/edit_delete_column.html",
+            {
+                "record": record,
+                "update_url": record.get_update_url(),
+                "delete_url": record.get_delete_url(),
+                "can_edit": user.has_perm(f"{opts.app_label}.change_{opts.model_name}"),
+                "can_delete": user.has_perm(f"{opts.app_label}.delete_{opts.model_name}"),
+            },
+        )
 
 
 class TableHoverFixed(tables.Table):

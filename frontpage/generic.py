@@ -2,6 +2,8 @@ from django.utils.functional import cached_property
 
 
 class ModelIsDeletableMixin:
+    cant_delete_msg = "This record cannot be deleted because it is in use."
+
     @cached_property
     def is_deletable(self):
         for field in self._meta.get_fields():

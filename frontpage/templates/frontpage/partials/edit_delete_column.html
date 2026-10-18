@@ -1,0 +1,22 @@
+{% load components %}
+
+<div class="d-flex justify-content-end gap-1 edit-delete-actions">
+  {% if can_edit %}
+    <a class="row-action text-decoration-none" hx-get="{{ update_url }}" {% modal_attrs %}>
+      <span class="badge rounded-pill text-bg-secondary">Edit</span>
+    </a>
+  {% endif %}
+  {% if can_delete %}
+    {% if record.is_deletable %}
+      <a class="row-action text-decoration-none" hx-get="{{ delete_url }}" {% modal_attrs %}>
+        <span class="badge rounded-pill text-bg-danger">Delete</span>
+      </a>
+    {% else %}
+      <span class="row-action d-inline-block"
+            tabindex="0"
+            title="{{ record.cant_delete_msg }}">
+        <span class="badge rounded-pill text-bg-danger opacity-50" aria-disabled="true">Delete</span>
+      </span>
+    {% endif %}
+  {% endif %}
+</div>

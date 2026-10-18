@@ -10,16 +10,11 @@ from calculator.models import (
     ParameterObservation,
     TraitObservation,
 )
-from frontpage.tables import TableHoverFixed
+from frontpage.tables import EditDeleteColumn, TableHoverFixed
 
 
 class ManagementTypeTable(tables.Table):
-    actions = tables.TemplateColumn(
-        template_name="calculator/partials/managementtype_table_actions.html",
-        verbose_name="",
-        orderable=False,
-        attrs={"td": {"class": "text-end"}},
-    )
+    actions = EditDeleteColumn()
 
     class Meta(TableHoverFixed.Meta):
         model = ManagementType

@@ -393,12 +393,14 @@
 }
 
 /* Keep the hover fade, but also reveal actions for keyboard and touch users. */
-.compact-table tbody tr:focus-within .row-action {
+.compact-table tbody tr:focus-within .row-action,
+.table-hover tbody tr:focus-within .edit-delete-actions .row-action {
     opacity: 1;
 }
 
 @media (hover: none) {
-    .compact-table .row-action {
+    .compact-table .row-action,
+    .table-hover .edit-delete-actions .row-action {
         opacity: 1;
     }
 }

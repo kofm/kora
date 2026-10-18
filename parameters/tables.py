@@ -1,6 +1,6 @@
 import django_tables2 as tables
 
-from frontpage.tables import TableHoverFixed
+from frontpage.tables import EditDeleteColumn, TableHoverFixed
 from parameters.models import Parameter, VarietalParameter
 
 
@@ -9,12 +9,7 @@ class ParameterTable(tables.Table):
     name = tables.Column(attrs={"td": {"class": "fw-bold"}})
     description = tables.Column(attrs={"td": {"class": "text-muted"}})
 
-    actions = tables.TemplateColumn(
-        template_name="parameters/partials/parameter_table_actions.html",
-        verbose_name="",
-        orderable=False,
-        attrs={"td": {"class": "text-end"}},
-    )
+    actions = EditDeleteColumn()
 
     class Meta(TableHoverFixed.Meta):
         model = Parameter
