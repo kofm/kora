@@ -98,6 +98,14 @@ refactor = "Changed"
 docs = "Documentation"
 perf = "Performance Improvements"
 
+[tool.zuban]
+mode = "default"
+disable_error_code = [
+    "attr-defined",
+]
+check_untyped_defs = false
+untyped_strict_optional = true
+
 [dependency-groups]
 dev = [
     "debugpy>=1.8.14",
