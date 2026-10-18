@@ -1,3 +1,21 @@
+## 0.7.0 (2026-10-18)
+
+### BREAKING CHANGE
+
+- Back up your database before upgrading. This release introduces typed parameter values. Existing values will be automatically migrated to the new data model. If an existing value has both its decimal and date fields populated, it will be split into two separate values. The decimal value will retain its original parameter, while the date value will be assigned to a newly created parameter whose code is the original code suffixed with `_date`.
+
+### Added
+
+- **API**: Allow creating observations attached to a specific step
+- **Register**: Add a "Crops" section to plant variety detail page
+- **Register**: Improve UI in the variety detail view
+- **Describe**: Improve table interaction of parameter values
+- **Describe**: Introduce support for typed parameter values and improve the UI
+
+### Fixed
+
+- **Evaluate**: fix links in Crop Layouts' Fieldbook tables
+
 ## 0.6.0-beta.3 (2026-10-11)
 
 ### Added
