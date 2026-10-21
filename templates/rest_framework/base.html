@@ -14,10 +14,16 @@
 {% block container %}
 
   <nav class="mt-2" aria-label="breadcrumb">
-    <ol class="breadcrumb">
+    <ol class="breadcrumb kora-breadcrumb">
       {% for breadcrumb_name, breadcrumb_url in breadcrumblist %}
-        <li class="breadcrumb-item {% if forloop.last %}active{% endif %}">
-          <a {% if not forloop.last %}href="{{ breadcrumb_url }}"{% endif %}>{{ breadcrumb_name }}</a>
+        <li class="breadcrumb-item {% if forloop.last %}active{% endif %}"{% if forloop.last %} aria-current="page"{% endif %}>
+          {% if forloop.last %}
+            <span class="breadcrumb-label">{{ breadcrumb_name }}</span>
+          {% elif breadcrumb_url %}
+            <a class="breadcrumb-label" href="{{ breadcrumb_url }}" title="{{ breadcrumb_name }}">{{ breadcrumb_name }}</a>
+          {% else %}
+            <span class="breadcrumb-label" title="{{ breadcrumb_name }}">{{ breadcrumb_name }}</span>
+          {% endif %}
         </li>
       {% empty %}
         &nbsp;

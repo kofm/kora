@@ -1,3 +1,74 @@
+.kora-breadcrumb {
+  --bs-breadcrumb-item-padding-x: 0.6rem;
+  --bs-breadcrumb-divider-color: var(--bs-tertiary-color);
+  --bs-breadcrumb-item-active-color: var(--bs-body-color);
+
+  row-gap: 0.35rem;
+  margin-block: 0.75rem 1rem;
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+.kora-breadcrumb .breadcrumb-item {
+  display: flex;
+  align-items: baseline;
+  min-width: 0;
+  max-width: 100%;
+  color: var(--bs-secondary-color);
+}
+
+.kora-breadcrumb .breadcrumb-item + .breadcrumb-item::before {
+  content: "";
+  float: none;
+  flex: 0 0 auto;
+  width: 0.35rem;
+  height: 0.35rem;
+  margin-inline-end: var(--bs-breadcrumb-item-padding-x);
+  padding: 0;
+  border-top: 1px solid var(--bs-breadcrumb-divider-color);
+  border-right: 1px solid var(--bs-breadcrumb-divider-color);
+  transform: translateY(-0.1rem) rotate(45deg);
+}
+
+.kora-breadcrumb .breadcrumb-label {
+  min-width: 0;
+}
+
+.kora-breadcrumb .breadcrumb-item:not(.active) .breadcrumb-label {
+  display: block;
+  max-width: min(14rem, 55vw);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.kora-breadcrumb a {
+  color: var(--bs-secondary-color);
+  text-decoration: none;
+  text-underline-offset: 0.2em;
+  border-radius: var(--bs-border-radius-sm);
+}
+
+.kora-breadcrumb a:hover,
+.kora-breadcrumb a:focus-visible {
+  color: var(--bs-link-hover-color);
+  text-decoration: underline;
+}
+
+.kora-breadcrumb a:focus-visible {
+  outline: 2px solid var(--bs-primary);
+  outline-offset: 2px;
+}
+
+.kora-breadcrumb .breadcrumb-item.active {
+  color: var(--bs-breadcrumb-item-active-color);
+  font-weight: 500;
+}
+
+.kora-breadcrumb .active .breadcrumb-label {
+  overflow-wrap: anywhere;
+}
+
 /* Detail page ID badge */
 
 .detail-page-id-badge {
