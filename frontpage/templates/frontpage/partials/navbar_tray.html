@@ -17,31 +17,29 @@
       <i class="bi bi-brightness-high-fill"></i>
 
     </a>
-    <ul class="dropdown-menu dropdown-menu-end">
-      <h6 class="dropdown-header">Appearance</h6>
-      <form hx-trigger="click" hx-swap="none">
-	<li class="small">
-	  <a id="setLight" class="dropdown-item{% if request.session.appearance == "light" or request.session.appearance is None %} active{% endif %}"
-		 _="on click set document.body's @data-bs-theme to 'light' then remove .active from #setDark then add .active on me"
-	    href="#"
-	    hx-post="{% url 'frontpage:appearance_set' %}"
-	    hx-vals='{"appearance": "light"}'
-
-	  >
-	    <i class="bi bi-brightness-high me-1"></i> Light
-	  </a>
-	</li>
-	<li class="small">
-	  <a id="setDark" class="dropdown-item{% if request.session.appearance == "dark" %} active{% endif %}"
-		 _="on click set document.body's @data-bs-theme to 'dark' then remove .active from #setLight then add .active on me"
-	    hx-post="{% url 'frontpage:appearance_set' %}"
-	    hx-vals='{"appearance": "dark"}'
-	  >
-	    <i class="bi bi-moon-stars me-1"></i> Dark
-	  </a>
-	</li>
-      </form>
-      <!-- <li class=small><a class="dropdown-item" href=""><i class="bi bi-circle-half me-1"></i> Auto</a></li> -->
+    <ul class="dropdown-menu dropdown-menu-end" hx-swap="none">
+      <li><h6 class="dropdown-header">Appearance</h6></li>
+      <li class="small">
+        <button type="button" class="dropdown-item{% if appearance == 'auto' %} active{% endif %}"
+                data-appearance-choice="auto" aria-pressed="{% if appearance == 'auto' %}true{% else %}false{% endif %}"
+                hx-post="{% url 'frontpage:appearance_set' %}" hx-vals='{"appearance": "auto"}'>
+          <i class="bi bi-circle-half me-1"></i> Auto
+        </button>
+      </li>
+      <li class="small">
+        <button type="button" id="setLight" class="dropdown-item{% if appearance == 'light' %} active{% endif %}"
+                data-appearance-choice="light" aria-pressed="{% if appearance == 'light' %}true{% else %}false{% endif %}"
+                hx-post="{% url 'frontpage:appearance_set' %}" hx-vals='{"appearance": "light"}'>
+          <i class="bi bi-brightness-high me-1"></i> Light
+        </button>
+      </li>
+      <li class="small">
+        <button type="button" id="setDark" class="dropdown-item{% if appearance == 'dark' %} active{% endif %}"
+                data-appearance-choice="dark" aria-pressed="{% if appearance == 'dark' %}true{% else %}false{% endif %}"
+                hx-post="{% url 'frontpage:appearance_set' %}" hx-vals='{"appearance": "dark"}'>
+          <i class="bi bi-moon-stars me-1"></i> Dark
+        </button>
+      </li>
     </ul>
   </div>
   

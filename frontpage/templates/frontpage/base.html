@@ -2,10 +2,13 @@
 {% load components %}
 
 <!doctype html>
-<html lang="en">
+<html lang="en" data-appearance="{{ appearance }}" data-bs-theme="{{ appearance_theme }}">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    {# Resolve Auto before stylesheets and body can paint; intentionally not deferred. #}
+    <script src="{% static 'frontpage/appearance.js' %}"></script>
 
     <link rel="stylesheet" href="{% static 'frontpage/vendor/bootstrap.min.css' %}">
     <link rel="stylesheet" href="{% static 'frontpage/vendor/bootstrap-icons.css' %}">
@@ -18,7 +21,7 @@
     <title>Kora - {% block title %}{% endblock %}</title>
   </head>
 
-  <body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' data-bs-theme="{{ request.session.appearance|default:"light" }}" _="on fetch:beforeRequest(headers) set headers['X-CSRFToken'] to '{{ csrf_token }}'">
+  <body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' _="on fetch:beforeRequest(headers) set headers['X-CSRFToken'] to '{{ csrf_token }}'">
 
     {% include 'frontpage/navbar.html' %}
 

@@ -8,7 +8,7 @@ from django.contrib.auth.decorators import (
 from django.contrib.auth.forms import AdminPasswordChangeForm, PasswordChangeForm, UserCreationForm
 from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.urls import reverse
@@ -18,6 +18,7 @@ from django.views.decorators.http import require_POST
 from django_tables2 import RequestConfig
 
 from breadcrumbs.utils import breadcrumbs_context, generate_breadcrumbs
+from frontpage.appearance import APPEARANCES
 from frontpage.forms import AdminUserUpdateForm, UserUpdateForm
 from frontpage.headers import DetailHeader
 from frontpage.tables import UserTable
@@ -45,7 +46,9 @@ def _may_manage_user(actor, target):
 @login_not_required
 @require_POST
 def appearance_set(request):
-    appearance = request.POST.get("appearance", "light")
+    appearance = request.POST.get("appearance")
+    if appearance not in APPEARANCES:
+        return HttpResponseBadRequest("Invalid appearance preference.")
     request.session["appearance"] = appearance
     return HttpResponse()
 

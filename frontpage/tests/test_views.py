@@ -6,6 +6,29 @@ from frontpage.factories import AdminFactory
 from frontpage.utils.shortcuts import get_safe_next_url
 
 
+class AppearancePreferenceTests(TestCase):
+    def test_anonymous_user_can_persist_auto(self):
+        session = self.client.session
+        session["appearance"] = "dark"
+        session.save()
+
+        response = self.client.post(reverse("frontpage:appearance_set"), {"appearance": "auto"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self.client.session["appearance"], "auto")
+
+    def test_invalid_submission_preserves_saved_preference(self):
+        session = self.client.session
+        session["appearance"] = "dark"
+        session.save()
+
+        for data in ({}, {"appearance": ""}, {"appearance": "unsupported"}):
+            with self.subTest(data=data):
+                response = self.client.post(reverse("frontpage:appearance_set"), data)
+                self.assertEqual(response.status_code, 400)
+                self.assertEqual(self.client.session["appearance"], "dark")
+
+
 class ViewSmokeTests(TestCase):
     def setUp(self):
         self.user = AdminFactory(username="tester", password="pass")
