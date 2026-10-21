@@ -90,7 +90,7 @@ def fieldbook_list(request):
     context = {
         "filter": fieldbook_filter,
         "table": table,
-        "header": ListHeader(request, FieldBook, title="Fieldbooks", modal=True),
+        "header": ListHeader(request, FieldBook, modal=True),
         **generate_breadcrumbs(request, FieldBook),
     }
     return TemplateResponse(request, "calculator/fieldbook_list.html", context)
@@ -136,7 +136,7 @@ def layout_fieldbook_create(request, layout_id):
 
 @permission_required("calculator.view_fieldbook", raise_exception=True)
 def fieldbook_detail(request, pk):
-    fieldbook = get_object_or_404(FieldBook.objects.select_related("layout"), pk=pk)
+    fieldbook = get_object_or_404(FieldBook.objects.select_related("layout__location"), pk=pk)
     crops = fieldbook.layout.crops.prefetch_related("variety__species").order_by("order")
     is_read_only = fieldbook.layout.is_archived
 
@@ -169,6 +169,7 @@ def fieldbook_detail(request, pk):
 
     breadcrumbs = generate_breadcrumbs(request, FieldBook, fieldbook)
     breadcrumbs = add_parent_breadcrumbs(breadcrumbs, fieldbook.layout)
+    breadcrumbs = add_parent_breadcrumbs(breadcrumbs, fieldbook.layout.location)
     header = FieldBookDetailHeader(
         request,
         fieldbook,
@@ -491,6 +492,7 @@ def step_detail(request, pk):
     breadcrumbs = add_parent_breadcrumbs(breadcrumbs, step.crop)
     breadcrumbs = add_parent_breadcrumbs(breadcrumbs, step.fieldbook)
     breadcrumbs = add_parent_breadcrumbs(breadcrumbs, step.fieldbook.layout)
+    breadcrumbs = add_parent_breadcrumbs(breadcrumbs, step.fieldbook.layout.location)
     context = {
         "step": step,
         "step_nav": step_nav,

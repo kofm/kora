@@ -46,11 +46,11 @@
         {% if perms.parameters.view_varietalparameter %}
           <li><a class="dropdown-item" href="{% url 'parameters:varietalparameter_list' %}">Values</a></li>
         {% endif %}
-	{% if perms.parameters.view_parameter %}
+	      {% if perms.parameters.view_parameter %}
           <li>
             <a class="dropdown-item" href="{% url 'parameters:parameter_list'  %}">Parameters</a>
           </li>
-	{% endif %}
+	      {% endif %}
       </ul>
     </li>
 
@@ -69,38 +69,38 @@
         Evaluate
       </a>
       <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-	{% if perms.spaces.view_location %}
+	      {% if perms.spaces.view_location %}
           <li>
             <a class="dropdown-item" href="{% url 'spaces:location_list' %}">Locations</a>
           </li>
-	{% endif %}
-	{% if perms.calculator.view_croplayout %}
+	      {% endif %}
+	      {% if perms.calculator.view_croplayout %}
           <li><a class="dropdown-item" href="{% url 'calculator:croplayout_list' %}">Crop Layouts</a></li>
-	{% endif %}
-	{% if perms.calculator.view_fieldbook %}
-          <li><a class="dropdown-item" href="{% url 'calculator:fieldbook_list' %}">Fieldbooks</a></li>
-	{% endif %}
+	      {% endif %}
+	      {% if perms.calculator.view_fieldbook %}
+          <li><a class="dropdown-item" href="{% url 'calculator:fieldbook_list' %}">Field Books</a></li>
+	      {% endif %}
         {% if perms.calculator.view_traitobservation or perms.calculator.view_parameterobservation %}
           <li><hr class="dropdown-divider"></li>
           <li><h6 class="dropdown-header">Observations</h6></li>
         {% endif %}
-	{% if perms.calculator.view_traitobservation %}
+	      {% if perms.calculator.view_traitobservation %}
           <li>
             <a class="dropdown-item" href="{% url 'calculator:trait_observation_list' %}">Traits</a>
           </li>
-	{% endif %}
-	{% if perms.calculator.view_parameterobservation %}
+	      {% endif %}
+	      {% if perms.calculator.view_parameterobservation %}
           <li>
             <a class="dropdown-item" href="{% url 'calculator:parameter_observation_list' %}">Parameters</a>
           </li>
-	{% endif %}
+	      {% endif %}
         {% if perms.calculator.view_managementtype %}
           <li><hr class="dropdown-divider"></li>
           <li><h6 class="dropdown-header">Management</h6></li>
         {% endif %}
-	{% if perms.calculator.view_managementtype %}
+	      {% if perms.calculator.view_managementtype %}
           <li><a class="dropdown-item" href="{% url 'calculator:managementtype_list' %}">Operations</a></li>
-	{% endif %}
+	      {% endif %}
       </ul>
     </li>
 

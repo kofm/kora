@@ -297,7 +297,7 @@ class Step(models.Model):
         unique_together = ("fieldbook", "crop")
 
     def __str__(self):
-        return f"Step {self.order + 1}"
+        return f"#{self.order + 1}"
 
     def save(self, *args, **kwargs):
         self.full_clean()

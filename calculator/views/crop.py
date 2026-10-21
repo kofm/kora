@@ -24,7 +24,9 @@ def crop_detail(request, pk):
     context = {"crop": crop, "is_read_only": is_read_only}
 
     if partial in {None, "trait_observations_table"}:
-        trait_observations = TraitObservation.objects.select_related("created_by", "state__trait").filter(crop=crop)
+        trait_observations = TraitObservation.objects.select_related("created_by", "state__trait__protocol").filter(
+            crop=crop
+        )
         trait_observations_table = TraitObservationTable(
             trait_observations,
             page_field="obsexpr_page",
@@ -48,6 +50,7 @@ def crop_detail(request, pk):
     if partial is None:
         context["header"] = DetailHeader(request, crop, title=crop.variety.name, show_id=True)
         breadcrumbs = generate_breadcrumbs(request, Crop, crop)
+        breadcrumbs = add_parent_breadcrumbs(breadcrumbs, crop.variety)
         breadcrumbs = add_parent_breadcrumbs(breadcrumbs, crop.layout)
         breadcrumbs = add_parent_breadcrumbs(breadcrumbs, crop.layout.location)
         context.update(breadcrumbs)
