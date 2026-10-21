@@ -1,3 +1,13 @@
+## 0.7.1 (2026-10-21)
+
+### Added
+
+- add auto system light/dark theme detection
+
+### Fixed
+
+- **Evaluate**: improve breadcrumbs navigation and UI consistency
+
 ## 0.7.0 (2026-10-18)
 
 ### BREAKING CHANGE
