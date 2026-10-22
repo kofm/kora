@@ -72,9 +72,12 @@
   "id",
   "numeric_id",
   "description",
-  "trait",
   "group",
+  "trait",
+  "trait_numeric_id",
+  "protocol",
 ]
+
 
 "expressions-list" = [
   "id",

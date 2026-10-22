@@ -144,10 +144,12 @@ class StateListSerializer(serializers.ListSerializer):
 
 class StateSerializer(BulkModelSerializer):
     group = serializers.PrimaryKeyRelatedField(read_only=True)
+    trait_numeric_id = serializers.IntegerField(source="trait.numeric_id", read_only=True)
+    protocol = serializers.IntegerField(source="trait.protocol_id", read_only=True)
 
     class Meta(BulkModelSerializer.Meta):
         model = State
-        fields = ("id", "numeric_id", "description", "trait", "group")
+        fields = ("id", "numeric_id", "description", "group", "trait", "trait_numeric_id", "protocol")
         list_serializer_class = StateListSerializer
 
     @transaction.atomic
