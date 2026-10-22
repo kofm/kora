@@ -132,7 +132,14 @@ def _description_list(request):
         request,
         Description,
         modal=True,
-        actions=[HeaderAction("Configure", Description.get_configure_url(), "describe.add_description", modal=True)],
+        actions=[
+            HeaderAction(
+                "Import Descriptions",
+                reverse("restapi:descriptions-spreadsheet-import"),
+                "describe.add_description",
+            ),
+            HeaderAction("Configure", Description.get_configure_url(), "describe.add_description", modal=True),
+        ],
     )
     context.update(generate_breadcrumbs(request, Description))
 
@@ -158,6 +165,11 @@ def description_form(request):
                 Description,
                 modal=True,
                 actions=[
+                    HeaderAction(
+                        "Import Descriptions",
+                        reverse("restapi:descriptions-spreadsheet-import"),
+                        "describe.add_description",
+                    ),
                     HeaderAction("Configure", Description.get_configure_url(), "describe.add_description", modal=True),
                 ],
             ),

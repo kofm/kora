@@ -44,6 +44,11 @@ def protection_list(request):
     table = ProtectionListTable(flt.qs)
     RequestConfig(request).configure(table)
     actions = [
+        HeaderAction(
+            "Import Protections",
+            reverse_lazy("restapi:protections-spreadsheet-import"),
+            "register.add_protection",
+        ),
         HeaderAction("Configure", Protection.get_configure_url(), "register.add_protection", modal=True),
     ]
     context = {
@@ -238,6 +243,13 @@ def entity_list(request):
     flt = EntityFilter(request.GET, queryset=Entity.objects.all())
     table = EntityTable(flt.qs)
     RequestConfig(request).configure(table)
-    context = {"table": table, "filter": flt, "header": ListHeader(request, Entity, modal=True)}
+    actions = [
+        HeaderAction(
+            "Import Entities",
+            reverse_lazy("restapi:entities-spreadsheet-import"),
+            "register.add_entity",
+        ),
+    ]
+    context = {"table": table, "filter": flt, "header": ListHeader(request, Entity, modal=True, actions=actions)}
     context.update(generate_breadcrumbs(request, Entity))
     return TemplateResponse(request, "register/entity_list.html", context)
