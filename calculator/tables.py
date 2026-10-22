@@ -49,7 +49,7 @@ class CropLayoutListTable(BaseCropLayoutTable):
 
     class Meta(BaseCropLayoutTable.Meta):
         fields = ("name", "location", "status", "crop_count", "fieldbook_count", "updated_at")
-        empty_text = "There are no crop layouts."
+        empty_text = "There are no matching crop layouts."
 
     def render_status(self, record):
         return "Archived" if record.archived_at else "Visible"
@@ -65,7 +65,7 @@ class BaseFieldBookTable(tables.Table):
         model = FieldBook
         fields: tuple = ("name", "observation_count", "planned_target_count", "percent_completed")
         template_name = "frontpage/partials/htmx_table.html"
-        empty_text = "There are no fieldbooks."
+        empty_text = "There are no matching fieldbooks."
         per_page = 10
 
     def render_percent_completed(self, record, value):
@@ -135,7 +135,7 @@ class TraitObservationListTable(tables.Table):
         model = TraitObservation
         fields = ("variety", "layout", "fieldbook", "protocol", "trait", "state", "recorded_at")
         template_name = "frontpage/partials/htmx_table.html"
-        empty_text = "There are no trait observations."
+        empty_text = "There are no matching trait observations."
         attrs = {"class": "table table-hover table-fixed small-table"}
         row_attrs = {
             "_": lambda record: f"on click go to url '{record.crop.get_absolute_url()}#expressions'",
@@ -180,7 +180,7 @@ class ParameterObservationListTable(tables.Table):
             "created_by",
         )
         template_name = "frontpage/partials/htmx_table.html"
-        empty_text = "There are no parameter observations."
+        empty_text = "There are no matching parameter observations."
         attrs = {"class": "table table-hover table-fixed small-table"}
         row_attrs = {
             "_": lambda record: f"on click go to url '{record.crop.get_absolute_url()}#obs_parameters'",

@@ -26,7 +26,7 @@ class BaseSampleTable(tables.Table):
         attrs = {"class": "table table-hover table-fixed small-table compact-table"}
         model = Sample
         fields: tuple = ("sample_id", "growing_season", "notes")
-        empty_text = "There are no seed samples to be displayed."
+        empty_text = "There are no matching samples."
         row_attrs: dict[str, Any] = TableHoverFixed.Meta.row_attrs | {
             "class": lambda record: "table-danger" if record.is_being_discarded else ""
         }

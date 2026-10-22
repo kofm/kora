@@ -16,7 +16,7 @@ class LocationTable(tables.Table):
         fields = ("name",)
         order_by = "name"
         template_name = "frontpage/partials/htmx_table.html"
-        empty_text = "There are no locations to be displayed."
+        empty_text = "There are no matching locations."
 
     def render_coordinates(self, value, record):
         lat = record.latitude

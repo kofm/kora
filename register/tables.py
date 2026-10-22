@@ -130,7 +130,7 @@ class EntityTable(tables.Table, CountryRenderer):
         fields = ("name", "type", "country")
         template_name = "register/partials/entity_table.html"
         per_page = 10
-        empty_text = "There are no entities to be displayed."
+        empty_text = "There are no matching entities."
 
 
 class VarietalParameterTable(tables.Table):
@@ -164,7 +164,7 @@ class PlantSpeciesTable(tables.Table):
         fields = ("id", "common_name", "botanical_name", "code")
         order_by = "common_name"
         template_name = "frontpage/partials/htmx_table.html"
-        empty_text = "There are no plant species to be displayed."
+        empty_text = "There are no matching plant species."
 
     def render_id(self, value):
         return format_html('<span class="detail-page-id-badge">{}</span>', value)

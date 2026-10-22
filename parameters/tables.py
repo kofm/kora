@@ -16,6 +16,7 @@ class ParameterTable(tables.Table):
         exclude = ("id",)
         per_page = 10
         template_name = "frontpage/partials/htmx_table.html"
+        empty_text = "There are no matching parameter definitions."
 
 
 class VarietalParameterTable(tables.Table):
@@ -28,7 +29,7 @@ class VarietalParameterTable(tables.Table):
     class Meta:
         model = VarietalParameter
         fields = ("variety__name", "parameter__code", "parameter__name", "value", "note")
-        empty_text = "There are no associated parameters."
+        empty_text = "There are no matching parameters."
         per_page = 15
         template_name = "frontpage/partials/htmx_table.html"
         attrs = {"class": "table table-hover table-fixed small-table"}
