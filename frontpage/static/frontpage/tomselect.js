@@ -95,6 +95,9 @@ function asOptions(el) {
         opts[key] = parseDataValue(attr.value);
     }
 
+    // Allow empty searches to show TomSelect's built-in "No results found" message.
+    opts.shouldLoad = () => true;
+
     if (opts.url) {
         const url = opts.url;
         const searchParam = opts.searchParam;
