@@ -1,3 +1,14 @@
+## 0.7.2 (2026-10-22)
+
+### Added
+
+- **restapi**: add trait numeric id and protocol to state serializer
+- add spreadsheet import actions to description, protection, and entity list pages
+
+### Fixed
+
+- Display TomSelect no results message on empty search
+
 ## 0.7.1 (2026-10-21)
 
 ### Added
