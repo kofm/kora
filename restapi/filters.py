@@ -63,11 +63,13 @@ class PlantVarietyFilter(FilterSet):
 
 
 class EntityFilter(FilterSet):
+    id__in = NumberInFilter(field_name="pk", lookup_expr="in")
     name__icontains = CharFilter(field_name="name", lookup_expr="icontains")
 
     class Meta:
         model = Entity
         fields = (
+            "id__in",
             "name",
             "name__icontains",
             "type",
@@ -76,8 +78,11 @@ class EntityFilter(FilterSet):
 
 
 class ProtectionFilter(FilterSet):
+    type = CharFilter(field_name="type__code")
     reference__icontains = CharFilter(field_name="reference", lookup_expr="icontains")
     variety__in = NumberInFilter(field_name="variety", lookup_expr="in")
+    species = NumberFilter(field_name="variety__species")
+    species__in = NumberInFilter(field_name="variety__species", lookup_expr="in")
 
     class Meta:
         model = Protection

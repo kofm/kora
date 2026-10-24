@@ -106,6 +106,9 @@ class ProtectionTypeSerializer(serializers.ModelSerializer):
 
 
 class ProtectionSerializer(CountryFieldMixin, BulkModelSerializer):
+    variety_name = serializers.CharField(source="variety.name", read_only=True)
+    species = serializers.IntegerField(source="variety.species_id", read_only=True)
+    species_common_name = serializers.CharField(source="variety.species.common_name", read_only=True)
     type = serializers.SlugRelatedField(
         slug_field="code",
         queryset=ProtectionType.objects.all(),
@@ -120,6 +123,9 @@ class ProtectionSerializer(CountryFieldMixin, BulkModelSerializer):
             "status",
             "country",
             "variety",
+            "variety_name",
+            "species",
+            "species_common_name",
             "applicants",
             "maintainers",
             "date_start",
