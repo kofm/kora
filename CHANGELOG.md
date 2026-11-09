@@ -1,3 +1,10 @@
+## 0.7.3 (2026-11-09)
+
+### Added
+
+- **API**: Allow bulk creation in Crops and Observations endpoints
+- **API**: Allow filtering Protections by species and include relevant fields in the returned data
+
 ## 0.7.2 (2026-10-22)
 
 ### Added
