@@ -456,6 +456,137 @@ class ObservationAPITests(APITestCase):
         content = b"".join(response.streaming_content).decode()
         return [json.loads(line) for line in content.splitlines()]
 
+    def observation_cases(self):
+        return (
+            ("trait", {"state": self.state.pk}, self.crop.traitobservation, TraitTarget, {"trait": self.state.trait}),
+            (
+                "parameter",
+                {"parameter": self.parameter.pk, "value_decimal": "4.250"},
+                self.crop.parameterobservation,
+                ParameterTarget,
+                {"parameter": self.parameter},
+            ),
+        )
+
+    def test_bulk_creation_preserves_order_and_assigns_authenticated_user(self):
+        self.grant("add_traitobservation", "add_parameterobservation")
+        for kind, fields, observations, _, _ in self.observation_cases():
+            with self.subTest(kind=kind):
+                payload = [
+                    {"crop": self.crop.pk, "created_by": self.other_user.pk, "notes": note, **fields}
+                    for note in ("First", "Second")
+                ]
+                response = self.client.post(reverse(f"restapi:{kind}-observations-bulk"), payload, format="json")
+
+                self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+                self.assertEqual([row["notes"] for row in response.data], ["First", "Second"])
+                self.assertEqual(observations.count(), 2)
+                for row in response.data:
+                    self.assertEqual(observations.get(pk=row["id"]).created_by, self.user)
+
+    def test_bulk_creation_validates_species_and_typed_values_before_writing(self):
+        self.grant("add_traitobservation", "add_parameterobservation")
+        invalid_fields = {
+            "trait": {"state": StateFactory().pk},
+            "parameter": {"parameter": self.parameter.pk, "value_text": "Wrong type"},
+        }
+        for kind, fields, observations, _, _ in self.observation_cases():
+            with self.subTest(kind=kind):
+                response = self.client.post(
+                    reverse(f"restapi:{kind}-observations-bulk"),
+                    [{"crop": self.crop.pk, **fields}, {"crop": self.crop.pk, **invalid_fields[kind]}],
+                    format="json",
+                )
+                self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+                self.assertEqual(response.data[0], {})
+                self.assertTrue(response.data[1])
+                self.assertFalse(observations.exists())
+
+    def test_bulk_creation_does_not_enable_observation_updates(self):
+        self.grant("change_traitobservation", "change_parameterobservation")
+        for kind, observation in (
+            ("trait", TraitObservationFactory(crop=self.crop, state=self.state, created_by=self.user)),
+            ("parameter", ParameterObservationFactory(crop=self.crop, created_by=self.user)),
+        ):
+            with self.subTest(kind=kind):
+                url = reverse(f"restapi:{kind}-observations-detail", args=[observation.pk])
+                for method in (self.client.patch, self.client.put):
+                    self.assertEqual(method(url, {"notes": "Changed"}).status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_bulk_creation_requires_add_permission(self):
+        for kind, fields, observations, _, _ in self.observation_cases():
+            with self.subTest(kind=kind):
+                response = self.client.post(
+                    reverse(f"restapi:{kind}-observations-bulk"),
+                    [{"crop": self.crop.pk, **fields}],
+                    format="json",
+                )
+                self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+                self.assertFalse(observations.exists())
+
+    def test_bulk_creation_rejects_archived_crops_without_partial_writes(self):
+        self.grant("add_traitobservation", "add_parameterobservation")
+        archived_crop = CropFactory(variety=self.crop.variety)
+        archived_crop.layout.archive()
+        for kind, fields, observations, _, _ in self.observation_cases():
+            with self.subTest(kind=kind):
+                response = self.client.post(
+                    reverse(f"restapi:{kind}-observations-bulk"),
+                    [{"crop": crop.pk, **fields} for crop in (self.crop, archived_crop)],
+                    format="json",
+                )
+                self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+                self.assertIn("crop", response.data[1])
+                self.assertFalse(observations.exists())
+
+    def test_bulk_creation_preserves_target_association_and_remaining_capacity(self):
+        self.grant("add_traitobservation", "add_parameterobservation")
+        step = StepFactory(crop=self.crop, fieldbook__layout=self.crop.layout)
+        for kind, fields, observations, target_model, target_fields in self.observation_cases():
+            with self.subTest(kind=kind):
+                target_model.objects.create(step=step, required_count=2, **target_fields)
+                payload = {"crop": self.crop.pk, "step": step.pk, **fields}
+                url = reverse(f"restapi:{kind}-observations-bulk")
+                response = self.client.post(url, [payload, payload], format="json")
+
+                self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+                self.assertEqual(observations.filter(step=step).count(), 2)
+                self.assertTrue(all(row["step"] == step.pk for row in response.data))
+                rejected = self.client.post(url, [payload], format="json")
+                self.assertEqual(rejected.status_code, status.HTTP_400_BAD_REQUEST)
+                self.assertEqual(observations.count(), 2)
+
+    def test_bulk_creation_rolls_back_when_batch_exceeds_target_capacity(self):
+        self.grant("add_traitobservation", "add_parameterobservation")
+        step = StepFactory(crop=self.crop, fieldbook__layout=self.crop.layout)
+        for kind, fields, observations, target_model, target_fields in self.observation_cases():
+            with self.subTest(kind=kind):
+                target_model.objects.create(step=step, required_count=1, **target_fields)
+                payload = {"crop": self.crop.pk, "step": step.pk, **fields}
+                response = self.client.post(
+                    reverse(f"restapi:{kind}-observations-bulk"), [payload, payload], format="json"
+                )
+
+                self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+                self.assertIn("step", response.data)
+                self.assertFalse(observations.exists())
+
+    def test_bulk_creation_rolls_back_when_later_target_is_missing(self):
+        self.grant("add_traitobservation", "add_parameterobservation")
+        step = StepFactory(crop=self.crop, fieldbook__layout=self.crop.layout)
+        for kind, fields, observations, _, _ in self.observation_cases():
+            with self.subTest(kind=kind):
+                payload = {"crop": self.crop.pk, **fields}
+                response = self.client.post(
+                    reverse(f"restapi:{kind}-observations-bulk"),
+                    [payload, {**payload, "step": step.pk}],
+                    format="json",
+                )
+
+                self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+                self.assertIn("state" if kind == "trait" else "parameter", response.data)
+                self.assertFalse(observations.exists())
+
     def test_parameter_display_preserves_codes_for_observations_and_targets(self):
         self.grant("view_parameterobservation", "view_parametertarget")
         self.parameter.code = "STEM_LENGTH"

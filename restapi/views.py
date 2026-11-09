@@ -74,7 +74,7 @@ from restapi.serializers.models import (
     WorkspaceElementSerializer,
     WorkspaceSerializer,
 )
-from restapi.viewsets import JSONLExportMixin, KoraViewSet, SpreadsheetImportActionMixin
+from restapi.viewsets import BulkCreateActionMixin, JSONLExportMixin, KoraViewSet, SpreadsheetImportActionMixin
 
 from .filters import (
     CropFilter,
@@ -384,6 +384,7 @@ class FieldBookViewSet(
 
 
 class ObservationViewSet(
+    BulkCreateActionMixin,
     JSONLExportMixin,
     mixins.ListModelMixin,
     mixins.RetrieveModelMixin,
@@ -402,7 +403,12 @@ class ObservationViewSet(
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
 
+    @transaction.atomic
+    def perform_bulk_create(self, serializer):
+        serializer.save(created_by=self.request.user)
 
+
+@document_bulk_create(TraitObservationSerializer, name="trait observations")
 class TraitObservationViewSet(ObservationViewSet):
     serializer_class = TraitObservationSerializer
     filterset_class = TraitObservationFilter
@@ -415,6 +421,7 @@ class TraitObservationViewSet(ObservationViewSet):
     )
 
 
+@document_bulk_create(ParameterObservationSerializer, name="parameter observations")
 class ParameterObservationViewSet(ObservationViewSet):
     serializer_class = ParameterObservationSerializer
     filterset_class = ParameterObservationFilter
@@ -668,7 +675,7 @@ class WorkspaceElementViewSet(KoraViewSet):
         serializer.save(workspace=self.get_workspace())
 
 
-class CropViewSet(SpreadsheetImportActionMixin, JSONLExportMixin, viewsets.ModelViewSet):
+class CropViewSet(SpreadsheetImportActionMixin, KoraViewSet):
     permission_classes = [KoraModelPermissions]
     serializer_class = CropSerializer
     queryset = Crop.objects.select_related("variety__species", "layout__location")
